@@ -14,39 +14,59 @@
 
 | 대상 | 규칙 | 예 |
 |---|---|---|
-| 컴포넌트 파일 | `PascalCase.tsx` | `ProductCard.tsx` |
-| 훅 파일 | `use-kebab-case.ts` | `use-ui-store.ts` |
-| 그 외 모듈 파일 | `kebab-case.ts` | `query-client.ts`, `product.schema.ts` |
-| 라우트 파일 | Next 예약어 그대로 | `page.tsx`, `layout.tsx`, `route.ts` |
-| 컴포넌트/타입/인터페이스 | `PascalCase` | `ProductCard`, `type CartItem` |
+| 컴포넌트 파일 | `PascalCase.tsx` | `ProductThumbnail.tsx`, `QueryProvider.tsx` |
+| 훅 파일 | `useCamelCase.ts` | `useUIStore.ts`, `useProducts.ts` |
+| 그 외 모듈 파일 | `camelCase.ts` | `queryClient.ts`, `apiClient.ts` |
+| 타입/스키마 파일 | 도메인명 소문자 | `types/product.ts`, `types/common.ts` |
+| 에러 클래스 파일 | `PascalCase.ts` (클래스명과 동일) | `errors/ApiError.ts` |
+| 라우트 파일 | Next 예약어 그대로 | `page.tsx`, `layout.tsx`, `route.ts`, `middleware.ts` |
+| 컴포넌트/타입/인터페이스 | `PascalCase` | `ProductThumbnail`, `type CartItem` |
 | 변수/함수 | `camelCase` | `getQueryClient`, `isSoldOut` |
-| 상수(불변 리터럴) | `UPPER_SNAKE_CASE` | `DEFAULT_PAGE_SIZE` |
+| 상수(불변 리터럴) | `UPPER_SNAKE_CASE` | `OAUTH_PROVIDERS`, `BOTTOM_NAV` |
 | 불리언 | `is/has/should/can` 접두 | `isLoading`, `hasNextPage` |
 | 이벤트 핸들러 | `handle` 접두, prop 은 `on` 접두 | `handleSubmit`, `<X onSubmit={...} />` |
 | Zod 스키마 | `PascalCase` + `Schema` 접미 | `ProductSchema` |
-| 쿼리 키 팩토리 | `<domain>Keys` | `productKeys`, `cartKeys` |
+| 쿼리 키 팩토리 | `<domain>Keys` (파일 `queryKeys.ts`) | `productKeys`, `cartKeys` |
 | Zustand 팩토리 | `create<Name>Store` | `createUIStore` |
 
 - 약어는 한 단어로 취급: `apiUrl`, `ProductId` (O) / `aPIUrl`, `ProductID` (X).
-- 디렉터리는 `kebab-case`. 도메인 폴더는 단수(`features/order/`, `features/cart/`).
+- 디렉터리는 `kebab-case` 또는 단순 소문자. 도메인 폴더는 단수(`hooks/order/`, `components/molecules/cart/`).
 - default export 는 라우트 파일(`page.tsx` 등)과 Next 규약 파일에만. 그 외는 named export.
 
 ---
 
-## 2. CDD(Component Driven Development) 작성 순서
+## 2. CDD(Component Driven Development) + Atomic Design
+
+### 2-1. 컴포넌트 계층 (Atomic Design 하이브리드 — 3계층)
+
+원래 5단계지만 templates/pages 는 App Router 의 `layout.tsx`/`page.tsx` 가 대신하므로
+`src/components/` 는 **3계층**만 둔다. (structure-convention §3 원본)
+
+| 계층 | 폴더 | 정의 | fetch |
+|---|---|---|---|
+| atoms | `components/atoms/` | 최소 UI, 도메인 지식 없음 (Button, Input, Badge, Spinner) | 금지 |
+| molecules | `components/molecules/{shared,product,cart,auth}/` | atom 조합, 도메인별 분류 (PriceTag, ProductThumbnail, CartLineItem) | 금지 |
+| organisms | `components/organisms/{shared,home,product,cart,checkout,mypage,ai,auth}/` | 화면의 한 구획 (Header, ProductGrid, CartList) | 금지 — 훅을 주입받아 조립 |
+
+- 2개 이상 도메인이 공유하면 `shared/`, 아니면 도메인 폴더.
+- molecule 이 다른 molecule 을 쓰면 organism 후보.
+- 데이터 fetch 는 라우트(`page.tsx`)나 organism 컨테이너에서 `hooks/<domain>` 훅으로만.
+
+### 2-2. 작성 순서
 
 컴포넌트는 아래 순서로 만든다. 순서를 지키면 스토리/테스트/문서가 자연히 따라온다.
 (Storybook `/stories` 규약은 git-convention 의 스코프(2) 명세 참고 — 지금은 폴더를 만들지 않는다.)
 
-1. **Props 인터페이스 먼저.** 무엇을 받는지 타입으로 확정. 필수/선택 구분.
-2. **표현(presentational) 컴포넌트 구현.** 데이터 fetch 없음. props 로만 렌더. `"use client"` 는 상호작용이 있을 때만.
-3. **상태별 분기 정리.** default / loading / empty / error / disabled / (스켈레톤). 각 상태를 컴포넌트가 표현 가능해야 한다.
-4. **(스코프 2) 스토리 작성.** 상태별 스토리 + `play` 함수 인터랙션 테스트. 파일은 컴포넌트 옆에 co-location(`ProductCard.stories.tsx`).
-5. **컨테이너/훅 연결.** `features/<domain>/hooks` 의 query hook 을 붙인 wrapper 를 별도로.
-6. **접근성 점검.** §5 체크리스트 통과.
-7. **문서화.** 복잡한 props 는 JSDoc.
+1. **계층 결정.** atom / molecule / organism 중 무엇인지, 어느 도메인 폴더인지 먼저 정한다.
+2. **Props 인터페이스.** 무엇을 받는지 타입으로 확정. 필수/선택 구분.
+3. **표현(presentational) 컴포넌트 구현.** 데이터 fetch 없음. props 로만 렌더. `"use client"` 는 상호작용이 있을 때만.
+4. **상태별 분기 정리.** default / loading / empty / error / disabled / (스켈레톤). 각 상태를 컴포넌트가 표현 가능해야 한다.
+5. **(스코프 2) 스토리 작성.** 상태별 스토리 + `play` 함수 인터랙션 테스트. 파일은 컴포넌트 옆에 co-location(`ProductThumbnail.stories.tsx`).
+6. **컨테이너/훅 연결.** `hooks/<domain>/` 의 query hook 을 붙인 wrapper(organism 컨테이너 또는 `page.tsx`)를 별도로.
+7. **접근성 점검.** §5 체크리스트 통과.
+8. **문서화.** 복잡한 props 는 JSDoc.
 
-원칙: **표현과 데이터는 분리한다.** `ProductCard` 는 `product` 를 받고, `ProductCardContainer` 가 훅으로 데이터를 공급한다.
+원칙: **표현과 데이터는 분리한다.** `ProductGrid` 는 `products` 를 받고, `page.tsx`/컨테이너가 `useProducts()` 로 데이터를 공급한다.
 
 ---
 
@@ -71,13 +91,13 @@ export const useUIStore = create<UIStore>()((set) => ({ ... }));
 ```
 
 ```ts
-// ✅ zustand/vanilla 의 createStore 로 "팩토리"만 정의 (src/stores/ui-store.ts)
+// ✅ zustand/vanilla 의 createStore 로 "팩토리"만 정의 (src/stores/uiStore.ts)
 export const createUIStore = (initState = defaultUIState) =>
   createStore<UIStore>()((set) => ({ ...initState, /* actions */ }));
 ```
 
 ```tsx
-// ✅ Provider 가 useRef 로 마운트당 1회 생성 (src/providers/ui-store-provider.tsx)
+// ✅ Provider 가 useRef 로 마운트당 1회 생성 (src/providers/UIStoreProvider.tsx)
 export function UIStoreProvider({ children }: { children: ReactNode }) {
   const storeRef = useRef<UIStoreApi | null>(null);
   storeRef.current ??= createUIStore();
@@ -88,7 +108,7 @@ export function UIStoreProvider({ children }: { children: ReactNode }) {
 ### 3-3. useShallow 강제
 
 배열/객체를 반환하는 selector 는 **반드시 `useShallow` 로 감싼다.** 참조만 바뀐 리렌더를 막기 위함.
-프로젝트는 이를 강제하는 전용 훅을 제공한다(`src/hooks/use-ui-store.ts`):
+프로젝트는 이를 강제하는 전용 훅을 제공한다(`src/hooks/useUIStore.ts`):
 
 ```ts
 // 단일 원시값 — 그냥
@@ -118,7 +138,7 @@ const { open, close } = useUIStoreShallow((s) => ({ open: s.openMobileNav, close
 ## 4. 폼 작성 규칙
 
 - **React Hook Form v7 + Zod v4 + `@hookform/resolvers`** 조합만 사용한다. 수동 `useState` 폼 금지.
-- 스키마는 `src/features/<domain>/schemas/` 또는 `src/schemas/` 에. 폼 컴포넌트 안에 인라인 정의 금지.
+- 스키마는 `src/types/<domain>.ts` 에. 폼 컴포넌트 안에 인라인 정의 금지.
 - `zodResolver(Schema)` 로 검증을 연결하고, 폼 타입은 `z.infer<typeof Schema>` 로 파생한다.
 - 제출 핸들러는 `handleSubmit(onValid)` 형태. `onValid` 안에서 mutation 호출.
 - 서버 에러(422 등)는 `setError` 로 필드에 매핑하거나 폼 상단 요약으로 표시.

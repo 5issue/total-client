@@ -16,25 +16,26 @@
 Route Handler        src/app/api/**/route.ts       ← BFF. 외부 API 프록시 + 인증/쿠키 처리
    │  (fetch)
    ▼
-schemas              src/schemas/*.schema.ts       ← Zod 로 응답/요청 검증, 타입 파생
+types (Zod)          src/types/<domain>.ts         ← Zod 로 응답/요청 검증, 타입 파생
    │  (parse)
    ▼
-api-client           src/lib/api/*.ts              ← publicFetch / privateFetch 래퍼, 엔드포인트 함수
+apiClient            src/lib/apiClient.ts          ← publicFetch / privateFetch 래퍼 + 401 재발급
    │
    ▼
-query hooks          src/features/<domain>/hooks/  ← useQuery / useMutation, 쿼리 키 팩토리
+query hooks          src/hooks/<domain>/           ← useQuery / useMutation, 쿼리 키 팩토리
    │
    ▼
-컴포넌트             src/components, src/features   ← 훅만 호출. fetch 직접 호출 금지
+컴포넌트             src/components/{atoms,molecules,organisms}/  ← 훅만 호출. fetch 직접 호출 금지
 ```
 
 | 계층 | 위치 | 책임 | 하면 안 되는 것 |
 |---|---|---|---|
 | Route Handler | `src/app/api/**/route.ts` | 외부 API 호출, 토큰/쿠키 주입, 에러 정규화 | UI 로직, 비즈니스 규칙 계산 |
-| schema | `src/schemas/` | Zod 스키마 정의, `z.infer` 타입 export | fetch 호출 |
-| api-client | `src/lib/api/` | HTTP 래퍼, 엔드포인트별 함수, 응답 `parse` | React 훅 사용, 컴포넌트 import |
-| query hook | `src/features/<domain>/hooks/` | `useQuery`/`useMutation`, 쿼리 키, 캐시 정책 | JSX 렌더 |
-| 컴포넌트 | `src/components`, `src/features/<domain>/components` | 렌더링, 훅 호출 | `fetch` 직접 호출, 쿼리 키 문자열 하드코딩 |
+| types | `src/types/<domain>.ts` | Zod 스키마 정의, `z.infer` 타입 export | fetch 호출 |
+| apiClient | `src/lib/apiClient.ts` | HTTP 래퍼, 엔드포인트 함수, 응답 `parse`, 401 인터셉터 | React 훅 사용, 컴포넌트 import |
+| query hook | `src/hooks/<domain>/` | `useQuery`/`useMutation`, 쿼리 키, 캐시 정책 | JSX 렌더 |
+| 컴포넌트 | `src/components/{atoms,molecules,organisms}/<domain>/` | 렌더링, 훅 호출 | `fetch` 직접 호출, 쿼리 키 문자열 하드코딩 |
+| 에러 | `src/errors/ApiError.ts` | 실패 응답 → `ApiError(statusCode, message)` 변환 | — |
 
 **규칙**: 컴포넌트는 절대 `fetch` 를 직접 호출하지 않는다. 반드시 query hook 을 통한다.
 
@@ -66,7 +67,8 @@ export function Providers({ children }: { children: ReactNode }) {
 
 ## 3. HTTP 래퍼: publicFetch / privateFetch
 
-`src/lib/api/http.ts` 에 두 개의 래퍼만 둔다. 컴포넌트/훅은 이 둘만 사용한다.
+`src/lib/apiClient.ts` 에 두 개의 래퍼만 둔다. 컴포넌트/훅은 이 둘만 사용한다.
+(Route Handler 응답 봉투 빌더 `ok()` / `fail()` 는 `src/lib/apiResponse.ts` — §6.)
 
 | 래퍼 | 인증 | 사용처 | 실행 위치 | 특징 |
 |---|---|---|---|---|
@@ -79,7 +81,7 @@ export function Providers({ children }: { children: ReactNode }) {
 - 공통 헤더(`Content-Type`, 추적 헤더), 타임아웃, 에러 → `ApiError` 정규화는 래퍼 내부에서 처리.
 
 ```ts
-// src/lib/api/http.ts (명세 — 구현은 다음 단계)
+// src/lib/apiClient.ts (명세 — 구현은 다음 단계)
 export async function publicFetch<T>(
   path: string,
   schema: ZodType<T>,
@@ -97,11 +99,11 @@ export async function publicFetch<T>(
 ## 4. 쿼리 키 팩토리 규칙
 
 - 쿼리 키 문자열을 컴포넌트/훅에 **하드코딩 금지**. 도메인별 `queryKeys` 팩토리에서만 생성.
-- 위치: `src/features/<domain>/query-keys.ts`
+- 위치: `src/hooks/<domain>/queryKeys.ts`
 - 구조: `[domain, entity, params]` 순의 배열. 계층적으로 좁혀지도록 작성해 부분 무효화가 가능하게 한다.
 
 ```ts
-// src/features/product/query-keys.ts
+// src/hooks/product/queryKeys.ts
 export const productKeys = {
   all: ["product"] as const,
   lists: () => [...productKeys.all, "list"] as const,
@@ -121,17 +123,17 @@ export const productKeys = {
 
 | 항목 | 규칙 |
 |---|---|
-| 위치 | `src/schemas/<domain>.schema.ts` (공용) 또는 `src/features/<domain>/schemas/` (도메인 국한) |
-| 파일명 | `<domain>.schema.ts` — 예: `product.schema.ts`, `cart.schema.ts` |
+| 위치 | `src/types/<domain>.ts` — 도메인당 1파일 (`product.ts`, `cart.ts`, `order.ts` …) |
+| 공용 | 공용 원자 스키마(`MoneySchema`, `PaginationSchema`)는 `src/types/common.ts` |
 | 스키마 변수명 | `PascalCase` + 접미사. 요청: `CreateOrderRequestSchema`, 응답: `ProductSchema` / `ProductListResponseSchema` |
 | 파생 타입 | `export type Product = z.infer<typeof ProductSchema>` — 타입명은 접미사 없이 |
-| 재사용 | 공용 원자 스키마(`MoneySchema`, `PaginationSchema`)는 `src/schemas/common.schema.ts` |
+| 역할 | 지난 프로젝트의 `contracts/`·`types/` 역할을 `src/types/` 하나로 통합 |
 | 날짜/숫자 | 서버가 문자열로 주면 `z.coerce.date()` / `z.coerce.number()` 로 파싱 계층에서 정규화 |
 
 ```ts
-// src/schemas/product.schema.ts
+// src/types/product.ts
 import { z } from "zod";
-import { MoneySchema } from "./common.schema";
+import { MoneySchema } from "./common";
 
 export const ProductSchema = z.object({
   id: z.string(),
@@ -164,7 +166,7 @@ export type ProductListResponse = z.infer<typeof ProductListResponseSchema>;
 ```
 
 ```ts
-// src/lib/api/response.ts (명세)
+// src/lib/apiResponse.ts (명세 — Route Handler 전용)
 import { NextResponse } from "next/server";
 
 export type ApiEnvelope<T> = { statusCode: number; message: string; data: T };
@@ -231,12 +233,12 @@ useMutation({
 
 ## 8. 새 엔드포인트 추가 체크리스트
 
-- [ ] `src/schemas/<domain>.schema.ts` 에 요청/응답 Zod 스키마 추가 (명명 규칙 §5)
+- [ ] `src/types/<domain>.ts` 에 요청/응답 Zod 스키마 추가 (명명 규칙 §5)
 - [ ] `src/app/api/<domain>/**/route.ts` Route Handler 작성, 공용 응답 포맷(`ok`/`fail`) 사용
 - [ ] Route Handler 에서 외부 API 호출은 `publicFetch`/`privateFetch` 로, 응답을 스키마로 `parse`
-- [ ] `src/lib/api/<domain>.ts` 에 엔드포인트 함수 추가 (컴포넌트에서 쓰기 좋은 시그니처)
-- [ ] `src/features/<domain>/query-keys.ts` 에 쿼리 키 추가 (계층 구조 §4)
-- [ ] `src/features/<domain>/hooks/` 에 `useXxxQuery` / `useXxxMutation` 훅 작성
+- [ ] `src/lib/apiClient.ts` 에 엔드포인트 함수 추가 (컴포넌트에서 쓰기 좋은 시그니처)
+- [ ] `src/hooks/<domain>/queryKeys.ts` 에 쿼리 키 추가 (계층 구조 §4)
+- [ ] `src/hooks/<domain>/` 에 `useXxxQuery` / `useXxxMutation` 훅 작성
 - [ ] mutation 은 기본 `invalidateQueries`. Optimistic 필요 시 §7 의 3질문 PR 답변
 - [ ] 인증 필요 여부 확인 → `privateFetch` + Route Handler 경유
 - [ ] 에러 경로(4xx/5xx) 처리 확인: 훅 `error` 로 전달되는지, 화면 표시 방식 합의
