@@ -135,9 +135,9 @@ src/
 │   ├── auth/                    # useSocialLogin, useReauthPassword
 │   └── useUIStore.ts            # (범용) Zustand UI 스토어 selector 훅
 ├── stores/                      # Zustand — 순수 클라이언트 UI 상태만 (서버 상태 금지)
-│   ├── uiStore.ts               # 마운트당 생성 팩토리(참조 구현). 모바일 GNB / 카트 드로어 등
-│   ├── useFilterUIStore.ts      # ⏳ 필터 바텀시트 임시 선택값
-│   └── useAuthTokenStore.ts     # ⏳ Access Token 메모리 보관 (Store Provider 패턴)
+│   ├── uiStore.ts               # 마운트당 생성 팩토리 + Provider + 훅까지 배선된 참조 구현
+│   ├── useFilterUIStore.ts      # 필터 바텀시트 임시 선택값 (팩토리 존재, Provider/훅은 FilterSheet 구현 시)
+│   └── useAuthTokenStore.ts     # Access Token 메모리 보관 (팩토리 존재, 배선은 auth 구현 시)
 ├── types/                       # Zod 스키마 + 추론 타입 (도메인별 1파일)
 │   ├── product.ts  cart.ts  order.ts  payment.ts  address.ts  user.ts  auth.ts   # ⏳
 ├── providers/                   # Provider 구현 ("use client")
