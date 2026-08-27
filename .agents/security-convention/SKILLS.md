@@ -16,7 +16,7 @@
 | FE-04 | 전송 구간 암호화(HTTPS) | 높음 | CI/인프라 | ⏳ 헤더·인프라 |
 | FE-05 | 인증 토큰 처리 | 높음 | 아니오 | ⏳ `api/auth` |
 | FE-06 | CSRF 방지 | 높음 | 아니오 | ⏳ Route Handler |
-| FE-07 | 서버 응답 신뢰 경계(스키마 검증) | 중간 | 부분(리뷰) | 규칙 수립 (`src/schemas`) |
+| FE-07 | 서버 응답 신뢰 경계(스키마 검증) | 중간 | 부분(리뷰) | 규칙 수립 (`src/types`) |
 | FE-08 | 의존성 취약점 관리 | 중간 | `npm audit` | 진행 중 (lockfile 존재) |
 | FE-09 | 오픈 리다이렉트 방지 | 중간 | 아니오 | ⏳ 로그인 redirect |
 | FE-10 | 시크릿 하드코딩 금지 | 높음 | 시크릿 스캐너 | 규칙 수립 (`src/lib/env.ts`) |
@@ -62,7 +62,7 @@
 - 액세스/리프레시 토큰은 **`HttpOnly` + `Secure` + `SameSite=Lax`(또는 `Strict`) 쿠키**로만. JS 에서 읽을 수 없어야 한다.
 - 토큰 발급·갱신·삭제는 **우리 Route Handler(`src/app/api/auth/**`)** 가 전담. 브라우저는 외부 인증 서버와 직접 통신하지 않는다(api-convention §3).
 - 401 응답 시 `privateFetch` 가 refresh 를 1회 시도 → 실패 시 세션 정리 + 로그인 유도.
-- **이 프로젝트 적용 지점**: ⏳ `src/app/api/auth/` 및 `src/lib/api/http.ts` 의 `privateFetch`.
+- **이 프로젝트 적용 지점**: ⏳ `src/app/api/auth/` 및 `src/lib/apiClient.ts` 의 `privateFetch`.
 
 ## FE-06. CSRF 방지
 
@@ -77,7 +77,7 @@
 - 외부 API / 우리 Route Handler 응답을 **신뢰하지 않는다.** api-client 계층에서 **Zod `parse`** 로 검증 후에만 사용(api-convention §3, §5).
 - 검증 실패는 사용자에게 "일시적 오류"로 표시하고 서버에 로깅(민감정보 제외).
 - 숫자/날짜/enum 은 파싱 계층에서 정규화(`z.coerce`, `z.enum`).
-- **이 프로젝트 적용 지점**: `src/schemas/` (폴더 존재, 스키마는 ⏳), `src/lib/api/` (⏳).
+- **이 프로젝트 적용 지점**: `src/types/` (폴더 존재, 스키마는 ⏳), `src/lib/apiClient.ts` (⏳).
 
 ## FE-08. 의존성 취약점 관리
 
@@ -99,7 +99,7 @@ export function safeRedirect(target: string | null): string {
   return target;
 }
 ```
-- **이 프로젝트 적용 지점**: ⏳ `(auth)/login` + `src/middleware.ts` 의 `redirect` 처리, `src/lib/safe-redirect.ts`.
+- **이 프로젝트 적용 지점**: ⏳ `(auth)/login` + `src/middleware.ts` 의 `redirect` 처리, `src/lib/safeRedirect.ts`.
 
 ## FE-10. 시크릿 하드코딩 금지
 
@@ -136,13 +136,13 @@ export function safeRedirect(target: string | null): string {
 - `target="_blank"` 링크는 `rel="noopener noreferrer"` 필수(탭 내빙/레퍼러 유출 방지).
 - 공용 `<ExternalLink>` 컴포넌트로 강제.
 - eslint `react/jsx-no-target-blank` 로 검출(code-style §10).
-- **이 프로젝트 적용 지점**: ⏳ `src/components/ui/ExternalLink.tsx`.
+- **이 프로젝트 적용 지점**: ⏳ `src/components/atoms/ExternalLink.tsx`.
 
 ## FE-14. 파일 업로드 검증
 
 - 클라: 확장자·MIME·크기 1차 검증(UX). 서버(Route Handler)에서 **재검증**(매직 넘버, 크기 상한, 파일명 정규화).
 - 이미지 리뷰 첨부 등은 프리사인 URL + 별도 스토리지, 실행 권한/경로 노출 없이.
-- **이 프로젝트 적용 지점**: ⏳ 현재 업로드 기능 없음. 도입 시 `src/lib/api/upload.ts` + 서버 검증.
+- **이 프로젝트 적용 지점**: ⏳ 현재 업로드 기능 없음. 도입 시 `src/lib/apiClient.ts`(업로드 엔드포인트) + 서버 검증.
 
 ## FE-15. 인가는 서버에서
 
@@ -157,7 +157,7 @@ export function safeRedirect(target: string | null): string {
 - 공용 응답 포맷(api-convention §6)의 `message` 는 사용자 친화 문구, 상세는 서버 로그.
 - `app/error.tsx`, `app/not-found.tsx`, `app/global-error.tsx` 로 일관된 폴백 UI. `error.digest` 만 노출(추적용).
 - 404/403/500 을 구분해 사용자 안내(단, 존재 여부 노출이 민감한 리소스는 403 대신 404 처리 검토).
-- **이 프로젝트 적용 지점**: ⏳ `src/app/error.tsx` 등, `src/lib/api/response.ts` 의 `fail()`.
+- **이 프로젝트 적용 지점**: ⏳ `src/app/error.tsx` 등, `src/lib/apiResponse.ts` 의 `fail()`.
 
 ---
 
