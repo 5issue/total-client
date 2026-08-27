@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+/*
+ * Tailwind CSS v4 는 CSS-first 설정이다. tailwind.config.js 를 만들지 않는다.
+ *
+ * @theme 안의 네임스페이스별 커스텀 프로퍼티는 Tailwind 가 "정식 유틸리티"를
+ * 자동 생성한다:
+ *   --color-*  -> bg-*, text-*, border-*, ring-* ...
+ *   --radius-* -> rounded-*
+ *   --font-*   -> font-*
+ *
+ * ⚠️ rounded-[--radius-card] 같은 대괄호 임의값(arbitrary value) 문법은 v4 에서
+ *    신뢰할 수 없다. 반드시 자동 생성되는 정식 유틸리티(rounded-card)를 쓸 것.
+ */
+@theme {
+  --color-brand: #4f46e5;
+  --color-brand-foreground: #ffffff;
+  --color-brand-muted: #eef2ff;
+
+  --color-surface: #ffffff;
+  --color-surface-muted: #f4f4f5;
+  --color-border: #e4e4e7;
+
+  --color-price: #d6336c;
+  --color-success: #2f9e44;
+  --color-danger: #e03131;
+
+  --radius-card: 0.75rem;
+  --radius-button: 0.5rem;
+  --radius-pill: 9999px;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  background-color: var(--color-surface);
+  font-family: var(--font-sans);
+}
