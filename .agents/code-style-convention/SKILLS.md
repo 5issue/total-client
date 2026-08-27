@@ -1,0 +1,249 @@
+# 코드 스타일 컨벤션 (code-style-convention)
+
+> ⭐ **이 문서는 eslint / prettier 같은 자동 강제 도구가 검증해야 할 규칙의 근거(source of truth)다.**
+> 실제 `.eslintrc` / `.prettierrc` 설정과 CI 연동은 다른 담당자(스코프 2) 몫이지만, 그 설정이
+> 강제하는 **"내용"은 전부 이 문서를 따라야 한다.** 이 문서와 상충하는 규칙을 임의로 추가하지 않는다.
+> 규칙을 바꾸려면 먼저 이 문서를 고치고, 그다음 도구 설정을 맞춘다. (문서 → 설정, 역방향 금지)
+
+이 문서는 스코프(1) 산출물이다. 현재 저장소에는 이 규칙을 강제하는 설정 파일이 없다.
+문서 맨 끝 "eslint 규칙 매핑 예시" 표가 스코프(2) 담당자에게 "무엇을 강제해야 하는가"를 알려준다.
+
+---
+
+## 1. 명명 규칙
+
+| 대상 | 규칙 | 예 |
+|---|---|---|
+| 컴포넌트 파일 | `PascalCase.tsx` | `ProductCard.tsx` |
+| 훅 파일 | `use-kebab-case.ts` | `use-ui-store.ts` |
+| 그 외 모듈 파일 | `kebab-case.ts` | `query-client.ts`, `product.schema.ts` |
+| 라우트 파일 | Next 예약어 그대로 | `page.tsx`, `layout.tsx`, `route.ts` |
+| 컴포넌트/타입/인터페이스 | `PascalCase` | `ProductCard`, `type CartItem` |
+| 변수/함수 | `camelCase` | `getQueryClient`, `isSoldOut` |
+| 상수(불변 리터럴) | `UPPER_SNAKE_CASE` | `DEFAULT_PAGE_SIZE` |
+| 불리언 | `is/has/should/can` 접두 | `isLoading`, `hasNextPage` |
+| 이벤트 핸들러 | `handle` 접두, prop 은 `on` 접두 | `handleSubmit`, `<X onSubmit={...} />` |
+| Zod 스키마 | `PascalCase` + `Schema` 접미 | `ProductSchema` |
+| 쿼리 키 팩토리 | `<domain>Keys` | `productKeys`, `cartKeys` |
+| Zustand 팩토리 | `create<Name>Store` | `createUIStore` |
+
+- 약어는 한 단어로 취급: `apiUrl`, `ProductId` (O) / `aPIUrl`, `ProductID` (X).
+- 디렉터리는 `kebab-case`. 도메인 폴더는 단수(`features/order/`, `features/cart/`).
+- default export 는 라우트 파일(`page.tsx` 등)과 Next 규약 파일에만. 그 외는 named export.
+
+---
+
+## 2. CDD(Component Driven Development) 작성 순서
+
+컴포넌트는 아래 순서로 만든다. 순서를 지키면 스토리/테스트/문서가 자연히 따라온다.
+(Storybook `/stories` 규약은 git-convention 의 스코프(2) 명세 참고 — 지금은 폴더를 만들지 않는다.)
+
+1. **Props 인터페이스 먼저.** 무엇을 받는지 타입으로 확정. 필수/선택 구분.
+2. **표현(presentational) 컴포넌트 구현.** 데이터 fetch 없음. props 로만 렌더. `"use client"` 는 상호작용이 있을 때만.
+3. **상태별 분기 정리.** default / loading / empty / error / disabled / (스켈레톤). 각 상태를 컴포넌트가 표현 가능해야 한다.
+4. **(스코프 2) 스토리 작성.** 상태별 스토리 + `play` 함수 인터랙션 테스트. 파일은 컴포넌트 옆에 co-location(`ProductCard.stories.tsx`).
+5. **컨테이너/훅 연결.** `features/<domain>/hooks` 의 query hook 을 붙인 wrapper 를 별도로.
+6. **접근성 점검.** §5 체크리스트 통과.
+7. **문서화.** 복잡한 props 는 JSDoc.
+
+원칙: **표현과 데이터는 분리한다.** `ProductCard` 는 `product` 를 받고, `ProductCardContainer` 가 훅으로 데이터를 공급한다.
+
+---
+
+## 3. 상태 관리 원칙
+
+### 3-1. 서버 상태 / 클라이언트 상태 분리
+
+| 종류 | 도구 | 저장 위치 | 예 |
+|---|---|---|---|
+| 서버 상태 (원격 데이터, 캐시 대상) | **TanStack Query** | Query 캐시 | 상품 목록, 장바구니 내용, 주문 내역, 프로필 |
+| 클라이언트 UI 상태 (세션 한정, 원격 아님) | **Zustand** | 마운트당 store 인스턴스 | 모바일 GNB 열림, 카트 드로어 열림, 필터 임시 선택 |
+| 폼 로컬 상태 | **React Hook Form** | 폼 인스턴스 | 입력값, 검증 에러, dirty |
+| URL 상태 (공유·북마크 대상) | `searchParams` / 라우터 | URL | 검색어, 페이지 커서, 정렬 |
+
+**절대 금지:** 서버 응답(예: 상품 목록)을 Zustand 에 복사해 두는 것. 캐시 무효화·동기화가 깨진다.
+
+### 3-2. Zustand: 모듈 싱글턴 금지, 마운트당 생성
+
+```ts
+// ❌ 금지 — 모듈 최상단 create() 싱글턴 (SSR 요청 간 상태 공유됨)
+export const useUIStore = create<UIStore>()((set) => ({ ... }));
+```
+
+```ts
+// ✅ zustand/vanilla 의 createStore 로 "팩토리"만 정의 (src/stores/ui-store.ts)
+export const createUIStore = (initState = defaultUIState) =>
+  createStore<UIStore>()((set) => ({ ...initState, /* actions */ }));
+```
+
+```tsx
+// ✅ Provider 가 useRef 로 마운트당 1회 생성 (src/providers/ui-store-provider.tsx)
+export function UIStoreProvider({ children }: { children: ReactNode }) {
+  const storeRef = useRef<UIStoreApi | null>(null);
+  storeRef.current ??= createUIStore();
+  return <UIStoreContext.Provider value={storeRef.current}>{children}</UIStoreContext.Provider>;
+}
+```
+
+### 3-3. useShallow 강제
+
+배열/객체를 반환하는 selector 는 **반드시 `useShallow` 로 감싼다.** 참조만 바뀐 리렌더를 막기 위함.
+프로젝트는 이를 강제하는 전용 훅을 제공한다(`src/hooks/use-ui-store.ts`):
+
+```ts
+// 단일 원시값 — 그냥
+export function useUIStore<T>(selector: (s: UIStore) => T): T { ... }
+
+// 배열/객체 반환 — useShallow 강제 래핑
+export function useUIStoreShallow<T>(selector: (s: UIStore) => T): T {
+  return useStore(useUIStoreApi(), useShallow(selector));
+}
+```
+
+```tsx
+// ❌ 객체 리턴인데 useShallow 없음 → 매 렌더 리렌더
+const { open, close } = useUIStore((s) => ({ open: s.openMobileNav, close: s.closeMobileNav }));
+
+// ✅
+const { open, close } = useUIStoreShallow((s) => ({ open: s.openMobileNav, close: s.closeMobileNav }));
+```
+
+### 3-4. Provider 합성
+
+모든 Provider 는 `src/app/providers.tsx` 에서만 합성. `layout.tsx` 는 `<Providers>` 만 감싼다.
+순서: 서버 상태(Query) → 클라 UI(Zustand) → 표현(테마/토스트).
+
+---
+
+## 4. 폼 작성 규칙
+
+- **React Hook Form v7 + Zod v4 + `@hookform/resolvers`** 조합만 사용한다. 수동 `useState` 폼 금지.
+- 스키마는 `src/features/<domain>/schemas/` 또는 `src/schemas/` 에. 폼 컴포넌트 안에 인라인 정의 금지.
+- `zodResolver(Schema)` 로 검증을 연결하고, 폼 타입은 `z.infer<typeof Schema>` 로 파생한다.
+- 제출 핸들러는 `handleSubmit(onValid)` 형태. `onValid` 안에서 mutation 호출.
+- 서버 에러(422 등)는 `setError` 로 필드에 매핑하거나 폼 상단 요약으로 표시.
+- 접근성: 모든 입력에 `<label htmlFor>` 연결, 에러는 `aria-describedby` + `role="alert"`.
+- 제출 버튼은 `isSubmitting` 중 `disabled` + 로딩 표시. 중복 제출 방지.
+
+```tsx
+const LoginSchema = z.object({
+  email: z.string().email("이메일 형식이 올바르지 않습니다"),
+  password: z.string().min(8, "8자 이상 입력하세요"),
+});
+type LoginInput = z.infer<typeof LoginSchema>;
+
+const { register, handleSubmit, formState: { errors, isSubmitting } } =
+  useForm<LoginInput>({ resolver: zodResolver(LoginSchema) });
+```
+
+---
+
+## 5. 접근성 규칙
+
+> **근거: 경쟁사(마켓컬리) 접근성 감사 실측 82점.** 아래는 그 감사에서 감점된 항목을 예방하는 규칙이다.
+
+| 규칙 | 상세 |
+|---|---|
+| 아이콘 전용 버튼은 `aria-label` 필수 | 텍스트 없는 버튼(장바구니, 검색, 닫기, 좋아요)에 목적을 서술. `<button aria-label="장바구니 열기">` |
+| 링크는 목적지를 설명 | "여기", "더보기" 단독 금지. `aria-label` 이나 시각적으로 숨긴 텍스트로 "상품 상세 보기: {상품명}" |
+| 확대(zoom) 제한 금지 | `viewport` 에 `user-scalable=no`, `maximum-scale=1` **사용 금지**. `initialScale=1` 만. |
+| 색 대비 | 본문 텍스트 대비 ≥ 4.5:1, 큰 텍스트/UI 요소 ≥ 3:1. `--color-price` 등 브랜드색을 배경 대비 확인. |
+| 색만으로 정보 전달 금지 | 품절/할인/에러를 색으로만 표시하지 않는다. 아이콘/텍스트 병행. |
+| 포커스 가시성 | `:focus-visible` 링을 지우지 않는다. 커스텀 시 대비 확보. |
+| 이미지 `alt` | 의미 있으면 서술, 장식이면 `alt=""`. §6 참고. |
+| 폼 라벨 | `<label htmlFor>` 연결. placeholder 를 라벨 대용으로 쓰지 않는다. |
+| 랜드마크/제목 | 페이지당 `<h1>` 하나. heading 레벨 건너뛰지 않기. `<main>`, `<nav>`, `<header>`, `<footer>` 사용. |
+| 상호작용 요소 크기 | 터치 타깃 최소 44×44px. |
+| 동적 영역 알림 | 토스트/검증 결과는 `role="status"` 또는 `role="alert"`. |
+| 키보드 조작 | 모든 상호작용은 키보드로 가능. 커스텀 드롭다운/모달은 포커스 트랩 + `Esc` 닫기. |
+
+목표: Lighthouse 접근성 **95점 이상** (경쟁사 82점 대비).
+
+---
+
+## 6. 이미지 규칙
+
+> 근거: 경쟁사 실측 — 메인 이미지 PNG **2.4MB**, LCP 약 **20초**, CLS **0.77**. (structure-convention §4 와 동일 근거)
+
+- `<img>` 직접 사용 **금지** → `next/image` 만 사용. (`@next/next/no-img-element` 로 강제)
+- 이미지 컨테이너는 **종횡비를 CSS 로 먼저 고정**(`aspect-*` + `relative` + `fill`), 로드 전에도 높이 확정.
+- 대괄호 임의값(`rounded-[--radius-card]`)이 아니라 `@theme` 이 생성한 정식 유틸리티(`rounded-card`) 사용.
+- LCP 후보(상세 대표 이미지, 홈 히어로)만 `priority`. 그 외 지정 금지.
+- `sizes` 를 실제 레이아웃에 맞게 지정. 외부 도메인은 `next.config.ts` `images.remotePatterns` 에 등록.
+- 포맷: `images.formats = ["image/avif", "image/webp"]`.
+
+---
+
+## 7. 애니메이션
+
+- **CSS 우선.** 트랜지션/키프레임/`@starting-style`/`transition-behavior` 로 해결되면 JS 애니메이션 라이브러리를 넣지 않는다.
+- GPU 친화 속성(`transform`, `opacity`)만 애니메이트. `width`/`height`/`top`/`left` 애니메이트 금지(레이아웃 스래싱).
+- `prefers-reduced-motion: reduce` 를 존중한다. 큰 모션은 이 미디어쿼리에서 축소/제거.
+- JS 애니메이션이 정말 필요하면(제스처 기반 드래그 등) PR 에서 근거를 밝히고 도입.
+- 애니메이션은 정보 전달을 보조할 뿐, 콘텐츠 접근을 막지 않는다(스캔/자동 스크롤 금지).
+
+---
+
+## 8. 번들 · 렌더링 전략
+
+- **RSC(서버 컴포넌트)가 기본.** `"use client"` 는 상호작용/브라우저 API/`useState`·`useEffect`/컨텍스트 소비가 필요한 **잎 컴포넌트**에만 선언한다.
+- `"use client"` 를 트리 상단(레이아웃/페이지)에 올리지 않는다. 클라 경계는 최대한 아래로.
+- 무거운 클라 전용 위젯(차트, 에디터, 지도)은 `next/dynamic` 으로 분할 로드.
+- 배럴 파일(`index.ts` 재-export 모음) 지양 — 트리셰이킹·번들 분석을 방해한다. 필요한 것만 직접 import.
+- 서드파티 추가 전 번들 영향 확인. "작은 유틸 하나" 때문에 큰 패키지를 넣지 않는다.
+- 날짜/숫자 포맷은 `Intl` API 우선(런타임 내장).
+- 폰트는 `next/font` 로 self-host, CLS 방지(`display: swap` + `size-adjust`).
+
+---
+
+## 9. 일반 문법 규칙 (prettier/eslint 가 강제할 대상)
+
+| 규칙 | 값 |
+|---|---|
+| 들여쓰기 | 스페이스 2칸 |
+| 세미콜론 | 사용 |
+| 따옴표 | 큰따옴표(`"`), JSX 속성도 큰따옴표 |
+| 줄 길이 | 100자 권장(하드 래핑은 prettier 에 위임) |
+| 후행 쉼표 | `all` |
+| import 순서 | 외부 → 내부(`@/`) → 상대경로, 그룹 간 빈 줄 |
+| 타입 전용 import | `import type { X }` 사용 |
+| `any` | 금지(불가피하면 `unknown` + 좁히기, 또는 `// eslint-disable` 사유 주석) |
+| 미사용 변수 | 금지(`_` prefix 는 허용) |
+| `console` | `console.warn`/`console.error` 만. `console.log` 는 커밋 금지 |
+| `React` import | 불필요(automatic runtime). `import { useState } from "react"` 형태 |
+| 파일 끝 | 개행 1개 |
+
+---
+
+## 10. eslint 규칙 매핑 예시 (스코프 2 담당자용 명세)
+
+> 이 표는 **"무엇을 강제해야 하는가"** 를 알려주는 명세다. **실제 eslint 설정 파일이 아니다.**
+> 스코프(2) 담당자는 이 표를 기준으로 `.eslintrc` / flat config 를 구성한다. 패키지 버전은 그때 최신으로 선택한다.
+
+| 이 문서의 규칙 | 강제 수단(eslint 규칙 예시) | 비고 |
+|---|---|---|
+| `<img>` 금지, `next/image` 강제 (§6) | `@next/next/no-img-element` | eslint-config-next 포함 |
+| RSC 기본 / `"use client"` 오용 (§8) | `eslint-plugin-react-server-components` 또는 커스텀 규칙 | 자동화 어려움 — **리뷰로 보완** |
+| 서버/클라 상태 분리 (§3-1) | 자동 규칙 없음 | **커스텀 규칙 필요 또는 리뷰로 대체** |
+| 서버 응답을 Zustand 에 저장 금지 (§3-1) | 자동 규칙 없음 | **리뷰 체크포인트** (git-convention 참고) |
+| Zustand 모듈 싱글턴 금지 (§3-2) | `no-restricted-syntax` 로 최상위 `create(` 호출 패턴 경고 | 근사치 — 리뷰 병행 |
+| useShallow 누락 (§3-3) | `no-restricted-syntax` / 커스텀: 객체 리터럴 반환 selector 감지 | 어려움 — 전용 훅 사용을 리뷰로 강제 |
+| 접근성 전반 (§5) | `eslint-plugin-jsx-a11y` (recommended 이상) | `label-has-associated-control`, `no-autofocus`, `anchor-has-content`, `control-has-associated-label` 등 |
+| 아이콘 버튼 `aria-label` (§5) | `jsx-a11y/control-has-associated-label` | |
+| 링크 목적지 설명 (§5) | `jsx-a11y/anchor-has-content`, `jsx-a11y/anchor-is-valid` | "여기/더보기" 문구는 리뷰로 |
+| `user-scalable` 금지 (§5) | `no-restricted-syntax` 로 viewport 메타/`viewport` export 검사 | 근사치 — 리뷰 병행 |
+| 색 대비 (§5) | 자동 규칙 없음 | 디자인 토큰 대비 검증 + Lighthouse CI |
+| 폼: RHF+Zod 강제 (§4) | 자동 규칙 없음 | `no-restricted-imports` 로 다른 폼 라이브러리 차단 + 리뷰 |
+| 타입 전용 import (§9) | `@typescript-eslint/consistent-type-imports` | |
+| `any` 금지 (§9) | `@typescript-eslint/no-explicit-any`, `no-unsafe-*` | |
+| 미사용 변수 (§9) | `@typescript-eslint/no-unused-vars` (`argsIgnorePattern: "^_"`) | |
+| `console.log` 금지 (§9) | `no-console` (`allow: ["warn", "error"]`) | |
+| import 순서 (§9) | `import/order` 또는 `perfectionist/sort-imports` | prettier 와 충돌 없게 |
+| 배럴 파일 지양 (§8) | `no-restricted-imports` 패턴 / 커스텀 | 리뷰 병행 |
+| 포맷 전반(들여쓰기/따옴표/세미콜론/후행쉼표) (§9) | **prettier** 전담 | eslint 는 포맷 규칙 끄기(`eslint-config-prettier`) |
+
+**역할 분담(스코프 2 가 구현):**
+- **prettier = 포맷 전담** (들여쓰기, 따옴표, 줄바꿈, 후행 쉼표).
+- **eslint = 품질 전담** (미사용 코드, 접근성, 위험 패턴, import 규칙).
+- 두 도구가 겹치는 포맷 규칙은 `eslint-config-prettier` 로 eslint 쪽을 끈다.
+- 자동화가 불가능한 규칙(서버/클라 분리, useShallow, 색 대비)은 **PR 리뷰 체크리스트**(git-convention)로 보완한다.
