@@ -6,7 +6,7 @@ import { createStore } from "zustand/vanilla";
  * 원칙:
  * - 모듈 최상단 create() 싱글턴 금지. SSR 에서 요청 간 상태가 공유되는 것을 막는다.
  * - zustand/vanilla 의 createStore 로 "팩토리"만 정의한다.
- * - Provider 가 useRef 로 마운트당 1회 인스턴스화한다 (ui-store-provider.tsx).
+ * - Provider 가 useRef 로 마운트당 1회 인스턴스화한다 (UIStoreProvider.tsx).
  * - 서버 상태(API 응답)는 절대 여기 두지 않는다 -> TanStack Query 담당.
  *
  * 실제 도메인 스토어(장바구니 draft, 필터 상태 등)는 다음 단계에서 별도 파일로 추가.

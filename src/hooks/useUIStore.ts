@@ -3,8 +3,8 @@
 import { useContext } from "react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
-import { UIStoreContext } from "@/providers/ui-store-provider";
-import type { UIStore } from "@/stores/ui-store";
+import { UIStoreContext } from "@/providers/UIStoreProvider";
+import type { UIStore } from "@/stores/uiStore";
 
 function useUIStoreApi() {
   const store = useContext(UIStoreContext);
