@@ -1,0 +1,70 @@
+# 자리표시(placeholder). image / replicas / resources 는 환경에 맞게 조정한다.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: total-client
+  labels:
+    app: total-client
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: total-client
+  template:
+    metadata:
+      labels:
+        app: total-client
+    spec:
+      containers:
+        - name: web
+          image: <REGISTRY>/total-client:<TAG>
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: total-client-config
+            - secretRef:
+                name: total-client-secret
+          # probe path 는 /api/health 로 미리 지정. 해당 Route Handler 는 다음 단계에서 구현(⏳).
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: total-client
+  labels:
+    app: total-client
+spec:
+  selector:
+    app: total-client
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
