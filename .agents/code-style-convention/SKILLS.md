@@ -12,22 +12,22 @@
 
 ## 1. 명명 규칙
 
-| 대상 | 규칙 | 예 |
-|---|---|---|
-| 컴포넌트 파일 | `PascalCase.tsx` | `ProductThumbnail.tsx`, `QueryProvider.tsx` |
-| 훅 파일 | `useCamelCase.ts` | `useUIStore.ts`, `useProducts.ts` |
-| 그 외 모듈 파일 | `camelCase.ts` | `queryClient.ts`, `apiClient.ts` |
-| 타입/스키마 파일 | 도메인명 소문자 | `types/product.ts`, `types/common.ts` |
-| 에러 클래스 파일 | `PascalCase.ts` (클래스명과 동일) | `errors/ApiError.ts` |
-| 라우트 파일 | Next 예약어 그대로 | `page.tsx`, `layout.tsx`, `route.ts`, `middleware.ts` |
-| 컴포넌트/타입/인터페이스 | `PascalCase` | `ProductThumbnail`, `type CartItem` |
-| 변수/함수 | `camelCase` | `getQueryClient`, `isSoldOut` |
-| 상수(불변 리터럴) | `UPPER_SNAKE_CASE` | `OAUTH_PROVIDERS`, `BOTTOM_NAV` |
-| 불리언 | `is/has/should/can` 접두 | `isLoading`, `hasNextPage` |
-| 이벤트 핸들러 | `handle` 접두, prop 은 `on` 접두 | `handleSubmit`, `<X onSubmit={...} />` |
-| Zod 스키마 | `PascalCase` + `Schema` 접미 | `ProductSchema` |
-| 쿼리 키 팩토리 | `<domain>Keys` (파일 `queryKeys.ts`) | `productKeys`, `cartKeys` |
-| Zustand 팩토리 | `create<Name>Store` | `createUIStore` |
+| 대상                     | 규칙                                 | 예                                                    |
+| ------------------------ | ------------------------------------ | ----------------------------------------------------- |
+| 컴포넌트 파일            | `PascalCase.tsx`                     | `ProductThumbnail.tsx`, `QueryProvider.tsx`           |
+| 훅 파일                  | `useCamelCase.ts`                    | `useUIStore.ts`, `useProducts.ts`                     |
+| 그 외 모듈 파일          | `camelCase.ts`                       | `queryClient.ts`, `apiClient.ts`                      |
+| 타입/스키마 파일         | 도메인명 소문자                      | `types/product.ts`, `types/common.ts`                 |
+| 에러 클래스 파일         | `PascalCase.ts` (클래스명과 동일)    | `errors/ApiError.ts`                                  |
+| 라우트 파일              | Next 예약어 그대로                   | `page.tsx`, `layout.tsx`, `route.ts`, `middleware.ts` |
+| 컴포넌트/타입/인터페이스 | `PascalCase`                         | `ProductThumbnail`, `type CartItem`                   |
+| 변수/함수                | `camelCase`                          | `getQueryClient`, `isSoldOut`                         |
+| 상수(불변 리터럴)        | `UPPER_SNAKE_CASE`                   | `OAUTH_PROVIDERS`, `BOTTOM_NAV`                       |
+| 불리언                   | `is/has/should/can` 접두             | `isLoading`, `hasNextPage`                            |
+| 이벤트 핸들러            | `handle` 접두, prop 은 `on` 접두     | `handleSubmit`, `<X onSubmit={...} />`                |
+| Zod 스키마               | `PascalCase` + `Schema` 접미         | `ProductSchema`                                       |
+| 쿼리 키 팩토리           | `<domain>Keys` (파일 `queryKeys.ts`) | `productKeys`, `cartKeys`                             |
+| Zustand 팩토리           | `create<Name>Store`                  | `createUIStore`                                       |
 
 - 약어는 한 단어로 취급: `apiUrl`, `ProductId` (O) / `aPIUrl`, `ProductID` (X).
 - 디렉터리는 `kebab-case` 또는 단순 소문자. 도메인 폴더는 단수(`hooks/order/`, `components/molecules/cart/`).
@@ -42,11 +42,11 @@
 원래 5단계지만 templates/pages 는 App Router 의 `layout.tsx`/`page.tsx` 가 대신하므로
 `src/components/` 는 **3계층**만 둔다. (structure-convention §3 원본)
 
-| 계층 | 폴더 | 정의 | fetch |
-|---|---|---|---|
-| atoms | `components/atoms/` | 최소 UI, 도메인 지식 없음 (Button, Input, Badge, Spinner) | 금지 |
-| molecules | `components/molecules/{shared,product,cart,auth}/` | atom 조합, 도메인별 분류 (PriceTag, ProductThumbnail, CartLineItem) | 금지 |
-| organisms | `components/organisms/{shared,home,product,cart,checkout,mypage,ai,auth}/` | 화면의 한 구획 (Header, ProductGrid, CartList) | 금지 — 훅을 주입받아 조립 |
+| 계층      | 폴더                                                                       | 정의                                                                | fetch                     |
+| --------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------- |
+| atoms     | `components/atoms/`                                                        | 최소 UI, 도메인 지식 없음 (Button, Input, Badge, Spinner)           | 금지                      |
+| molecules | `components/molecules/{shared,product,cart,auth}/`                         | atom 조합, 도메인별 분류 (PriceTag, ProductThumbnail, CartLineItem) | 금지                      |
+| organisms | `components/organisms/{shared,home,product,cart,checkout,mypage,ai,auth}/` | 화면의 한 구획 (Header, ProductGrid, CartList)                      | 금지 — 훅을 주입받아 조립 |
 
 - 2개 이상 도메인이 공유하면 `shared/`, 아니면 도메인 폴더.
 - molecule 이 다른 molecule 을 쓰면 organism 후보.
@@ -74,12 +74,12 @@
 
 ### 3-1. 서버 상태 / 클라이언트 상태 분리
 
-| 종류 | 도구 | 저장 위치 | 예 |
-|---|---|---|---|
-| 서버 상태 (원격 데이터, 캐시 대상) | **TanStack Query** | Query 캐시 | 상품 목록, 장바구니 내용, 주문 내역, 프로필 |
-| 클라이언트 UI 상태 (세션 한정, 원격 아님) | **Zustand** | 마운트당 store 인스턴스 | 모바일 GNB 열림, 카트 드로어 열림, 필터 임시 선택 |
-| 폼 로컬 상태 | **React Hook Form** | 폼 인스턴스 | 입력값, 검증 에러, dirty |
-| URL 상태 (공유·북마크 대상) | `searchParams` / 라우터 | URL | 검색어, 페이지 커서, 정렬 |
+| 종류                                      | 도구                    | 저장 위치               | 예                                                |
+| ----------------------------------------- | ----------------------- | ----------------------- | ------------------------------------------------- |
+| 서버 상태 (원격 데이터, 캐시 대상)        | **TanStack Query**      | Query 캐시              | 상품 목록, 장바구니 내용, 주문 내역, 프로필       |
+| 클라이언트 UI 상태 (세션 한정, 원격 아님) | **Zustand**             | 마운트당 store 인스턴스 | 모바일 GNB 열림, 카트 드로어 열림, 필터 임시 선택 |
+| 폼 로컬 상태                              | **React Hook Form**     | 폼 인스턴스             | 입력값, 검증 에러, dirty                          |
+| URL 상태 (공유·북마크 대상)               | `searchParams` / 라우터 | URL                     | 검색어, 페이지 커서, 정렬                         |
 
 **절대 금지:** 서버 응답(예: 상품 목록)을 Zustand 에 복사해 두는 것. 캐시 무효화·동기화가 깨진다.
 
@@ -93,15 +93,16 @@ export const useUIStore = create<UIStore>()((set) => ({ ... }));
 ```ts
 // ✅ zustand/vanilla 의 createStore 로 "팩토리"만 정의 (src/stores/uiStore.ts)
 export const createUIStore = (initState = defaultUIState) =>
-  createStore<UIStore>()((set) => ({ ...initState, /* actions */ }));
+  createStore<UIStore>()((set) => ({ ...initState /* actions */ }));
 ```
 
 ```tsx
-// ✅ Provider 가 useRef 로 마운트당 1회 생성 (src/providers/UIStoreProvider.tsx)
+// ✅ Provider 가 useState 지연 초기화로 마운트당 1회 생성 (src/providers/UIStoreProvider.tsx)
+// useRef 가 아닌 이유: ref.current 를 렌더 중 읽는 것은 금지(eslint react-hooks/refs)되어 있고,
+// 이 store 는 Provider value 로 렌더에 바로 쓰이므로 useState 지연 초기화가 안전하다.
 export function UIStoreProvider({ children }: { children: ReactNode }) {
-  const storeRef = useRef<UIStoreApi | null>(null);
-  storeRef.current ??= createUIStore();
-  return <UIStoreContext.Provider value={storeRef.current}>{children}</UIStoreContext.Provider>;
+  const [store] = useState<UIStoreApi>(() => createUIStore());
+  return <UIStoreContext.Provider value={store}>{children}</UIStoreContext.Provider>;
 }
 ```
 
@@ -125,7 +126,10 @@ export function useUIStoreShallow<T>(selector: (s: UIStore) => T): T {
 const { open, close } = useUIStore((s) => ({ open: s.openMobileNav, close: s.closeMobileNav }));
 
 // ✅
-const { open, close } = useUIStoreShallow((s) => ({ open: s.openMobileNav, close: s.closeMobileNav }));
+const { open, close } = useUIStoreShallow((s) => ({
+  open: s.openMobileNav,
+  close: s.closeMobileNav,
+}));
 ```
 
 ### 3-4. Provider 합성
@@ -147,13 +151,16 @@ const { open, close } = useUIStoreShallow((s) => ({ open: s.openMobileNav, close
 
 ```tsx
 const LoginSchema = z.object({
-  email: z.string().email("이메일 형식이 올바르지 않습니다"),
-  password: z.string().min(8, "8자 이상 입력하세요"),
+  email: z.string().email('이메일 형식이 올바르지 않습니다'),
+  password: z.string().min(8, '8자 이상 입력하세요'),
 });
 type LoginInput = z.infer<typeof LoginSchema>;
 
-const { register, handleSubmit, formState: { errors, isSubmitting } } =
-  useForm<LoginInput>({ resolver: zodResolver(LoginSchema) });
+const {
+  register,
+  handleSubmit,
+  formState: { errors, isSubmitting },
+} = useForm<LoginInput>({ resolver: zodResolver(LoginSchema) });
 ```
 
 ---
@@ -162,20 +169,20 @@ const { register, handleSubmit, formState: { errors, isSubmitting } } =
 
 > **근거: 경쟁사(마켓컬리) 접근성 감사 실측 82점.** 아래는 그 감사에서 감점된 항목을 예방하는 규칙이다.
 
-| 규칙 | 상세 |
-|---|---|
+| 규칙                                 | 상세                                                                                                |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------- |
 | 아이콘 전용 버튼은 `aria-label` 필수 | 텍스트 없는 버튼(장바구니, 검색, 닫기, 좋아요)에 목적을 서술. `<button aria-label="장바구니 열기">` |
-| 링크는 목적지를 설명 | "여기", "더보기" 단독 금지. `aria-label` 이나 시각적으로 숨긴 텍스트로 "상품 상세 보기: {상품명}" |
-| 확대(zoom) 제한 금지 | `viewport` 에 `user-scalable=no`, `maximum-scale=1` **사용 금지**. `initialScale=1` 만. |
-| 색 대비 | 본문 텍스트 대비 ≥ 4.5:1, 큰 텍스트/UI 요소 ≥ 3:1. `--color-price` 등 브랜드색을 배경 대비 확인. |
-| 색만으로 정보 전달 금지 | 품절/할인/에러를 색으로만 표시하지 않는다. 아이콘/텍스트 병행. |
-| 포커스 가시성 | `:focus-visible` 링을 지우지 않는다. 커스텀 시 대비 확보. |
-| 이미지 `alt` | 의미 있으면 서술, 장식이면 `alt=""`. §6 참고. |
-| 폼 라벨 | `<label htmlFor>` 연결. placeholder 를 라벨 대용으로 쓰지 않는다. |
-| 랜드마크/제목 | 페이지당 `<h1>` 하나. heading 레벨 건너뛰지 않기. `<main>`, `<nav>`, `<header>`, `<footer>` 사용. |
-| 상호작용 요소 크기 | 터치 타깃 최소 44×44px. |
-| 동적 영역 알림 | 토스트/검증 결과는 `role="status"` 또는 `role="alert"`. |
-| 키보드 조작 | 모든 상호작용은 키보드로 가능. 커스텀 드롭다운/모달은 포커스 트랩 + `Esc` 닫기. |
+| 링크는 목적지를 설명                 | "여기", "더보기" 단독 금지. `aria-label` 이나 시각적으로 숨긴 텍스트로 "상품 상세 보기: {상품명}"   |
+| 확대(zoom) 제한 금지                 | `viewport` 에 `user-scalable=no`, `maximum-scale=1` **사용 금지**. `initialScale=1` 만.             |
+| 색 대비                              | 본문 텍스트 대비 ≥ 4.5:1, 큰 텍스트/UI 요소 ≥ 3:1. `--color-price` 등 브랜드색을 배경 대비 확인.    |
+| 색만으로 정보 전달 금지              | 품절/할인/에러를 색으로만 표시하지 않는다. 아이콘/텍스트 병행.                                      |
+| 포커스 가시성                        | `:focus-visible` 링을 지우지 않는다. 커스텀 시 대비 확보.                                           |
+| 이미지 `alt`                         | 의미 있으면 서술, 장식이면 `alt=""`. §6 참고.                                                       |
+| 폼 라벨                              | `<label htmlFor>` 연결. placeholder 를 라벨 대용으로 쓰지 않는다.                                   |
+| 랜드마크/제목                        | 페이지당 `<h1>` 하나. heading 레벨 건너뛰지 않기. `<main>`, `<nav>`, `<header>`, `<footer>` 사용.   |
+| 상호작용 요소 크기                   | 터치 타깃 최소 44×44px.                                                                             |
+| 동적 영역 알림                       | 토스트/검증 결과는 `role="status"` 또는 `role="alert"`.                                             |
+| 키보드 조작                          | 모든 상호작용은 키보드로 가능. 커스텀 드롭다운/모달은 포커스 트랩 + `Esc` 닫기.                     |
 
 목표: Lighthouse 접근성 **95점 이상** (경쟁사 82점 대비).
 
@@ -200,11 +207,11 @@ const { register, handleSubmit, formState: { errors, isSubmitting } } =
 
 > **현재 상태**: 다크 모드 **동작 구조만** 세팅됨. 색상값은 **디자인 토큰 확정 전 임시 그레이스케일**(`--background`, `--foreground`, `--surface`, `--surface-muted`, `--border` 5개)이다. 브랜드색·시맨틱색(성공/경고/가격 등)은 **아직 정의하지 않는다** — 디자인 토큰이 들어오면 일괄 추가/교체.
 
-| 토큰 종류 | 정의 위치 | 다크 대응 | 현재 |
-|---|---|---|---|
-| 정적 토큰 | `@theme { }` | 테마 무관 | `--radius-*`, `--font-sans` 만 |
-| 테마 인식 색 토큰 | `@theme inline { }` + `:root` / `@media` / `[data-theme]` | 캐스케이드로 자동 전환 | 중립 그레이스케일 5개 (PLACEHOLDER) |
-| 브랜드 / 시맨틱 색 | (미정) | (미정) | 디자인 토큰 대기 |
+| 토큰 종류          | 정의 위치                                                 | 다크 대응              | 현재                                |
+| ------------------ | --------------------------------------------------------- | ---------------------- | ----------------------------------- |
+| 정적 토큰          | `@theme { }`                                              | 테마 무관              | `--radius-*`, `--font-sans` 만      |
+| 테마 인식 색 토큰  | `@theme inline { }` + `:root` / `@media` / `[data-theme]` | 캐스케이드로 자동 전환 | 중립 그레이스케일 5개 (PLACEHOLDER) |
+| 브랜드 / 시맨틱 색 | (미정)                                                    | (미정)                 | 디자인 토큰 대기                    |
 
 - **다크 모드 3-상태**: 기본은 OS 설정(`prefers-color-scheme`), `<html data-theme="dark">` / `<html data-theme="light">` 로 명시 override.
 - `@custom-variant dark` 를 재정의해 `dark:` 유틸리티가 "OS 다크(단 `data-theme="light"` 아님)" 또는 `data-theme="dark"` 에서 동작하도록 함.
@@ -242,20 +249,20 @@ const { register, handleSubmit, formState: { errors, isSubmitting } } =
 
 ## 9. 일반 문법 규칙 (prettier/eslint 가 강제할 대상)
 
-| 규칙 | 값 |
-|---|---|
-| 들여쓰기 | 스페이스 2칸 |
-| 세미콜론 | 사용 |
-| 따옴표 | 큰따옴표(`"`), JSX 속성도 큰따옴표 |
-| 줄 길이 | 100자 권장(하드 래핑은 prettier 에 위임) |
-| 후행 쉼표 | `all` |
-| import 순서 | 외부 → 내부(`@/`) → 상대경로, 그룹 간 빈 줄 |
-| 타입 전용 import | `import type { X }` 사용 |
-| `any` | 금지(불가피하면 `unknown` + 좁히기, 또는 `// eslint-disable` 사유 주석) |
-| 미사용 변수 | 금지(`_` prefix 는 허용) |
-| `console` | `console.warn`/`console.error` 만. `console.log` 는 커밋 금지 |
-| `React` import | 불필요(automatic runtime). `import { useState } from "react"` 형태 |
-| 파일 끝 | 개행 1개 |
+| 규칙             | 값                                                                      |
+| ---------------- | ----------------------------------------------------------------------- |
+| 들여쓰기         | 스페이스 2칸                                                            |
+| 세미콜론         | 사용                                                                    |
+| 따옴표           | 큰따옴표(`"`), JSX 속성도 큰따옴표                                      |
+| 줄 길이          | 100자 권장(하드 래핑은 prettier 에 위임)                                |
+| 후행 쉼표        | `all`                                                                   |
+| import 순서      | 외부 → 내부(`@/`) → 상대경로, 그룹 간 빈 줄                             |
+| 타입 전용 import | `import type { X }` 사용                                                |
+| `any`            | 금지(불가피하면 `unknown` + 좁히기, 또는 `// eslint-disable` 사유 주석) |
+| 미사용 변수      | 금지(`_` prefix 는 허용)                                                |
+| `console`        | `console.warn`/`console.error` 만. `console.log` 는 커밋 금지           |
+| `React` import   | 불필요(automatic runtime). `import { useState } from "react"` 형태      |
+| 파일 끝          | 개행 1개                                                                |
 
 ---
 
@@ -264,29 +271,30 @@ const { register, handleSubmit, formState: { errors, isSubmitting } } =
 > 이 표는 **"무엇을 강제해야 하는가"** 를 알려주는 명세다. **실제 eslint 설정 파일이 아니다.**
 > 스코프(2) 담당자는 이 표를 기준으로 `.eslintrc` / flat config 를 구성한다. 패키지 버전은 그때 최신으로 선택한다.
 
-| 이 문서의 규칙 | 강제 수단(eslint 규칙 예시) | 비고 |
-|---|---|---|
-| `<img>` 금지, `next/image` 강제 (§6) | `@next/next/no-img-element` | eslint-config-next 포함 |
-| RSC 기본 / `"use client"` 오용 (§8) | `eslint-plugin-react-server-components` 또는 커스텀 규칙 | 자동화 어려움 — **리뷰로 보완** |
-| 서버/클라 상태 분리 (§3-1) | 자동 규칙 없음 | **커스텀 규칙 필요 또는 리뷰로 대체** |
-| 서버 응답을 Zustand 에 저장 금지 (§3-1) | 자동 규칙 없음 | **리뷰 체크포인트** (git-convention 참고) |
-| Zustand 모듈 싱글턴 금지 (§3-2) | `no-restricted-syntax` 로 최상위 `create(` 호출 패턴 경고 | 근사치 — 리뷰 병행 |
-| useShallow 누락 (§3-3) | `no-restricted-syntax` / 커스텀: 객체 리터럴 반환 selector 감지 | 어려움 — 전용 훅 사용을 리뷰로 강제 |
-| 접근성 전반 (§5) | `eslint-plugin-jsx-a11y` (recommended 이상) | `label-has-associated-control`, `no-autofocus`, `anchor-has-content`, `control-has-associated-label` 등 |
-| 아이콘 버튼 `aria-label` (§5) | `jsx-a11y/control-has-associated-label` | |
-| 링크 목적지 설명 (§5) | `jsx-a11y/anchor-has-content`, `jsx-a11y/anchor-is-valid` | "여기/더보기" 문구는 리뷰로 |
-| `user-scalable` 금지 (§5) | `no-restricted-syntax` 로 viewport 메타/`viewport` export 검사 | 근사치 — 리뷰 병행 |
-| 색 대비 (§5) | 자동 규칙 없음 | 디자인 토큰 대비 검증 + Lighthouse CI |
-| 폼: RHF+Zod 강제 (§4) | 자동 규칙 없음 | `no-restricted-imports` 로 다른 폼 라이브러리 차단 + 리뷰 |
-| 타입 전용 import (§9) | `@typescript-eslint/consistent-type-imports` | |
-| `any` 금지 (§9) | `@typescript-eslint/no-explicit-any`, `no-unsafe-*` | |
-| 미사용 변수 (§9) | `@typescript-eslint/no-unused-vars` (`argsIgnorePattern: "^_"`) | |
-| `console.log` 금지 (§9) | `no-console` (`allow: ["warn", "error"]`) | |
-| import 순서 (§9) | `import/order` 또는 `perfectionist/sort-imports` | prettier 와 충돌 없게 |
-| 배럴 파일 지양 (§8) | `no-restricted-imports` 패턴 / 커스텀 | 리뷰 병행 |
-| 포맷 전반(들여쓰기/따옴표/세미콜론/후행쉼표) (§9) | **prettier** 전담 | eslint 는 포맷 규칙 끄기(`eslint-config-prettier`) |
+| 이 문서의 규칙                                    | 강제 수단(eslint 규칙 예시)                                     | 비고                                                                                                    |
+| ------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `<img>` 금지, `next/image` 강제 (§6)              | `@next/next/no-img-element`                                     | eslint-config-next 포함                                                                                 |
+| RSC 기본 / `"use client"` 오용 (§8)               | `eslint-plugin-react-server-components` 또는 커스텀 규칙        | 자동화 어려움 — **리뷰로 보완**                                                                         |
+| 서버/클라 상태 분리 (§3-1)                        | 자동 규칙 없음                                                  | **커스텀 규칙 필요 또는 리뷰로 대체**                                                                   |
+| 서버 응답을 Zustand 에 저장 금지 (§3-1)           | 자동 규칙 없음                                                  | **리뷰 체크포인트** (git-convention 참고)                                                               |
+| Zustand 모듈 싱글턴 금지 (§3-2)                   | `no-restricted-syntax` 로 최상위 `create(` 호출 패턴 경고       | 근사치 — 리뷰 병행                                                                                      |
+| useShallow 누락 (§3-3)                            | `no-restricted-syntax` / 커스텀: 객체 리터럴 반환 selector 감지 | 어려움 — 전용 훅 사용을 리뷰로 강제                                                                     |
+| 접근성 전반 (§5)                                  | `eslint-plugin-jsx-a11y` (recommended 이상)                     | `label-has-associated-control`, `no-autofocus`, `anchor-has-content`, `control-has-associated-label` 등 |
+| 아이콘 버튼 `aria-label` (§5)                     | `jsx-a11y/control-has-associated-label`                         |                                                                                                         |
+| 링크 목적지 설명 (§5)                             | `jsx-a11y/anchor-has-content`, `jsx-a11y/anchor-is-valid`       | "여기/더보기" 문구는 리뷰로                                                                             |
+| `user-scalable` 금지 (§5)                         | `no-restricted-syntax` 로 viewport 메타/`viewport` export 검사  | 근사치 — 리뷰 병행                                                                                      |
+| 색 대비 (§5)                                      | 자동 규칙 없음                                                  | 디자인 토큰 대비 검증 + Lighthouse CI                                                                   |
+| 폼: RHF+Zod 강제 (§4)                             | 자동 규칙 없음                                                  | `no-restricted-imports` 로 다른 폼 라이브러리 차단 + 리뷰                                               |
+| 타입 전용 import (§9)                             | `@typescript-eslint/consistent-type-imports`                    |                                                                                                         |
+| `any` 금지 (§9)                                   | `@typescript-eslint/no-explicit-any`, `no-unsafe-*`             |                                                                                                         |
+| 미사용 변수 (§9)                                  | `@typescript-eslint/no-unused-vars` (`argsIgnorePattern: "^_"`) |                                                                                                         |
+| `console.log` 금지 (§9)                           | `no-console` (`allow: ["warn", "error"]`)                       |                                                                                                         |
+| import 순서 (§9)                                  | `import/order` 또는 `perfectionist/sort-imports`                | prettier 와 충돌 없게                                                                                   |
+| 배럴 파일 지양 (§8)                               | `no-restricted-imports` 패턴 / 커스텀                           | 리뷰 병행                                                                                               |
+| 포맷 전반(들여쓰기/따옴표/세미콜론/후행쉼표) (§9) | **prettier** 전담                                               | eslint 는 포맷 규칙 끄기(`eslint-config-prettier`)                                                      |
 
 **역할 분담(스코프 2 가 구현):**
+
 - **prettier = 포맷 전담** (들여쓰기, 따옴표, 줄바꿈, 후행 쉼표).
 - **eslint = 품질 전담** (미사용 코드, 접근성, 위험 패턴, import 규칙).
 - 두 도구가 겹치는 포맷 규칙은 `eslint-config-prettier` 로 eslint 쪽을 끈다.
