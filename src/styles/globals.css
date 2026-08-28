@@ -1,21 +1,18 @@
 @import "tailwindcss";
 
 /*
- * Tailwind CSS v4 는 CSS-first 설정이다. tailwind.config.js 를 만들지 않는다.
+ * Tailwind CSS v4 CSS-first. tailwind.config.js 를 만들지 않는다.
  *
  * @theme 네임스페이스가 "정식 유틸리티"를 생성한다:
  *   --color-*  -> bg-*, text-*, border-*, ring-* ...
  *   --radius-* -> rounded-*
  *   --font-*   -> font-*
+ * ⚠️ rounded-[--radius-card] 대괄호 임의값 문법 금지. 생성 유틸리티(rounded-card)만.
  *
- * ⚠️ rounded-[--radius-card] 같은 대괄호 임의값 문법은 v4 에서 신뢰 불가.
- *    반드시 자동 생성되는 정식 유틸리티(rounded-card)를 쓸 것.
- *
- * 다크 모드
- *  - 기본값: OS 설정(prefers-color-scheme)을 따른다.
+ * 다크 모드 (동작 구조만 세팅 — 실제 색상은 디자인 토큰 대기)
+ *  - 기본값: OS 설정(prefers-color-scheme).
  *  - 명시 override: <html data-theme="dark"> / <html data-theme="light">.
- *  - 시맨틱 토큰(bg-surface, text-foreground 등)은 위 규칙에 따라 자동 전환된다.
- *  - dark: 유틸리티는 "OS 다크(단, data-theme="light" 아님)" 또는 data-theme="dark" 에서 동작한다.
+ *  - 시맨틱 색 토큰(--color-background 등)은 위 규칙에 따라 자동 전환.
  *  - 실제 토글 UI(localStorage + inline head script)는 다음 단계.
  */
 
@@ -33,11 +30,11 @@
   }
 }
 
-/* 정적 토큰(테마 무관) */
+/*
+ * 정적 토큰 — 색상 아님(radius/font). 색상 팔레트(--color-brand, --color-price 등)는
+ * 디자인 파트에서 토큰 확정 후 여기에 추가한다. 지금은 정의하지 않는다.
+ */
 @theme {
-  --color-brand: #4f46e5;
-  --color-brand-foreground: #ffffff;
-
   --radius-card: 0.75rem;
   --radius-button: 0.5rem;
   --radius-pill: 9999px;
@@ -48,71 +45,52 @@
 }
 
 /*
- * 테마 인식 토큰: @theme inline 으로 var() 를 그대로 유틸리티에 넣어
- * 런타임 캐스케이드(:root vs [data-theme])에 따라 값이 바뀌게 한다.
- * 색상값 자체는 아래 :root / @media / [data-theme] 블록에서 정의.
+ * 테마 인식 색 토큰: @theme inline 으로 var() 를 그대로 유틸리티에 넣어
+ * 런타임 캐스케이드(:root vs [data-theme])로 값이 바뀌게 한다.
  */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-foreground-muted: var(--foreground-muted);
   --color-surface: var(--surface);
   --color-surface-muted: var(--surface-muted);
   --color-border: var(--border);
-  --color-brand-muted: var(--brand-muted);
-  --color-price: var(--price);
-  --color-success: var(--success);
-  --color-danger: var(--danger);
 }
 
-/* 라이트 (기본) */
+/*
+ * ⚠️ PLACEHOLDER — 디자인 토큰 확정 전 임시값. 순수 그레이스케일(대비 확보 목적)만 둔다.
+ *    브랜드색·시맨틱색(성공/경고/가격 등)은 여기 추가하지 말 것. 디자인 토큰으로 일괄 교체.
+ *    다크 값은 아래 두 블록(@media / [data-theme])에 동일하게 유지한다.
+ */
 :root {
   color-scheme: light;
 
   --background: #ffffff;
-  --foreground: #18181b;
-  --foreground-muted: #71717a;
+  --foreground: #171717;
   --surface: #ffffff;
-  --surface-muted: #f4f4f5;
-  --border: #e4e4e7;
-  --brand-muted: #eef2ff;
-  --price: #d6336c;
-  --success: #2f9e44;
-  --danger: #e03131;
+  --surface-muted: #f5f5f5;
+  --border: #e5e5e5;
 }
 
-/* 다크 — OS 설정 (단, data-theme="light" 로 명시 고정한 경우는 제외) */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
 
-    --background: #09090b;
-    --foreground: #fafafa;
-    --foreground-muted: #a1a1aa;
-    --surface: #18181b;
-    --surface-muted: #27272a;
-    --border: #3f3f46;
-    --brand-muted: #1e1b4b;
-    --price: #f06595;
-    --success: #51cf66;
-    --danger: #ff6b6b;
+    --background: #0a0a0a;
+    --foreground: #ededed;
+    --surface: #171717;
+    --surface-muted: #212121;
+    --border: #2e2e2e;
   }
 }
 
-/* 다크 — 명시 override (<html data-theme="dark">) */
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --background: #09090b;
-  --foreground: #fafafa;
-  --foreground-muted: #a1a1aa;
-  --surface: #18181b;
-  --surface-muted: #27272a;
-  --border: #3f3f46;
-  --brand-muted: #1e1b4b;
-  --price: #f06595;
-  --success: #51cf66;
-  --danger: #ff6b6b;
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --surface: #171717;
+  --surface-muted: #212121;
+  --border: #2e2e2e;
 }
 
 html,

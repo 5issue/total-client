@@ -183,7 +183,7 @@ const { register, handleSubmit, formState: { errors, isSubmitting } } =
 
 ## 6. 이미지 규칙
 
-> 근거: 경쟁사 실측 — 메인 이미지 PNG **2.4MB**, LCP 약 **20초**, CLS **0.77**. (structure-convention §4 와 동일 근거)
+> 근거: 경쟁사 실측 — 메인 이미지 PNG **2.4MB**, LCP 약 **20초**, CLS **0.77**. (structure-convention §5 와 동일 근거)
 
 - `<img>` 직접 사용 **금지** → `next/image` 만 사용. (`@next/next/no-img-element` 로 강제)
 - 이미지 컨테이너는 **종횡비를 CSS 로 먼저 고정**(`aspect-*` + `relative` + `fill`), 로드 전에도 높이 확정.
@@ -198,17 +198,20 @@ const { register, handleSubmit, formState: { errors, isSubmitting } } =
 
 `src/styles/globals.css` 한 곳에서 토큰을 정의한다 (Tailwind v4 CSS-first, `tailwind.config.js` 없음).
 
-| 토큰 종류 | 정의 위치 | 예 | 다크 대응 |
+> **현재 상태**: 다크 모드 **동작 구조만** 세팅됨. 색상값은 **디자인 토큰 확정 전 임시 그레이스케일**(`--background`, `--foreground`, `--surface`, `--surface-muted`, `--border` 5개)이다. 브랜드색·시맨틱색(성공/경고/가격 등)은 **아직 정의하지 않는다** — 디자인 토큰이 들어오면 일괄 추가/교체.
+
+| 토큰 종류 | 정의 위치 | 다크 대응 | 현재 |
 |---|---|---|---|
-| 정적 토큰 | `@theme { }` | `--color-brand`, `--radius-*`, `--font-*` | 테마 무관, 값 1개 |
-| 테마 인식 토큰 | `@theme inline { }` + `:root` / `@media` / `[data-theme]` | `--color-surface`, `--color-foreground`, `--color-border` | 캐스케이드로 자동 전환 |
+| 정적 토큰 | `@theme { }` | 테마 무관 | `--radius-*`, `--font-sans` 만 |
+| 테마 인식 색 토큰 | `@theme inline { }` + `:root` / `@media` / `[data-theme]` | 캐스케이드로 자동 전환 | 중립 그레이스케일 5개 (PLACEHOLDER) |
+| 브랜드 / 시맨틱 색 | (미정) | (미정) | 디자인 토큰 대기 |
 
 - **다크 모드 3-상태**: 기본은 OS 설정(`prefers-color-scheme`), `<html data-theme="dark">` / `<html data-theme="light">` 로 명시 override.
 - `@custom-variant dark` 를 재정의해 `dark:` 유틸리티가 "OS 다크(단 `data-theme="light"` 아님)" 또는 `data-theme="dark"` 에서 동작하도록 함.
-- **컴포넌트는 시맨틱 토큰 유틸리티를 쓴다**: `bg-surface`, `bg-surface-muted`, `text-foreground`, `text-foreground-muted`, `border-border`. 이 유틸리티는 테마에 따라 자동 전환되므로 대부분 `dark:` 접두어가 필요 없다.
-- `dark:` 접두어는 시맨틱 토큰으로 표현 불가능한 일회성 예외에만 (예: 다크에서만 특정 그림자/이미지 교체).
-- 하드코딩 색(`text-zinc-500`, `bg-white` 등) 대신 토큰 유틸리티. 새 색이 필요하면 토큰을 먼저 추가.
-- 대비: 라이트/다크 **양쪽 모두** 본문 4.5:1 이상 확인 (§5). 다크에서 브랜드/상태색은 밝기를 올린 값 사용.
+- **컴포넌트는 시맨틱 토큰 유틸리티를 쓴다**: `bg-surface`, `bg-surface-muted`, `text-foreground`, `border-border`. 테마에 따라 자동 전환되므로 대부분 `dark:` 접두어가 필요 없다.
+- `dark:` 접두어는 시맨틱 토큰으로 표현 불가능한 일회성 예외에만.
+- 하드코딩 색(`text-zinc-500`, `bg-white` 등) 금지. 필요한 색은 토큰을 먼저 정의(디자인 파트 협의).
+- 디자인 토큰 반영 시: `@theme` 에 팔레트 추가 + 테마 인식 색은 `@theme inline` + 라이트/다크 블록에 값 정의. 라이트/다크 **양쪽 모두** 본문 대비 4.5:1 이상 확인 (§5).
 - 토글 UI(localStorage + inline head script, `<html>` 에 `data-theme` 주입)는 다음 단계. `layout.tsx` 의 `<html suppressHydrationWarning>` 는 이를 대비한 것.
 
 ---
@@ -225,8 +228,10 @@ const { register, handleSubmit, formState: { errors, isSubmitting } } =
 
 ## 8. 번들 · 렌더링 전략
 
+- **화면별 렌더링 전략(SSG / ISR / SSR / CSR)은 `structure-convention` §2-1 에서 고른다.** 이 절은 컴포넌트/번들 레벨 규칙만.
 - **RSC(서버 컴포넌트)가 기본.** `"use client"` 는 상호작용/브라우저 API/`useState`·`useEffect`/컨텍스트 소비가 필요한 **잎 컴포넌트**에만 선언한다.
-- `"use client"` 를 트리 상단(레이아웃/페이지)에 올리지 않는다. 클라 경계는 최대한 아래로.
+- `"use client"` 를 트리 상단(레이아웃/페이지)에 올리지 않는다. 클라 경계는 최대한 아래로. (페이지가 CSR 이어도 서버 껍데기 + 클라 잎 구조 유지)
+- 동적 API(`cookies()`/`headers()`/`searchParams`)는 그것을 실제로 쓰는 세그먼트에서만 호출 — 상위에서 부르면 하위 전체가 SSR 로 강등된다.
 - 무거운 클라 전용 위젯(차트, 에디터, 지도)은 `next/dynamic` 으로 분할 로드.
 - 배럴 파일(`index.ts` 재-export 모음) 지양 — 트리셰이킹·번들 분석을 방해한다. 필요한 것만 직접 import.
 - 서드파티 추가 전 번들 영향 확인. "작은 유틸 하나" 때문에 큰 패키지를 넣지 않는다.

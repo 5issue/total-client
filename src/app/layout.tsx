@@ -17,10 +17,11 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   // 접근성: user-scalable=no / maximum-scale 로 확대를 막지 않는다.
-  // 브라우저 크롬 색상을 라이트/다크로 분기.
+  // 브라우저 크롬 색상 라이트/다크 분기. 값은 globals.css --background 와 동일하게 유지.
+  // (임시 그레이스케일 — 디자인 토큰 확정 시 교체)
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
   ],
 };
 
