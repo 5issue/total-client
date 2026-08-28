@@ -1,4 +1,4 @@
-import { createStore } from "zustand/vanilla";
+import { createStore } from 'zustand/vanilla';
 
 /**
  * Access Token 메모리 보관 (Store Provider 패턴, 뼈대).
@@ -26,9 +26,7 @@ export const defaultAuthTokenState: AuthTokenState = {
   accessToken: null,
 };
 
-export const createAuthTokenStore = (
-  initState: AuthTokenState = defaultAuthTokenState,
-) => {
+export const createAuthTokenStore = (initState: AuthTokenState = defaultAuthTokenState) => {
   return createStore<AuthTokenStore>()((set) => ({
     ...initState,
     setAccessToken: (token) => set({ accessToken: token }),

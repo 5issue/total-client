@@ -1,15 +1,17 @@
-"use client";
+'use client';
 
-import { useContext } from "react";
-import { useStore } from "zustand";
-import { useShallow } from "zustand/react/shallow";
-import { UIStoreContext } from "@/providers/UIStoreProvider";
-import type { UIStore } from "@/stores/uiStore";
+import { useContext } from 'react';
+
+import { useStore } from 'zustand';
+import { useShallow } from 'zustand/react/shallow';
+
+import { UIStoreContext } from '@/providers/UIStoreProvider';
+import type { UIStore } from '@/stores/uiStore';
 
 function useUIStoreApi() {
   const store = useContext(UIStoreContext);
   if (!store) {
-    throw new Error("useUIStore 는 <UIStoreProvider> 내부에서만 사용할 수 있습니다.");
+    throw new Error('useUIStore 는 <UIStoreProvider> 내부에서만 사용할 수 있습니다.');
   }
   return store;
 }

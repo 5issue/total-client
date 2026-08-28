@@ -1,4 +1,4 @@
-import type { MetadataRoute } from "next";
+import type { MetadataRoute } from 'next';
 
 /**
  * App Router 네이티브 manifest. public/manifest.json 정적 파일을 쓰지 않는다.
@@ -8,16 +8,16 @@ import type { MetadataRoute } from "next";
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "total-client",
-    short_name: "total-client",
-    description: "통합 이커머스 프론트엔드",
-    start_url: "/",
-    display: "standalone",
-    background_color: "#ffffff",
-    theme_color: "#4f46e5",
+    name: 'total-client',
+    short_name: 'total-client',
+    description: '통합 이커머스 프론트엔드',
+    start_url: '/',
+    display: 'standalone',
+    background_color: '#ffffff',
+    theme_color: '#4f46e5',
     icons: [
-      { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { src: "/icon-512.png", sizes: "512x512", type: "image/png" },
+      { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
     ],
   };
 }

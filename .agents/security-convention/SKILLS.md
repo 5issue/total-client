@@ -8,24 +8,24 @@
 
 ## 요약 표
 
-| ID | 항목 | 심각도 | 자동 검출 | 현재 상태 |
-|---|---|---|---|---|
-| FE-01 | 민감정보 클라이언트 저장 금지 | 높음 | 부분(리뷰) | 규칙 수립 |
-| FE-02 | XSS 방지 | 높음 | 부분(eslint) | 규칙 수립 |
-| FE-03 | 민감정보 로깅 금지 | 중간 | 부분(`no-console`) | 규칙 수립 |
-| FE-04 | 전송 구간 암호화(HTTPS) | 높음 | CI/인프라 | ⏳ 헤더·인프라 |
-| FE-05 | 인증 토큰 처리 | 높음 | 아니오 | ⏳ `api/auth` |
-| FE-06 | CSRF 방지 | 높음 | 아니오 | ⏳ Route Handler |
-| FE-07 | 서버 응답 신뢰 경계(스키마 검증) | 중간 | 부분(리뷰) | 규칙 수립 (`src/types`) |
-| FE-08 | 의존성 취약점 관리 | 중간 | `npm audit` | 진행 중 (lockfile 존재) |
-| FE-09 | 오픈 리다이렉트 방지 | 중간 | 아니오 | ⏳ 로그인 redirect |
-| FE-10 | 시크릿 하드코딩 금지 | 높음 | 시크릿 스캐너 | 규칙 수립 (`src/lib/env.ts`) |
-| FE-11 | 보안 응답 헤더 | 중간 | CI 검사 가능 | ⏳ `next.config.ts` headers |
-| FE-12 | 클릭재킹 방지 | 중간 | CI 검사 가능 | ⏳ `frame-ancestors` |
-| FE-13 | 외부 링크 `rel` 처리 | 낮음 | eslint | 규칙 수립 |
-| FE-14 | 파일 업로드 검증 | 중간 | 아니오 | ⏳ 해당 기능 없음 |
-| FE-15 | 인가는 서버에서(클라 가드는 UX용) | 높음 | 아니오 | ⏳ `middleware.ts` + API |
-| FE-16 | 에러 처리 시 내부정보 비노출 | 중간 | 부분(리뷰) | 규칙 수립 (`api-convention` 응답 포맷) |
+| ID    | 항목                              | 심각도 | 자동 검출          | 현재 상태                              |
+| ----- | --------------------------------- | ------ | ------------------ | -------------------------------------- |
+| FE-01 | 민감정보 클라이언트 저장 금지     | 높음   | 부분(리뷰)         | 규칙 수립                              |
+| FE-02 | XSS 방지                          | 높음   | 부분(eslint)       | 규칙 수립                              |
+| FE-03 | 민감정보 로깅 금지                | 중간   | 부분(`no-console`) | 규칙 수립                              |
+| FE-04 | 전송 구간 암호화(HTTPS)           | 높음   | CI/인프라          | ⏳ 헤더·인프라                         |
+| FE-05 | 인증 토큰 처리                    | 높음   | 아니오             | ⏳ `api/auth`                          |
+| FE-06 | CSRF 방지                         | 높음   | 아니오             | ⏳ Route Handler                       |
+| FE-07 | 서버 응답 신뢰 경계(스키마 검증)  | 중간   | 부분(리뷰)         | 규칙 수립 (`src/types`)                |
+| FE-08 | 의존성 취약점 관리                | 중간   | `npm audit`        | 진행 중 (lockfile 존재)                |
+| FE-09 | 오픈 리다이렉트 방지              | 중간   | 아니오             | ⏳ 로그인 redirect                     |
+| FE-10 | 시크릿 하드코딩 금지              | 높음   | 시크릿 스캐너      | 규칙 수립 (`src/lib/env.ts`)           |
+| FE-11 | 보안 응답 헤더                    | 중간   | CI 검사 가능       | ⏳ `next.config.ts` headers            |
+| FE-12 | 클릭재킹 방지                     | 중간   | CI 검사 가능       | ⏳ `frame-ancestors`                   |
+| FE-13 | 외부 링크 `rel` 처리              | 낮음   | eslint             | 규칙 수립                              |
+| FE-14 | 파일 업로드 검증                  | 중간   | 아니오             | ⏳ 해당 기능 없음                      |
+| FE-15 | 인가는 서버에서(클라 가드는 UX용) | 높음   | 아니오             | ⏳ `middleware.ts` + API               |
+| FE-16 | 에러 처리 시 내부정보 비노출      | 중간   | 부분(리뷰)         | 규칙 수립 (`api-convention` 응답 포맷) |
 
 ---
 
@@ -92,13 +92,15 @@
 
 - 로그인 후 복귀(`?redirect=`), 딥링크 등에서 **오직 자사 경로(상대경로, `/` 로 시작, `//` 아님)** 만 허용.
 - 절대 URL / 프로토콜 상대(`//evil.com`) / `\` 우회 차단.
+
 ```ts
 export function safeRedirect(target: string | null): string {
-  if (!target) return "/";
-  if (!target.startsWith("/") || target.startsWith("//") || target.includes("\\")) return "/";
+  if (!target) return '/';
+  if (!target.startsWith('/') || target.startsWith('//') || target.includes('\\')) return '/';
   return target;
 }
 ```
+
 - **이 프로젝트 적용 지점**: ⏳ `(auth)/login` + `src/middleware.ts` 의 `redirect` 처리, `src/lib/safeRedirect.ts`.
 
 ## FE-10. 시크릿 하드코딩 금지
@@ -113,14 +115,14 @@ export function safeRedirect(target: string | null): string {
 
 `next.config.ts` 의 `async headers()` 또는 `src/middleware.ts` 로 전역 적용:
 
-| 헤더 | 값(초안) |
-|---|---|
-| `Content-Security-Policy` | `default-src 'self'; img-src 'self' https: data:; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' <API_URL>; frame-ancestors 'none'; base-uri 'self'; form-action 'self'` |
-| `Strict-Transport-Security` | `max-age=63072000; includeSubDomains; preload` |
-| `X-Content-Type-Options` | `nosniff` |
-| `Referrer-Policy` | `strict-origin-when-cross-origin` |
-| `X-Frame-Options` | `DENY` (CSP `frame-ancestors` 보완) |
-| `Permissions-Policy` | `camera=(), microphone=(), geolocation=(), interest-cohort=()` |
+| 헤더                        | 값(초안)                                                                                                                                                                                          |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Content-Security-Policy`   | `default-src 'self'; img-src 'self' https: data:; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' <API_URL>; frame-ancestors 'none'; base-uri 'self'; form-action 'self'` |
+| `Strict-Transport-Security` | `max-age=63072000; includeSubDomains; preload`                                                                                                                                                    |
+| `X-Content-Type-Options`    | `nosniff`                                                                                                                                                                                         |
+| `Referrer-Policy`           | `strict-origin-when-cross-origin`                                                                                                                                                                 |
+| `X-Frame-Options`           | `DENY` (CSP `frame-ancestors` 보완)                                                                                                                                                               |
+| `Permissions-Policy`        | `camera=(), microphone=(), geolocation=(), interest-cohort=()`                                                                                                                                    |
 
 - CSP 는 Next inline 스크립트(RSC) 때문에 nonce 전략이 필요할 수 있음 → ⏳ `middleware` 에서 nonce 발급 + `script-src 'nonce-...'`.
 - **이 프로젝트 적용 지점**: ⏳ `next.config.ts` / `src/middleware.ts`.

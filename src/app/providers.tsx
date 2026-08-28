@@ -1,8 +1,9 @@
-"use client";
+'use client';
 
-import type { ReactNode } from "react";
-import { QueryProvider } from "@/providers/QueryProvider";
-import { UIStoreProvider } from "@/providers/UIStoreProvider";
+import type { ReactNode } from 'react';
+
+import { QueryProvider } from '@/providers/QueryProvider';
+import { UIStoreProvider } from '@/providers/UIStoreProvider';
 
 /**
  * 모든 클라이언트 Provider 합성 지점.

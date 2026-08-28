@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode } from 'react';
 
 /**
  * (shop) 셸: Header(+장바구니 아이콘) / BottomNav(홈·검색·AI·마이컬리).

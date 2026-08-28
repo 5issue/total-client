@@ -1,4 +1,4 @@
-import { createStore } from "zustand/vanilla";
+import { createStore } from 'zustand/vanilla';
 
 /**
  * 클라이언트 UI 상태 스토어 (뼈대 / 예시).
@@ -36,8 +36,7 @@ export const createUIStore = (initState: UIState = defaultUIState) => {
     ...initState,
     openMobileNav: () => set({ isMobileNavOpen: true }),
     closeMobileNav: () => set({ isMobileNavOpen: false }),
-    toggleCartDrawer: () =>
-      set((state) => ({ isCartDrawerOpen: !state.isCartDrawerOpen })),
+    toggleCartDrawer: () => set((state) => ({ isCartDrawerOpen: !state.isCartDrawerOpen })),
     reset: () => set(defaultUIState),
   }));
 };

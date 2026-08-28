@@ -1,4 +1,4 @@
-import { createStore } from "zustand/vanilla";
+import { createStore } from 'zustand/vanilla';
 
 /**
  * 필터 바텀시트(FilterSheet)의 임시 선택값 (클라 UI 상태, 뼈대).
@@ -25,9 +25,7 @@ export const defaultFilterUIState: FilterUIState = {
   draft: {},
 };
 
-export const createFilterUIStore = (
-  initState: FilterUIState = defaultFilterUIState,
-) => {
+export const createFilterUIStore = (initState: FilterUIState = defaultFilterUIState) => {
   return createStore<FilterUIStore>()((set) => ({
     ...initState,
     toggleOption: (groupId, optionId) =>

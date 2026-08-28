@@ -1,7 +1,7 @@
-name: "📄 문서 작업"
-description: "README, 주석, Wiki, 변경 이력 등 문서 관련 작업을 등록해주세요."
-title: "[DOCS] : "
-labels: ["documentation"]
+name: '📄 문서 작업'
+description: 'README, 주석, Wiki, 변경 이력 등 문서 관련 작업을 등록해주세요.'
+title: '[DOCS] : '
+labels: ['documentation']
 body:
   - type: markdown
     attributes:
@@ -12,8 +12,8 @@ body:
   - type: textarea
     id: target
     attributes:
-      label: "🎯 작업 대상 문서"
-      description: "어떤 파일 또는 문서 영역이 대상인지 작성해주세요."
+      label: '🎯 작업 대상 문서'
+      description: '어떤 파일 또는 문서 영역이 대상인지 작성해주세요.'
       placeholder: |
         예: README.md — 프로젝트 설치 가이드 섹션
         예: src/lib/api.ts 내 JSDoc 주석 보완
@@ -24,8 +24,8 @@ body:
   - type: dropdown
     id: doc-type
     attributes:
-      label: "🗂️ 문서 유형"
-      description: "작업 대상 문서의 유형을 선택해주세요."
+      label: '🗂️ 문서 유형'
+      description: '작업 대상 문서의 유형을 선택해주세요.'
       options:
         - README
         - CONTRIBUTING
@@ -40,8 +40,8 @@ body:
   - type: dropdown
     id: action
     attributes:
-      label: "✏️ 작업 종류"
-      description: "수행할 작업의 종류를 선택해주세요."
+      label: '✏️ 작업 종류'
+      description: '수행할 작업의 종류를 선택해주세요.'
       options:
         - 신규 작성
         - 내용 수정
@@ -53,8 +53,8 @@ body:
   - type: textarea
     id: reason
     attributes:
-      label: "💡 작업 이유"
-      description: "왜 이 문서 작업이 필요한지 설명해주세요."
+      label: '💡 작업 이유'
+      description: '왜 이 문서 작업이 필요한지 설명해주세요.'
       placeholder: |
         예: 환경 설정 방법이 문서에 없어 온보딩 시 혼란이 생김
         예: API 응답 구조가 변경됐는데 주석이 구버전 기준으로 남아 있음
@@ -64,6 +64,6 @@ body:
   - type: textarea
     id: additional
     attributes:
-      label: "💬 추가 정보"
-      description: "참고할 링크, 스크린샷, 관련 PR·이슈가 있으면 남겨주세요."
-      placeholder: "예: #42 PR 이후 변경된 구조 반영 필요"
+      label: '💬 추가 정보'
+      description: '참고할 링크, 스크린샷, 관련 PR·이슈가 있으면 남겨주세요.'
+      placeholder: '예: #42 PR 이후 변경된 구조 반영 필요'

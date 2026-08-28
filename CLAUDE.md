@@ -8,15 +8,16 @@
 
 ## 문서 지도
 
-| 문서 | 다루는 것 | 상태 |
-|---|---|---|
-| [.agents/api-convention/SKILLS.md](.agents/api-convention/SKILLS.md) | API 계층 아키텍처(Route Handler→types(Zod)→apiClient→hooks/&lt;domain&gt;→컴포넌트), publicFetch/privateFetch, 쿼리 키 팩토리, Zod 스키마 규칙, 공용 응답 포맷 `{ statusCode, message, data }`, Optimistic Update 정책, 새 엔드포인트 체크리스트 | ✅ 실제 문서 존재 (스코프1). 라우트·훅 구현 코드는 대기 |
-| [.agents/structure-convention/SKILLS.md](.agents/structure-convention/SKILLS.md) | 라우트 그룹 `(auth)/(shop)`, 라우트 맵, **컴포넌트 계층(Atomic Design 하이브리드 3계층)**, MVP 화면 목록·렌더링 전략·책임 지표, 전체 폴더 트리, `next/image`+종횡비 고정 규칙, 디자인 협의 보류 항목 | ✅ 실제 문서 + 라우트/컴포넌트 폴더 스켈레톤 존재 (스코프1). 화면·컴포넌트 구현은 대기 |
-| [.agents/code-style-convention/SKILLS.md](.agents/code-style-convention/SKILLS.md) | ⭐ **eslint/prettier 의 근거 문서.** 명명 규칙, CDD 순서, 상태관리 원칙(서버/클라 분리, Zustand 마운트당 생성, useShallow 강제), 폼 규칙, 이미지·접근성·애니메이션·번들 전략, **"eslint 규칙 매핑 예시" 표** | ✅ 실제 문서 존재 (스코프1). eslint/prettier 설정 파일은 스코프2 |
-| [.agents/git-convention/SKILLS.md](.agents/git-convention/SKILLS.md) | (지금 적용) 브랜치 전략, Conventional Commits, PR 준비 체크리스트, 리뷰 포인트. **+ ⏳ 예정 작업 명세(스코프2)**: PR/Issue 템플릿, 브랜치 룰셋, husky, CI typecheck, Storybook 규약, eslint/prettier 강제 구성 | 📋 스코프1 규칙은 즉시 적용. 스코프2 7개 항목은 **문서 내 명세만 존재**, 실제 파일(`.github/`, `.husky/`, `.storybook/` 등)은 미생성 |
-| [.agents/security-convention/SKILLS.md](.agents/security-convention/SKILLS.md) | 프론트엔드 시큐어 코딩 FE-01~FE-16, 각 항목의 "이 프로젝트 적용 지점"(없으면 ⏳), 릴리스 전 보안 체크리스트 | ✅ 실제 문서 존재 (스코프1). 상당수 적용 지점은 ⏳(해당 코드 미구현) |
+| 문서                                                                               | 다루는 것                                                                                                                                                                                                                                        | 상태                                                                                                                                 |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| [.agents/api-convention/SKILLS.md](.agents/api-convention/SKILLS.md)               | API 계층 아키텍처(Route Handler→types(Zod)→apiClient→hooks/&lt;domain&gt;→컴포넌트), publicFetch/privateFetch, 쿼리 키 팩토리, Zod 스키마 규칙, 공용 응답 포맷 `{ statusCode, message, data }`, Optimistic Update 정책, 새 엔드포인트 체크리스트 | ✅ 실제 문서 존재 (스코프1). 라우트·훅 구현 코드는 대기                                                                              |
+| [.agents/structure-convention/SKILLS.md](.agents/structure-convention/SKILLS.md)   | 라우트 그룹 `(auth)/(shop)`, 라우트 맵, **컴포넌트 계층(Atomic Design 하이브리드 3계층)**, MVP 화면 목록·렌더링 전략·책임 지표, 전체 폴더 트리, `next/image`+종횡비 고정 규칙, 디자인 협의 보류 항목                                             | ✅ 실제 문서 + 라우트/컴포넌트 폴더 스켈레톤 존재 (스코프1). 화면·컴포넌트 구현은 대기                                               |
+| [.agents/code-style-convention/SKILLS.md](.agents/code-style-convention/SKILLS.md) | ⭐ **eslint/prettier 의 근거 문서.** 명명 규칙, CDD 순서, 상태관리 원칙(서버/클라 분리, Zustand 마운트당 생성, useShallow 강제), 폼 규칙, 이미지·접근성·애니메이션·번들 전략, **"eslint 규칙 매핑 예시" 표**                                     | ✅ 실제 문서 존재 (스코프1). eslint/prettier 설정 파일은 스코프2                                                                     |
+| [.agents/git-convention/SKILLS.md](.agents/git-convention/SKILLS.md)               | (지금 적용) 브랜치 전략, Conventional Commits, PR 준비 체크리스트, 리뷰 포인트. **+ ⏳ 예정 작업 명세(스코프2)**: PR/Issue 템플릿, 브랜치 룰셋, husky, CI typecheck, Storybook 규약, eslint/prettier 강제 구성                                   | 📋 스코프1 규칙은 즉시 적용. 스코프2 7개 항목은 **문서 내 명세만 존재**, 실제 파일(`.github/`, `.husky/`, `.storybook/` 등)은 미생성 |
+| [.agents/security-convention/SKILLS.md](.agents/security-convention/SKILLS.md)     | 프론트엔드 시큐어 코딩 FE-01~FE-16, 각 항목의 "이 프로젝트 적용 지점"(없으면 ⏳), 릴리스 전 보안 체크리스트                                                                                                                                      | ✅ 실제 문서 존재 (스코프1). 상당수 적용 지점은 ⏳(해당 코드 미구현)                                                                 |
 
 **상태 범례**
+
 - ✅ **실제 파일 존재 · 스코프1 완료** — 지금 이 저장소에 있고 바로 따른다.
 - 📋 **문서 내 스코프2 명세 포함, 실제 구현은 대기** — 문서에는 상세 명세가 있으나, 그것을 강제하는 설정/도구 파일은 아직 만들지 않았다.
 
@@ -51,17 +52,17 @@ Optimistic Update 는 **기본적으로 하지 않는다**(성공 후 `invalidat
 
 ## 환경 · 실행
 
-| 항목 | 값 |
-|---|---|
-| Node | 24.19.0 (`.nvmrc`) · npm 11.17.0 (`packageManager`) |
-| 프레임워크 | Next.js 16.3.3 (App Router, Turbopack 기본) |
-| React | 19.2.8 |
-| TypeScript | 6.0.3 (7.x 아님 — typescript-eslint ERESOLVE 회피) |
-| 스타일 | Tailwind CSS v4.1 (CSS-first, `@theme`). `tailwind.config.js` 없음 |
-| 서버 상태 | TanStack Query 5 / 클라 상태 Zustand 5 |
-| 폼 | React Hook Form 7 + Zod 4 + `@hookform/resolvers` |
-| PWA | `@serwist/turbopack` (Route Handler 방식) |
-| 배포 | `output: "standalone"` + 3-stage Dockerfile (Node 24.19.0-slim) + `k8s/*.example.yaml` |
+| 항목       | 값                                                                                     |
+| ---------- | -------------------------------------------------------------------------------------- |
+| Node       | 24.19.0 (`.nvmrc`) · npm 11.17.0 (`packageManager`)                                    |
+| 프레임워크 | Next.js 16.3.3 (App Router, Turbopack 기본)                                            |
+| React      | 19.2.8                                                                                 |
+| TypeScript | 6.0.3 (7.x 아님 — typescript-eslint ERESOLVE 회피)                                     |
+| 스타일     | Tailwind CSS v4.1 (CSS-first, `@theme`). `tailwind.config.js` 없음                     |
+| 서버 상태  | TanStack Query 5 / 클라 상태 Zustand 5                                                 |
+| 폼         | React Hook Form 7 + Zod 4 + `@hookform/resolvers`                                      |
+| PWA        | `@serwist/turbopack` (Route Handler 방식)                                              |
+| 배포       | `output: "standalone"` + 3-stage Dockerfile (Node 24.19.0-slim) + `k8s/*.example.yaml` |
 
 ```bash
 nvm use                 # .nvmrc → Node 24.19.0
