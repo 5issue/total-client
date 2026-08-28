@@ -169,20 +169,20 @@ const {
 
 > **근거: 경쟁사(마켓컬리) 접근성 감사 실측 82점.** 아래는 그 감사에서 감점된 항목을 예방하는 규칙이다.
 
-| 규칙                                 | 상세                                                                                                |
-| ------------------------------------ | --------------------------------------------------------------------------------------------------- |
-| 아이콘 전용 버튼은 `aria-label` 필수 | 텍스트 없는 버튼(장바구니, 검색, 닫기, 좋아요)에 목적을 서술. `<button aria-label="장바구니 열기">` |
-| 링크는 목적지를 설명                 | "여기", "더보기" 단독 금지. `aria-label` 이나 시각적으로 숨긴 텍스트로 "상품 상세 보기: {상품명}"   |
-| 확대(zoom) 제한 금지                 | `viewport` 에 `user-scalable=no`, `maximum-scale=1` **사용 금지**. `initialScale=1` 만.             |
-| 색 대비                              | 본문 텍스트 대비 ≥ 4.5:1, 큰 텍스트/UI 요소 ≥ 3:1. `--color-price` 등 브랜드색을 배경 대비 확인.    |
-| 색만으로 정보 전달 금지              | 품절/할인/에러를 색으로만 표시하지 않는다. 아이콘/텍스트 병행.                                      |
-| 포커스 가시성                        | `:focus-visible` 링을 지우지 않는다. 커스텀 시 대비 확보.                                           |
-| 이미지 `alt`                         | 의미 있으면 서술, 장식이면 `alt=""`. §6 참고.                                                       |
-| 폼 라벨                              | `<label htmlFor>` 연결. placeholder 를 라벨 대용으로 쓰지 않는다.                                   |
-| 랜드마크/제목                        | 페이지당 `<h1>` 하나. heading 레벨 건너뛰지 않기. `<main>`, `<nav>`, `<header>`, `<footer>` 사용.   |
-| 상호작용 요소 크기                   | 터치 타깃 최소 44×44px.                                                                             |
-| 동적 영역 알림                       | 토스트/검증 결과는 `role="status"` 또는 `role="alert"`.                                             |
-| 키보드 조작                          | 모든 상호작용은 키보드로 가능. 커스텀 드롭다운/모달은 포커스 트랩 + `Esc` 닫기.                     |
+| 규칙                                 | 상세                                                                                                        |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| 아이콘 전용 버튼은 `aria-label` 필수 | 텍스트 없는 버튼(장바구니, 검색, 닫기, 좋아요)에 목적을 서술. `<button aria-label="장바구니 열기">`         |
+| 링크는 목적지를 설명                 | "여기", "더보기" 단독 금지. `aria-label` 이나 시각적으로 숨긴 텍스트로 "상품 상세 보기: {상품명}"           |
+| 확대(zoom) 제한 금지                 | `viewport` 에 `user-scalable=no`, `maximum-scale=1` **사용 금지**. `initialScale=1` 만.                     |
+| 색 대비                              | 본문 텍스트 대비 ≥ 4.5:1, 큰 텍스트/UI 요소 ≥ 3:1. `--color-brand-500` 등 브랜드색·상태색을 배경 대비 확인. |
+| 색만으로 정보 전달 금지              | 품절/할인/에러를 색으로만 표시하지 않는다. 아이콘/텍스트 병행.                                              |
+| 포커스 가시성                        | `:focus-visible` 링을 지우지 않는다. 커스텀 시 대비 확보.                                                   |
+| 이미지 `alt`                         | 의미 있으면 서술, 장식이면 `alt=""`. §6 참고.                                                               |
+| 폼 라벨                              | `<label htmlFor>` 연결. placeholder 를 라벨 대용으로 쓰지 않는다.                                           |
+| 랜드마크/제목                        | 페이지당 `<h1>` 하나. heading 레벨 건너뛰지 않기. `<main>`, `<nav>`, `<header>`, `<footer>` 사용.           |
+| 상호작용 요소 크기                   | 터치 타깃 최소 44×44px.                                                                                     |
+| 동적 영역 알림                       | 토스트/검증 결과는 `role="status"` 또는 `role="alert"`.                                                     |
+| 키보드 조작                          | 모든 상호작용은 키보드로 가능. 커스텀 드롭다운/모달은 포커스 트랩 + `Esc` 닫기.                             |
 
 목표: Lighthouse 접근성 **95점 이상** (경쟁사 82점 대비).
 
@@ -194,32 +194,65 @@ const {
 
 - `<img>` 직접 사용 **금지** → `next/image` 만 사용. (`@next/next/no-img-element` 로 강제)
 - 이미지 컨테이너는 **종횡비를 CSS 로 먼저 고정**(`aspect-*` + `relative` + `fill`), 로드 전에도 높이 확정.
-- 대괄호 임의값(`rounded-[--radius-card]`)이 아니라 `@theme` 이 생성한 정식 유틸리티(`rounded-card`) 사용.
+- 대괄호 임의값(`rounded-[--radius-m]`)이 아니라 생성된 정식 유틸리티(`rounded-m`) 사용.
 - LCP 후보(상세 대표 이미지, 홈 히어로)만 `priority`. 그 외 지정 금지.
 - `sizes` 를 실제 레이아웃에 맞게 지정. 외부 도메인은 `next.config.ts` `images.remotePatterns` 에 등록.
 - 포맷: `images.formats = ["image/avif", "image/webp"]`.
 
 ---
 
-## 6-1. 색상 토큰 · 다크 모드
+## 6-1. 디자인 토큰 (Tailwind v4)
 
-`src/styles/globals.css` 한 곳에서 토큰을 정의한다 (Tailwind v4 CSS-first, `tailwind.config.js` 없음).
+`tailwind.config.js` 없음 (v4 CSS-first). 토큰은 관심사별로 분리하고 `globals.css` 가 합친다:
 
-> **현재 상태**: 다크 모드 **동작 구조만** 세팅됨. 색상값은 **디자인 토큰 확정 전 임시 그레이스케일**(`--background`, `--foreground`, `--surface`, `--surface-muted`, `--border` 5개)이다. 브랜드색·시맨틱색(성공/경고/가격 등)은 **아직 정의하지 않는다** — 디자인 토큰이 들어오면 일괄 추가/교체.
+| 파일                               | 내용                                                                                                      | Figma 출처                          |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| `src/styles/tokens/color.css`      | 팔레트 · 시맨틱 색 · shadow · `:root` 라이트 값                                                           | node 2002-13 "Color System"         |
+| `src/styles/tokens/typography.css` | 폰트 패밀리 · 타입 스케일                                                                                 | node 2054-1038 "텍스트 스타일 목록" |
+| `src/styles/globals.css`           | `@import "tailwindcss"` + 위 두 파일 `@import` + `@custom-variant dark` + `--radius-m` + 기본 요소 스타일 |
 
-| 토큰 종류          | 정의 위치                                                 | 다크 대응              | 현재                                |
-| ------------------ | --------------------------------------------------------- | ---------------------- | ----------------------------------- |
-| 정적 토큰          | `@theme { }`                                              | 테마 무관              | `--radius-*`, `--font-sans` 만      |
-| 테마 인식 색 토큰  | `@theme inline { }` + `:root` / `@media` / `[data-theme]` | 캐스케이드로 자동 전환 | 중립 그레이스케일 5개 (PLACEHOLDER) |
-| 브랜드 / 시맨틱 색 | (미정)                                                    | (미정)                 | 디자인 토큰 대기                    |
+모든 값은 **5팀 디자인 시스템(Figma)** 변수에서 그대로 추출한다. 임의값 금지. 새 토큰도 Figma 확정 후에만 추가.
 
-- **다크 모드 3-상태**: 기본은 OS 설정(`prefers-color-scheme`), `<html data-theme="dark">` / `<html data-theme="light">` 로 명시 override.
-- `@custom-variant dark` 를 재정의해 `dark:` 유틸리티가 "OS 다크(단 `data-theme="light"` 아님)" 또는 `data-theme="dark"` 에서 동작하도록 함.
-- **컴포넌트는 시맨틱 토큰 유틸리티를 쓴다**: `bg-surface`, `bg-surface-muted`, `text-foreground`, `border-border`. 테마에 따라 자동 전환되므로 대부분 `dark:` 접두어가 필요 없다.
-- `dark:` 접두어는 시맨틱 토큰으로 표현 불가능한 일회성 예외에만.
-- 하드코딩 색(`text-zinc-500`, `bg-white` 등) 금지. 필요한 색은 토큰을 먼저 정의(디자인 파트 협의).
-- 디자인 토큰 반영 시: `@theme` 에 팔레트 추가 + 테마 인식 색은 `@theme inline` + 라이트/다크 블록에 값 정의. 라이트/다크 **양쪽 모두** 본문 대비 4.5:1 이상 확인 (§5).
-- 토글 UI(localStorage + inline head script, `<html>` 에 `data-theme` 주입)는 다음 단계. `layout.tsx` 의 `<html suppressHydrationWarning>` 는 이를 대비한 것.
+### 계층
+
+| 계층        | 정의 위치                                                                              | 예                                                                     | 생성 유틸리티                                             |
+| ----------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------- |
+| 프리미티브  | `@theme { }`                                                                           | `--color-neutral-500`, `--color-brand-500`, `--radius-m`, `--shadow-m` | `bg-neutral-500`, `bg-brand-500`, `rounded-m`, `shadow-m` |
+| 타입 스케일 | `@theme { }` (`--text-*` + `--text-*--line-height`/`--letter-spacing`/`--font-weight`) | `--text-body-m`                                                        | `text-body-m` (size+lh+ls+weight 한 번에)                 |
+| 시맨틱      | `@theme inline { }` → `:root` 캐스케이드                                               | `--color-fg`, `--color-surface`, `--color-border`, `--color-primary`   | `text-fg`, `bg-surface`, `border-border`, `bg-primary`    |
+
+### 컬러 (Figma → 토큰)
+
+| Figma                                                       | 토큰                                                                                   | 비고                                                                                                     |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Natural 100~950                                             | `--color-neutral-*`                                                                    | 블루 그레이                                                                                              |
+| Brand 50~950                                                | `--color-brand-*`                                                                      | 퍼플. 500 = Primary                                                                                      |
+| Normal/White·Black                                          | `--color-white` `--color-black`                                                        | **Black = `#222222`** (순수 #000 아님)                                                                   |
+| Text/primary·Secondary·Tertiary·Quaternary·disabled·Inverse | `--color-fg` `--color-fg-secondary` … `--color-fg-inverse`                             | Neutral/Black 프리미티브에 매핑                                                                          |
+| Surface/base·Secondary·Overlay_gray·Overlay_blue            | `--color-surface` `--color-surface-secondary` `--color-overlay` `--color-overlay-blue` | Overlay 는 alpha 포함                                                                                    |
+| Border/200                                                  | `--color-border`                                                                       |                                                                                                          |
+| Secondary/orange·cyan·Banner                                | `--color-orange` `--color-cyan` `--color-banner`                                       |                                                                                                          |
+| Secondary/Brand-Naver·Kakao·Apple                           | `--color-naver` `--color-kakao` `--color-apple`                                        | 소셜 로그인 버튼                                                                                         |
+| Semantic/success·warning·error·info                         | `--color-success` … `--color-info`                                                     | **4색 모두 흰 배경 텍스트 대비 4.5:1 미달 → 배경·뱃지 fill 톤.** 상태 텍스트용 강조색은 디자인 확인 필요 |
+
+### 타이포 (Figma "텍스트 스타일 목록")
+
+- Pretendard: `text-display-{l,m,s,xs}`, `text-heading-{0..6}`, `text-body-{l,m,s}`, `text-label-{xl,l,m,s,xs}`, `text-caption-{xl,l,m,s}`
+- SF Pro 숫자: `text-numeric-{xxl,xl,l,m,s}` — **`font-numeric` 클래스를 함께** 적용 (`font-numeric text-numeric-l`)
+- letter-spacing 은 Figma % → `em` 변환 (-2% → -0.02em)
+- 폰트 파일 로딩(`next/font` 등)은 이 토큰과 별개, 다음 단계
+
+### 규칙
+
+- **컴포넌트는 시맨틱/스케일 유틸리티만**: `text-fg`, `bg-surface`, `border-border`, `text-body-m`, `rounded-m`. 하드코딩 색(`text-zinc-500`, `bg-white`, `text-[#690085]`) 금지.
+- 프리미티브(`bg-brand-300` 등)는 시맨틱 토큰으로 표현 불가할 때만. 새 시맨틱이 필요하면 토큰을 먼저 추가(디자인 파트 협의).
+- 대괄호 임의값(`text-[15px]`, `rounded-[--radius-m]`) 금지 — 생성된 정식 유틸리티만.
+
+### 다크 모드
+
+- 이 디자인 시스템에는 **다크 팔레트가 없다**(라이트 전용). 지금은 라이트 값만 정의.
+- 시맨틱 색은 `tokens/color.css` 의 `@theme inline` + `:root` 캐스케이드 구조라, 다크 팔레트가 확정되면 같은 파일에 `:root[data-theme="dark"]` 블록만 추가하면 된다. `@custom-variant dark` 는 `globals.css` 에 이미 선언돼 있음.
+- 그때 라이트/다크 **양쪽 모두** 본문 대비 4.5:1 이상 확인 (§5).
 
 ---
 
