@@ -1,19 +1,17 @@
 export default function HomePage() {
   return (
     <section className="px-4 py-16">
-      <h1 className="text-foreground text-2xl font-semibold">total-client</h1>
-      <p className="text-foreground mt-2 text-sm opacity-60">
+      <h1 className="text-display-xs text-fg">total-client</h1>
+      <p className="text-body-s text-fg-tertiary mt-2">
         환경·구조 세팅 스켈레톤입니다. 실제 화면 구현은 다음 단계입니다.
       </p>
-      <div className="rounded-card border-border bg-surface-muted mt-6 border p-4">
-        <p className="text-foreground text-sm">
-          이 박스는 시맨틱 토큰(<code>bg-surface-muted</code>, <code>border-border</code>,{' '}
-          <code>text-foreground</code>)으로 렌더되며 OS 다크 모드 설정 또는{' '}
-          <code>&lt;html data-theme=&quot;dark&quot;&gt;</code> 에 따라 자동 전환됩니다. (색상값은
-          디자인 토큰 확정 전 임시 그레이스케일)
+      <div className="rounded-m border-border bg-surface-secondary mt-6 border p-4">
+        <p className="text-body-s text-fg-secondary">
+          디자인 토큰은 5팀 디자인 시스템(Figma)에서 추출했습니다. 색은
+          <code> text-fg</code>, <code>bg-surface-secondary</code>,<code> border-border</code>,
+          타이포는 <code>text-display-xs</code>,<code> text-body-s</code> 처럼 사용합니다.
         </p>
-        <p className="mt-2 text-sm dark:hidden">현재: 라이트</p>
-        <p className="mt-2 hidden text-sm dark:block">현재: 다크</p>
+        <p className="text-numeric-l font-numeric text-primary mt-3">7,560원</p>
       </div>
     </section>
   );
