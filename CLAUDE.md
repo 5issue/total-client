@@ -34,7 +34,7 @@
 
 `.agents/**` 에서 발췌한, **오늘부터 지켜야 하는** 규칙.
 
-1. **RSC 가 기본.** `"use client"` 는 상호작용/브라우저 API 가 필요한 잎 컴포넌트에만. 트리 상단(layout/page)에 올리지 않는다. — code-style §8
+1. **RSC 가 기본.** `"use client"` 는 상호작용/브라우저 API 가 필요한 잎 컴포넌트에만. 트리 상단(layout/page)에 올리지 않는다. 화면별 렌더링 전략(SSG/ISR/SSR/CSR)은 상황에 맞게 — structure §2-1 / code-style §8
 2. **컴포넌트는 Atomic Design 3계층.** `components/{atoms,molecules,organisms}/`, molecule·organism 은 도메인 폴더로 분류. templates/pages 는 `layout.tsx`/`page.tsx` 가 대신한다. — structure §3 / code-style §2-1
 3. **서버 상태 = TanStack Query, 클라 UI 상태 = Zustand. 절대 섞지 않는다.** 서버 응답을 Zustand 에 복사 금지. — code-style §3-1
 4. **Zustand 는 모듈 최상단 `create()` 싱글턴 금지.** `zustand/vanilla` 의 `createStore` 팩토리 + Provider 가 `useRef` 로 마운트당 1회 생성. 배열/객체 selector 는 `useShallow` 강제. — code-style §3-2·3-3

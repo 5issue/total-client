@@ -57,21 +57,45 @@ src/
 
 | 화면 | 실제 URL | 렌더링 전략 | 보호 | 책임 지표 |
 |---|---|---|---|---|
-| 홈 | `/` | RSC + 부분 CSR(개인화) | 공개 | LCP < 2.5s, CLS < 0.1 |
-| 검색 | `/search` | RSC(쿼리 파라미터) | 공개 | 빈 결과 UI 필수, TTFB < 0.8s |
-| AI | `/ai` | 뼈대만 (백엔드 명세 대기) | 공개 | — |
-| 상품 컬렉션 리스트 | `/products` | RSC + 무한스크롤(클라, 미확정) | 공개 | 첫 페이지 SSR, 이미지 종횡비 고정 → CLS < 0.1 |
-| 상품 상세 | `/products/[productId]` | RSC(정적 우선) + 클라(담기) | 공개 | LCP < 2.5s, 대표 이미지 `priority`, 원본 ≤ 200KB |
-| 장바구니 | `/cart` | CSR(로그인 데이터) | 공개(게스트 여부 미확정) | 수량 변경 반영 < 100ms (Optimistic — api-convention §7) |
-| 주문서 작성 | `/checkout` | CSR + 서버 액션 | **보호** | 폼 검증 즉시성, 3단계 API(주문서생성→결제승인→주문확정, 미확정) |
-| 주문 완료 | `/checkout/complete` | RSC | **보호** | 영수증 조회 API |
-| 마이컬리 홈 | `/mypage` | RSC + 부분 CSR | **보호** | 로그인 가드 |
-| 배송지 관리 | `/mypage/addresses` | CSR | **보호** | 기본 배송지 일관성 |
-| 회원 프로필 | `/mypage/profile` | RSC + CSR(수정) | **보호** | 재인증(ReauthSheet) 후 수정 |
-| 로그인 | `/login` | CSR(폼) | 비로그인 전용 | 접근성 목표(§code-style 5), 소셜 로그인 |
-| 회원가입 | `/signup` | CSR(폼) | 비로그인 전용 | 단계별 검증, `user-scalable` 제한 금지 |
+| 홈 | `/` | ISR 셸 + CSR 개인화 구획 | 공개 | LCP < 2.5s, CLS < 0.1 |
+| 검색 | `/search` | SSR (`searchParams` 의존) | 공개 | 빈 결과 UI 필수, TTFB < 0.8s |
+| AI | `/ai` | 미정 (백엔드 명세 대기) | 공개 | — |
+| 상품 컬렉션 리스트 | `/products` | 첫 페이지 ISR + 이후 CSR(`useInfiniteQuery`) | 공개 | 첫 페이지 SSR, 이미지 종횡비 고정 → CLS < 0.1 |
+| 상품 상세 | `/products/[productId]` | ISR (`generateStaticParams` + `revalidate`) + CSR(담기/옵션) | 공개 | LCP < 2.5s, 대표 이미지 `priority`, 원본 ≤ 200KB |
+| 장바구니 | `/cart` | CSR (로그인 데이터, 상호작용 중심) | 공개(게스트 여부 미확정) | 수량 변경 반영 < 100ms (Optimistic — api-convention §7) |
+| 주문서 작성 | `/checkout` | SSR(초기 배송지·결제수단) + CSR 폼 + 서버 액션(주문 생성) | **보호** | 폼 검증 즉시성, 3단계 API(주문서생성→결제승인→주문확정, 미확정) |
+| 주문 완료 | `/checkout/complete` | SSR (주문 1건 조회, 본인 검증) | **보호** | 영수증 조회 API |
+| 마이컬리 홈 | `/mypage` | SSR 셸(요약) + CSR 위젯 | **보호** | 로그인 가드 |
+| 배송지 관리 | `/mypage/addresses` | CSR (CRUD 상호작용) | **보호** | 기본 배송지 일관성 |
+| 회원 프로필 | `/mypage/profile` | SSR(조회) + CSR(수정 폼, 재인증) | **보호** | 재인증(ReauthSheet) 후 수정 |
+| 로그인 | `/login` | CSR (폼) | 비로그인 전용 | 접근성 목표(§code-style 5), 소셜 로그인 |
+| 회원가입 | `/signup` | CSR (폼) | 비로그인 전용 | 단계별 검증, `user-scalable` 제한 금지 |
+| OAuth 콜백 | `/callback/[provider]` | Route Handler (서버) | — | 토큰 교환 → 세션 쿠키 |
 
-**렌더링 기본값**: RSC. `"use client"` 는 상호작용/브라우저 API/상태가 필요한 잎 컴포넌트에만.
+**렌더링 기본값**: 정적(prerender). `"use client"` 는 상호작용/브라우저 API/상태가 필요한 잎 컴포넌트에만.
+
+---
+
+## 2-1. 렌더링 전략 (SSG / ISR / SSR / CSR)
+
+Next.js 16 App Router 는 기본이 정적(prerender)이고, **동적 API 사용 여부**로 전략이 갈린다.
+화면 성격(신선도 요구 · 개인화 여부 · 상호작용 빈도 · SEO)에 맞춰 아래에서 고른다. 근거는 마켓컬리 비교분석 보고서의 화면별 책임 지표.
+
+| 전략 | 언제 쓰나 | Next 16 구현 | 신선도 |
+|---|---|---|---|
+| **SSG** (빌드 시 정적) | 거의 안 바뀌고 모든 사용자가 동일한 콘텐츠 (약관, 정적 안내) | 동적 API 미사용(기본) 또는 `export const dynamic = "force-static"` | 재배포로만 갱신 |
+| **ISR** (주기적 재생성) | 가끔 바뀌지만 모든 사용자 동일 (상품 상세, 카테고리 큐레이션) | `export const revalidate = N` (+ 동적 경로는 `generateStaticParams`), 또는 `fetch(url, { next: { revalidate: N } })` | 최초 정적, N초마다 백그라운드 재생성 |
+| **SSR** (요청마다 동적) | 사용자별·실시간·인증 데이터가 **서버 렌더 결과에** 필요 (검색 결과, 주문서, 주문 상세, 마이페이지) | `cookies()`/`headers()`/`searchParams` 사용, `fetch(..., { cache: "no-store" })`, 또는 `export const dynamic = "force-dynamic"` | 매 요청 최신 |
+| **CSR** (클라 마운트 후 fetch) | 고빈도 상호작용·개인 상태·무한스크롤, SEO 불필요 (장바구니, 배송지 CRUD, 폼) | `"use client"` + TanStack Query 훅. 서버는 껍데기/스켈레톤만 | Query `staleTime` 정책 |
+
+원칙:
+- **한 페이지 안에서 섞는다.** 공개 셸(SSG/ISR) + 개인화 구획(`<Suspense>` 로 SSR 스트리밍 또는 CSR). 표의 "ISR 셸 + CSR 구획" 이 이 조합.
+- 인증 필요 페이지(`(shop)/checkout`, `/mypage/*`)는 `cookies()` 를 읽으므로 **자동 SSR**. 그 안의 목록·폼 상호작용은 CSR 훅으로.
+- `searchParams` 를 읽는 페이지(`/search?q=`)는 **자동 SSR**.
+- 목록 무한스크롤: 첫 페이지만 서버(상황에 맞게 ISR/SSR), 이후 페이지는 CSR(`useInfiniteQuery`).
+- 상품 상세는 ISR 기본(`revalidate` 예: 300~3600s, 재고·가격 반영 주기는 백엔드와 협의). 재고 실시간 표시가 필요하면 해당 구획만 CSR.
+- **Cache Components / PPR** (`next.config` 의 `cacheComponents: true` + `'use cache'` + `cacheLife()`): 도입 검토 대상, **현재 미적용**. `revalidate` 기반으로 간다. 도입 시 이 표의 ISR 구현이 `'use cache'` + `cacheLife()` 로 대체된다.
+- 새 화면 추가 시 PR 에 "이 화면의 렌더링 전략과 이유" 한 줄 필수.
 
 ---
 
