@@ -2,6 +2,8 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 import nextVitals from 'eslint-config-next/core-web-vitals';
 import nextTs from 'eslint-config-next/typescript';
 import importPlugin from 'eslint-plugin-import';
+// https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
+import storybook from 'eslint-plugin-storybook';
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -56,7 +58,15 @@ const eslintConfig = defineConfig([
 
   // 설정 파일은 default export 허용
   {
-    files: ['next.config.ts', 'postcss.config.mjs', 'eslint.config.mjs', 'commitlint.config.mjs'],
+    files: [
+      'next.config.ts',
+      'postcss.config.mjs',
+      'eslint.config.mjs',
+      'commitlint.config.mjs',
+      'vitest.config.ts',
+      '.storybook/main.ts',
+      '.storybook/preview.tsx',
+    ],
     rules: {
       'import/no-default-export': 'off',
     },
@@ -70,7 +80,10 @@ const eslintConfig = defineConfig([
     'next-env.d.ts',
     'public/**',
     'k8s/**',
+    'storybook-static/**',
   ]),
+
+  ...storybook.configs['flat/recommended'],
 ]);
 
 export default eslintConfig;
