@@ -1,9 +1,11 @@
-"use client";
+'use client';
 
-import { QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import type { ReactNode } from "react";
-import { getQueryClient } from "@/lib/queryClient";
+import type { ReactNode } from 'react';
+
+import { QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+
+import { getQueryClient } from '@/lib/queryClient';
 
 /**
  * TanStack Query Provider (서버 상태).

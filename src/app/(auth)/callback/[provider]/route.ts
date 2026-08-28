@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from 'next/server';
 
 /**
  * OAuth 콜백 (provider: kakao | naver).
@@ -9,8 +9,5 @@ export async function GET(
   { params }: { params: Promise<{ provider: string }> },
 ) {
   const { provider } = await params;
-  return NextResponse.json(
-    { provider, status: "not-implemented" },
-    { status: 501 },
-  );
+  return NextResponse.json({ provider, status: 'not-implemented' }, { status: 501 });
 }

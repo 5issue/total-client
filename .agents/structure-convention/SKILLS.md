@@ -10,9 +10,9 @@
 
 App Router 라우트 그룹으로 **레이아웃 경계**를 나눈다. URL 에는 그룹명이 노출되지 않는다.
 
-| 그룹 | 레이아웃 성격 | 인증 |
-|---|---|---|
-| `(auth)` | 헤더/푸터 없는 인증 전용 화면 | 비로그인 전용 |
+| 그룹     | 레이아웃 성격                                                 | 인증                          |
+| -------- | ------------------------------------------------------------- | ----------------------------- |
+| `(auth)` | 헤더/푸터 없는 인증 전용 화면                                 | 비로그인 전용                 |
 | `(shop)` | `Header`(+장바구니 아이콘) + `BottomNav`(홈/검색/AI/마이컬리) | 대부분 공개, 일부 경로만 보호 |
 
 - 인증 가드는 **`src/middleware.ts`** 가 담당한다. `matcher: ["/checkout/:path*", "/mypage/:path*"]` — 이 경로는 미인증 시 `/login?redirect=` 로 이동.
@@ -55,22 +55,22 @@ src/
             └── profile/page.tsx         # 회원 프로필 (US-PROF-001, US-AUTH-005)
 ```
 
-| 화면 | 실제 URL | 렌더링 전략 | 보호 | 책임 지표 |
-|---|---|---|---|---|
-| 홈 | `/` | ISR 셸 + CSR 개인화 구획 | 공개 | LCP < 2.5s, CLS < 0.1 |
-| 검색 | `/search` | SSR (`searchParams` 의존) | 공개 | 빈 결과 UI 필수, TTFB < 0.8s |
-| AI | `/ai` | 미정 (백엔드 명세 대기) | 공개 | — |
-| 상품 컬렉션 리스트 | `/products` | 첫 페이지 ISR + 이후 CSR(`useInfiniteQuery`) | 공개 | 첫 페이지 SSR, 이미지 종횡비 고정 → CLS < 0.1 |
-| 상품 상세 | `/products/[productId]` | ISR (`generateStaticParams` + `revalidate`) + CSR(담기/옵션) | 공개 | LCP < 2.5s, 대표 이미지 `priority`, 원본 ≤ 200KB |
-| 장바구니 | `/cart` | CSR (로그인 데이터, 상호작용 중심) | 공개(게스트 여부 미확정) | 수량 변경 반영 < 100ms (Optimistic — api-convention §7) |
-| 주문서 작성 | `/checkout` | SSR(초기 배송지·결제수단) + CSR 폼 + 서버 액션(주문 생성) | **보호** | 폼 검증 즉시성, 3단계 API(주문서생성→결제승인→주문확정, 미확정) |
-| 주문 완료 | `/checkout/complete` | SSR (주문 1건 조회, 본인 검증) | **보호** | 영수증 조회 API |
-| 마이컬리 홈 | `/mypage` | SSR 셸(요약) + CSR 위젯 | **보호** | 로그인 가드 |
-| 배송지 관리 | `/mypage/addresses` | CSR (CRUD 상호작용) | **보호** | 기본 배송지 일관성 |
-| 회원 프로필 | `/mypage/profile` | SSR(조회) + CSR(수정 폼, 재인증) | **보호** | 재인증(ReauthSheet) 후 수정 |
-| 로그인 | `/login` | CSR (폼) | 비로그인 전용 | 접근성 목표(§code-style 5), 소셜 로그인 |
-| 회원가입 | `/signup` | CSR (폼) | 비로그인 전용 | 단계별 검증, `user-scalable` 제한 금지 |
-| OAuth 콜백 | `/callback/[provider]` | Route Handler (서버) | — | 토큰 교환 → 세션 쿠키 |
+| 화면               | 실제 URL                | 렌더링 전략                                                  | 보호                     | 책임 지표                                                       |
+| ------------------ | ----------------------- | ------------------------------------------------------------ | ------------------------ | --------------------------------------------------------------- |
+| 홈                 | `/`                     | ISR 셸 + CSR 개인화 구획                                     | 공개                     | LCP < 2.5s, CLS < 0.1                                           |
+| 검색               | `/search`               | SSR (`searchParams` 의존)                                    | 공개                     | 빈 결과 UI 필수, TTFB < 0.8s                                    |
+| AI                 | `/ai`                   | 미정 (백엔드 명세 대기)                                      | 공개                     | —                                                               |
+| 상품 컬렉션 리스트 | `/products`             | 첫 페이지 ISR + 이후 CSR(`useInfiniteQuery`)                 | 공개                     | 첫 페이지 SSR, 이미지 종횡비 고정 → CLS < 0.1                   |
+| 상품 상세          | `/products/[productId]` | ISR (`generateStaticParams` + `revalidate`) + CSR(담기/옵션) | 공개                     | LCP < 2.5s, 대표 이미지 `priority`, 원본 ≤ 200KB                |
+| 장바구니           | `/cart`                 | CSR (로그인 데이터, 상호작용 중심)                           | 공개(게스트 여부 미확정) | 수량 변경 반영 < 100ms (Optimistic — api-convention §7)         |
+| 주문서 작성        | `/checkout`             | SSR(초기 배송지·결제수단) + CSR 폼 + 서버 액션(주문 생성)    | **보호**                 | 폼 검증 즉시성, 3단계 API(주문서생성→결제승인→주문확정, 미확정) |
+| 주문 완료          | `/checkout/complete`    | SSR (주문 1건 조회, 본인 검증)                               | **보호**                 | 영수증 조회 API                                                 |
+| 마이컬리 홈        | `/mypage`               | SSR 셸(요약) + CSR 위젯                                      | **보호**                 | 로그인 가드                                                     |
+| 배송지 관리        | `/mypage/addresses`     | CSR (CRUD 상호작용)                                          | **보호**                 | 기본 배송지 일관성                                              |
+| 회원 프로필        | `/mypage/profile`       | SSR(조회) + CSR(수정 폼, 재인증)                             | **보호**                 | 재인증(ReauthSheet) 후 수정                                     |
+| 로그인             | `/login`                | CSR (폼)                                                     | 비로그인 전용            | 접근성 목표(§code-style 5), 소셜 로그인                         |
+| 회원가입           | `/signup`               | CSR (폼)                                                     | 비로그인 전용            | 단계별 검증, `user-scalable` 제한 금지                          |
+| OAuth 콜백         | `/callback/[provider]`  | Route Handler (서버)                                         | —                        | 토큰 교환 → 세션 쿠키                                           |
 
 **렌더링 기본값**: 정적(prerender). `"use client"` 는 상호작용/브라우저 API/상태가 필요한 잎 컴포넌트에만.
 
@@ -81,14 +81,15 @@ src/
 Next.js 16 App Router 는 기본이 정적(prerender)이고, **동적 API 사용 여부**로 전략이 갈린다.
 화면 성격(신선도 요구 · 개인화 여부 · 상호작용 빈도 · SEO)에 맞춰 아래에서 고른다. 근거는 마켓컬리 비교분석 보고서의 화면별 책임 지표.
 
-| 전략 | 언제 쓰나 | Next 16 구현 | 신선도 |
-|---|---|---|---|
-| **SSG** (빌드 시 정적) | 거의 안 바뀌고 모든 사용자가 동일한 콘텐츠 (약관, 정적 안내) | 동적 API 미사용(기본) 또는 `export const dynamic = "force-static"` | 재배포로만 갱신 |
-| **ISR** (주기적 재생성) | 가끔 바뀌지만 모든 사용자 동일 (상품 상세, 카테고리 큐레이션) | `export const revalidate = N` (+ 동적 경로는 `generateStaticParams`), 또는 `fetch(url, { next: { revalidate: N } })` | 최초 정적, N초마다 백그라운드 재생성 |
-| **SSR** (요청마다 동적) | 사용자별·실시간·인증 데이터가 **서버 렌더 결과에** 필요 (검색 결과, 주문서, 주문 상세, 마이페이지) | `cookies()`/`headers()`/`searchParams` 사용, `fetch(..., { cache: "no-store" })`, 또는 `export const dynamic = "force-dynamic"` | 매 요청 최신 |
-| **CSR** (클라 마운트 후 fetch) | 고빈도 상호작용·개인 상태·무한스크롤, SEO 불필요 (장바구니, 배송지 CRUD, 폼) | `"use client"` + TanStack Query 훅. 서버는 껍데기/스켈레톤만 | Query `staleTime` 정책 |
+| 전략                           | 언제 쓰나                                                                                          | Next 16 구현                                                                                                                    | 신선도                               |
+| ------------------------------ | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| **SSG** (빌드 시 정적)         | 거의 안 바뀌고 모든 사용자가 동일한 콘텐츠 (약관, 정적 안내)                                       | 동적 API 미사용(기본) 또는 `export const dynamic = "force-static"`                                                              | 재배포로만 갱신                      |
+| **ISR** (주기적 재생성)        | 가끔 바뀌지만 모든 사용자 동일 (상품 상세, 카테고리 큐레이션)                                      | `export const revalidate = N` (+ 동적 경로는 `generateStaticParams`), 또는 `fetch(url, { next: { revalidate: N } })`            | 최초 정적, N초마다 백그라운드 재생성 |
+| **SSR** (요청마다 동적)        | 사용자별·실시간·인증 데이터가 **서버 렌더 결과에** 필요 (검색 결과, 주문서, 주문 상세, 마이페이지) | `cookies()`/`headers()`/`searchParams` 사용, `fetch(..., { cache: "no-store" })`, 또는 `export const dynamic = "force-dynamic"` | 매 요청 최신                         |
+| **CSR** (클라 마운트 후 fetch) | 고빈도 상호작용·개인 상태·무한스크롤, SEO 불필요 (장바구니, 배송지 CRUD, 폼)                       | `"use client"` + TanStack Query 훅. 서버는 껍데기/스켈레톤만                                                                    | Query `staleTime` 정책               |
 
 원칙:
+
 - **한 페이지 안에서 섞는다.** 공개 셸(SSG/ISR) + 개인화 구획(`<Suspense>` 로 SSR 스트리밍 또는 CSR). 표의 "ISR 셸 + CSR 구획" 이 이 조합.
 - 인증 필요 페이지(`(shop)/checkout`, `/mypage/*`)는 `cookies()` 를 읽으므로 **자동 SSR**. 그 안의 목록·폼 상호작용은 CSR 훅으로.
 - `searchParams` 를 읽는 페이지(`/search?q=`)는 **자동 SSR**.
@@ -124,14 +125,15 @@ src/components/
     └── auth/                  # SocialLoginPanel, ReauthSheet
 ```
 
-| 계층 | 정의 | 규칙 | 예 |
-|---|---|---|---|
-| **atoms** | 더 못 쪼개는 최소 UI. 도메인 지식 없음. | 서버/외부 상태 접근 금지, props 로만. 대부분 `"use client"` 불필요(상호작용 있으면 필요). | `Button`, `Input`, `Badge`, `Spinner` |
-| **molecules** | atom 조합. 도메인별로 분류(`shared`/`product`/`cart`/`auth`). | fetch 금지. 도메인 데이터 타입(`types/`)은 참조 가능. | `PriceTag`, `ProductThumbnail`, `CartLineItem` |
-| **organisms** | molecule/atom 조합, 화면의 한 구획. 도메인별 분류. | 여기까지도 fetch 직접 금지 — `hooks/<domain>` 훅을 받아 조립. RSC 우선. | `Header`, `ProductGrid`, `CartList` |
-| (templates/pages) | = `app/**/layout.tsx`, `app/**/page.tsx` | 로직 없이 organism 조합 + 훅 연결만. | `(shop)/page.tsx` |
+| 계층              | 정의                                                          | 규칙                                                                                      | 예                                             |
+| ----------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| **atoms**         | 더 못 쪼개는 최소 UI. 도메인 지식 없음.                       | 서버/외부 상태 접근 금지, props 로만. 대부분 `"use client"` 불필요(상호작용 있으면 필요). | `Button`, `Input`, `Badge`, `Spinner`          |
+| **molecules**     | atom 조합. 도메인별로 분류(`shared`/`product`/`cart`/`auth`). | fetch 금지. 도메인 데이터 타입(`types/`)은 참조 가능.                                     | `PriceTag`, `ProductThumbnail`, `CartLineItem` |
+| **organisms**     | molecule/atom 조합, 화면의 한 구획. 도메인별 분류.            | 여기까지도 fetch 직접 금지 — `hooks/<domain>` 훅을 받아 조립. RSC 우선.                   | `Header`, `ProductGrid`, `CartList`            |
+| (templates/pages) | = `app/**/layout.tsx`, `app/**/page.tsx`                      | 로직 없이 organism 조합 + 훅 연결만.                                                      | `(shop)/page.tsx`                              |
 
 배치 규칙:
+
 - **2개 이상 도메인이 공유하면 `shared/`**, 한 도메인 전용이면 해당 도메인 폴더.
 - molecule 이 다른 molecule 을 쓰기 시작하면 organism 후보다.
 - organism 이 커지면 잘게 나눈다(한 파일 200줄 목표).
@@ -180,6 +182,7 @@ src/
 ```
 
 배치 규칙:
+
 - **수평 레이어**(Atomic `components/` + 도메인 `hooks/` + `types/`)로 나눈다. `features/` 수직 슬라이스는 쓰지 않는다.
 - 도메인에 국한된 것: 컴포넌트 → `components/{molecules,organisms}/<domain>/`, 훅 → `hooks/<domain>/`, 타입 → `types/<domain>.ts`.
 - 라우트 파일(`page.tsx`/`layout.tsx`)에는 로직을 두지 않는다. organism 조합 + 훅 연결만.
@@ -192,19 +195,24 @@ src/
 
 **근거 (경쟁사 마켓컬리 실측):**
 
-| 지표 | 실측값 | 문제 |
-|---|---|---|
-| 메인 상품 이미지 용량 | PNG **2.4MB** | 포맷/압축 미적용 |
-| LCP | 약 **20초** (저속 3G) | 대표 이미지 최적화·우선순위 부재 |
-| CLS | **0.77** | 이미지 로드 전 높이 예약 없음 |
+| 지표                  | 실측값                | 문제                             |
+| --------------------- | --------------------- | -------------------------------- |
+| 메인 상품 이미지 용량 | PNG **2.4MB**         | 포맷/압축 미적용                 |
+| LCP                   | 약 **20초** (저속 3G) | 대표 이미지 최적화·우선순위 부재 |
+| CLS                   | **0.77**              | 이미지 로드 전 높이 예약 없음    |
 
 **우리 규칙:**
 
 1. `<img>` 직접 사용 금지 → 항상 `next/image` (`@next/next/no-img-element` 강제).
 2. 이미지 컨테이너는 **종횡비를 CSS 로 먼저 고정**(`aspect-*` + `relative` + `fill`). 로드 전에도 높이 확정.
    ```tsx
-   <div className="relative aspect-square w-full overflow-hidden rounded-card">
-     <Image src={product.thumbnailUrl} alt={product.name} fill sizes="(max-width:768px) 50vw, 240px" />
+   <div className="rounded-card relative aspect-square w-full overflow-hidden">
+     <Image
+       src={product.thumbnailUrl}
+       alt={product.name}
+       fill
+       sizes="(max-width:768px) 50vw, 240px"
+     />
    </div>
    ```
 3. 고정 크기가 자연스러운 곳은 `width`/`height` 명시.
@@ -220,14 +228,14 @@ src/
 
 디자인/기획 합의 전까지 확정하지 않는다. 임의 구현 금지.
 
-| 항목 | 쟁점 | 임시 방침 |
-|---|---|---|
-| 목록 페이징 방식 | 무한스크롤 vs 번호 페이지네이션 vs "더보기" | `/products` 는 무한스크롤로 가정, **미확정**. 접근성·SEO 영향 큼 |
-| 홈 구성 API | `/products/home-recommendations`, `/products/categories` 트리 | organism 뼈대만, API 스펙 대기 |
-| AI 탭 | 레시피 추천 등 기능 범위 | 라우트(`/ai`)와 `AIRecipePanel` 뼈대만, 백엔드 명세 대기 |
-| 장바구니 진입 | 페이지(`/cart`) vs 드로어 vs 둘 다 | `uiStore` 에 `isCartDrawerOpen` 뼈대만, 확정 보류 |
-| 게스트 장바구니 | 비로그인 장바구니 허용 여부 | `/cart` 는 `(shop)` 공개 경로에 두되 보호 여부 재검토 |
-| checkout 3단계 API | 주문서생성 → 결제승인 → 주문확정 순서·트랜잭션 | A-0-1 참고, **미확정** |
-| 주문 취소/반품 | `useCancelOrder`, `useReturnOrder` | 훅 폴더만, 정책 대기 |
+| 항목               | 쟁점                                                          | 임시 방침                                                        |
+| ------------------ | ------------------------------------------------------------- | ---------------------------------------------------------------- |
+| 목록 페이징 방식   | 무한스크롤 vs 번호 페이지네이션 vs "더보기"                   | `/products` 는 무한스크롤로 가정, **미확정**. 접근성·SEO 영향 큼 |
+| 홈 구성 API        | `/products/home-recommendations`, `/products/categories` 트리 | organism 뼈대만, API 스펙 대기                                   |
+| AI 탭              | 레시피 추천 등 기능 범위                                      | 라우트(`/ai`)와 `AIRecipePanel` 뼈대만, 백엔드 명세 대기         |
+| 장바구니 진입      | 페이지(`/cart`) vs 드로어 vs 둘 다                            | `uiStore` 에 `isCartDrawerOpen` 뼈대만, 확정 보류                |
+| 게스트 장바구니    | 비로그인 장바구니 허용 여부                                   | `/cart` 는 `(shop)` 공개 경로에 두되 보호 여부 재검토            |
+| checkout 3단계 API | 주문서생성 → 결제승인 → 주문확정 순서·트랜잭션                | A-0-1 참고, **미확정**                                           |
+| 주문 취소/반품     | `useCancelOrder`, `useReturnOrder`                            | 훅 폴더만, 정책 대기                                             |
 
 협의 완료 항목은 이 표에서 제거하고 본문에 반영한다.

@@ -1,6 +1,7 @@
 # Git 컨벤션 (git-convention)
 
 > 이 문서는 두 부분으로 나뉜다.
+>
 > - **스코프(1) — 지금 바로 적용**: 브랜치 전략, 커밋 형식, PR 준비 체크리스트, 리뷰 포인트.
 > - **⏳ 예정 작업 명세 (스코프 2, 다른 담당자 구현)**: PR/Issue 템플릿, 브랜치 룰셋, husky, CI, Storybook, eslint/prettier 강제.
 >   이 부분은 **문서로만 존재한다.** 이 저장소에는 `.husky/`, `.github/`, `.storybook/`, `.eslintrc`, `.prettierrc` 를 만들지 않았다.
@@ -12,15 +13,15 @@
 
 ## 1. 브랜치 전략
 
-| 브랜치 | 목적 | 분기 원본 | 병합 대상 | 비고 |
-|---|---|---|---|---|
-| `main` | 배포 가능한 상태만 | — | — | 보호 브랜치. 직접 push 금지(스코프 2 룰셋) |
-| `feat/<범위>-<요약>` | 기능 개발 | `main` | `main` (squash) | 예: `feat/product-detail-page` |
-| `fix/<범위>-<요약>` | 버그 수정 | `main` | `main` (squash) | 예: `fix/cart-qty-race` |
-| `chore/<요약>` | 빌드/설정/의존성 | `main` | `main` (squash) | 예: `chore/bump-next-16-3-3` |
-| `docs/<요약>` | 문서만 | `main` | `main` (squash) | 예: `docs/api-convention` |
-| `refactor/<범위>-<요약>` | 동작 불변 리팩터 | `main` | `main` (squash) | |
-| `hotfix/<요약>` | 운영 긴급 수정 | `main` | `main` (squash) | 배포 후 즉시 |
+| 브랜치                   | 목적               | 분기 원본 | 병합 대상       | 비고                                       |
+| ------------------------ | ------------------ | --------- | --------------- | ------------------------------------------ |
+| `main`                   | 배포 가능한 상태만 | —         | —               | 보호 브랜치. 직접 push 금지(스코프 2 룰셋) |
+| `feat/<범위>-<요약>`     | 기능 개발          | `main`    | `main` (squash) | 예: `feat/product-detail-page`             |
+| `fix/<범위>-<요약>`      | 버그 수정          | `main`    | `main` (squash) | 예: `fix/cart-qty-race`                    |
+| `chore/<요약>`           | 빌드/설정/의존성   | `main`    | `main` (squash) | 예: `chore/bump-next-16-3-3`               |
+| `docs/<요약>`            | 문서만             | `main`    | `main` (squash) | 예: `docs/api-convention`                  |
+| `refactor/<범위>-<요약>` | 동작 불변 리팩터   | `main`    | `main` (squash) |                                            |
+| `hotfix/<요약>`          | 운영 긴급 수정     | `main`    | `main` (squash) | 배포 후 즉시                               |
 
 - 트렁크 기반. 브랜치는 **짧게 유지**(수명 2~3일 목표), 자주 `main` 을 rebase 로 최신화.
 - 브랜치명은 소문자 kebab-case. 이슈 번호가 있으면 접미: `feat/search-autocomplete-#123`.
@@ -29,6 +30,7 @@
 ## 2. Conventional Commits
 
 형식:
+
 ```
 <type>(<scope>): <subject>
 
@@ -37,21 +39,22 @@
 <footer (선택: BREAKING CHANGE:, Refs: #123)>
 ```
 
-| type | 용도 |
-|---|---|
-| `feat` | 기능 추가 |
-| `fix` | 버그 수정 |
-| `docs` | 문서만 |
-| `style` | 포맷/세미콜론 등 (동작 불변) |
-| `refactor` | 리팩터 (기능·버그 아님) |
-| `perf` | 성능 개선 |
-| `test` | 테스트 추가/수정 |
-| `build` | 빌드 시스템·의존성 (next, npm 등) |
-| `ci` | CI 설정 |
-| `chore` | 기타 잡무 |
-| `revert` | 되돌리기 |
+| type       | 용도                              |
+| ---------- | --------------------------------- |
+| `feat`     | 기능 추가                         |
+| `fix`      | 버그 수정                         |
+| `docs`     | 문서만                            |
+| `style`    | 포맷/세미콜론 등 (동작 불변)      |
+| `refactor` | 리팩터 (기능·버그 아님)           |
+| `perf`     | 성능 개선                         |
+| `test`     | 테스트 추가/수정                  |
+| `build`    | 빌드 시스템·의존성 (next, npm 등) |
+| `ci`       | CI 설정                           |
+| `chore`    | 기타 잡무                         |
+| `revert`   | 되돌리기                          |
 
 규칙:
+
 - `subject` 는 명령형, 소문자 시작, 마침표 없음, 72자 이내. (한글 허용, 동일 원칙)
 - `scope` 는 도메인/영역: `product`, `cart`, `auth`, `api`, `ui`, `deps`, `docker`, `infra`…
 - 본문은 **무엇을** 바꿨는지보다 **왜** 바꿨는지 위주.
@@ -85,20 +88,20 @@
 
 자동 도구가 못 잡는 것 위주로 본다.
 
-| 영역 | 확인 |
-|---|---|
-| 상태 분리 | 서버 응답을 Zustand 에 넣지 않았는가? URL 상태를 로컬 state 로 복제하지 않았는가? |
-| 데이터 흐름 | 컴포넌트가 `fetch` 직접 호출하지 않는가? query hook 경유인가? |
-| 쿼리 키 | 문자열 하드코딩 없이 키 팩토리를 쓰는가? 무효화 범위가 맞는가? |
-| Optimistic | 장바구니 외 도입 시 3가지 근거(api-convention §7)에 답했는가? 롤백/수렴 처리했는가? |
-| RSC 경계 | `"use client"` 가 필요한 잎에만 있는가? 트리 상단에 올라가지 않았는가? |
-| Zustand | 모듈 최상단 `create()` 싱글턴이 아닌가? Provider + useRef 패턴인가? useShallow 썼는가? |
-| 접근성 | 아이콘 버튼 라벨, 링크 텍스트, 폼 라벨, 포커스, 대비 |
-| 이미지 | `next/image` 인가? 종횡비 고정했는가? LCP 후보만 `priority` 인가? |
-| 스키마 | 응답을 Zod 로 검증하는가? 스키마 위치/명명 규칙 준수? |
-| 보안 | security-convention FE 항목 위반 없는가? (특히 FE-02 XSS, FE-05 토큰 저장, FE-09 오픈 리다이렉트) |
-| 테스트/스토리 | (스코프 2) 상태별 스토리 + play 함수 있는가? |
-| 커밋/브랜치 | 브랜치 목적 단일, 커밋 형식 준수 |
+| 영역          | 확인                                                                                              |
+| ------------- | ------------------------------------------------------------------------------------------------- |
+| 상태 분리     | 서버 응답을 Zustand 에 넣지 않았는가? URL 상태를 로컬 state 로 복제하지 않았는가?                 |
+| 데이터 흐름   | 컴포넌트가 `fetch` 직접 호출하지 않는가? query hook 경유인가?                                     |
+| 쿼리 키       | 문자열 하드코딩 없이 키 팩토리를 쓰는가? 무효화 범위가 맞는가?                                    |
+| Optimistic    | 장바구니 외 도입 시 3가지 근거(api-convention §7)에 답했는가? 롤백/수렴 처리했는가?               |
+| RSC 경계      | `"use client"` 가 필요한 잎에만 있는가? 트리 상단에 올라가지 않았는가?                            |
+| Zustand       | 모듈 최상단 `create()` 싱글턴이 아닌가? Provider + useRef 패턴인가? useShallow 썼는가?            |
+| 접근성        | 아이콘 버튼 라벨, 링크 텍스트, 폼 라벨, 포커스, 대비                                              |
+| 이미지        | `next/image` 인가? 종횡비 고정했는가? LCP 후보만 `priority` 인가?                                 |
+| 스키마        | 응답을 Zod 로 검증하는가? 스키마 위치/명명 규칙 준수?                                             |
+| 보안          | security-convention FE 항목 위반 없는가? (특히 FE-02 XSS, FE-05 토큰 저장, FE-09 오픈 리다이렉트) |
+| 테스트/스토리 | (스코프 2) 상태별 스토리 + play 함수 있는가?                                                      |
+| 커밋/브랜치   | 브랜치 목적 단일, 커밋 형식 준수                                                                  |
 
 리뷰 규모: PR 은 리뷰 가능한 크기로(변경 400줄 이하 권장). 크면 쪼갠다.
 
@@ -117,22 +120,28 @@
 
 ```markdown
 ## 무엇을 (What)
+
 <!-- 이 PR이 바꾸는 것을 3~5줄로. 스크린샷/GIF는 UI 변경 시 필수. -->
 
 ## 왜 (Why)
+
 <!-- 배경/문제/이 방식을 택한 이유. 관련 이슈: Closes #... -->
 
 ## 확인 방법 (How to test)
+
 <!-- 리뷰어가 로컬에서 재현할 단계. 필요한 env, 시드 데이터 등. -->
+
 1.
 2.
 
 ## 영향 범위 · 리스크 (Impact & Risk)
+
 <!-- 영향 받는 화면/도메인, 마이그레이션 필요 여부, 롤백 방법, 성능/보안 영향 -->
 
 ---
 
 ### 체크리스트
+
 - [ ] `lint` 통과
 - [ ] `typecheck` 통과
 - [ ] `build` 통과
@@ -146,6 +155,7 @@
 ## (S2-2) Issue 템플릿 초안 2종 — `.github/ISSUE_TEMPLATE/`
 
 **버그 리포트 (`bug_report.md` 또는 `bug_report.yml`)** 필수 항목:
+
 - 제목 접두: `[BUG] `
 - **요약**: 한 줄
 - **재현 절차**: 번호 목록
@@ -157,6 +167,7 @@
 - **관련 영역(라벨)**: product / cart / auth / checkout / infra …
 
 **기능 요청 (`feature_request.md` 또는 `feature_request.yml`)** 필수 항목:
+
 - 제목 접두: `[FEAT] `
 - **배경 / 문제**: 어떤 사용자가 어떤 상황에서 무엇이 불편한가
 - **제안**: 원하는 동작
@@ -170,6 +181,7 @@
 ## (S2-3) 브랜치 룰셋 정책 명세 (GitHub Repository Ruleset / Branch protection)
 
 `main` 브랜치 대상:
+
 - **직접 push 금지** — 변경은 PR 로만.
 - **PR 필수**, 병합 전 **최소 승인 리뷰어 1명** (팀 확장 시 2명 검토).
 - **Stale 리뷰 자동 해제**: 새 커밋 push 시 기존 승인 무효화.
@@ -193,28 +205,34 @@
 패키지: `husky` + `lint-staged`. `package.json` 에 `"prepare": "husky"` 추가, `npx husky init`.
 
 **`.husky/pre-commit`** — 스테이징된 파일에 대해 `lint-staged` 실행:
+
 ```bash
 npx lint-staged
 ```
 
 `lint-staged` 설정(`package.json` 의 `"lint-staged"` 또는 `lint-staged.config.js`):
+
 ```jsonc
 {
   "*.{ts,tsx}": ["eslint --fix --max-warnings=0", "prettier --write"],
-  "*.{json,css,md,mjs,yaml,yml}": ["prettier --write"]
+  "*.{json,css,md,mjs,yaml,yml}": ["prettier --write"],
 }
 ```
+
 - `*.ts,*.tsx` → `eslint --fix` 후 `prettier --write`
 - `*.json / *.css / *.md`(및 mjs/yaml) → `prettier --write`
 - 타입 체크는 pre-commit 에서 하지 않는다(느림) → CI 에서.
 
 **`.husky/commit-msg`** — Conventional Commits 정규식 강제:
+
 ```bash
 npx --no -- commitlint --edit "$1"
 ```
+
 `commitlint.config.js`: `extends: ["@commitlint/config-conventional"]`.
 
 commitlint 없이 순수 정규식으로 검증할 경우(`.husky/commit-msg` 스크립트 내):
+
 ```bash
 # 허용: type(scope)!: subject   / scope 와 ! 는 선택
 pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9\-]+\))?(!)?: .{1,72}$'
@@ -240,10 +258,7 @@ head -1 "$1" | grep -Eq "$pattern" || {
   6. `npm run typecheck` (`tsc -p tsconfig.json --noEmit && tsc -p tsconfig.sw.json --noEmit`)
   7. `npm run build`
 - **잡 2: `storybook-test`** (별도 잡으로 분리 권장 — 무겁고 flaky 가능):
-  1~3. 동일 (checkout / setup-node / npm ci)
-  4. Playwright 브라우저 설치 (`npx playwright install --with-deps chromium`)
-  5. `npm run build-storybook`
-  6. `npm run test-storybook`(`@storybook/test-runner`, 정적 빌드에 http-server 물려 실행)
+  1~3. 동일 (checkout / setup-node / npm ci) 4. Playwright 브라우저 설치 (`npx playwright install --with-deps chromium`) 5. `npm run build-storybook` 6. `npm run test-storybook`(`@storybook/test-runner`, 정적 빌드에 http-server 물려 실행)
 - 두 잡 모두 브랜치 룰셋의 required status checks 에 등록(`verify` 안의 개별 스텝이 아니라 잡 이름으로).
 - `package.json` 스크립트로 추가 필요: `lint`, `format`, `format:check`, `build-storybook`, `test-storybook`.
 

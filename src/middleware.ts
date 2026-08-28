@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from 'next/server';
 
 /**
  * 인증 가드 (구현 예정).
@@ -11,5 +11,5 @@ export function middleware(_req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/checkout/:path*", "/mypage/:path*"],
+  matcher: ['/checkout/:path*', '/mypage/:path*'],
 };

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 /**
  * 런타임 타입 안전 환경변수.
@@ -17,7 +17,7 @@ import { z } from "zod";
 
 const clientSchema = z.object({
   NEXT_PUBLIC_API_URL: z.string().url(),
-  NEXT_PUBLIC_APP_ENV: z.enum(["local", "development", "staging", "production"]),
+  NEXT_PUBLIC_APP_ENV: z.enum(['local', 'development', 'staging', 'production']),
 });
 
 const serverSchema = z.object({
@@ -32,12 +32,12 @@ const clientParsed = clientSchema.safeParse({
 if (!clientParsed.success) {
   throw new Error(
     `[env] 잘못된 클라이언트 환경변수:\n${clientParsed.error.issues
-      .map((i) => `  - ${i.path.join(".")}: ${i.message}`)
-      .join("\n")}`,
+      .map((i) => `  - ${i.path.join('.')}: ${i.message}`)
+      .join('\n')}`,
   );
 }
 
-const isServer = typeof window === "undefined";
+const isServer = typeof window === 'undefined';
 
 let serverEnv: z.infer<typeof serverSchema> | null = null;
 if (isServer) {
@@ -47,8 +47,8 @@ if (isServer) {
   if (!serverParsed.success) {
     throw new Error(
       `[env] 잘못된 서버 환경변수:\n${serverParsed.error.issues
-        .map((i) => `  - ${i.path.join(".")}: ${i.message}`)
-        .join("\n")}`,
+        .map((i) => `  - ${i.path.join('.')}: ${i.message}`)
+        .join('\n')}`,
     );
   }
   serverEnv = serverParsed.data;
@@ -59,7 +59,7 @@ export const env = {
   /** 서버 전용. 브라우저에서 접근하면 throw. */
   get API_INTERNAL_URL(): string {
     if (!serverEnv) {
-      throw new Error("[env] API_INTERNAL_URL 은 서버에서만 접근할 수 있습니다.");
+      throw new Error('[env] API_INTERNAL_URL 은 서버에서만 접근할 수 있습니다.');
     }
     return serverEnv.API_INTERNAL_URL;
   },

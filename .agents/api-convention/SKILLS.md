@@ -28,14 +28,14 @@ query hooks          src/hooks/<domain>/           ← useQuery / useMutation, �
 컴포넌트             src/components/{atoms,molecules,organisms}/  ← 훅만 호출. fetch 직접 호출 금지
 ```
 
-| 계층 | 위치 | 책임 | 하면 안 되는 것 |
-|---|---|---|---|
-| Route Handler | `src/app/api/**/route.ts` | 외부 API 호출, 토큰/쿠키 주입, 에러 정규화 | UI 로직, 비즈니스 규칙 계산 |
-| types | `src/types/<domain>.ts` | Zod 스키마 정의, `z.infer` 타입 export | fetch 호출 |
-| apiClient | `src/lib/apiClient.ts` | HTTP 래퍼, 엔드포인트 함수, 응답 `parse`, 401 인터셉터 | React 훅 사용, 컴포넌트 import |
-| query hook | `src/hooks/<domain>/` | `useQuery`/`useMutation`, 쿼리 키, 캐시 정책 | JSX 렌더 |
-| 컴포넌트 | `src/components/{atoms,molecules,organisms}/<domain>/` | 렌더링, 훅 호출 | `fetch` 직접 호출, 쿼리 키 문자열 하드코딩 |
-| 에러 | `src/errors/ApiError.ts` | 실패 응답 → `ApiError(statusCode, message)` 변환 | — |
+| 계층          | 위치                                                   | 책임                                                   | 하면 안 되는 것                            |
+| ------------- | ------------------------------------------------------ | ------------------------------------------------------ | ------------------------------------------ |
+| Route Handler | `src/app/api/**/route.ts`                              | 외부 API 호출, 토큰/쿠키 주입, 에러 정규화             | UI 로직, 비즈니스 규칙 계산                |
+| types         | `src/types/<domain>.ts`                                | Zod 스키마 정의, `z.infer` 타입 export                 | fetch 호출                                 |
+| apiClient     | `src/lib/apiClient.ts`                                 | HTTP 래퍼, 엔드포인트 함수, 응답 `parse`, 401 인터셉터 | React 훅 사용, 컴포넌트 import             |
+| query hook    | `src/hooks/<domain>/`                                  | `useQuery`/`useMutation`, 쿼리 키, 캐시 정책           | JSX 렌더                                   |
+| 컴포넌트      | `src/components/{atoms,molecules,organisms}/<domain>/` | 렌더링, 훅 호출                                        | `fetch` 직접 호출, 쿼리 키 문자열 하드코딩 |
+| 에러          | `src/errors/ApiError.ts`                               | 실패 응답 → `ApiError(statusCode, message)` 변환       | —                                          |
 
 **규칙**: 컴포넌트는 절대 `fetch` 를 직접 호출하지 않는다. 반드시 query hook 을 통한다.
 
@@ -53,7 +53,7 @@ query hooks          src/hooks/<domain>/           ← useQuery / useMutation, �
 
 ```tsx
 // src/app/providers.tsx
-"use client";
+'use client';
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryProvider>
@@ -70,12 +70,13 @@ export function Providers({ children }: { children: ReactNode }) {
 `src/lib/apiClient.ts` 에 두 개의 래퍼만 둔다. 컴포넌트/훅은 이 둘만 사용한다.
 (Route Handler 응답 봉투 빌더 `ok()` / `fail()` 는 `src/lib/apiResponse.ts` — §6.)
 
-| 래퍼 | 인증 | 사용처 | 실행 위치 | 특징 |
-|---|---|---|---|---|
-| `publicFetch` | 없음 | 상품 목록/상세, 카테고리, 검색 등 비로그인 허용 API | 서버·클라 모두 | 캐시 적극 활용 (`next: { revalidate }`) |
-| `privateFetch` | 필수 (쿠키/토큰) | 장바구니, 주문, 마이페이지, 위시리스트 | 원칙적으로 Route Handler 경유 | 401 시 refresh 시도 → 실패 시 로그아웃 |
+| 래퍼           | 인증             | 사용처                                              | 실행 위치                     | 특징                                    |
+| -------------- | ---------------- | --------------------------------------------------- | ----------------------------- | --------------------------------------- |
+| `publicFetch`  | 없음             | 상품 목록/상세, 카테고리, 검색 등 비로그인 허용 API | 서버·클라 모두                | 캐시 적극 활용 (`next: { revalidate }`) |
+| `privateFetch` | 필수 (쿠키/토큰) | 장바구니, 주문, 마이페이지, 위시리스트              | 원칙적으로 Route Handler 경유 | 401 시 refresh 시도 → 실패 시 로그아웃  |
 
 규칙:
+
 - 브라우저에서 외부 API 를 직접 부르지 않는다. `privateFetch` 는 항상 우리 Route Handler(`/api/**`)를 호출하고, Route Handler 가 서버에서 외부 API + 토큰을 처리한다.
 - `publicFetch` 도 기본은 Route Handler 경유. 순수 정적 데이터에 한해 RSC 에서 외부 API 직접 호출 허용(리뷰에서 판단).
 - 공통 헤더(`Content-Type`, 추적 헤더), 타임아웃, 에러 → `ApiError` 정규화는 래퍼 내부에서 처리.
@@ -105,15 +106,16 @@ export async function publicFetch<T>(
 ```ts
 // src/hooks/product/queryKeys.ts
 export const productKeys = {
-  all: ["product"] as const,
-  lists: () => [...productKeys.all, "list"] as const,
+  all: ['product'] as const,
+  lists: () => [...productKeys.all, 'list'] as const,
   list: (params: ProductListParams) => [...productKeys.lists(), params] as const,
-  details: () => [...productKeys.all, "detail"] as const,
+  details: () => [...productKeys.all, 'detail'] as const,
   detail: (id: string) => [...productKeys.details(), id] as const,
 };
 ```
 
 무효화 예:
+
 - 특정 상품만: `queryClient.invalidateQueries({ queryKey: productKeys.detail(id) })`
 - 목록 전체: `queryClient.invalidateQueries({ queryKey: productKeys.lists() })`
 
@@ -121,19 +123,19 @@ export const productKeys = {
 
 ## 5. Zod 스키마 명명·위치 규칙
 
-| 항목 | 규칙 |
-|---|---|
-| 위치 | `src/types/<domain>.ts` — 도메인당 1파일 (`product.ts`, `cart.ts`, `order.ts` …) |
-| 공용 | 공용 원자 스키마(`MoneySchema`, `PaginationSchema`)는 `src/types/common.ts` |
+| 항목          | 규칙                                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------------------ |
+| 위치          | `src/types/<domain>.ts` — 도메인당 1파일 (`product.ts`, `cart.ts`, `order.ts` …)                             |
+| 공용          | 공용 원자 스키마(`MoneySchema`, `PaginationSchema`)는 `src/types/common.ts`                                  |
 | 스키마 변수명 | `PascalCase` + 접미사. 요청: `CreateOrderRequestSchema`, 응답: `ProductSchema` / `ProductListResponseSchema` |
-| 파생 타입 | `export type Product = z.infer<typeof ProductSchema>` — 타입명은 접미사 없이 |
-| 역할 | 지난 프로젝트의 `contracts/`·`types/` 역할을 `src/types/` 하나로 통합 |
-| 날짜/숫자 | 서버가 문자열로 주면 `z.coerce.date()` / `z.coerce.number()` 로 파싱 계층에서 정규화 |
+| 파생 타입     | `export type Product = z.infer<typeof ProductSchema>` — 타입명은 접미사 없이                                 |
+| 역할          | 지난 프로젝트의 `contracts/`·`types/` 역할을 `src/types/` 하나로 통합                                        |
+| 날짜/숫자     | 서버가 문자열로 주면 `z.coerce.date()` / `z.coerce.number()` 로 파싱 계층에서 정규화                         |
 
 ```ts
 // src/types/product.ts
-import { z } from "zod";
-import { MoneySchema } from "./common";
+import { z } from 'zod';
+import { MoneySchema } from './common';
 
 export const ProductSchema = z.object({
   id: z.string(),
@@ -159,24 +161,27 @@ export type ProductListResponse = z.infer<typeof ProductListResponseSchema>;
 
 ```jsonc
 {
-  "statusCode": 200,          // HTTP 상태와 동일한 숫자
-  "message": "OK",            // 사람이 읽는 메시지 (성공/실패 모두)
-  "data": { /* 실제 페이로드, 없으면 null */ }
+  "statusCode": 200, // HTTP 상태와 동일한 숫자
+  "message": "OK", // 사람이 읽는 메시지 (성공/실패 모두)
+  "data": {/* 실제 페이로드, 없으면 null */},
 }
 ```
 
 ```ts
 // src/lib/apiResponse.ts (명세 — Route Handler 전용)
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
 
 export type ApiEnvelope<T> = { statusCode: number; message: string; data: T };
 
-export function ok<T>(data: T, message = "OK", statusCode = 200) {
+export function ok<T>(data: T, message = 'OK', statusCode = 200) {
   return NextResponse.json<ApiEnvelope<T>>({ statusCode, message, data }, { status: statusCode });
 }
 
 export function fail(statusCode: number, message: string) {
-  return NextResponse.json<ApiEnvelope<null>>({ statusCode, message, data: null }, { status: statusCode });
+  return NextResponse.json<ApiEnvelope<null>>(
+    { statusCode, message, data: null },
+    { status: statusCode },
+  );
 }
 ```
 
@@ -249,11 +254,11 @@ useMutation({
 
 ## 9. 안티패턴 (리뷰에서 반려)
 
-| 안티패턴 | 대신 |
-|---|---|
-| 컴포넌트에서 `fetch("/api/...")` 직접 호출 | query hook 사용 |
-| `useQuery(["cart"], ...)` 처럼 키 하드코딩 | `cartKeys.detail()` |
-| 스키마 검증 없이 `res.json()` 결과를 그대로 사용 | `Schema.parse(...)` |
-| Route Handler 없이 브라우저에서 외부 API + 토큰 호출 | `/api/**` 경유 |
-| mutation 후 화면 수동 setState 로 동기화 | `invalidateQueries` |
-| 전역 Zustand 스토어에 서버 응답 저장 | TanStack Query 캐시에 보관 |
+| 안티패턴                                             | 대신                       |
+| ---------------------------------------------------- | -------------------------- |
+| 컴포넌트에서 `fetch("/api/...")` 직접 호출           | query hook 사용            |
+| `useQuery(["cart"], ...)` 처럼 키 하드코딩           | `cartKeys.detail()`        |
+| 스키마 검증 없이 `res.json()` 결과를 그대로 사용     | `Schema.parse(...)`        |
+| Route Handler 없이 브라우저에서 외부 API + 토큰 호출 | `/api/**` 경유             |
+| mutation 후 화면 수동 setState 로 동기화             | `invalidateQueries`        |
+| 전역 Zustand 스토어에 서버 응답 저장                 | TanStack Query 캐시에 보관 |

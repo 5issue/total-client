@@ -1,8 +1,4 @@
-import {
-  QueryClient,
-  defaultShouldDehydrateQuery,
-  isServer,
-} from "@tanstack/react-query";
+import { QueryClient, defaultShouldDehydrateQuery, isServer } from '@tanstack/react-query';
 
 /**
  * 서버 상태 전용 QueryClient 팩토리.
@@ -20,7 +16,7 @@ function makeQueryClient(): QueryClient {
       },
       dehydrate: {
         shouldDehydrateQuery: (query) =>
-          defaultShouldDehydrateQuery(query) || query.state.status === "pending",
+          defaultShouldDehydrateQuery(query) || query.state.status === 'pending',
       },
     },
   });

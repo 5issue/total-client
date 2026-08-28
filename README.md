@@ -13,12 +13,12 @@ npm run dev              # http://localhost:3000
 
 ## 스크립트
 
-| 스크립트 | 설명 |
-|---|---|
-| `npm run dev` | 개발 서버 (Turbopack) |
-| `npm run build` | 프로덕션 빌드 (`output: "standalone"`) |
-| `npm run start` | 빌드 결과 실행 |
-| `npm run typecheck` | `tsc` 타입 검사 (앱 + 서비스 워커) |
+| 스크립트            | 설명                                   |
+| ------------------- | -------------------------------------- |
+| `npm run dev`       | 개발 서버 (Turbopack)                  |
+| `npm run build`     | 프로덕션 빌드 (`output: "standalone"`) |
+| `npm run start`     | 빌드 결과 실행                         |
+| `npm run typecheck` | `tsc` 타입 검사 (앱 + 서비스 워커)     |
 
 ## 문서
 

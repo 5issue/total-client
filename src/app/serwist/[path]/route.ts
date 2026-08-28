@@ -1,4 +1,4 @@
-import { createSerwistRoute } from "@serwist/turbopack";
+import { createSerwistRoute } from '@serwist/turbopack';
 
 /**
  * @serwist/turbopack 은 Route Handler 방식이다.
@@ -9,8 +9,9 @@ import { createSerwistRoute } from "@serwist/turbopack";
  *
  * layout.tsx 의 <SerwistProvider swUrl="/serwist/sw.js" /> 와 경로가 일치해야 한다.
  */
-export const { dynamic, dynamicParams, revalidate, generateStaticParams, GET } =
-  createSerwistRoute({
-    swSrc: "src/app/sw.ts",
+export const { dynamic, dynamicParams, revalidate, generateStaticParams, GET } = createSerwistRoute(
+  {
+    swSrc: 'src/app/sw.ts',
     useNativeEsbuild: true,
-  });
+  },
+);
