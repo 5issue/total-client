@@ -17,12 +17,18 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   // 접근성: user-scalable=no / maximum-scale 로 확대를 막지 않는다.
-  themeColor: "#4f46e5",
+  // 브라우저 크롬 색상을 라이트/다크로 분기.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+  ],
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="ko" dir="ltr">
+    // suppressHydrationWarning: 다음 단계에서 테마 토글 스크립트가 <html> 에
+    // data-theme 를 주입해도 hydration 경고가 나지 않도록.
+    <html lang="ko" dir="ltr" suppressHydrationWarning>
       <body>
         {/* swUrl 은 반드시 src/app/serwist/[path]/route.ts 의 경로와 일치해야 한다. */}
         <SerwistProvider swUrl="/serwist/sw.js">

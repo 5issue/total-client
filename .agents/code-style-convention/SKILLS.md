@@ -194,6 +194,25 @@ const { register, handleSubmit, formState: { errors, isSubmitting } } =
 
 ---
 
+## 6-1. 색상 토큰 · 다크 모드
+
+`src/styles/globals.css` 한 곳에서 토큰을 정의한다 (Tailwind v4 CSS-first, `tailwind.config.js` 없음).
+
+| 토큰 종류 | 정의 위치 | 예 | 다크 대응 |
+|---|---|---|---|
+| 정적 토큰 | `@theme { }` | `--color-brand`, `--radius-*`, `--font-*` | 테마 무관, 값 1개 |
+| 테마 인식 토큰 | `@theme inline { }` + `:root` / `@media` / `[data-theme]` | `--color-surface`, `--color-foreground`, `--color-border` | 캐스케이드로 자동 전환 |
+
+- **다크 모드 3-상태**: 기본은 OS 설정(`prefers-color-scheme`), `<html data-theme="dark">` / `<html data-theme="light">` 로 명시 override.
+- `@custom-variant dark` 를 재정의해 `dark:` 유틸리티가 "OS 다크(단 `data-theme="light"` 아님)" 또는 `data-theme="dark"` 에서 동작하도록 함.
+- **컴포넌트는 시맨틱 토큰 유틸리티를 쓴다**: `bg-surface`, `bg-surface-muted`, `text-foreground`, `text-foreground-muted`, `border-border`. 이 유틸리티는 테마에 따라 자동 전환되므로 대부분 `dark:` 접두어가 필요 없다.
+- `dark:` 접두어는 시맨틱 토큰으로 표현 불가능한 일회성 예외에만 (예: 다크에서만 특정 그림자/이미지 교체).
+- 하드코딩 색(`text-zinc-500`, `bg-white` 등) 대신 토큰 유틸리티. 새 색이 필요하면 토큰을 먼저 추가.
+- 대비: 라이트/다크 **양쪽 모두** 본문 4.5:1 이상 확인 (§5). 다크에서 브랜드/상태색은 밝기를 올린 값 사용.
+- 토글 UI(localStorage + inline head script, `<html>` 에 `data-theme` 주입)는 다음 단계. `layout.tsx` 의 `<html suppressHydrationWarning>` 는 이를 대비한 것.
+
+---
+
 ## 7. 애니메이션
 
 - **CSS 우선.** 트랜지션/키프레임/`@starting-style`/`transition-behavior` 로 해결되면 JS 애니메이션 라이브러리를 넣지 않는다.
