@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [develop, main]
 
+# PR 에 새 커밋 → 이전 실행 취소 (main push 는 취소 안 함)
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 
@@ -13,7 +18,7 @@ jobs:
   ci:
     name: Lint · Type · Format · Build
     runs-on: ubuntu-latest
-
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,19 +29,20 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
-      - name: Install dependencies
+      - id: install
         run: npm ci
 
-      - name: ESLint
-        run: npm run lint
-
-      - name: Type check
-        run: npm run typecheck
-
+      # cheapest first. 하나 실패해도 나머지 다 돌려서 한 번에 확인
       - name: Prettier
         run: npm run format:check
-
+      - name: ESLint
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run lint
+      - name: Type check
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run typecheck
       - name: Build
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: npm run build
         env:
           NEXT_PUBLIC_API_URL: http://localhost:4000
@@ -45,25 +51,20 @@ jobs:
   storybook:
     name: Storybook build · test
     runs-on: ubuntu-latest
-
+    timeout-minutes: 15
+    # needs: ci   # ← red PR 에서 Playwright 낭비 막으려면 주석 해제 (green 총시간은 늘어남)
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright browser (chromium)
+      - run: npm ci
+      - name: Install Playwright (chromium)
         run: npx playwright install --with-deps chromium
-
       - name: Build Storybook
         run: npm run build-storybook
-
       - name: Test Storybook
         run: npm run test-storybook
