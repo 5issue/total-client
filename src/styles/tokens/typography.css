@@ -1,0 +1,164 @@
+/* ============================================================================
+ * 디자인 토큰 — 타이포그래피
+ * 5팀 디자인 시스템 (Figma) · node 2054-1038 "텍스트 스타일 목록 (최종)"
+ *
+ * text-<name> 하나에 font-size + line-height + letter-spacing + font-weight 를
+ * 모두 적용한다 (Tailwind v4 `--text-*--*` 확장 모디파이어).
+ * letter-spacing: Figma % → em 변환 (-2% = -0.02em).
+ * Numeric_* 는 SF Pro → 컴포넌트에서 `font-numeric` 클래스를 함께 적용할 것.
+ * ========================================================================== */
+
+@theme static {
+  /* ── Font family — Figma "Font_Family". 폰트 파일 로딩(next/font 등)은 별도 ── */
+  --font-sans:
+    'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
+    'Segoe UI', Roboto, sans-serif;
+  --font-numeric:
+    'SF Pro Display', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* ── Display (Pretendard) ── */
+  --text-display-l: 30px;
+  --text-display-l--line-height: 32px;
+  --text-display-l--letter-spacing: 0;
+  --text-display-l--font-weight: 600;
+
+  --text-display-m: 30px;
+  --text-display-m--line-height: 32px;
+  --text-display-m--letter-spacing: -0.02em;
+  --text-display-m--font-weight: 400;
+
+  --text-display-s: 28px;
+  --text-display-s--line-height: 32px;
+  --text-display-s--letter-spacing: -0.02em;
+  --text-display-s--font-weight: 600;
+
+  --text-display-xs: 24px;
+  --text-display-xs--line-height: 32px;
+  --text-display-xs--letter-spacing: 0;
+  --text-display-xs--font-weight: 600;
+
+  /* ── Heading (Pretendard) — H0 ~ H6 ── */
+  --text-heading-0: 20px;
+  --text-heading-0--line-height: 24px;
+  --text-heading-0--letter-spacing: -0.02em;
+  --text-heading-0--font-weight: 600;
+
+  --text-heading-1: 18px;
+  --text-heading-1--line-height: 24px;
+  --text-heading-1--letter-spacing: 0;
+  --text-heading-1--font-weight: 600;
+
+  --text-heading-2: 18px;
+  --text-heading-2--line-height: 24px;
+  --text-heading-2--letter-spacing: 0;
+  --text-heading-2--font-weight: 500;
+
+  --text-heading-3: 18px;
+  --text-heading-3--line-height: 24px;
+  --text-heading-3--letter-spacing: 0;
+  --text-heading-3--font-weight: 400;
+
+  --text-heading-4: 16px;
+  --text-heading-4--line-height: 24px;
+  --text-heading-4--letter-spacing: 0;
+  --text-heading-4--font-weight: 600;
+
+  --text-heading-5: 16px;
+  --text-heading-5--line-height: 24px;
+  --text-heading-5--letter-spacing: 0;
+  --text-heading-5--font-weight: 500;
+
+  --text-heading-6: 16px;
+  --text-heading-6--line-height: 24px;
+  --text-heading-6--letter-spacing: 0;
+  --text-heading-6--font-weight: 400;
+
+  /* ── Body (Pretendard) ── */
+  --text-body-l: 15px;
+  --text-body-l--line-height: 20px;
+  --text-body-l--letter-spacing: 0.01em;
+  --text-body-l--font-weight: 700;
+
+  --text-body-m: 15px;
+  --text-body-m--line-height: 20px;
+  --text-body-m--letter-spacing: 0;
+  --text-body-m--font-weight: 500;
+
+  --text-body-s: 15px;
+  --text-body-s--line-height: 20px;
+  --text-body-s--letter-spacing: 0;
+  --text-body-s--font-weight: 400;
+
+  /* ── Label (Pretendard) ── */
+  --text-label-xl: 14px;
+  --text-label-xl--line-height: 20px;
+  --text-label-xl--letter-spacing: 0;
+  --text-label-xl--font-weight: 700;
+
+  --text-label-l: 14px;
+  --text-label-l--line-height: 20px;
+  --text-label-l--letter-spacing: 0;
+  --text-label-l--font-weight: 600;
+
+  --text-label-m: 14px;
+  --text-label-m--line-height: 20px;
+  --text-label-m--letter-spacing: 0;
+  --text-label-m--font-weight: 500;
+
+  --text-label-s: 14px;
+  --text-label-s--line-height: 20px;
+  --text-label-s--letter-spacing: 0.01em;
+  --text-label-s--font-weight: 500;
+
+  --text-label-xs: 14px;
+  --text-label-xs--line-height: 20px;
+  --text-label-xs--letter-spacing: -0.01em;
+  --text-label-xs--font-weight: 400;
+
+  /* ── Caption (Pretendard) ── */
+  --text-caption-xl: 14px;
+  --text-caption-xl--line-height: 23px;
+  --text-caption-xl--letter-spacing: 0;
+  --text-caption-xl--font-weight: 300;
+
+  --text-caption-l: 12px;
+  --text-caption-l--line-height: 16px;
+  --text-caption-l--letter-spacing: 0;
+  --text-caption-l--font-weight: 600;
+
+  --text-caption-m: 12px;
+  --text-caption-m--line-height: 16px;
+  --text-caption-m--letter-spacing: 0;
+  --text-caption-m--font-weight: 400;
+
+  --text-caption-s: 10px;
+  --text-caption-s--line-height: 14px;
+  --text-caption-s--letter-spacing: 0;
+  --text-caption-s--font-weight: 400;
+
+  /* ── Numeric (SF Pro · Black 900) — `font-numeric` 함께 적용 ── */
+  --text-numeric-xxl: 24px;
+  --text-numeric-xxl--line-height: 32px;
+  --text-numeric-xxl--letter-spacing: 0;
+  --text-numeric-xxl--font-weight: 900;
+
+  --text-numeric-xl: 20px;
+  --text-numeric-xl--line-height: 24px;
+  --text-numeric-xl--letter-spacing: 0;
+  --text-numeric-xl--font-weight: 900;
+
+  --text-numeric-l: 16px;
+  --text-numeric-l--line-height: 24px;
+  --text-numeric-l--letter-spacing: 0;
+  --text-numeric-l--font-weight: 900;
+
+  --text-numeric-m: 12px;
+  --text-numeric-m--line-height: 16px;
+  --text-numeric-m--letter-spacing: 0;
+  --text-numeric-m--font-weight: 900;
+
+  --text-numeric-s: 10px;
+  --text-numeric-s--line-height: 14px;
+  --text-numeric-s--letter-spacing: 0;
+  --text-numeric-s--font-weight: 900;
+}
