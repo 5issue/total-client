@@ -54,8 +54,8 @@
   --color-kakao: #ffe400;
   --color-apple: #000000;
 
-  /* 시맨틱 상태색 — Figma "Semantic".
-     error·info 는 라이트 톤(배경/뱃지용). 텍스트 강조색은 디자인 확인 필요. */
+  /* 시맨틱 상태색 — Figma "Semantic". 4색 모두 흰 배경 텍스트 대비 4.5:1 미달
+     (2.06 / 1.67 / 1.28 / 1.10:1) → 배경·뱃지 fill 톤. 텍스트용 강조색은 디자인 확인 필요. */
   --color-success: #93c355;
   --color-warning: #f0c348;
   --color-error: #fedcd1;
