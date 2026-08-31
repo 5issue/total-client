@@ -254,6 +254,17 @@ const {
 - 시맨틱 색은 `tokens/color.css` 의 `@theme inline` + `:root` 캐스케이드 구조라, 다크 팔레트가 확정되면 같은 파일에 `:root[data-theme="dark"]` 블록만 추가하면 된다. `@custom-variant dark` 는 `globals.css` 에 이미 선언돼 있음.
 - 그때 라이트/다크 **양쪽 모두** 본문 대비 4.5:1 이상 확인 (§5).
 
+### Figma → 코드 반영 절차
+
+디자이너가 Figma 토큰을 수정하면:
+
+1. **재추출** — MCP `get_variable_defs` 로 해당 노드(색 `2002-13` / 타이포 `2054-1038`)를 다시 읽는다. `get_screenshot` 으로 값 대조.
+2. **반영** — `tokens/color.css` · `typography.css` 수정. Figma 값 1:1, 임의값 금지, "Figma → 토큰" 매핑 주석 유지, 프리미티브 / `@theme inline` / `:root` 계층 배치 유지.
+3. **대비 확인** — 본문 대비 ≥ 4.5:1 (§5). 미달 색은 배경·뱃지 fill 로만, 텍스트 강조색은 디자인 재확인. 판단 결과를 토큰 파일 주석에 남긴다.
+4. **PR** — `refactor/tokens-*` 또는 `chore/tokens-*` 브랜치 → 저장소 템플릿 PR → 리뷰어 1인 → squash. CodeRabbit 이 `styles/**/*.css` 규칙으로 자동 점검한다.
+
+빌드 도구(Style Dictionary 등)·플러그인(Tokens Studio)·npm 패키지·전용 CI 는 **도입하지 않는다.** 소스 오브 트루스는 위 CSS 파일이다. 판단 근거·재검토 트리거는 팀 노션 「디자인 토큰 파이프라인 — 현행 결정 (v1)」.
+
 ---
 
 ## 7. 애니메이션
