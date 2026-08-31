@@ -1,0 +1,168 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+#
+# CodeRabbit PR 자동 리뷰 설정 (issue #12)
+# - 리뷰 규칙의 "근거"는 .agents/**/SKILLS.md 에 있다. 여기서는 그걸 경로별로 연결만 한다.
+# - 우선 로컬(CodeRabbit CLI)에서만 검증한다. GitHub App 연동·필수 체크 등록은 후속 이슈.
+# - 스키마 검증: npx --yes ajv-cli validate -s <schema> -d .coderabbit.yaml (또는 CLI 실행 시 자동)
+
+language: 'ko-KR'
+early_access: false
+tone_instructions: '간결하게, 근거 중심으로. 저장소 컨벤션 위반은 해당 .agents 문서 조항을 함께 인용. 단순 취향 차이는 생략.'
+
+reviews:
+  # quiet(치명적만) < chill(균형) < assertive(꼼꼼·nitpick 다수). 노이즈 적으면 assertive 로.
+  profile: 'chill'
+  request_changes_workflow: false # CI + 리뷰어 1인이 이미 게이트. CodeRabbit 은 조언만.
+  high_level_summary: true
+  collapse_walkthrough: true
+  changed_files_summary: true
+  sequence_diagrams: false # 프론트 스켈레톤 단계 — 노이즈
+  assess_linked_issues: true
+  related_issues: true
+  related_prs: true
+  suggested_labels: true
+  auto_apply_labels: false
+  suggested_reviewers: true
+  auto_assign_reviewers: false
+  poem: false
+
+  # 저장소 실제 라벨(gh label list)에 맞춤. 적용은 사람이(auto_apply_labels: false).
+  labeling_instructions:
+    - label: '✨ feature'
+      instructions: '새 기능·화면·컴포넌트 추가.'
+    - label: '🔨 refactor'
+      instructions: '동작 불변 구조 개선.'
+    - label: '🐞 bug'
+      instructions: '버그 수정.'
+    - label: '📃 docs'
+      instructions: '.agents/**, README, 주석 등 문서만 변경.'
+    - label: '🎨 style'
+      instructions: '마크업·스타일링·디자인 토큰 변경.'
+    - label: '📬 API'
+      instructions: 'hooks/<domain>, types/, app/**/route.ts 등 API 계층.'
+    - label: '⚙ setting'
+      instructions: '빌드·CI·설정·의존성 변경.'
+    - label: '✅ test'
+      instructions: '스토리·테스트 추가·수정.'
+
+  path_filters:
+    - '!**/package-lock.json'
+    - '!.next/**'
+    - '!storybook-static/**'
+    - '!next-env.d.ts'
+    - '!public/**'
+
+  path_instructions:
+    - path: 'src/components/**/*.{ts,tsx}'
+      instructions: >-
+        Atomic Design 3계층(atoms→molecules→organisms), molecule·organism 은 도메인 폴더로 분류.
+        RSC 가 기본 — "use client" 는 상호작용/브라우저 API 가 필요한 잎에만, layout/page 상단 금지.
+        컴포넌트·organism 은 fetch 직접 호출 금지 → hooks/<domain> 훅을 주입받아 조립.
+        스타일은 @theme 생성 유틸리티만: text-fg / bg-surface / border-border / text-body-m / rounded-m.
+        하드코딩 색(bg-white, text-zinc-500)·대괄호 임의값(text-[15px], bg-[#690085], rounded-[--radius-m]) 금지.
+        근거: .agents/code-style-convention/SKILLS.md §2·§3·§6-1, .agents/structure-convention/SKILLS.md §3.
+    - path: 'src/hooks/**/*.{ts,tsx}'
+      instructions: >-
+        서버 상태는 TanStack Query 전용. 쿼리 키는 hooks/<domain>/queryKeys.ts 팩토리에서만(문자열 하드코딩 금지).
+        Optimistic Update 는 기본 금지 — 성공 후 invalidateQueries. 유일 예외는 장바구니 수량이며 PR 에 3가지 근거 필요.
+        서버·외부 응답은 types/<domain>.ts 의 Zod 스키마로 parse 후 사용.
+        근거: .agents/api-convention/SKILLS.md §1·§4·§5·§7.
+    - path: 'src/stores/**/*.{ts,tsx}'
+      instructions: >-
+        모듈 최상단 create() 싱글턴 금지. zustand/vanilla createStore 팩토리만 정의하고 인스턴스는 providers/ 가 생성.
+        서버 응답(API 데이터)을 스토어에 복사 금지. 배열·객체 selector 는 useShallow 강제.
+        근거: .agents/code-style-convention/SKILLS.md §3-1·§3-2·§3-3.
+    - path: 'src/types/**/*.ts'
+      instructions: >-
+        Zod 스키마 이름은 PascalCase + Schema 접미, 타입은 z.infer 로 추론. 외부 데이터는 parse 후 사용.
+        근거: .agents/api-convention/SKILLS.md §5, .agents/security-convention/SKILLS.md FE-07.
+    - path: 'src/app/**/{page,layout,template,loading,error,not-found}.tsx'
+      instructions: >-
+        라우트 파일에는 로직을 두지 않는다 — organism 조합 + 훅 연결만. RSC 기본.
+        새 화면이면 PR 에 렌더링 전략(SSG/ISR/SSR/CSR)과 이유 한 줄이 있어야 한다.
+        근거: .agents/structure-convention/SKILLS.md §2·§2-1.
+    - path: 'src/app/**/route.ts'
+      instructions: >-
+        공용 응답 포맷 { statusCode, message, data } 유지. 인증 경유는 privateFetch, 공개는 publicFetch.
+        NEXT_PUBLIC_ 에 서버 비밀 금지(빌드 타임 번들에 인라인됨). 인가는 서버가 매 요청 검증.
+        근거: .agents/api-convention/SKILLS.md §2·§3·§6, .agents/security-convention/SKILLS.md FE-10·FE-15.
+    - path: 'src/**/*.tsx'
+      instructions: >-
+        접근성: 아이콘 버튼 aria-label 필수, 링크는 목적지 서술, user-scalable 제한 금지, 본문 대비 ≥ 4.5:1.
+        이미지는 <img> 금지 → next/image + 종횡비 CSS 선고정(aspect-*). LCP 후보만 priority.
+        근거: .agents/code-style-convention/SKILLS.md §5·§6.
+    - path: 'src/middleware.ts'
+      instructions: >-
+        middleware 는 UX 목적(리다이렉트)일 뿐, 실제 인가는 서버가 매 요청 검증한다.
+        근거: .agents/security-convention/SKILLS.md FE-15.
+    - path: 'src/styles/**/*.css'
+      instructions: >-
+        Tailwind v4 CSS-first(@theme). 토큰 값은 Figma 5팀 디자인 시스템에서 1:1 추출, 임의값 금지.
+        시맨틱 색은 @theme inline + :root 캐스케이드. 다크 팔레트 없음(라이트 전용).
+        근거: .agents/code-style-convention/SKILLS.md §6-1.
+    - path: '**/*.stories.tsx'
+      instructions: >-
+        상태별 스토리(Default/Loading/Empty/Error/Disabled) + 상호작용은 play() 로 검증(storybook/test).
+        Meta 에 component·args·argTypes, tags: ["autodocs"]. 파일은 컴포넌트 옆 co-location.
+        근거: .agents/git-convention/SKILLS.md (S2-6), .agents/code-style-convention/SKILLS.md §2-2.
+    - path: '.github/workflows/*.yml'
+      instructions: >-
+        job 이름("Lint · Type · Format · Build", "Storybook build · test")은 main 브랜치 룰셋의
+        필수 상태 체크와 정확히 일치해야 한다 — 이름을 바꾸면 룰셋도 함께 갱신.
+
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    drafts: false
+    base_branches:
+      - 'main'
+    ignore_title_keywords:
+      - 'wip'
+      - '[skip review]'
+
+  finishing_touches:
+    docstrings:
+      enabled: true
+    unit_tests:
+      enabled: false # 이 저장소는 Storybook 스토리 + Vitest 브라우저 테스트를 쓴다
+
+  tools:
+    eslint:
+      enabled: true
+      config_file: 'eslint.config.mjs'
+    gitleaks:
+      enabled: true # 시크릿 스캔 (security-convention FE-10)
+    actionlint:
+      enabled: true # .github/workflows/*
+    hadolint:
+      enabled: true # Dockerfile
+    biome:
+      enabled: false # eslint(flat config) 사용 — 중복 린트 방지
+    stylelint:
+      enabled: false # Tailwind v4 @theme/@custom-variant 오탐, stylelint 설정 없음
+    markdownlint:
+      enabled: false # .agents/** 한글 산문 문서 — 노이즈
+    languagetool:
+      enabled: false
+    yamllint:
+      enabled: false # 워크플로 정합성은 actionlint 담당
+
+knowledge_base:
+  opt_out: false
+  web_search:
+    enabled: true
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - '.agents/**/SKILLS.md'
+      - 'CLAUDE.md'
+  learnings:
+    scope: 'local'
+  issues:
+    scope: 'local'
+  pull_requests:
+    scope: 'local'
+
+chat:
+  auto_reply: true
+  art: false
