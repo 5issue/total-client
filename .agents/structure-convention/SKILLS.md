@@ -206,7 +206,7 @@ src/
 1. `<img>` 직접 사용 금지 → 항상 `next/image` (`@next/next/no-img-element` 강제).
 2. 이미지 컨테이너는 **종횡비를 CSS 로 먼저 고정**(`aspect-*` + `relative` + `fill`). 로드 전에도 높이 확정.
    ```tsx
-   <div className="rounded-card relative aspect-square w-full overflow-hidden">
+   <div className="rounded-m relative aspect-square w-full overflow-hidden">
      <Image
        src={product.thumbnailUrl}
        alt={product.name}
@@ -220,7 +220,7 @@ src/
 5. `next.config.ts` `images.formats = ["image/avif","image/webp"]`, 외부 도메인은 `images.remotePatterns` 등록.
 6. 원본 예산: 썸네일 ≤ 60KB, 상세 대표 ≤ 200KB.
 7. `alt` 필수. 장식용이면 `alt=""`.
-8. 대괄호 임의값(`rounded-[--radius-card]`)이 아니라 `@theme` 생성 유틸리티(`rounded-card`).
+8. 대괄호 임의값(`rounded-[--radius-m]`)이 아니라 `@theme` 생성 유틸리티(`rounded-m`).
 
 ---
 
