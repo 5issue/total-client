@@ -34,6 +34,12 @@ const eslintConfig = defineConfig([
       // any 타입 금지
       '@typescript-eslint/no-explicit-any': 'error',
 
+      // 의도적으로 안 쓰는 인자/변수는 `_` 접두로 표시(예: 아이콘 registry 의 idFor)
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+
       // default export 지양 — export function 사용
       'import/no-default-export': 'error',
     },
@@ -72,7 +78,7 @@ const eslintConfig = defineConfig([
     },
   },
 
-  // Storybook CSF 는 meta 를 default export 로 요구 (storybook/default-exports)
+  // Storybook CSF3 는 meta 를 default export 해야 한다
   {
     files: ['**/*.stories.@(ts|tsx|js|jsx)'],
     rules: {
