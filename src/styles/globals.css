@@ -33,15 +33,19 @@
   --radius-xl: 16px;
 }
 
-html,
-body {
-  background-color: var(--color-surface);
-  color: var(--color-fg);
-  font-family: var(--font-sans);
-}
+/* @layer base 에 둬야 Tailwind 유틸리티(@layer utilities)가 이 기본값을 오버라이드할 수 있다.
+ * (unlayered 규칙은 레이어 규칙을 무조건 이김 — 예: focus-within:border-border-active) */
+@layer base {
+  html,
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+  }
 
-*,
-::after,
-::before {
-  border-color: var(--color-border);
+  *,
+  ::after,
+  ::before {
+    border-color: var(--color-border);
+  }
 }
