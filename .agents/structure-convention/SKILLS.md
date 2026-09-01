@@ -178,7 +178,7 @@ src/
 ├── errors/
 │   └── ApiError.ts              # 공용 응답 포맷 에러 봉투
 └── styles/
-    ├── globals.css              # @import "tailwindcss" + tokens @import + @custom-variant dark + --radius-m
+    ├── globals.css              # @import "tailwindcss" + tokens @import + @custom-variant dark + --radius-{s,m,l,xl}
     └── tokens/                  # 디자인 토큰 — Figma 5팀 디자인 시스템에서 값 1:1 추출 (code-style §6-1)
         ├── color.css            # 팔레트 · 시맨틱 색(@theme inline + :root) · shadow (node 2002-13)
         └── typography.css       # 폰트 패밀리 · 타입 스케일 (node 2054-1038)
