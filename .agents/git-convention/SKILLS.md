@@ -75,7 +75,7 @@
 
 ## 3. PR 준비 체크리스트 (올리는 사람)
 
-- [ ] `main` 최신 반영(rebase), 충돌 해결 완료
+- [ ] `develop` 최신 반영(rebase), 충돌 해결 완료
 - [ ] 로컬에서 `npm run build` 통과
 - [ ] 로컬에서 `npm run typecheck` 통과
 - [ ] (스코프 2 도입 후) `lint` / `format:check` 통과
@@ -184,7 +184,11 @@
 
 ## (S2-3) 브랜치 룰셋 정책 명세 (GitHub Repository Ruleset / Branch protection)
 
-`main` 브랜치 대상:
+> ✅ 이미 적용됨: `main protection`(main 대상), `develop protection`(develop 대상) 룰셋이
+> GitHub Repository Ruleset 으로 실제 등록돼 있다(아래 명세와 동일 조건). 신규 팀원 추가 등
+> 조건을 바꿀 때만 이 문서를 먼저 고치고 룰셋을 맞춘다.
+
+`main`, `develop` 브랜치 공통 대상:
 
 - **직접 push 금지** — 변경은 PR 로만.
 - **PR 필수**, 병합 전 **최소 승인 리뷰어 1명** (팀 확장 시 2명 검토).
@@ -196,7 +200,7 @@
   - `build`
   - `storybook-test` (스토리 + interaction/play 테스트)
 - **브랜치 최신화 필수**: "Require branches to be up to date before merging".
-- **force-push 금지**, **브랜치 삭제 금지**(main).
+- **force-push 금지**, **브랜치 삭제 금지**(main, develop).
 - **linear history 필수** (merge commit 금지).
 - **병합 방식: Squash and merge 권장** (1 PR = 1 커밋, 커밋 메시지는 PR 제목=Conventional Commits).
   - Rebase merge 허용 가능, Merge commit 비활성화.
