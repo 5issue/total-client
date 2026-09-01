@@ -72,6 +72,14 @@ const eslintConfig = defineConfig([
     },
   },
 
+  // Storybook CSF 는 meta 를 default export 로 요구 (storybook/default-exports)
+  {
+    files: ['**/*.stories.@(ts|tsx|js|jsx)'],
+    rules: {
+      'import/no-default-export': 'off',
+    },
+  },
+
   globalIgnores([
     'node_modules/**',
     '.next/**',
