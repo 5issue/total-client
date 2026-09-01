@@ -13,19 +13,23 @@
 
 ## 1. 브랜치 전략
 
-| 브랜치                   | 목적               | 분기 원본 | 병합 대상       | 비고                                       |
-| ------------------------ | ------------------ | --------- | --------------- | ------------------------------------------ |
-| `main`                   | 배포 가능한 상태만 | —         | —               | 보호 브랜치. 직접 push 금지(스코프 2 룰셋) |
-| `feat/<범위>-<요약>`     | 기능 개발          | `main`    | `main` (squash) | 예: `feat/product-detail-page`             |
-| `fix/<범위>-<요약>`      | 버그 수정          | `main`    | `main` (squash) | 예: `fix/cart-qty-race`                    |
-| `chore/<요약>`           | 빌드/설정/의존성   | `main`    | `main` (squash) | 예: `chore/bump-next-16-3-3`               |
-| `docs/<요약>`            | 문서만             | `main`    | `main` (squash) | 예: `docs/api-convention`                  |
-| `refactor/<범위>-<요약>` | 동작 불변 리팩터   | `main`    | `main` (squash) |                                            |
-| `hotfix/<요약>`          | 운영 긴급 수정     | `main`    | `main` (squash) | 배포 후 즉시                               |
+> Git Flow 라이트 — `develop` 을 통합 브랜치(=GitHub 기본 브랜치)로 두고, `main` 은 배포 가능한 상태의 릴리스 스냅샷만 유지한다.
 
-- 트렁크 기반. 브랜치는 **짧게 유지**(수명 2~3일 목표), 자주 `main` 을 rebase 로 최신화.
+| 브랜치                   | 목적                          | 분기 원본 | 병합 대상                          | 비고                                                                     |
+| ------------------------ | ----------------------------- | --------- | ---------------------------------- | ------------------------------------------------------------------------ |
+| `main`                   | 배포 가능한 상태만 (릴리스)   | —         | —                                  | 보호 브랜치. 직접 push 금지. `develop` → `main` PR(릴리스)로만 갱신      |
+| `develop`                | 통합/개발 브랜치. 기본 브랜치 | `main`    | —                                  | 보호 브랜치. 직접 push 금지. 모든 기능 브랜치의 분기 원본이자 병합 대상  |
+| `feat/<범위>-<요약>`     | 기능 개발                     | `develop` | `develop` (squash)                 | 예: `feat/product-detail-page`                                           |
+| `fix/<범위>-<요약>`      | 버그 수정                     | `develop` | `develop` (squash)                 | 예: `fix/cart-qty-race`                                                  |
+| `chore/<요약>`           | 빌드/설정/의존성              | `develop` | `develop` (squash)                 | 예: `chore/bump-next-16-3-3`                                             |
+| `docs/<요약>`            | 문서만                        | `develop` | `develop` (squash)                 | 예: `docs/api-convention`                                                |
+| `refactor/<범위>-<요약>` | 동작 불변 리팩터              | `develop` | `develop` (squash)                 |                                                                          |
+| `hotfix/<요약>`          | 운영 긴급 수정                | `main`    | `main` (squash) + `develop` 백머지 | 배포 후 즉시. `main` 에 반영한 뒤 반드시 `develop` 에도 동일 수정을 반영 |
+
+- 브랜치는 **짧게 유지**(수명 2~3일 목표), 자주 `develop` 을 rebase 로 최신화.
 - 브랜치명은 소문자 kebab-case. 이슈 번호가 있으면 접미: `feat/search-autocomplete-#123`.
 - 한 브랜치 = 한 목적. 관련 없는 변경 섞지 않는다.
+- 신규 PR 은 GitHub 기본 브랜치 설정에 따라 `develop` 을 기본 타깃으로 잡는다. `main` 을 대상으로 하는 PR 은 릴리스(`develop`→`main`)와 `hotfix` 뿐이다.
 
 ## 2. Conventional Commits
 
