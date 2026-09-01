@@ -151,5 +151,8 @@ vite.config.ts.timestamp-*
 # oh-my-claudecode local state
 .omc/
 
+# local Figma icon import staging (not part of the build)
+.icon-import/
+
 *storybook.log
 storybook-static

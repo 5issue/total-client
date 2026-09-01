@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 
 export type IconName =
+  | 'alert'
   | 'apple'
   | 'arrow-down'
   | 'arrow-left'
@@ -952,6 +953,25 @@ function render_up_28(_idFor: (raw: string) => string): ReactNode {
   );
 }
 
+function render_alert_16(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <circle cx="8" cy="8" r="1" fill="#7E8F9B" />
+    </>
+  );
+}
+
+function render_alert_56(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <path
+        d="M28.0547 54C14.2778 54 3.10961 42.6752 3.10938 28.7051C3.10938 14.7348 14.2777 3.40918 28.0547 3.40918C41.8317 3.40918 53 14.7348 53 28.7051C52.9998 42.6752 41.8315 54 28.0547 54ZM28.0547 49.1816C39.2074 49.1816 48.2488 40.0142 48.249 28.7051C48.249 17.3958 39.2075 8.22754 28.0547 8.22754C16.9019 8.22754 7.86036 17.3958 7.86036 28.7051C7.86059 40.0142 16.9021 49.1816 28.0547 49.1816ZM28.0547 32.3184C26.7426 32.3184 25.6787 31.2545 25.6787 29.9424L25.6787 17.8301C25.6789 16.5181 26.7427 15.4551 28.0547 15.4551C29.3667 15.4551 30.4305 16.5181 30.4307 17.8301L30.4307 29.9424C30.4307 31.2545 29.3668 32.3184 28.0547 32.3184ZM28.0547 41.9551C26.7427 41.9551 25.6788 40.8911 25.6787 39.5791L25.6787 39.5127C25.6787 38.2006 26.7426 37.1367 28.0547 37.1367C29.3668 37.1367 30.4307 38.2006 30.4307 39.5127L30.4307 39.5791C30.4305 40.8911 29.3667 41.9551 28.0547 41.9551Z"
+        fill="#7E8F9B"
+      />
+    </>
+  );
+}
+
 export const ICONS: Record<IconName, IconVariant[]> = {
   'coupon-cyan': [
     { viewBox: '0 0 14 14', themable: false, render: (idFor) => render_coupon_cyan_14(idFor) },
@@ -1068,4 +1088,8 @@ export const ICONS: Record<IconName, IconVariant[]> = {
   receipt: [{ viewBox: '0 0 28 28', themable: true, render: (idFor) => render_receipt_28(idFor) }],
   right: [{ viewBox: '0 0 28 28', themable: true, render: (idFor) => render_right_28(idFor) }],
   up: [{ viewBox: '0 0 28 28', themable: true, render: (idFor) => render_up_28(idFor) }],
+  alert: [
+    { viewBox: '0 0 16 16', themable: false, render: (idFor) => render_alert_16(idFor) },
+    { viewBox: '0 0 56 56', themable: false, render: (idFor) => render_alert_56(idFor) },
+  ],
 };
