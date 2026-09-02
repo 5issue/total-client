@@ -1,27 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { expect, within } from 'storybook/test';
 
+import { Icon } from '@/components/atoms/Icon';
+
 import { InfoBox } from './InfoBox';
 
-/**
- * 안내 아이콘 — Icon atom 도입 전까지 스토리 데모용.
- * path 는 Figma node 2418-6426 의 info 아이콘 원본, fill 만 currentColor.
- */
+/** 안내 아이콘 — Icon atom 의 `info-line` (Figma node 2418-6426 의 원본과 동일 path). */
 function InfoIcon() {
-  return (
-    <svg
-      viewBox="0 0 20 20"
-      fill="currentColor"
-      className="text-fg-tertiary size-5"
-      aria-hidden="true"
-    >
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M10 2C14.4183 2 17.9999 5.5817 18 10C18 14.4184 14.4184 18 10 18C5.5817 17.9999 2 14.4183 2 10C2.00012 5.58177 5.58177 2.00012 10 2ZM10 3.52344C6.42337 3.52355 3.52355 6.42337 3.52344 10C3.52344 13.5767 6.4233 16.4764 10 16.4766C13.5768 16.4766 16.4766 13.5768 16.4766 10C16.4764 6.4233 13.5767 3.52344 10 3.52344ZM10.7617 14.1904H9.23828V8.85742H10.7617V14.1904ZM10.7617 7.33301H9.23828V5.80957H10.7617V7.33301Z"
-      />
-    </svg>
-  );
+  return <Icon name="info-line" className="text-fg-tertiary" aria-hidden />;
 }
 
 const meta = {
