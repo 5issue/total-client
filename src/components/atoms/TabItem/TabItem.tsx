@@ -21,10 +21,10 @@ export function TabItem({
   className,
 }: TabItemProps) {
   const stateClassName = disabled
-    ? 'border-transparent text-fg-disabled'
+    ? 'border-transparent text-fg-disabled text-heading-3'
     : active
-      ? 'border-primary text-primary text-label-xl'
-      : 'border-transparent text-fg-tertiary text-label-m';
+      ? 'border-brand-secondary text-brand-secondary text-heading-2'
+      : 'border-transparent text-fg-tertiary text-heading-3';
 
   return (
     <button
@@ -33,7 +33,7 @@ export function TabItem({
       aria-selected={active}
       disabled={disabled}
       onClick={onClick}
-      className={`shrink-0 border-b-2 px-4 py-3 whitespace-nowrap transition-colors ${stateClassName} ${className ?? ''}`.trim()}
+      className={`flex h-11 shrink-0 items-center justify-center border-b-2 px-4 whitespace-nowrap transition-colors ${stateClassName} ${className ?? ''}`.trim()}
     >
       {label}
     </button>

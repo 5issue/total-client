@@ -97,6 +97,9 @@
   /* Primary (Figma Brand/500 의 시맨틱 별칭) */
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+
+  /* Secondary (Figma Brand/Secondary = Brand/600 의 시맨틱 별칭) */
+  --color-brand-secondary: var(--brand-secondary);
 }
 
 /* 라이트 (기본, 현재 유일한 테마) */
@@ -125,4 +128,7 @@
   /* Primary */
   --primary: #690085; /* Brand/500 */
   --primary-foreground: #ffffff;
+
+  /* Secondary */
+  --brand-secondary: #50006b; /* Brand/Secondary = Brand/600 */
 }
