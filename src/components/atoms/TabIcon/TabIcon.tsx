@@ -1,3 +1,5 @@
+'use client';
+
 import { useId } from 'react';
 
 import { TAB_ICONS, type TabName } from './tab-icons.generated';

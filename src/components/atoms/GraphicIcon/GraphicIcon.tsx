@@ -1,3 +1,5 @@
+'use client';
+
 import { useId } from 'react';
 
 import { GRAPHIC_ICONS, type GraphicIconName } from './graphic-icons.generated';
