@@ -19,18 +19,23 @@ export type ButtonVariant =
   | 'text'
   | 'danger';
 
-/** xs 는 Figma 에 Outline_B 타입만 실측 검증됨(높이 32px) — 다른 타입에서의 시각 확인 필요. */
+/** xs 는 Figma 에 Outline_B 타입만 실측 검증됨(높이 32px). */
 export type ButtonSize = 'xs' | 's' | 'm' | 'l' | 'xl';
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: ButtonVariant;
-  size?: ButtonSize;
+interface ButtonBaseProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** 장식용(aria-hidden)으로 렌더한다 — 접근 가능한 이름은 항상 `children` 텍스트가 담당. */
   leadingIcon?: IconName;
   trailingIcon?: IconName;
   /** 아이콘 전용 사용은 미지원이라 항상 필수 — 텍스트 없는 버튼이 accessible name 을 잃는 것을 막는다. */
   children: ReactNode;
 }
+
+// xs 는 Figma 에 outlineBlack 조합만 존재해 다른 variant 와 섞이지 않도록 타입으로 강제한다.
+export type ButtonProps = ButtonBaseProps &
+  (
+    | { size?: Exclude<ButtonSize, 'xs'>; variant?: ButtonVariant }
+    | { size: 'xs'; variant: 'outlineBlack' }
+  );
 
 const VARIANT_CLASSNAME: Record<ButtonVariant, string> = {
   primary:
@@ -95,7 +100,7 @@ export function Button({
       type={type}
       disabled={disabled}
       className={[
-        'rounded-m inline-flex items-center justify-center gap-1 px-1 whitespace-nowrap transition-colors disabled:pointer-events-none motion-reduce:transition-none',
+        'rounded-m focus-visible:outline-border-active inline-flex items-center justify-center gap-1 px-1 whitespace-nowrap outline-offset-2 transition-colors focus-visible:outline-2 disabled:pointer-events-none motion-reduce:transition-none',
         SIZE_PADDING_Y_CLASSNAME[size],
         VARIANT_CLASSNAME[variant],
         textClassName,

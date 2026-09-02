@@ -14,7 +14,7 @@ const VARIANTS: ButtonVariant[] = [
   'danger',
 ];
 
-const SIZES: ButtonSize[] = ['s', 'm', 'l', 'xl'];
+const SIZES: Exclude<ButtonSize, 'xs'>[] = ['s', 'm', 'l', 'xl'];
 
 const meta = {
   title: 'atoms/Button',
@@ -58,10 +58,16 @@ export const XsOutlineBlackDisabled: Story = {
 };
 
 export const AllVariants: Story = {
-  render: (args) => (
+  render: ({ leadingIcon, trailingIcon }) => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-start' }}>
       {VARIANTS.map((variant) => (
-        <Button key={variant} {...args} variant={variant}>
+        <Button
+          key={variant}
+          variant={variant}
+          size="s"
+          leadingIcon={leadingIcon}
+          trailingIcon={trailingIcon}
+        >
           {variant}
         </Button>
       ))}
@@ -70,10 +76,16 @@ export const AllVariants: Story = {
 };
 
 export const AllSizes: Story = {
-  render: (args) => (
+  render: ({ leadingIcon, trailingIcon }) => (
     <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
       {SIZES.map((size) => (
-        <Button key={size} {...args} size={size}>
+        <Button
+          key={size}
+          variant="primary"
+          size={size}
+          leadingIcon={leadingIcon}
+          trailingIcon={trailingIcon}
+        >
           {size.toUpperCase()}
         </Button>
       ))}
@@ -86,10 +98,17 @@ export const Disabled: Story = {
 };
 
 export const DisabledAllVariants: Story = {
-  render: (args) => (
+  render: ({ leadingIcon, trailingIcon }) => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-start' }}>
       {VARIANTS.map((variant) => (
-        <Button key={variant} {...args} variant={variant} disabled>
+        <Button
+          key={variant}
+          variant={variant}
+          size="s"
+          leadingIcon={leadingIcon}
+          trailingIcon={trailingIcon}
+          disabled
+        >
           {variant}
         </Button>
       ))}
