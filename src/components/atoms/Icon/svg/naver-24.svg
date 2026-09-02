@@ -1,0 +1,19 @@
+<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask
+        id="mask0_2374_1982"
+        style="mask-type:luminance"
+        maskUnits="userSpaceOnUse"
+        x="5"
+        y="5"
+        width="15"
+        height="14"
+      >
+        <path d="M19.1167 5H5V19H19.1167V5Z" fill="white" />
+      </mask>
+      <g mask="url(#mask0_2374_1982)">
+        <path
+          d="M14.5784 12.49L9.34 5H5V19H9.55V11.51L14.7766 19H19.1166V5H14.5784V12.49Z"
+          fill="#222222"
+        />
+      </g>
+</svg>

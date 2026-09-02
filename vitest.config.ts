@@ -10,6 +10,12 @@ const dirname =
 
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
+  // aria-query(CJS)의 named export 를 cjs-module-lexer 가 제대로 못 읽어
+  // "does not provide an export named 'elementRoles'" 로 깨지는 문제 회피.
+  // esbuild 로 다시 프리번들링하도록 강제.
+  optimizeDeps: {
+    include: ['aria-query', 'lz-string', 'pretty-format'],
+  },
   test: {
     // 아직 실제 스토리가 없는 초기 상태에서도 CI가 실패하지 않도록 허용.
     // 스토리가 생기면 그 시점부터 정상적으로 검증이 시작된다.

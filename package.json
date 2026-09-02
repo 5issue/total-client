@@ -20,7 +20,8 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "test-storybook": "vitest run",
-    "chromatic": "chromatic"
+    "chromatic": "chromatic",
+    "icons:build": "node scripts/icons/build-all.mjs"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -53,6 +54,9 @@
     "@storybook/addon-docs": "^10.5.10",
     "@storybook/addon-vitest": "^10.5.10",
     "@storybook/nextjs-vite": "^10.5.10",
+    "@svgr/core": "^8.1.0",
+    "@svgr/plugin-jsx": "^8.1.0",
+    "@svgr/plugin-svgo": "^8.1.0",
     "@tailwindcss/postcss": "4.3.3",
     "@tanstack/react-query-devtools": "5.102.7",
     "@types/node": "24.13.3",
@@ -78,5 +82,8 @@
     "typescript": "6.0.3",
     "vite": "^8.2.2",
     "vitest": "^4.1.11"
+  },
+  "overrides": {
+    "aria-query": "5.3.2"
   }
 }
