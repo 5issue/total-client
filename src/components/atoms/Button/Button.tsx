@@ -1,12 +1,10 @@
 'use client';
 
-import type { ButtonHTMLAttributes } from 'react';
+import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
 import { Icon, type IconName } from '@/components/atoms/Icon/Icon';
 
 /**
- * 공용 버튼 (atom). Figma "5팀 디자인 시스템" — node 2374-2674 "Button" (Type_State_Matrix).
- *
  * Black/Danger 의 Hover·Pressed 는 Figma 소스 자체가 Default 와 동일하거나(Black)
  * 채움→외곽선으로 바뀌는(Danger) 이상치라, 다른 filled 타입과 일관되게 opacity 로
  * 대체했다 — 디자이너 확인 후 정식 색상으로 교체 필요.
@@ -26,9 +24,11 @@ export type ButtonSize = 's' | 'm' | 'l' | 'xl';
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
-  /** 텍스트가 항상 있으므로 장식용(aria-hidden)으로 렌더한다. */
+  /** 장식용(aria-hidden)으로 렌더한다 — 접근 가능한 이름은 항상 `children` 텍스트가 담당. */
   leadingIcon?: IconName;
   trailingIcon?: IconName;
+  /** 아이콘 전용 사용은 미지원이라 항상 필수 — 텍스트 없는 버튼이 accessible name 을 잃는 것을 막는다. */
+  children: ReactNode;
 }
 
 const VARIANT_CLASSNAME: Record<ButtonVariant, string> = {

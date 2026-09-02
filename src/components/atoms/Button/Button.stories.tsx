@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { expect, fn, userEvent, within } from 'storybook/test';
+import { expect, fireEvent, fn, userEvent, within } from 'storybook/test';
 
 import { Button, type ButtonSize, type ButtonVariant } from './Button';
 
@@ -102,9 +102,13 @@ export const ClickFiresOnClick: Story = {
 export const DisabledButtonIsUnclickable: Story = {
   tags: ['!autodocs'],
   args: { disabled: true },
-  play: async ({ canvasElement }) => {
+  play: async ({ canvasElement, args }) => {
     const button = within(canvasElement).getByRole('button');
     await expect(button).toBeDisabled();
     await expect(button).toHaveClass('disabled:pointer-events-none');
+    // userEvent.click 은 pointer-events:none 에서 에러를 던지므로, fireEvent 로
+    // 실제 클릭을 우회 발생시켜 onClick 이 호출되지 않는지까지 검증한다.
+    fireEvent.click(button);
+    await expect(args.onClick).not.toHaveBeenCalled();
   },
 };
