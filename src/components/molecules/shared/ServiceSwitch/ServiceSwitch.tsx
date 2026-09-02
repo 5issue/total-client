@@ -22,7 +22,7 @@ export function ServiceSwitch({ options, activeId, onChange, className }: Servic
   return (
     <div
       role="tablist"
-      className={`bg-surface-secondary inline-flex rounded-full p-1 ${className ?? ''}`.trim()}
+      className={`bg-brand-200 inline-flex overflow-hidden rounded-full ${className ?? ''}`.trim()}
     >
       {options.map((option) => {
         const active = option.id === activeId;
@@ -33,8 +33,8 @@ export function ServiceSwitch({ options, activeId, onChange, className }: Servic
             role="tab"
             aria-selected={active}
             onClick={() => onChange(option.id)}
-            className={`text-label-l rounded-full px-4 py-3 transition-colors ${
-              active ? 'bg-primary text-primary-foreground' : 'text-fg-secondary'
+            className={`text-label-l rounded-full px-4 py-1 transition-colors ${
+              active ? 'text-primary shadow-s bg-white' : 'text-fg-inverse'
             }`}
           >
             {option.label}
