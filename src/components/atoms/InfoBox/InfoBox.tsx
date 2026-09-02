@@ -82,14 +82,14 @@ export function InfoBox({
         {icon ? (
           <span className="flex size-5 shrink-0 items-center justify-center">{icon}</span>
         ) : null}
-        <p className="text-body-m text-fg-secondary flex-1">{children}</p>
+        <div className="text-body-m text-fg-secondary flex-1">{children}</div>
       </div>
     );
   }
 
   return (
     <div className={box}>
-      <p className="text-label-l text-fg-quaternary text-center">{children}</p>
+      <div className="text-label-l text-fg-quaternary text-center">{children}</div>
     </div>
   );
 }

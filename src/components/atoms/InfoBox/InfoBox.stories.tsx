@@ -27,6 +27,24 @@ function InfoIcon() {
 const meta = {
   title: 'atoms/InfoBox',
   component: InfoBox,
+  args: {
+    variant: 'notice',
+    title: '안내사항',
+    children: (
+      <>
+        <p>
+          • [주문완료], [배송준비중] 상태일 경우에만 주문내역 상세페이지에서 주문 취소가 가능합니다.
+        </p>
+        <p>
+          • 엘리베이터 이용이 어려운 경우 6층 이상부터는 공동 현관 앞 또는 경비실로 대응 배송 될 수
+          있습니다.
+        </p>
+        <p>
+          • 주문 / 배송 및 기타 문의가 있을 경우, 1:1 문의에 남겨주시면 신속히 해결해드리겠습니다.
+        </p>
+      </>
+    ),
+  },
   argTypes: {
     variant: { control: 'inline-radio', options: ['notice', 'callout', 'inline', 'bar'] },
     tone: { control: 'inline-radio', options: ['bright', 'dark'] },
@@ -48,27 +66,8 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Figma "round=12" — 제목 + 여러 줄 안내. */
-export const Notice: Story = {
-  args: {
-    variant: 'notice',
-    title: '안내사항',
-    children: (
-      <>
-        <p>
-          • [주문완료], [배송준비중] 상태일 경우에만 주문내역 상세페이지에서 주문 취소가 가능합니다.
-        </p>
-        <p>
-          • 엘리베이터 이용이 어려운 경우 6층 이상부터는 공동 현관 앞 또는 경비실로 대응 배송 될 수
-          있습니다.
-        </p>
-        <p>
-          • 주문 / 배송 및 기타 문의가 있을 경우, 1:1 문의에 남겨주시면 신속히 해결해드리겠습니다.
-        </p>
-      </>
-    ),
-  },
-};
+/** Figma "round=12" — 제목 + 여러 줄 안내. 기본 상태. */
+export const Default: Story = {};
 
 /** Figma "round=8, Body=True" — 아이콘 + 제목 + 본문. */
 export const Callout: Story = {

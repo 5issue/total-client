@@ -28,8 +28,8 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Figma "Segment=4" — 4단계, 첫 단계 활성. */
-export const FourSteps: Story = {};
+/** Figma "Segment=4" — 4단계, 첫 단계 활성. 기본 상태. */
+export const Default: Story = {};
 
 /** Figma "Segment=3" */
 export const ThreeSteps: Story = {
@@ -48,6 +48,14 @@ export const MidProgress: Story = {
 
 export const LastStep: Story = {
   args: { current: 3 },
+};
+
+/** steps 가 비면 아무것도 렌더하지 않는다(빈 `<ol>`). */
+export const Empty: Story = {
+  args: { steps: [], current: 0 },
+  play: async ({ canvasElement }) => {
+    await expect(within(canvasElement).queryAllByRole('listitem')).toHaveLength(0);
+  },
 };
 
 // --- 인터랙션/접근성 테스트 전용 (autodocs 에서 숨김) ---
