@@ -35,8 +35,7 @@ export function KeywordChip({
   return (
     <button
       type="button"
-      role="tab"
-      aria-selected={active}
+      aria-pressed={active}
       disabled={disabled}
       onClick={onClick}
       className={`min-w-11 shrink-0 rounded-full px-2 py-2 whitespace-nowrap transition-colors motion-reduce:transition-none ${colorClassName} ${className ?? ''}`.trim()}

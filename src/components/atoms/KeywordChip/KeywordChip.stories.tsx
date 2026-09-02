@@ -41,7 +41,7 @@ export const ClickInteraction: Story = {
   name: '클릭 시 onClick 호출',
   play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement);
-    const chip = canvas.getByRole('tab', { name: '순두부양념' });
+    const chip = canvas.getByRole('button', { name: '순두부양념' });
     await userEvent.click(chip);
     await expect(args.onClick).toHaveBeenCalledTimes(1);
   },

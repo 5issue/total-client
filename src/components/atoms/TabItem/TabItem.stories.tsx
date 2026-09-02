@@ -22,6 +22,15 @@ const meta = {
       options: ['sm', 'lg'],
     },
   },
+  // TabItem 은 role="tab" 을 렌더한다 — tablist 부모 없이 단독 렌더되면
+  // aria-required-parent 위반이라 모든 스토리를 tablist 로 감싼다.
+  decorators: [
+    (Story) => (
+      <div role="tablist">
+        <Story />
+      </div>
+    ),
+  ],
 } satisfies Meta<typeof TabItem>;
 
 export default meta;
@@ -66,5 +75,17 @@ export const ClickInteraction: Story = {
     const tab = canvas.getByRole('tab', { name: '상품설명' });
     await userEvent.click(tab);
     await expect(args.onClick).toHaveBeenCalledTimes(1);
+  },
+};
+
+export const DisabledClickIsNoop: Story = {
+  name: '비활성 탭 클릭은 무시',
+  args: { disabled: true },
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement);
+    const tab = canvas.getByRole('tab', { name: '상품설명' });
+    await expect(tab).toBeDisabled();
+    await userEvent.click(tab, { pointerEventsCheck: 0 });
+    await expect(args.onClick).not.toHaveBeenCalled();
   },
 };
