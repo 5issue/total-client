@@ -19,7 +19,8 @@ export type ButtonVariant =
   | 'text'
   | 'danger';
 
-export type ButtonSize = 's' | 'm' | 'l' | 'xl';
+/** xs 는 Figma 에 Outline_B 타입만 실측 검증됨(높이 32px) — 다른 타입에서의 시각 확인 필요. */
+export type ButtonSize = 'xs' | 's' | 'm' | 'l' | 'xl';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
@@ -50,6 +51,7 @@ const VARIANT_CLASSNAME: Record<ButtonVariant, string> = {
 };
 
 const SIZE_TEXT_CLASSNAME: Record<ButtonSize, string> = {
+  xs: 'text-label-l',
   s: 'text-label-l',
   m: 'text-heading-4',
   l: 'text-heading-1',
@@ -57,10 +59,19 @@ const SIZE_TEXT_CLASSNAME: Record<ButtonSize, string> = {
 };
 
 const SIZE_ICON_PX: Record<ButtonSize, number> = {
+  xs: 20,
   s: 20,
   m: 20,
   l: 28,
   xl: 28,
+};
+
+const SIZE_PADDING_Y_CLASSNAME: Record<ButtonSize, string> = {
+  xs: 'py-1.5',
+  s: 'py-2',
+  m: 'py-2',
+  l: 'py-2',
+  xl: 'py-2',
 };
 
 export function Button({
@@ -84,7 +95,8 @@ export function Button({
       type={type}
       disabled={disabled}
       className={[
-        'rounded-m inline-flex items-center justify-center gap-1 px-1 py-2 whitespace-nowrap transition-colors disabled:pointer-events-none motion-reduce:transition-none',
+        'rounded-m inline-flex items-center justify-center gap-1 px-1 whitespace-nowrap transition-colors disabled:pointer-events-none motion-reduce:transition-none',
+        SIZE_PADDING_Y_CLASSNAME[size],
         VARIANT_CLASSNAME[variant],
         textClassName,
         className,
