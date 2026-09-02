@@ -33,7 +33,7 @@ export function ServiceSwitch({ options, activeId, onChange, className }: Servic
             role="tab"
             aria-selected={active}
             onClick={() => onChange(option.id)}
-            className={`text-label-l rounded-full px-4 py-1 transition-colors ${
+            className={`text-label-xs flex-1 rounded-full px-3 py-1 text-center transition-colors duration-300 ease-out ${
               active ? 'text-primary shadow-s bg-white' : 'text-fg-inverse'
             }`}
           >
