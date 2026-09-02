@@ -59,7 +59,7 @@ export const XsOutlineBlackDisabled: Story = {
 
 export const AllVariants: Story = {
   render: ({ leadingIcon, trailingIcon }) => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-start' }}>
+    <div className="flex flex-col items-start gap-3">
       {VARIANTS.map((variant) => (
         <Button
           key={variant}
@@ -77,7 +77,7 @@ export const AllVariants: Story = {
 
 export const AllSizes: Story = {
   render: ({ leadingIcon, trailingIcon }) => (
-    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+    <div className="flex items-center gap-3">
       {SIZES.map((size) => (
         <Button
           key={size}
@@ -99,7 +99,7 @@ export const Disabled: Story = {
 
 export const DisabledAllVariants: Story = {
   render: ({ leadingIcon, trailingIcon }) => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-start' }}>
+    <div className="flex flex-col items-start gap-3">
       {VARIANTS.map((variant) => (
         <Button
           key={variant}
