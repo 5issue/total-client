@@ -64,7 +64,8 @@
   --color-success: #93c355;
   --color-warning: #f0c348;
   --color-error: #fedcd1;
-  --color-info: #f0f5f7;
+  --color-info: #f0f5f7; /* Semantic/Info */
+  --color-info-dark: #e8eff2; /* Semantic/Info_dark — InfoBox(node 2418-6426) 진한 톤. 다크모드 무관 */
 
   /* Shadow — Figma "Shadow" (8자리 hex = alpha 포함) */
   --shadow-s: 0 1px 2px 0 #0000000a;
