@@ -19,7 +19,8 @@
     "prepare": "husky",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "test-storybook": "vitest run"
+    "test-storybook": "vitest run",
+    "chromatic": "chromatic"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -59,6 +60,7 @@
     "@types/react-dom": "19.2.5",
     "@vitest/browser-playwright": "^4.1.11",
     "@vitest/coverage-v8": "^4.1.11",
+    "chromatic": "^18.7.2",
     "esbuild": "0.28.2",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.3",
