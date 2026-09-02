@@ -50,7 +50,7 @@ export const AllTabs: Story = {
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 }}>
       {TAB_NAMES.map((tab) => (
         <div key={tab} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <span style={{ fontSize: 11, color: '#515E69' }}>{tab}</span>
+          <span className="text-caption-m text-fg-secondary">{tab}</span>
           <div style={{ display: 'flex', gap: 12 }}>
             <TabIcon tab={tab} active={false} aria-hidden />
             <TabIcon tab={tab} active aria-hidden />

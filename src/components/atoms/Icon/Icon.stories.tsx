@@ -53,7 +53,7 @@ export const Sizes: Story = {
           style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}
         >
           <Icon {...args} size={size} />
-          <span style={{ fontSize: 12, color: '#7E8F9B' }}>{size}px</span>
+          <span className="text-caption-m text-fg-tertiary">{size}px</span>
         </div>
       ))}
     </div>
@@ -75,25 +75,20 @@ export const AllIcons: Story = {
         return (
           <div
             key={name}
+            // radius: --radius-m 이 8px 로 정정되면(#18/#25) rounded-m 으로 교체
             style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               gap: 8,
               padding: 12,
-              border: '1px solid #DDE4ED',
               borderRadius: 8,
-              background: isFixedWhite ? '#222222' : undefined,
             }}
+            className={`border-border border ${isFixedWhite ? 'bg-black' : ''}`}
           >
             <Icon name={name} size={24} aria-hidden />
             <span
-              style={{
-                fontSize: 11,
-                color: isFixedWhite ? '#F0F5F8' : '#515E69',
-                textAlign: 'center',
-                wordBreak: 'break-all',
-              }}
+              className={`text-caption-m text-center break-all ${isFixedWhite ? 'text-surface-secondary' : 'text-fg-secondary'}`}
             >
               {name}
             </span>

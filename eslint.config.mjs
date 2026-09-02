@@ -36,7 +36,7 @@ const eslintConfig = defineConfig([
 
       // 의도적으로 안 쓰는 인자/변수는 `_` 접두로 표시(예: 아이콘 registry 의 idFor)
       '@typescript-eslint/no-unused-vars': [
-        'warn',
+        'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
 

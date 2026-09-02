@@ -45,18 +45,19 @@ export const AllGraphicIcons: Story = {
       {GRAPHIC_ICON_NAMES.map((name) => (
         <div
           key={name}
+          // radius: --radius-m 이 8px 로 정정되면(#18/#25) rounded-m 으로 교체
           style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             gap: 8,
             padding: 12,
-            border: '1px solid #DDE4ED',
             borderRadius: 8,
           }}
+          className="border-border border"
         >
           <GraphicIcon name={name} aria-hidden />
-          <span style={{ fontSize: 11, color: '#515E69', textAlign: 'center' }}>{name}</span>
+          <span className="text-caption-m text-fg-secondary text-center">{name}</span>
         </div>
       ))}
     </div>

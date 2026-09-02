@@ -39,17 +39,13 @@ export const AllVariants: Story = {
       {(['outline', 'filled'] as const).map((variant) => (
         <div
           key={variant}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 8,
-            padding: 16,
-            border: '1px solid #DDE4ED',
-            borderRadius: 8,
-            background: variant === 'outline' ? '#222222' : undefined,
-          }}
+          // radius: --radius-m 이 8px 로 정정되면(#18/#25) rounded-m 으로 교체
+          style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 16, borderRadius: 8 }}
+          className={`border-border border ${variant === 'outline' ? 'bg-black' : ''}`}
         >
-          <span style={{ fontSize: 11, color: variant === 'outline' ? '#F0F5F8' : '#515E69' }}>
+          <span
+            className={`text-caption-m ${variant === 'outline' ? 'text-surface-secondary' : 'text-fg-secondary'}`}
+          >
             {variant}
           </span>
           <div style={{ display: 'flex', gap: 12 }}>
