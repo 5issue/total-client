@@ -205,21 +205,23 @@ const {
 
 `tailwind.config.js` 없음 (v4 CSS-first). 토큰은 관심사별로 분리하고 `globals.css` 가 합친다:
 
-| 파일                               | 내용                                                                                                      | Figma 출처                          |
-| ---------------------------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| `src/styles/tokens/color.css`      | 팔레트 · 시맨틱 색 · shadow · `:root` 라이트 값                                                           | node 2002-13 "Color System"         |
-| `src/styles/tokens/typography.css` | 폰트 패밀리 · 타입 스케일                                                                                 | node 2054-1038 "텍스트 스타일 목록" |
-| `src/styles/globals.css`           | `@import "tailwindcss"` + 위 두 파일 `@import` + `@custom-variant dark` + `--radius-m` + 기본 요소 스타일 |
+| 파일                               | 내용                                                                                                      | Figma 출처                                                         |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `src/styles/tokens/color.css`      | 팔레트 · 시맨틱 색 · shadow · `:root` 라이트 값                                                           | node 2002-13 "Color System" (일부는 실제 컴포넌트 노드, 아래 참고) |
+| `src/styles/tokens/typography.css` | 폰트 패밀리 · 타입 스케일                                                                                 | node 2054-1038 "텍스트 스타일 목록"                                |
+| `src/styles/globals.css`           | `@import "tailwindcss"` + 위 두 파일 `@import` + `@custom-variant dark` + `--radius-*` + 기본 요소 스타일 |
 
 모든 값은 **5팀 디자인 시스템(Figma)** 변수에서 그대로 추출한다. 임의값 금지. 새 토큰도 Figma 확정 후에만 추가.
 
+> ⚠️ node 2002-13 "Color System" 은 색상 **스와치 전시 보드**일 뿐 완전한 스펙이 아니다(radius 섹션 자체가 없음). 그 보드의 스와치 카드 장식용 모서리(20px)를 radius 토큰으로 잘못 추출한 적이 있다(`--radius-m` 초기값 20px, 실제 컴포넌트는 8px) — **토큰 추출은 반드시 실제 컴포넌트 노드의 변수 바인딩(`get_variable_defs`)으로 검증**하고, 전시 보드 값만으로 확정하지 않는다.
+
 ### 계층
 
-| 계층        | 정의 위치                                                                              | 예                                                                     | 생성 유틸리티                                             |
-| ----------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------- |
-| 프리미티브  | `@theme { }`                                                                           | `--color-neutral-500`, `--color-brand-500`, `--radius-m`, `--shadow-m` | `bg-neutral-500`, `bg-brand-500`, `rounded-m`, `shadow-m` |
-| 타입 스케일 | `@theme { }` (`--text-*` + `--text-*--line-height`/`--letter-spacing`/`--font-weight`) | `--text-body-m`                                                        | `text-body-m` (size+lh+ls+weight 한 번에)                 |
-| 시맨틱      | `@theme inline { }` → `:root` 캐스케이드                                               | `--color-fg`, `--color-surface`, `--color-border`, `--color-primary`   | `text-fg`, `bg-surface`, `border-border`, `bg-primary`    |
+| 계층        | 정의 위치                                                                              | 예                                                                                         | 생성 유틸리티                                                      |
+| ----------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| 프리미티브  | `@theme { }`                                                                           | `--color-neutral-500`, `--color-brand-500`, `--radius-{s,m,l,xl}`(4/8/12/16), `--shadow-m` | `bg-neutral-500`, `bg-brand-500`, `rounded-{s,m,l,xl}`, `shadow-m` |
+| 타입 스케일 | `@theme { }` (`--text-*` + `--text-*--line-height`/`--letter-spacing`/`--font-weight`) | `--text-body-m`                                                                            | `text-body-m` (size+lh+ls+weight 한 번에)                          |
+| 시맨틱      | `@theme inline { }` → `:root` 캐스케이드                                               | `--color-fg`, `--color-surface`, `--color-border`, `--color-primary`                       | `text-fg`, `bg-surface`, `border-border`, `bg-primary`             |
 
 ### 컬러 (Figma → 토큰)
 
@@ -229,8 +231,10 @@ const {
 | Brand 50~950                                                | `--color-brand-*`                                                                      | 퍼플. 500 = Primary                                                                                      |
 | Normal/White·Black                                          | `--color-white` `--color-black`                                                        | **Black = `#222222`** (순수 #000 아님)                                                                   |
 | Text/primary·Secondary·Tertiary·Quaternary·disabled·Inverse | `--color-fg` `--color-fg-secondary` … `--color-fg-inverse`                             | Neutral/Black 프리미티브에 매핑                                                                          |
+| Text/Danger                                                 | `--color-fg-danger`                                                                    | `#d24b3a` — 에러 텍스트. 2002-13 에 없음, Input 컴포넌트 노드에서 추출                                   |
 | Surface/base·Secondary·Overlay_gray·Overlay_blue            | `--color-surface` `--color-surface-secondary` `--color-overlay` `--color-overlay-blue` | Overlay 는 alpha 포함                                                                                    |
 | Border/200                                                  | `--color-border`                                                                       |                                                                                                          |
+| Border/active                                               | `--color-border-active`                                                                | `#222222` — 포커스 상태. 2002-13 에 없음, Input 컴포넌트 노드에서 추출                                   |
 | Secondary/orange·cyan·Banner                                | `--color-orange` `--color-cyan` `--color-banner`                                       |                                                                                                          |
 | Secondary/Brand-Naver·Kakao·Apple                           | `--color-naver` `--color-kakao` `--color-apple`                                        | 소셜 로그인 버튼                                                                                         |
 | Semantic/success·warning·error·info                         | `--color-success` … `--color-info`                                                     | **4색 모두 흰 배경 텍스트 대비 4.5:1 미달 → 배경·뱃지 fill 톤.** 상태 텍스트용 강조색은 디자인 확인 필요 |
@@ -253,6 +257,17 @@ const {
 - 이 디자인 시스템에는 **다크 팔레트가 없다**(라이트 전용). 지금은 라이트 값만 정의.
 - 시맨틱 색은 `tokens/color.css` 의 `@theme inline` + `:root` 캐스케이드 구조라, 다크 팔레트가 확정되면 같은 파일에 `:root[data-theme="dark"]` 블록만 추가하면 된다. `@custom-variant dark` 는 `globals.css` 에 이미 선언돼 있음.
 - 그때 라이트/다크 **양쪽 모두** 본문 대비 4.5:1 이상 확인 (§5).
+
+### Figma → 코드 반영 절차
+
+디자이너가 Figma 토큰을 수정하면:
+
+1. **재추출** — MCP `get_variable_defs` 로 해당 노드(색 `2002-13` / 타이포 `2054-1038`)를 다시 읽는다. `get_screenshot` 으로 값 대조.
+2. **반영** — `tokens/color.css` · `typography.css` 수정. Figma 값 1:1, 임의값 금지, "Figma → 토큰" 매핑 주석 유지, 프리미티브 / `@theme inline` / `:root` 계층 배치 유지.
+3. **대비 확인** — 본문 대비 ≥ 4.5:1 (§5). 미달 색은 배경·뱃지 fill 로만, 텍스트 강조색은 디자인 재확인. 판단 결과를 토큰 파일 주석에 남긴다.
+4. **PR** — `refactor/tokens-*` 또는 `chore/tokens-*` 브랜치 → 저장소 템플릿 PR → 리뷰어 1인 → squash. CodeRabbit 이 `styles/**/*.css` 규칙으로 자동 점검한다.
+
+빌드 도구(Style Dictionary 등)·플러그인(Tokens Studio)·npm 패키지·전용 CI 는 **도입하지 않는다.** 소스 오브 트루스는 위 CSS 파일이다. 판단 근거·재검토 트리거는 팀 노션 「디자인 토큰 파이프라인 — 현행 결정 (v1)」.
 
 ---
 

@@ -24,19 +24,28 @@
 }
 
 @theme static {
-  /* Radius — Figma "Radius" (이 노드에는 M 만 명시. Full 은 rounded-full 로 대체) */
-  --radius-m: 20px;
+  /* Radius — 컴포넌트(Input/Card) 바인딩 값 기준. node 2002-13 "Color System" 은
+   * 색상 스와치 보드일 뿐 radius 스펙이 없다 — 거기 스와치 카드의 장식용 20px 모서리를
+   * radius/m 으로 잘못 추출했던 걸 정정(이전: --radius-m: 20px). Full 은 rounded-full 로 대체. */
+  --radius-s: 4px;
+  --radius-m: 8px;
+  --radius-l: 12px;
+  --radius-xl: 16px;
 }
 
-html,
-body {
-  background-color: var(--color-surface);
-  color: var(--color-fg);
-  font-family: var(--font-sans);
-}
+/* @layer base 에 둬야 Tailwind 유틸리티(@layer utilities)가 이 기본값을 오버라이드할 수 있다.
+ * (unlayered 규칙은 레이어 규칙을 무조건 이김 — 예: focus-within:border-border-active) */
+@layer base {
+  html,
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+  }
 
-*,
-::after,
-::before {
-  border-color: var(--color-border);
+  *,
+  ::after,
+  ::before {
+    border-color: var(--color-border);
+  }
 }

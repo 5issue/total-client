@@ -178,7 +178,10 @@ src/
 ├── errors/
 │   └── ApiError.ts              # 공용 응답 포맷 에러 봉투
 └── styles/
-    └── globals.css              # @import "tailwindcss" + @theme 토큰
+    ├── globals.css              # @import "tailwindcss" + tokens @import + @custom-variant dark + --radius-{s,m,l,xl}
+    └── tokens/                  # 디자인 토큰 — Figma 5팀 디자인 시스템에서 값 1:1 추출 (code-style §6-1)
+        ├── color.css            # 팔레트 · 시맨틱 색(@theme inline + :root) · shadow (node 2002-13)
+        └── typography.css       # 폰트 패밀리 · 타입 스케일 (node 2054-1038)
 ```
 
 배치 규칙:
@@ -188,6 +191,7 @@ src/
 - 라우트 파일(`page.tsx`/`layout.tsx`)에는 로직을 두지 않는다. organism 조합 + 훅 연결만.
 - `stores/` 는 팩토리만. 인스턴스는 `providers/` 가 만든다.
 - 쿼리 키 팩토리는 `hooks/<domain>/queryKeys.ts` (api-convention §4).
+- 디자인 토큰은 `styles/tokens/*.css` 가 소스 오브 트루스. 빌드 도구(Style Dictionary 등)·플러그인·npm 패키지는 도입하지 않는다 — 반영 절차·근거는 code-style §6-1.
 
 ---
 

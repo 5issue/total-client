@@ -5,6 +5,11 @@
  * 모든 값은 Figma 변수에서 그대로 추출했다. 임의값 없음.
  * Figma 토큰명 → CSS 매핑은 각 줄 주석 참고.
  *
+ * 주의: node 2002-13 은 색상 스와치 "전시 보드"일 뿐 완전한 스펙이 아니다.
+ *   거기 없는 시맨틱 색(예: Text/Danger, Border/active)은 실제 컴포넌트 노드에서
+ *   바로 추출한다 — 주석에 출처 노드를 남길 것. (radius 스와치 카드 20px 오추출 사례:
+ *   globals.css 참고)
+ *
  * 다크 모드: 디자인 시스템에 다크 팔레트가 없다(라이트 전용).
  *   시맨틱 색은 `@theme inline` + `:root` 캐스케이드 구조라, 다크 팔레트가
  *   확정되면 `:root[data-theme="dark"]` 블록만 추가하면 된다.
@@ -83,9 +88,11 @@
   --color-fg-quaternary: var(--fg-quaternary); /* Text/Quaternary */
   --color-fg-disabled: var(--fg-disabled); /* Text/disabled */
   --color-fg-inverse: var(--fg-inverse); /* Text/Inverse */
+  --color-fg-danger: var(--fg-danger); /* Text/Danger (node 2394-3737) */
 
   /* Border — Figma "Border" */
   --color-border: var(--border); /* Border/200 */
+  --color-border-active: var(--border-active); /* Border/active (node 2394-3737) */
 
   /* Primary (Figma Brand/500 의 시맨틱 별칭) */
   --color-primary: var(--primary);
@@ -109,9 +116,11 @@
   --fg-quaternary: #8aa1ab; /* Text/Quaternary = Neutral/700 */
   --fg-disabled: #b5c4cf; /* Text/disabled   = Neutral/500 */
   --fg-inverse: #ffffff; /* Text/Inverse    = Normal/White */
+  --fg-danger: #d24b3a; /* Text/Danger */
 
   /* Border */
   --border: #dde4ed; /* Border/200 (= Neutral/300) */
+  --border-active: #222222; /* Border/active — 포커스 상태 */
 
   /* Primary */
   --primary: #690085; /* Brand/500 */
