@@ -1,4 +1,4 @@
-import { TabItem } from '@/components/atoms/TabItem';
+import { TabItem, type TabItemSize, type TabItemTone } from '@/components/atoms/TabItem';
 
 /**
  * TabItem 리스트를 감싸는 컨테이너 (Figma "Tab_Bar" / "Tab_Bar_Ver2").
@@ -19,10 +19,22 @@ export type TabBarProps = {
   /** true면 아이템이 컨테이너 폭을 균등 분할(Tab_Bar_Ver2, 보통 2개).
    *  기본값(false)은 아이템이 자연폭을 유지하고 넘치면 가로 스크롤(Tab_Bar). */
   fitted?: boolean;
+  /** 탭 바 전체에 적용할 active 색. 그룹마다 다르다(상품설명=brand-secondary 등) — TabItem 참고 */
+  tone?: TabItemTone;
+  /** 탭 바 전체에 적용할 크기. 기본 lg(Heading/M) */
+  size?: TabItemSize;
   className?: string;
 };
 
-export function TabBar({ items, activeId, onChange, fitted = false, className }: TabBarProps) {
+export function TabBar({
+  items,
+  activeId,
+  onChange,
+  fitted = false,
+  tone,
+  size,
+  className,
+}: TabBarProps) {
   return (
     <div
       role="tablist"
@@ -34,6 +46,8 @@ export function TabBar({ items, activeId, onChange, fitted = false, className }:
           label={item.label}
           active={item.id === activeId}
           disabled={item.disabled}
+          tone={tone}
+          size={size}
           onClick={() => onChange(item.id)}
           className={fitted ? 'flex-1 text-center' : undefined}
         />

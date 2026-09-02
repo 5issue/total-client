@@ -1,1 +1,1 @@
-export { TabItem, type TabItemProps } from './TabItem';
+export { TabItem, type TabItemProps, type TabItemTone, type TabItemSize } from './TabItem';
