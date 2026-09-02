@@ -33,6 +33,7 @@ export function Input({
   id,
   disabled,
   'aria-describedby': describedBy,
+  'aria-invalid': ariaInvalid,
   ...props
 }: InputProps) {
   const autoId = useId();
@@ -60,7 +61,7 @@ export function Input({
         <input
           id={inputId}
           disabled={disabled}
-          aria-invalid={invalid || undefined}
+          aria-invalid={invalid ? true : ariaInvalid}
           aria-describedby={
             [invalid ? errorId : null, describedBy].filter(Boolean).join(' ') || undefined
           }
@@ -68,9 +69,7 @@ export function Input({
           {...props}
         />
         {trailing ? (
-          <span className="flex size-6 shrink-0 items-center justify-center" aria-hidden="true">
-            {trailing}
-          </span>
+          <span className="flex size-6 shrink-0 items-center justify-center">{trailing}</span>
         ) : null}
       </div>
 

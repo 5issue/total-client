@@ -66,7 +66,9 @@ export const ErrorState: Story = {
 export const Focused: Story = {
   args: { hint: '최소 10자' },
   play: async ({ canvasElement }) => {
-    await userEvent.click(within(canvasElement).getByRole('textbox'));
+    const input = within(canvasElement).getByRole('textbox');
+    await userEvent.click(input);
+    await expect(input).toHaveFocus();
   },
 };
 

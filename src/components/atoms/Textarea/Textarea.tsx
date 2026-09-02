@@ -41,6 +41,7 @@ export function Textarea({
   value,
   defaultValue,
   onChange,
+  'aria-invalid': ariaInvalid,
   ...props
 }: TextareaProps) {
   const autoId = useId();
@@ -74,7 +75,7 @@ export function Textarea({
           value={value}
           defaultValue={defaultValue}
           onChange={handleChange}
-          aria-invalid={invalid || undefined}
+          aria-invalid={invalid ? true : ariaInvalid}
           aria-describedby={
             [invalid ? errorId : null, showCounter || hint ? descId : null]
               .filter(Boolean)

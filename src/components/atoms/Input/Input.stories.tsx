@@ -64,7 +64,9 @@ export const Disabled: Story = {
 export const Focused: Story = {
   args: { trailing: <SearchIcon /> },
   play: async ({ canvasElement }) => {
-    await userEvent.click(within(canvasElement).getByRole('textbox'));
+    const input = within(canvasElement).getByRole('textbox');
+    await userEvent.click(input);
+    await expect(input).toHaveFocus();
   },
 };
 
