@@ -107,7 +107,7 @@ reviews:
         근거: .agents/git-convention/SKILLS.md (S2-6), .agents/code-style-convention/SKILLS.md §2-2.
     - path: '.github/workflows/*.yml'
       instructions: >-
-        job 이름("Lint · Type · Format · Build", "Storybook build · test")은 main 브랜치 룰셋의
+        job 이름("Lint · Type · Format · Build", "Storybook build · test")은 main·develop 브랜치 룰셋의
         필수 상태 체크와 정확히 일치해야 한다 — 이름을 바꾸면 룰셋도 함께 갱신.
 
   auto_review:
@@ -115,7 +115,8 @@ reviews:
     auto_incremental_review: true
     drafts: false
     base_branches:
-      - 'main'
+      - 'develop' # 기본/통합 브랜치 (git-convention §1). 대부분의 PR 대상
+      - 'main' # 릴리스·hotfix PR
     ignore_title_keywords:
       - 'wip'
       - '[skip review]'
