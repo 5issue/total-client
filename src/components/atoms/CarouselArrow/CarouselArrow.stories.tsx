@@ -35,19 +35,18 @@ export const Filled: Story = {
 export const AllVariants: Story = {
   name: '전체 조합 (direction × variant)',
   render: () => (
-    <div style={{ display: 'flex', gap: 24 }}>
+    <div className="flex gap-6">
       {(['outline', 'filled'] as const).map((variant) => (
         <div
           key={variant}
-          style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 16 }}
-          className={`border-border rounded-m border ${variant === 'outline' ? 'bg-black' : ''}`}
+          className={`border-border rounded-m flex flex-col gap-2 border p-4 ${variant === 'outline' ? 'bg-black' : ''}`}
         >
           <span
             className={`text-caption-m ${variant === 'outline' ? 'text-surface-secondary' : 'text-fg-secondary'}`}
           >
             {variant}
           </span>
-          <div style={{ display: 'flex', gap: 12 }}>
+          <div className="flex gap-3">
             <CarouselArrow direction="left" variant={variant} aria-label="이전" />
             <CarouselArrow direction="right" variant={variant} aria-label="다음" />
           </div>

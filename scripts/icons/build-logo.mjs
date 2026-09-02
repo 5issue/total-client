@@ -18,8 +18,16 @@ for (const file of files) {
   const jsx = await svgFileToJsx(path.join(SVG_DIR, file));
   const fnName = `render_${name.replace(/-/g, '_')}`;
   fnCodes.push(renderFnCode(fnName, jsx));
-  const [w, , vw, vh] = jsx.viewBox.split(' ').map(Number);
-  void w;
+  const parts = jsx.viewBox
+    .trim()
+    .split(/[\s,]+/)
+    .map(Number);
+  const [, , vw, vh] = parts;
+  if (parts.length !== 4 || !Number.isFinite(vw) || !Number.isFinite(vh) || vw <= 0 || vh <= 0) {
+    throw new Error(
+      `잘못된 viewBox "${jsx.viewBox}" (${file}) — width/height 가 유한한 양수가 아님`,
+    );
+  }
   entries.push({ name, viewBox: jsx.viewBox, aspectRatio: `${vw} / ${vh}`, fnName });
 }
 
