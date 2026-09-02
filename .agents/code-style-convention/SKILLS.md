@@ -57,10 +57,14 @@
 컴포넌트는 아래 순서로 만든다. 순서를 지키면 스토리/테스트/문서가 자연히 따라온다.
 (Storybook `/stories` 규약은 git-convention 의 스코프(2) 명세 참고 — 지금은 폴더를 만들지 않는다.)
 
+> **스펙 출처 (structure §6-1)**: 상태값 목록·인터랙션 조건은 디자인팀 핸드오프 기준.
+> 수치·간격·컬러·radius 등 구체 스펙은 **FE 가 Figma 에서 직접 확정**한다(MCP `get_design_context` / `get_variable_defs`, 값 1:1).
+> 디자인팀 스펙 문서를 기다리지 말 것. 상태 커버리지(step 4)를 수치보다 먼저 챙긴다.
+
 1. **계층 결정.** atom / molecule / organism 중 무엇인지, 어느 도메인 폴더인지 먼저 정한다.
 2. **Props 인터페이스.** 무엇을 받는지 타입으로 확정. 필수/선택 구분.
 3. **표현(presentational) 컴포넌트 구현.** 데이터 fetch 없음. props 로만 렌더. `"use client"` 는 상호작용이 있을 때만.
-4. **상태별 분기 정리.** default / loading / empty / error / disabled / (스켈레톤). 각 상태를 컴포넌트가 표현 가능해야 한다.
+4. **상태별 분기 정리.** default / loading / empty / error / disabled / (스켈레톤). 디자인팀이 넘긴 상태값 목록을 기준으로, 각 상태를 컴포넌트가 표현 가능해야 한다.
 5. **(스코프 2) 스토리 작성.** 상태별 스토리 + `play` 함수 인터랙션 테스트. 파일은 컴포넌트 옆에 co-location(`ProductThumbnail.stories.tsx`).
 6. **컨테이너/훅 연결.** `hooks/<domain>/` 의 query hook 을 붙인 wrapper(organism 컨테이너 또는 `page.tsx`)를 별도로.
 7. **접근성 점검.** §5 체크리스트 통과.
