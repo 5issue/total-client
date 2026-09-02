@@ -13,12 +13,22 @@ npm run dev              # http://localhost:3000
 
 ## 스크립트
 
-| 스크립트            | 설명                                   |
-| ------------------- | -------------------------------------- |
-| `npm run dev`       | 개발 서버 (Turbopack)                  |
-| `npm run build`     | 프로덕션 빌드 (`output: "standalone"`) |
-| `npm run start`     | 빌드 결과 실행                         |
-| `npm run typecheck` | `tsc` 타입 검사 (앱 + 서비스 워커)     |
+| 스크립트                 | 설명                                           |
+| ------------------------ | ---------------------------------------------- |
+| `npm run dev`            | 개발 서버 (Turbopack)                          |
+| `npm run build`          | 프로덕션 빌드 (`output: "standalone"`)         |
+| `npm run start`          | 빌드 결과 실행                                 |
+| `npm run typecheck`      | `tsc` 타입 검사 (앱 + 서비스 워커)             |
+| `npm run storybook`      | Storybook 개발 서버 (http://localhost:6006)    |
+| `npm run test-storybook` | Storybook 스토리 렌더·인터랙션 테스트 (Vitest) |
+
+## Storybook
+
+공용 컴포넌트 카탈로그는 [Chromatic](https://www.chromatic.com/builds?appId=6a978509faf77cfdcaeb125d) 에 배포된다.
+
+- **최신(develop): <https://develop--6a978509faf77cfdcaeb125d.chromatic.com/>** — 저장소가 공개라 별도 로그인 없이 열람 가능. 디자이너·기획 공유용.
+- `develop`/`main` push·PR 마다 `chromaui/action` 이 재배포하고 스토리 스냅샷 diff 를 검사한다 (`.github/workflows/chromatic.yml`). 위 링크는 항상 `develop` 최신 빌드를 가리킨다.
+- 스냅샷 리뷰·승인은 Chromatic 대시보드에서(프로젝트 collaborator 권한 필요).
 
 ## 문서
 
