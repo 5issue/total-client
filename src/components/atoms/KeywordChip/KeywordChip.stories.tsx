@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import { expect, fn, userEvent, within } from 'storybook/test';
 
 import { KeywordChip } from './KeywordChip';
 
@@ -9,6 +10,7 @@ const meta = {
   args: {
     label: '순두부양념',
     active: false,
+    onClick: fn(),
   },
 } satisfies Meta<typeof KeywordChip>;
 
@@ -21,6 +23,10 @@ export const Active: Story = {
   args: { label: '연관', active: true },
 };
 
+export const Disabled: Story = {
+  args: { disabled: true },
+};
+
 export const List: Story = {
   name: '목록 (가로 스크롤)',
   render: () => (
@@ -29,4 +35,14 @@ export const List: Story = {
       <KeywordChip label="연관" active />
     </div>
   ),
+};
+
+export const ClickInteraction: Story = {
+  name: '클릭 시 onClick 호출',
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement);
+    const chip = canvas.getByRole('tab', { name: '순두부양념' });
+    await userEvent.click(chip);
+    await expect(args.onClick).toHaveBeenCalledTimes(1);
+  },
 };

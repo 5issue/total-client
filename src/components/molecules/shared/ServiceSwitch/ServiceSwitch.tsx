@@ -9,6 +9,7 @@
 export type ServiceSwitchOption = {
   id: string;
   label: string;
+  disabled?: boolean;
 };
 
 export type ServiceSwitchProps = {
@@ -32,9 +33,16 @@ export function ServiceSwitch({ options, activeId, onChange, className }: Servic
             type="button"
             role="tab"
             aria-selected={active}
-            onClick={() => onChange(option.id)}
-            className={`text-label-xs flex-1 rounded-full px-3 py-1 text-center transition-colors duration-300 ease-out ${
-              active ? 'text-primary shadow-s bg-white' : 'text-fg-inverse'
+            disabled={option.disabled}
+            onClick={() => {
+              if (!option.disabled) onChange(option.id);
+            }}
+            className={`text-label-xs flex-1 rounded-full px-3 py-1 text-center transition-colors duration-300 ease-out motion-reduce:transition-none ${
+              option.disabled
+                ? 'text-fg-disabled'
+                : active
+                  ? 'text-primary shadow-s bg-white'
+                  : 'text-fg-inverse'
             }`}
           >
             {option.label}

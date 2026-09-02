@@ -1,10 +1,15 @@
+'use client';
+
+import { useRef, type KeyboardEvent } from 'react';
+
 import { TabItem, type TabItemSize, type TabItemTone } from '@/components/atoms/TabItem';
 
 /**
  * TabItem 리스트를 감싸는 컨테이너 (Figma "Tab_Bar" / "Tab_Bar_Ver2").
  * 상태는 갖지 않는 컨트롤드 컴포넌트 — 어떤 탭이 활성인지는 activeId 로 받고,
  * 선택이 바뀌면 onChange 로만 알린다(상태 소유는 부모 organism/page 몫).
- * 상호작용은 자식 TabItem(“use client”)이 담당하므로 이 컴포넌트 자체엔 client 경계가 필요 없다.
+ * WAI-ARIA tablist 패턴대로 roving tabIndex + 방향키(← → Home End) 이동을 관리한다
+ * (비활성 탭은 건너뜀). 방향키로 포커스가 옮겨가면 즉시 activate(automatic activation).
  */
 export type TabBarItem = {
   id: string;
@@ -35,6 +40,41 @@ export function TabBar({
   size,
   className,
 }: TabBarProps) {
+  const buttonRefs = useRef(new Map<string, HTMLButtonElement>());
+  const enabledIds = items.filter((item) => !item.disabled).map((item) => item.id);
+
+  function focusAndActivate(id: string) {
+    buttonRefs.current.get(id)?.focus();
+    onChange(id);
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>, currentId: string) {
+    const currentIndex = enabledIds.indexOf(currentId);
+    if (currentIndex === -1 || enabledIds.length === 0) return;
+
+    let nextIndex: number;
+    switch (event.key) {
+      case 'ArrowRight':
+        nextIndex = (currentIndex + 1) % enabledIds.length;
+        break;
+      case 'ArrowLeft':
+        nextIndex = (currentIndex - 1 + enabledIds.length) % enabledIds.length;
+        break;
+      case 'Home':
+        nextIndex = 0;
+        break;
+      case 'End':
+        nextIndex = enabledIds.length - 1;
+        break;
+      default:
+        return;
+    }
+    const nextId = enabledIds[nextIndex];
+    if (!nextId) return;
+    event.preventDefault();
+    focusAndActivate(nextId);
+  }
+
   return (
     <div
       role="tablist"
@@ -43,12 +83,18 @@ export function TabBar({
       {items.map((item) => (
         <TabItem
           key={item.id}
+          ref={(el) => {
+            if (el) buttonRefs.current.set(item.id, el);
+            else buttonRefs.current.delete(item.id);
+          }}
           label={item.label}
           active={item.id === activeId}
           disabled={item.disabled}
+          tabIndex={item.id === activeId ? 0 : -1}
           tone={tone}
           size={size}
           onClick={() => onChange(item.id)}
+          onKeyDown={(event) => handleKeyDown(event, item.id)}
           className={fitted ? 'flex-1 text-center' : undefined}
         />
       ))}
