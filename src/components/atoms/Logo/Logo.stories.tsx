@@ -53,7 +53,6 @@ export const AllLogos: Story = {
         return (
           <div
             key={name}
-            // radius: --radius-m 이 8px 로 정정되면(#18/#25) rounded-m 으로 교체
             style={{
               display: 'flex',
               flexDirection: 'column',
@@ -61,9 +60,8 @@ export const AllLogos: Story = {
               gap: 8,
               padding: 16,
               minWidth: 140,
-              borderRadius: 8,
             }}
-            className={`border-border border ${isDark ? 'bg-black' : ''}`}
+            className={`border-border rounded-m border ${isDark ? 'bg-black' : ''}`}
           >
             <Logo name={name} height={32} aria-hidden />
             <span

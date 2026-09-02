@@ -75,16 +75,14 @@ export const AllIcons: Story = {
         return (
           <div
             key={name}
-            // radius: --radius-m 이 8px 로 정정되면(#18/#25) rounded-m 으로 교체
             style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               gap: 8,
               padding: 12,
-              borderRadius: 8,
             }}
-            className={`border-border border ${isFixedWhite ? 'bg-black' : ''}`}
+            className={`border-border rounded-m border ${isFixedWhite ? 'bg-black' : ''}`}
           >
             <Icon name={name} size={24} aria-hidden />
             <span

@@ -39,9 +39,8 @@ export const AllVariants: Story = {
       {(['outline', 'filled'] as const).map((variant) => (
         <div
           key={variant}
-          // radius: --radius-m 이 8px 로 정정되면(#18/#25) rounded-m 으로 교체
-          style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 16, borderRadius: 8 }}
-          className={`border-border border ${variant === 'outline' ? 'bg-black' : ''}`}
+          style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 16 }}
+          className={`border-border rounded-m border ${variant === 'outline' ? 'bg-black' : ''}`}
         >
           <span
             className={`text-caption-m ${variant === 'outline' ? 'text-surface-secondary' : 'text-fg-secondary'}`}
