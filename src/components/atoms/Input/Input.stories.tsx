@@ -16,7 +16,7 @@ function SearchIcon() {
 }
 
 const meta = {
-  title: 'Atoms/Input',
+  title: 'atoms/Input',
   component: Input,
   args: {
     label: '주소 검색',
@@ -60,6 +60,14 @@ export const Disabled: Story = {
   args: { disabled: true, trailing: <SearchIcon /> },
 };
 
+/** Figma "Focused" — 포커스 시 보더가 border-active(#222) 로. */
+export const Focused: Story = {
+  args: { trailing: <SearchIcon /> },
+  play: async ({ canvasElement }) => {
+    await userEvent.click(within(canvasElement).getByRole('textbox'));
+  },
+};
+
 export const ErrorState: Story = {
   args: { error: '올바른 주소를 입력해 주세요', defaultValue: '10' },
   play: async ({ canvasElement }) => {
@@ -69,7 +77,10 @@ export const ErrorState: Story = {
   },
 };
 
+// --- 인터랙션 테스트 전용 (autodocs 에서 숨김) ---
+
 export const TypingUpdatesValue: Story = {
+  tags: ['!autodocs'],
   play: async ({ canvasElement }) => {
     const input = within(canvasElement).getByRole('textbox');
     await userEvent.type(input, '서울시 중구');
@@ -78,6 +89,7 @@ export const TypingUpdatesValue: Story = {
 };
 
 export const LabelIsAssociated: Story = {
+  tags: ['!autodocs'],
   play: async ({ canvasElement }) => {
     // label 이 sr-only 여도 htmlFor 로 접근성 이름이 연결돼야 한다
     await expect(
