@@ -65,12 +65,15 @@ export function Chip({
         {children}
         {/* 삭제 아이콘 색은 칩 라벨(text-fg, #222)과 다르다 — Figma 변수는 Icon/Tertiary(#8aa1ab) =
             text-fg-quaternary 로 별도 지정돼 있다(get_variable_defs 로 노드 2563:3023 확인). */}
+        {/* p-1 로 클릭 영역을 20px 아이콘보다 키우고 -m-1 로 레이아웃 상 자리(간격·칩 높이)는
+            그대로 유지한다 — 시각적으로는 안 커 보이지만 탭 가능 영역만 넓어진다(44px 접근성
+            권장에는 여전히 못 미침, 칩 자체 높이가 Figma 실측 38px 라 그 이상은 못 키움). */}
         <button
           type="button"
           onClick={onRemove}
           disabled={disabled}
           aria-label={removeLabel}
-          className="text-fg-quaternary shrink-0 rounded-full disabled:pointer-events-none"
+          className="text-fg-quaternary -m-1 shrink-0 rounded-full p-1 disabled:pointer-events-none"
         >
           <Icon name="close" size={20} aria-hidden />
         </button>
@@ -85,6 +88,8 @@ export function Chip({
       aria-pressed={selected}
       className={[
         BASE_CLASSNAME,
+        // h-10(40px)는 Figma 실측 고정값(2426:1280/1281) — 접근성 권장 44px 터치 타깃과
+        // 충돌하지만, 검증된 디자인 치수를 임의로 늘리지 않는다. 디자인 확인 필요.
         'rounded-m h-10 px-4',
         SOLID_TEXT_CLASSNAME,
         selected ? 'text-fg-inverse bg-neutral-950' : 'bg-surface-secondary text-fg',

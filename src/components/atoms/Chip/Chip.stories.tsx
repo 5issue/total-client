@@ -43,7 +43,7 @@ export const RemovableDisabled: Story = {
 
 export const SelectStates: Story = {
   render: (args) => (
-    <div style={{ display: 'flex', gap: 12 }}>
+    <div className="flex gap-3">
       <Chip {...args} selected={false}>
         매주
       </Chip>
