@@ -11,10 +11,12 @@ export type IconName =
   | 'arrow-right'
   | 'arrow-up'
   | 'bell'
+  | 'bullet'
   | 'camera'
   | 'caret-down'
   | 'caret-up'
   | 'cart'
+  | 'check'
   | 'close'
   | 'close-circle'
   | 'company'
@@ -49,15 +51,18 @@ export type IconName =
   | 'new'
   | 'number'
   | 'pause'
-  | 'play'
+  | 'plus'
   | 'receipt'
   | 'refresh'
   | 'refrigerated'
+  | 'reset'
   | 'review'
   | 'right'
+  | 'right-small'
   | 'search'
   | 'search-fill'
   | 'share'
+  | 'touch'
   | 'up';
 
 type IconVariant = {
@@ -112,6 +117,20 @@ function render_arrow_down_20(_idFor: (raw: string) => string): ReactNode {
   );
 }
 
+function render_arrow_down_24(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <path
+        d="M6 9L11.8632 15L18 9.2076"
+        stroke="currentColor"
+        strokeWidth={1.5}
+        strokeLinecap="square"
+        strokeLinejoin="round"
+      />
+    </>
+  );
+}
+
 function render_arrow_left_20(_idFor: (raw: string) => string): ReactNode {
   return (
     <>
@@ -154,6 +173,20 @@ function render_arrow_up_20(_idFor: (raw: string) => string): ReactNode {
   );
 }
 
+function render_arrow_up_24(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <path
+        d="M18 15L12.1368 9L6 14.7924"
+        stroke="currentColor"
+        strokeWidth={1.5}
+        strokeLinecap="square"
+        strokeLinejoin="round"
+      />
+    </>
+  );
+}
+
 function render_bell_28(_idFor: (raw: string) => string): ReactNode {
   return (
     <>
@@ -161,6 +194,14 @@ function render_bell_28(_idFor: (raw: string) => string): ReactNode {
         d="M14.0002 3C18.5857 3.00027 22.2453 6.8381 22.2453 11.499V17.166L23.5979 19.0811C23.6007 19.0851 23.6039 19.0897 23.6067 19.0938C23.6857 19.2092 23.7507 19.3057 23.7961 19.377C23.8164 19.4088 23.8452 19.4548 23.8703 19.501C23.878 19.5151 23.9118 19.5776 23.9406 19.6582C23.9466 19.675 24.0036 19.8226 24.0002 20.0166C23.9985 20.1147 23.9798 20.365 23.7932 20.6084C23.567 20.9032 23.2445 21 22.9992 21H17.8742C17.4302 22.7252 15.8641 24 14.0002 24C12.1364 23.9999 10.5702 22.7252 10.1262 21H5.00021C4.66775 21 4.35696 20.8343 4.17111 20.5586C3.98543 20.283 3.94883 19.9331 4.07345 19.625L4.0842 19.5967L4.14181 19.4785C4.24301 19.3002 4.64355 18.7265 5.26388 17.8525L5.26486 17.8516L5.75412 17.1631V11.499C5.75412 6.94552 9.2453 3.17914 13.6828 3.00586H13.7024L13.9807 3H14.0002ZM12.2697 21C12.6156 21.5973 13.2603 21.9999 14.0002 22C14.7401 22 15.3847 21.5973 15.7307 21H12.2697ZM13.76 5.00391C10.4528 5.13352 7.75412 7.96253 7.75412 11.499V17.4834C7.75412 17.6912 7.69007 17.8941 7.56955 18.0635L6.90256 19H21.092L20.4279 18.0605C20.3088 17.8918 20.2453 17.69 20.2453 17.4834V11.499C20.2453 7.87967 17.4207 5.0041 14.007 5L13.76 5.00391Z"
         fill="currentColor"
       />
+    </>
+  );
+}
+
+function render_bullet_16(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <circle cx={8} cy={8} r={2} fill="currentColor" />
     </>
   );
 }
@@ -229,6 +270,15 @@ function render_cart_28(_idFor: (raw: string) => string): ReactNode {
   );
 }
 
+function render_check_20(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <circle cx={10} cy={10} r={9} fill="var(--color-black)" />
+      <path d="M5 10L8.5 13.5L15 7" stroke="white" strokeWidth={1.5} />
+    </>
+  );
+}
+
 function render_close_20(_idFor: (raw: string) => string): ReactNode {
   return (
     <>
@@ -253,11 +303,50 @@ function render_close_24(_idFor: (raw: string) => string): ReactNode {
   );
 }
 
+function render_close_28(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <path
+        d="M23.5127 6.41406L15.6699 14.2559L23.5127 22.0986L22.0986 23.5127L14.2559 15.6699L6.41406 23.5127L5 22.0986L12.8418 14.2559L5 6.41406L6.41406 5L14.2559 12.8418L22.0986 5L23.5127 6.41406Z"
+        fill="currentColor"
+      />
+    </>
+  );
+}
+
 function render_close_circle_20(_idFor: (raw: string) => string): ReactNode {
   return (
     <>
       <circle cx={10} cy={10} r={9} fill="var(--color-black)" />
       <path d="M6 6L14 14M14 6L6 14" stroke="white" strokeWidth={1.5} strokeLinejoin="round" />
+    </>
+  );
+}
+
+function render_company_24(idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <mask
+        id={idFor('mask0_company_24')}
+        style={{
+          maskType: 'luminance',
+        }}
+        maskUnits="userSpaceOnUse"
+        x={2}
+        y={2}
+        width={20}
+        height={20}
+      >
+        <path d="M21.4286 2H1.99998V21.4286H21.4286V2Z" fill="white" />
+      </mask>
+      <g mask={`url(#${idFor('mask0_company_24')})`}>
+        <path
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d="M6.85713 6.85715V4.91429C6.85713 3.30478 8.16191 2 9.77142 2H13.6571C15.2667 2 16.5714 3.30478 16.5714 4.91429V6.85715H18.5143C20.1238 6.85715 21.4286 8.16192 21.4286 9.77144V18.5143C21.4286 20.1239 20.1238 21.4286 18.5143 21.4286H4.91427C3.30476 21.4286 1.99998 20.1239 1.99998 18.5143V9.77144C1.99998 8.16192 3.30476 6.85715 4.91427 6.85715H6.85713ZM8.79999 4.91429C8.79999 4.37779 9.23492 3.94286 9.77142 3.94286H13.6571C14.1937 3.94286 14.6286 4.37779 14.6286 4.91429V6.85715H8.79999V4.91429ZM14.6286 8.80001H8.79999V19.4857H14.6286V8.80001ZM16.5714 19.4857V8.80001H18.5143C19.0508 8.80001 19.4857 9.23492 19.4857 9.77144V18.5143C19.4857 19.0508 19.0508 19.4857 18.5143 19.4857H16.5714ZM6.85713 19.4857H4.91427C4.37777 19.4857 3.94284 19.0508 3.94284 18.5143V9.77144C3.94284 9.23493 4.37777 8.80001 4.91427 8.80001H6.85713V19.4857Z"
+          fill="var(--color-black)"
+        />
+      </g>
     </>
   );
 }
@@ -284,6 +373,43 @@ function render_company_28(idFor: (raw: string) => string): ReactNode {
           clipRule="evenodd"
           d="M7.83333 7.83333V5.5C7.83333 3.56701 9.40034 2 11.3333 2H16C17.9331 2 19.5 3.56701 19.5 5.5V7.83333H21.8333C23.7664 7.83333 25.3333 9.40034 25.3333 11.3333V21.8333C25.3333 23.7664 23.7664 25.3333 21.8333 25.3333H5.5C3.56701 25.3333 2 23.7664 2 21.8333V11.3333C2 9.40034 3.56701 7.83333 5.5 7.83333H7.83333ZM10.1667 5.5C10.1667 4.85567 10.689 4.33333 11.3333 4.33333H16C16.6444 4.33333 17.1667 4.85567 17.1667 5.5V7.83333H10.1667V5.5ZM17.1667 10.1667H10.1667V23H17.1667V10.1667ZM19.5 23V10.1667H21.8333C22.4777 10.1667 23 10.689 23 11.3333V21.8333C23 22.4777 22.4777 23 21.8333 23H19.5ZM7.83333 23H5.5C4.85567 23 4.33333 22.4777 4.33333 21.8333V11.3333C4.33333 10.689 4.85567 10.1667 5.5 10.1667H7.83333V23Z"
           fill="var(--color-black)"
+        />
+      </g>
+    </>
+  );
+}
+
+function render_company_filled_24(idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <mask
+        id={idFor('mask0_company_filled_24')}
+        style={{
+          maskType: 'luminance',
+        }}
+        maskUnits="userSpaceOnUse"
+        x={2}
+        y={1}
+        width={20}
+        height={21}
+      >
+        <path d="M21.4286 1.71429H2V21.7143H21.4286V1.71429Z" fill="white" />
+      </mask>
+      <g mask={`url(#${idFor('mask0_company_filled_24')})`}>
+        <path
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d="M6.85715 6.71429V4.71429C6.85715 3.05744 8.16192 1.71429 9.77144 1.71429H13.6572C15.2667 1.71429 16.5714 3.05744 16.5714 4.71429V6.71429H18.5143C20.1239 6.71429 21.4286 8.05744 21.4286 9.71429V18.7143C21.4286 20.3712 20.1239 21.7143 18.5143 21.7143H4.91429C3.30478 21.7143 2 20.3712 2 18.7143V9.71429C2 8.05744 3.30478 6.71429 4.91429 6.71429H6.85715ZM8.80001 4.71429C8.80001 4.16201 9.23493 3.71429 9.77144 3.71429H13.6572C14.1937 3.71429 14.6286 4.16201 14.6286 4.71429V6.71429H8.80001V4.71429ZM14.6286 8.71429H8.80001V19.7143H14.6286V8.71429ZM16.5714 19.7143V8.71429H18.5143C19.0508 8.71429 19.4857 9.162 19.4857 9.71429V18.7143C19.4857 19.2666 19.0508 19.7143 18.5143 19.7143H16.5714ZM6.85715 19.7143H4.91429C4.37779 19.7143 3.94286 19.2666 3.94286 18.7143V9.71429C3.94286 9.16201 4.37779 8.71429 4.91429 8.71429H6.85715V19.7143Z"
+          fill="var(--color-brand-500)"
+        />
+        <path d="M14.6286 8.71429H8.80001V19.7143H14.6286V8.71429Z" fill="var(--color-brand-500)" />
+        <path
+          d="M6.85715 19.7143H4.91429C4.37779 19.7143 3.94286 19.2666 3.94286 18.7143V9.71429C3.94286 9.16201 4.37779 8.71429 4.91429 8.71429H6.85715V19.7143Z"
+          fill="var(--color-brand-500)"
+        />
+        <path
+          d="M16.5714 19.7143V8.71429H18.5143C19.0508 8.71429 19.4857 9.162 19.4857 9.71429V18.7143C19.4857 19.2666 19.0508 19.7143 18.5143 19.7143H16.5714Z"
+          fill="var(--color-brand-500)"
         />
       </g>
     </>
@@ -445,7 +571,7 @@ function render_frozen_20(_idFor: (raw: string) => string): ReactNode {
     <>
       <path
         d="M13.6287 4.18997C13.836 4.30964 13.9179 4.56203 13.8299 4.77742L13.8016 4.83526L12.9548 6.30199L14.4346 5.90547C14.6635 5.84414 14.8985 5.96238 14.9897 6.17356L15.0125 6.23983C15.0744 6.469 14.9556 6.7037 14.745 6.79519L14.6787 6.81802L12.2868 7.45891L10.9043 9.85347L13.6691 9.85407L15.4205 8.10301C15.6048 7.91852 15.9039 7.91813 16.0881 8.10301C16.2561 8.27055 16.2711 8.53303 16.1344 8.71812L16.0886 8.77096L15.0049 9.85439L16.6997 9.85397C16.9602 9.8538 17.1718 10.0654 17.1717 10.3264C17.1717 10.5657 16.9936 10.7633 16.7632 10.7946L16.6989 10.7989L15.0058 10.7989L16.0881 11.8819C16.2562 12.0495 16.2711 12.312 16.1344 12.4971L16.0884 12.5505C15.9206 12.7176 15.6581 12.7326 15.4733 12.5954L15.4202 12.5501L13.6697 10.7991L10.9043 10.7982L12.2866 13.1934L14.6789 13.8342C14.9307 13.9018 15.0803 14.1605 15.0132 14.4127C14.9512 14.6423 14.732 14.7863 14.5028 14.7602L14.4341 14.7467L12.9539 14.3503L13.8016 15.8171C13.9319 16.0437 13.8548 16.3322 13.6288 16.4629C13.4216 16.5825 13.1616 16.5276 13.0191 16.3436L12.9831 16.29L12.1365 14.8239L11.7402 16.3027C11.6785 16.5317 11.459 16.6764 11.23 16.6496L11.1612 16.6367C10.9326 16.5753 10.788 16.3559 10.8142 16.1266L10.8276 16.058L11.4687 13.6666L10.0861 11.2706L8.70334 13.6657L9.34424 16.0576C9.41147 16.3102 9.2622 16.5687 9.01011 16.6362C8.78093 16.6982 8.54623 16.5793 8.45475 16.3688L8.43192 16.3024L8.0354 14.8226L7.18826 16.2899C7.05788 16.5157 6.76879 16.5932 6.54298 16.4628C6.3357 16.3431 6.25378 16.0907 6.34177 15.8754L6.37007 15.8175L7.21658 14.3513L5.73735 14.7468C5.50818 14.8086 5.27348 14.6899 5.18199 14.4792L5.15917 14.413C5.0973 14.1837 5.21608 13.9491 5.42671 13.8576L5.49299 13.8348L7.88484 13.1939L9.26765 10.7987L6.50257 10.7987L4.75123 12.5498C4.56689 12.7342 4.26776 12.7346 4.08359 12.5498C3.91559 12.3822 3.90059 12.1197 4.03726 11.9347L4.08304 11.8818L5.16675 10.7984L3.47195 10.7988C3.21149 10.799 2.99985 10.5873 3 10.3263C2.99997 10.087 3.17803 9.88946 3.40848 9.85814L3.47279 9.85382L5.16587 9.85386L4.08354 8.77079C3.91554 8.60325 3.90054 8.34077 4.03722 8.15567L4.08331 8.10229C4.25108 7.93515 4.51356 7.92014 4.69834 8.05737L4.7515 8.10261L6.50201 9.85364L9.26765 9.854L7.88506 7.45939L5.49282 6.8186C5.24094 6.75099 5.09139 6.49229 5.15845 6.24009C5.22049 6.01045 5.43964 5.86643 5.66889 5.89261L5.7375 5.90604L7.21773 6.30247L6.37006 4.83561C6.23975 4.60909 6.31689 4.32054 6.54286 4.18991C6.75011 4.07028 7.01009 4.12511 7.15255 4.30918L7.18856 4.3627L8.03513 5.82893L8.43147 4.35011C8.49319 4.12101 8.71266 3.97645 8.9416 4.00317L9.01052 4.01605C9.23907 4.07746 9.38363 4.29693 9.35746 4.52618L9.34403 4.59479L8.70301 6.98617L10.0858 9.38164L11.4683 6.98708L10.8274 4.59522C10.7602 4.34259 10.9095 4.08404 11.1615 4.01649C11.3907 3.95462 11.6254 4.0734 11.7169 4.28404L11.7397 4.35031L12.1366 5.82962L12.9834 4.36288C13.1138 4.13706 13.4029 4.0596 13.6287 4.18997Z"
-        fill="currentColor"
+        fill="var(--color-freeze)"
       />
     </>
   );
@@ -525,12 +651,38 @@ function render_help_circle_20(_idFor: (raw: string) => string): ReactNode {
   );
 }
 
+function render_home_24(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <path
+        d="M20.5603 9.51985L13.0603 2.44484C12.779 2.16 12.3976 2 12 2C11.6023 2 11.221 2.16 10.9397 2.44484L3.4397 9.51985C3.29973 9.66063 3.18878 9.8282 3.1133 10.0128C3.03782 10.1974 2.99931 10.3954 3.00001 10.5952L3 20.24C3 20.4416 3.07902 20.6349 3.21967 20.7774C3.36032 20.9199 3.55109 21 3.75 21H9.74999C9.9489 21 10.1397 20.9199 10.2803 20.7774C10.421 20.6349 10.5 20.4416 10.5 20.24V14.9201H13.5V20.24C13.5 20.4416 13.579 20.6349 13.7197 20.7774C13.8603 20.9199 14.0511 21 14.25 21H20.25C20.4489 21 20.6397 20.9199 20.7803 20.7774C20.921 20.6349 21 20.4416 21 20.24L21 10.5952C21.0007 10.3954 20.9622 10.1974 20.8867 10.0128C20.8112 9.8282 20.7003 9.66063 20.5603 9.51985ZM19.5 19.48H15V14.1601C15 13.9585 14.921 13.7652 14.7803 13.6227C14.6397 13.4802 14.4489 13.4001 14.25 13.4001H9.74999C9.55108 13.4001 9.36032 13.4802 9.21966 13.6227C9.07901 13.7652 8.99999 13.9585 8.99999 14.1601V19.48H4.5L4.50001 10.5952L12 3.52023L19.5 10.5952L19.5 19.48Z"
+        fill="currentColor"
+      />
+    </>
+  );
+}
+
 function render_home_28(_idFor: (raw: string) => string): ReactNode {
   return (
     <>
       <path
         d="M23.5114 12.3114L15.1781 4.49167C14.8656 4.17685 14.4418 4 14 4C13.5582 4 13.1344 4.17685 12.8219 4.49167L4.48855 12.3114C4.33304 12.467 4.20976 12.6522 4.12589 12.8563C4.04202 13.0603 3.99923 13.2791 4.00001 13.5L4 24.16C4 24.3828 4.0878 24.5964 4.24408 24.754C4.40036 24.9115 4.61232 25 4.83333 25H11.5C11.721 25 11.933 24.9115 12.0892 24.754C12.2455 24.5964 12.3333 24.3828 12.3333 24.16V18.2801H15.6667V24.16C15.6667 24.3828 15.7544 24.5964 15.9107 24.754C16.067 24.9115 16.279 25 16.5 25H23.1666C23.3877 25 23.5996 24.9115 23.7559 24.754C23.9122 24.5964 24 24.3828 24 24.16L24 13.5C24.0008 13.2791 23.958 13.0603 23.8741 12.8563C23.7902 12.6522 23.667 12.467 23.5114 12.3114ZM22.3333 23.32H17.3333V17.4401C17.3333 17.2173 17.2455 17.0037 17.0892 16.8461C16.933 16.6886 16.721 16.6001 16.5 16.6001H11.5C11.279 16.6001 11.067 16.6886 10.9107 16.8461C10.7545 17.0037 10.6667 17.2173 10.6667 17.4401V23.32H5.66666L5.66668 13.5L14 5.68025L22.3333 13.5L22.3333 23.32Z"
         fill="currentColor"
+      />
+    </>
+  );
+}
+
+function render_home_filled_24(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <path
+        d="M20.5603 9.51985L13.0603 2.44484C12.779 2.16 12.3976 2 12 2C11.6023 2 11.221 2.16 10.9397 2.44484L3.4397 9.51985C3.29973 9.66063 3.18878 9.8282 3.1133 10.0128C3.03782 10.1974 2.99931 10.3954 3.00001 10.5952L3 20.24C3 20.4416 3.07902 20.6349 3.21967 20.7774C3.36032 20.9199 3.55109 21 3.75 21H9.74999C9.9489 21 10.1397 20.9199 10.2803 20.7774C10.421 20.6349 10.5 20.4416 10.5 20.24V14.9201H13.5V20.24C13.5 20.4416 13.579 20.6349 13.7197 20.7774C13.8603 20.9199 14.0511 21 14.25 21H20.25C20.4489 21 20.6397 20.9199 20.7803 20.7774C20.921 20.6349 21 20.4416 21 20.24L21 10.5952C21.0007 10.3954 20.9622 10.1974 20.8867 10.0128C20.8112 9.8282 20.7003 9.66063 20.5603 9.51985ZM19.5 19.48H15V14.1601C15 13.9585 14.921 13.7652 14.7803 13.6227C14.6397 13.4802 14.4489 13.4001 14.25 13.4001H9.74999C9.55108 13.4001 9.36032 13.4802 9.21966 13.6227C9.07901 13.7652 8.99999 13.9585 8.99999 14.1601V19.48H4.5L4.50001 10.5952L12 3.52023L19.5 10.5952L19.5 19.48Z"
+        fill="var(--color-brand-500)"
+      />
+      <path
+        d="M19.5 19.48H15V14.1601C15 13.9585 14.921 13.7652 14.7803 13.6227C14.6397 13.4802 14.4489 13.4001 14.25 13.4001H9.74999C9.55108 13.4001 9.36032 13.4802 9.21966 13.6227C9.07901 13.7652 8.99999 13.9585 8.99999 14.1601V19.48H4.5L4.50001 10.5952L12 3.52023L19.5 10.5952L19.5 19.48Z"
+        fill="var(--color-brand-500)"
       />
     </>
   );
@@ -613,6 +765,25 @@ function render_like_20(_idFor: (raw: string) => string): ReactNode {
   );
 }
 
+function render_location_24(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M11.8286 6.24001C10.8906 6.23663 9.98666 6.59098 9.30086 7.23087C8.96431 7.54465 8.69562 7.92404 8.51134 8.34566C8.32707 8.76728 8.23113 9.22218 8.22943 9.6823C8.22943 10.3757 8.44715 11.0486 8.84915 11.6152C9.25475 12.1828 9.81759 12.6193 10.4683 12.8709C11.1218 13.1242 11.833 13.1904 12.522 13.062C13.2095 12.9351 13.8462 12.6135 14.3563 12.1354C14.8631 11.6612 15.2127 11.0432 15.3583 10.3646C15.5014 9.68659 15.4269 8.98459 15.1483 8.34859C14.8663 7.71269 14.4003 7.17589 13.8103 6.80744C13.2166 6.43556 12.53 6.23887 11.8294 6.24001M10.4769 8.47716C10.8449 8.13736 11.3285 7.95042 11.8294 7.9543C12.2134 7.9543 12.5837 8.06144 12.8966 8.25773C13.2077 8.45487 13.4426 8.72744 13.5789 9.03773C13.7151 9.34801 13.7494 9.68573 13.6809 10.0106C13.6123 10.3363 13.4409 10.6423 13.1811 10.8883C12.9098 11.1411 12.5715 11.3107 12.2066 11.3769C11.8311 11.4472 11.442 11.4112 11.0914 11.274C10.753 11.1443 10.4598 10.9184 10.248 10.6243C10.0515 10.3497 9.94512 10.0208 9.94372 9.68316C9.94372 9.24087 10.1289 8.8063 10.4777 8.47801"
+        fill="currentColor"
+      />
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M11.8294 1.71429H11.8277C9.61629 1.71687 7.48715 2.54572 5.91 4.03372C4.33029 5.52258 3.43115 7.55315 3.42857 9.68229V9.68401C3.42857 13.0432 5.31172 15.9137 7.116 17.9057C8.93486 19.9149 10.788 21.1577 10.9646 21.2743C11.2211 21.4437 11.5216 21.534 11.829 21.534C12.1364 21.534 12.437 21.4437 12.6934 21.2743C12.8691 21.1577 14.7231 19.9149 16.542 17.9057C18.3454 15.9137 20.2286 13.0432 20.2286 9.68401V9.68229C20.226 7.55315 19.3277 5.52258 17.748 4.03372C16.17 2.54572 14.0409 1.71687 11.8294 1.71429ZM7.086 5.28001C8.33572 4.10229 10.0406 3.43115 11.8286 3.42858C13.6166 3.43115 15.3223 4.10229 16.572 5.28001C17.82 6.45772 18.5126 8.04258 18.5143 9.68487C18.5143 12.4106 16.9689 14.88 15.2709 16.7554C14.2394 17.891 13.0852 18.9087 11.8294 19.7897C10.5733 18.9087 9.41883 17.8911 8.38715 16.7554C6.68915 14.88 5.14372 12.4097 5.14372 9.68401C5.14629 8.04258 5.838 6.45772 7.08686 5.28087"
+        fill="currentColor"
+      />
+    </>
+  );
+}
+
 function render_location_28(_idFor: (raw: string) => string): ReactNode {
   return (
     <>
@@ -627,6 +798,29 @@ function render_location_28(_idFor: (raw: string) => string): ReactNode {
         clipRule="evenodd"
         d="M13.801 2H13.799C11.219 2.003 8.735 2.97 6.895 4.706C5.052 6.443 4.003 8.812 4 11.296V11.298C4 15.217 6.197 18.566 8.302 20.89C10.424 23.234 12.586 24.684 12.792 24.82C13.0912 25.0176 13.4419 25.123 13.8005 25.123C14.1591 25.123 14.5098 25.0176 14.809 24.82C15.014 24.684 17.177 23.234 19.299 20.89C21.403 18.566 23.6 15.217 23.6 11.298V11.296C23.597 8.812 22.549 6.443 20.706 4.706C18.865 2.97 16.381 2.003 13.801 2ZM8.267 6.16C9.725 4.786 11.714 4.003 13.8 4C15.886 4.003 17.876 4.786 19.334 6.16C20.79 7.534 21.598 9.383 21.6 11.299C21.6 14.479 19.797 17.36 17.816 19.548C16.6127 20.8728 15.2661 22.0601 13.801 23.088C12.3355 22.0602 10.9886 20.8729 9.785 19.548C7.804 17.36 6.001 14.478 6.001 11.298C6.004 9.383 6.811 7.534 8.268 6.161"
         fill="currentColor"
+      />
+    </>
+  );
+}
+
+function render_location_filled_24(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M11.8294 1.71429H11.8277C9.61629 1.71687 7.48715 2.54572 5.91 4.03372C4.33029 5.52258 3.43115 7.55315 3.42857 9.68229V9.68401C3.42857 13.0432 5.31172 15.9137 7.116 17.9057C8.93486 19.9149 10.788 21.1577 10.9646 21.2743C11.2211 21.4437 11.5216 21.534 11.829 21.534C12.1364 21.534 12.437 21.4437 12.6934 21.2743C12.8691 21.1577 14.7231 19.9149 16.542 17.9057C18.3454 15.9137 20.2286 13.0432 20.2286 9.68401V9.68229C20.226 7.55315 19.3277 5.52258 17.748 4.03372C16.17 2.54572 14.0409 1.71687 11.8294 1.71429ZM7.086 5.28001C8.33572 4.10229 10.0406 3.43115 11.8286 3.42858C13.6166 3.43115 15.3223 4.10229 16.572 5.28001C17.82 6.45772 18.5126 8.04258 18.5143 9.68487C18.5143 12.4106 16.9689 14.88 15.2709 16.7554C14.2394 17.891 13.0852 18.9087 11.8294 19.7897C10.5733 18.9087 9.41883 17.8911 8.38715 16.7554C6.68915 14.88 5.14372 12.4097 5.14372 9.68401C5.14629 8.04258 5.838 6.45772 7.08686 5.28087"
+        fill="var(--color-brand-500)"
+      />
+      <path
+        d="M11.8294 1.71429H11.8277C9.61629 1.71687 7.48715 2.54572 5.91 4.03372C4.33029 5.52258 3.43115 7.55315 3.42857 9.68229V9.68401C3.42857 13.0432 5.31172 15.9137 7.116 17.9057C8.93486 19.9149 10.788 21.1577 10.9646 21.2743C11.2211 21.4437 11.5216 21.534 11.829 21.534C12.1364 21.534 12.437 21.4437 12.6934 21.2743C12.8691 21.1577 14.7231 19.9149 16.542 17.9057C18.3454 15.9137 20.2286 13.0432 20.2286 9.68401V9.68229C20.226 7.55315 19.3277 5.52258 17.748 4.03372C16.17 2.54572 14.0409 1.71687 11.8294 1.71429Z"
+        fill="var(--color-brand-500)"
+      />
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M11.8286 6.24001C10.8906 6.23663 9.98665 6.59098 9.30085 7.23087C8.96431 7.54465 8.69561 7.92404 8.51134 8.34566C8.32706 8.76728 8.23112 9.22218 8.22942 9.6823C8.22942 10.3757 8.44714 11.0486 8.84914 11.6152C9.25474 12.1828 9.81758 12.6193 10.4683 12.8709C11.1218 13.1242 11.833 13.1904 12.522 13.062C13.2095 12.9351 13.8462 12.6135 14.3563 12.1354C14.8631 11.6612 15.2127 11.0432 15.3583 10.3646C15.5014 9.68659 15.4269 8.98459 15.1483 8.34859C14.8663 7.71269 14.4003 7.17589 13.8103 6.80744C13.2166 6.43556 12.53 6.23887 11.8294 6.24001"
+        fill="var(--color-brand-50)"
       />
     </>
   );
@@ -773,15 +967,12 @@ function render_pause_20(_idFor: (raw: string) => string): ReactNode {
   );
 }
 
-function render_play_10(_idFor: (raw: string) => string): ReactNode {
+function render_plus_48(_idFor: (raw: string) => string): ReactNode {
   return (
     <>
-      <path
-        d="M3 12L7 8.0912L3.1384 4"
-        stroke="white"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <circle cx={24} cy={24} r={22} fill="var(--color-brand-300)" />
+      <path d="M16 23.7451H32" stroke="white" strokeWidth={2} />
+      <path d="M24 16L24 32" stroke="white" strokeWidth={2} />
     </>
   );
 }
@@ -820,7 +1011,7 @@ function render_refrigerated_20(idFor: (raw: string) => string): ReactNode {
           fillRule="evenodd"
           clipRule="evenodd"
           d="M10.0003 16.1771C12.5316 16.1771 14.5834 14.1985 14.5834 11.7582C14.5834 10.1314 13.0557 7.40313 10.0003 3.57292C6.94437 7.40255 5.41669 10.1314 5.41669 11.7582C5.41669 14.1985 7.46901 16.1771 10.0003 16.1771Z"
-          fill="var(--color-neutral-800)"
+          fill="var(--color-cold)"
         />
       </g>
       <defs>
@@ -828,6 +1019,17 @@ function render_refrigerated_20(idFor: (raw: string) => string): ReactNode {
           <rect width={10} height={13.75} fill="white" transform="translate(5 3)" />
         </clipPath>
       </defs>
+    </>
+  );
+}
+
+function render_reset_20(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <path
+        d="M5.29656 5.29166C6.50489 4.08333 8.16323 3.33333 10.0049 3.33333C13.6883 3.33333 16.6633 6.31666 16.6633 9.99999C16.6633 13.6833 13.6883 16.6667 10.0049 16.6667C6.89656 16.6667 4.30489 14.5417 3.56323 11.6667H5.29656C5.97989 13.6083 7.82989 15 10.0049 15C12.7633 15 15.0049 12.7583 15.0049 9.99999C15.0049 7.24166 12.7633 4.99999 10.0049 4.99999C8.62156 4.99999 7.38823 5.575 6.48823 6.48333L8.31806 8.31311C8.63306 8.62808 8.40998 9.16666 7.96448 9.16666H3.83823C3.56214 9.16666 3.33823 8.94283 3.33823 8.66666V4.54044C3.33823 4.09498 3.87681 3.87189 4.19181 4.18688L5.29656 5.29166Z"
+        fill="currentColor"
+      />
     </>
   );
 }
@@ -932,6 +1134,19 @@ function render_right_28(_idFor: (raw: string) => string): ReactNode {
   );
 }
 
+function render_right_small_10(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <path
+        d="M3 12L7 8.0912L3.1384 4"
+        stroke="white"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </>
+  );
+}
+
 function render_search_24(_idFor: (raw: string) => string): ReactNode {
   return (
     <>
@@ -969,6 +1184,20 @@ function render_share_24(_idFor: (raw: string) => string): ReactNode {
   );
 }
 
+function render_touch_40(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <circle cx={15} cy={13} r={7} stroke="var(--color-neutral-500)" strokeWidth={6} />
+      <path
+        d="M19.4281 17.0285C18.5436 15.1329 17.7805 13.5708 17.5847 13.375C17.0847 12.875 17.0847 12.875 15.5847 13.375C14.3847 13.775 14.418 14.875 14.5847 15.375C15.418 17.375 17.2847 21.675 18.0847 22.875C18.8846 24.075 20.0847 28.875 19.5847 29.375C19.0847 29.875 15.1692 24.7499 14.5847 24.375C14.0002 24 13.7 23.7 12.5 24.5C11.3 25.3 11.9181 26.2083 12.0848 26.375C13.0848 27.375 15.4848 29.975 17.0848 32.375C18.6848 34.775 22.7514 36.375 24.5848 36.875C27.5847 35.875 33.6847 33.775 34.0847 33.375C34.5847 32.875 34.0847 28.375 34.0847 27.375C34.0847 26.375 33.0847 23.875 32.5847 22.875C32.1847 22.075 31.0847 19.875 30.5847 18.875C30.2514 18.5417 29.3847 17.975 28.5847 18.375C27.7847 18.775 27.7159 19.0445 27.7815 19.1292M19.7235 17.6787L19.4281 17.0285C20.3501 19.0049 21.4041 21.3437 22.0847 22.875L19.7235 17.6787ZM19.7235 17.6787C19.6772 17.4108 19.7847 16.775 20.5847 16.375C21.5847 15.875 22.0847 15.375 22.5847 15.875C22.7867 16.077 23.3375 17.1381 23.9405 18.375M23.9405 18.375L25.5847 21.875C25.2281 21.0906 24.7007 19.9522 24.1825 18.875M23.9405 18.375C24.0205 18.5391 24.1014 18.7063 24.1825 18.875M24.1825 18.875C24.2619 18.4905 24.6535 17.6522 25.5847 17.375C26.5158 17.0978 26.9727 17.5928 27.0847 17.875L27.7815 19.1292M29.5847 22.375L27.7815 19.1292"
+        stroke="var(--color-neutral-800)"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </>
+  );
+}
+
 function render_up_28(_idFor: (raw: string) => string): ReactNode {
   return (
     <>
@@ -991,6 +1220,7 @@ export const ICONS: Record<IconName, IconVariant[]> = {
   apple: [{ viewBox: '0 0 24 24', themable: true, render: (idFor) => render_apple_24(idFor) }],
   'arrow-down': [
     { viewBox: '0 0 20 20', themable: true, render: (idFor) => render_arrow_down_20(idFor) },
+    { viewBox: '0 0 24 24', themable: true, render: (idFor) => render_arrow_down_24(idFor) },
   ],
   'arrow-left': [
     { viewBox: '0 0 20 20', themable: true, render: (idFor) => render_arrow_left_20(idFor) },
@@ -1000,8 +1230,10 @@ export const ICONS: Record<IconName, IconVariant[]> = {
   ],
   'arrow-up': [
     { viewBox: '0 0 20 20', themable: true, render: (idFor) => render_arrow_up_20(idFor) },
+    { viewBox: '0 0 24 24', themable: true, render: (idFor) => render_arrow_up_24(idFor) },
   ],
   bell: [{ viewBox: '0 0 28 28', themable: true, render: (idFor) => render_bell_28(idFor) }],
+  bullet: [{ viewBox: '0 0 16 16', themable: true, render: (idFor) => render_bullet_16(idFor) }],
   camera: [{ viewBox: '0 0 28 28', themable: false, render: (idFor) => render_camera_28(idFor) }],
   'caret-down': [
     { viewBox: '0 0 20 20', themable: true, render: (idFor) => render_caret_down_20(idFor) },
@@ -1013,15 +1245,21 @@ export const ICONS: Record<IconName, IconVariant[]> = {
     { viewBox: '0 0 20 20', themable: true, render: (idFor) => render_cart_20(idFor) },
     { viewBox: '0 0 28 28', themable: true, render: (idFor) => render_cart_28(idFor) },
   ],
+  check: [{ viewBox: '0 0 20 20', themable: false, render: (idFor) => render_check_20(idFor) }],
   close: [
     { viewBox: '0 0 20 20', themable: true, render: (idFor) => render_close_20(idFor) },
     { viewBox: '0 0 24 24', themable: true, render: (idFor) => render_close_24(idFor) },
+    { viewBox: '0 0 28 28', themable: true, render: (idFor) => render_close_28(idFor) },
   ],
   'close-circle': [
     { viewBox: '0 0 20 20', themable: false, render: (idFor) => render_close_circle_20(idFor) },
   ],
-  company: [{ viewBox: '0 0 28 28', themable: false, render: (idFor) => render_company_28(idFor) }],
+  company: [
+    { viewBox: '0 0 24 24', themable: false, render: (idFor) => render_company_24(idFor) },
+    { viewBox: '0 0 28 28', themable: false, render: (idFor) => render_company_28(idFor) },
+  ],
   'company-filled': [
+    { viewBox: '0 0 24 24', themable: false, render: (idFor) => render_company_filled_24(idFor) },
     { viewBox: '0 0 28 28', themable: false, render: (idFor) => render_company_filled_28(idFor) },
   ],
   'corner-bottom-left': [
@@ -1048,7 +1286,7 @@ export const ICONS: Record<IconName, IconVariant[]> = {
   dot3: [{ viewBox: '0 0 24 24', themable: true, render: (idFor) => render_dot3_24(idFor) }],
   down: [{ viewBox: '0 0 28 28', themable: true, render: (idFor) => render_down_28(idFor) }],
   filter: [{ viewBox: '0 0 20 20', themable: true, render: (idFor) => render_filter_20(idFor) }],
-  frozen: [{ viewBox: '0 0 20 20', themable: true, render: (idFor) => render_frozen_20(idFor) }],
+  frozen: [{ viewBox: '0 0 20 20', themable: false, render: (idFor) => render_frozen_20(idFor) }],
   heart: [
     { viewBox: '0 0 20 20', themable: true, render: (idFor) => render_heart_20(idFor) },
     { viewBox: '0 0 28 28', themable: true, render: (idFor) => render_heart_28(idFor) },
@@ -1060,8 +1298,12 @@ export const ICONS: Record<IconName, IconVariant[]> = {
   'help-circle': [
     { viewBox: '0 0 20 20', themable: true, render: (idFor) => render_help_circle_20(idFor) },
   ],
-  home: [{ viewBox: '0 0 28 28', themable: true, render: (idFor) => render_home_28(idFor) }],
+  home: [
+    { viewBox: '0 0 24 24', themable: true, render: (idFor) => render_home_24(idFor) },
+    { viewBox: '0 0 28 28', themable: true, render: (idFor) => render_home_28(idFor) },
+  ],
   'home-filled': [
+    { viewBox: '0 0 24 24', themable: false, render: (idFor) => render_home_filled_24(idFor) },
     { viewBox: '0 0 28 28', themable: false, render: (idFor) => render_home_filled_28(idFor) },
   ],
   'info-fill': [
@@ -1074,9 +1316,11 @@ export const ICONS: Record<IconName, IconVariant[]> = {
   left: [{ viewBox: '0 0 28 28', themable: true, render: (idFor) => render_left_28(idFor) }],
   like: [{ viewBox: '0 0 20 20', themable: true, render: (idFor) => render_like_20(idFor) }],
   location: [
+    { viewBox: '0 0 24 24', themable: true, render: (idFor) => render_location_24(idFor) },
     { viewBox: '0 0 28 28', themable: true, render: (idFor) => render_location_28(idFor) },
   ],
   'location-filled': [
+    { viewBox: '0 0 24 24', themable: false, render: (idFor) => render_location_filled_24(idFor) },
     { viewBox: '0 0 28 28', themable: false, render: (idFor) => render_location_filled_28(idFor) },
   ],
   member: [{ viewBox: '0 0 24 24', themable: false, render: (idFor) => render_member_24(idFor) }],
@@ -1086,21 +1330,26 @@ export const ICONS: Record<IconName, IconVariant[]> = {
   new: [{ viewBox: '0 0 14 14', themable: false, render: (idFor) => render_new_14(idFor) }],
   number: [{ viewBox: '0 0 20 20', themable: false, render: (idFor) => render_number_20(idFor) }],
   pause: [{ viewBox: '0 0 20 20', themable: false, render: (idFor) => render_pause_20(idFor) }],
-  play: [{ viewBox: '0 0 10 16', themable: false, render: (idFor) => render_play_10(idFor) }],
+  plus: [{ viewBox: '0 0 48 48', themable: false, render: (idFor) => render_plus_48(idFor) }],
   receipt: [{ viewBox: '0 0 28 28', themable: true, render: (idFor) => render_receipt_28(idFor) }],
   refresh: [{ viewBox: '0 0 20 20', themable: true, render: (idFor) => render_refresh_20(idFor) }],
   refrigerated: [
     { viewBox: '0 0 20 20', themable: false, render: (idFor) => render_refrigerated_20(idFor) },
   ],
+  reset: [{ viewBox: '0 0 20 20', themable: true, render: (idFor) => render_reset_20(idFor) }],
   review: [
     { viewBox: '0 0 16 16', themable: false, render: (idFor) => render_review_16(idFor) },
     { viewBox: '0 0 28 28', themable: false, render: (idFor) => render_review_28(idFor) },
   ],
   right: [{ viewBox: '0 0 28 28', themable: true, render: (idFor) => render_right_28(idFor) }],
+  'right-small': [
+    { viewBox: '0 0 10 16', themable: false, render: (idFor) => render_right_small_10(idFor) },
+  ],
   search: [{ viewBox: '0 0 24 24', themable: true, render: (idFor) => render_search_24(idFor) }],
   'search-fill': [
     { viewBox: '0 0 24 24', themable: true, render: (idFor) => render_search_fill_24(idFor) },
   ],
   share: [{ viewBox: '0 0 24 24', themable: true, render: (idFor) => render_share_24(idFor) }],
+  touch: [{ viewBox: '0 0 40 40', themable: false, render: (idFor) => render_touch_40(idFor) }],
   up: [{ viewBox: '0 0 28 28', themable: true, render: (idFor) => render_up_28(idFor) }],
 };
