@@ -62,7 +62,7 @@ export const AllStates: Story = {
 export const Tones: Story = {
   name: 'tone 별 active 색 (brand-secondary / black / brand-primary)',
   render: () => (
-    <div className="border-border flex gap-2 border-b">
+    <div className="border-border flex border-b">
       <TabItem label="상품설명" active tone="brand-secondary" />
       <TabItem label="카테고리" active tone="black" />
       <TabItem label="추천" active tone="brand-primary" size="sm" />
