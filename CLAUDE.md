@@ -11,7 +11,7 @@
 | 문서                                                                               | 다루는 것                                                                                                                                                                                                                                        | 상태                                                                                                                                 |
 | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
 | [.agents/api-convention/SKILLS.md](.agents/api-convention/SKILLS.md)               | API 계층 아키텍처(Route Handler→types(Zod)→apiClient→hooks/&lt;domain&gt;→컴포넌트), publicFetch/privateFetch, 쿼리 키 팩토리, Zod 스키마 규칙, 공용 응답 포맷 `{ statusCode, message, data }`, Optimistic Update 정책, 새 엔드포인트 체크리스트 | ✅ 실제 문서 존재 (스코프1). 라우트·훅 구현 코드는 대기                                                                              |
-| [.agents/structure-convention/SKILLS.md](.agents/structure-convention/SKILLS.md)   | 라우트 그룹 `(auth)/(shop)`, 라우트 맵, **컴포넌트 계층(Atomic Design 하이브리드 3계층)**, MVP 화면 목록·렌더링 전략·책임 지표, 전체 폴더 트리, `next/image`+종횡비 고정 규칙, 디자인 협의 보류 항목                                             | ✅ 실제 문서 + 라우트/컴포넌트 폴더 스켈레톤 존재 (스코프1). 화면·컴포넌트 구현은 대기                                               |
+| [.agents/structure-convention/SKILLS.md](.agents/structure-convention/SKILLS.md)   | 라우트 그룹 `(auth)/(shop)`, 라우트 맵, **컴포넌트 계층(Atomic Design 하이브리드 3계층)**, MVP 화면 목록·렌더링 전략·책임 지표, 전체 폴더 트리, `next/image`+종횡비 고정 규칙, **디자인 핸드오프·변경 공유(§6-1)**, 협의 보류 항목               | ✅ 실제 문서 + 라우트/컴포넌트 폴더 스켈레톤 존재 (스코프1). 화면·컴포넌트 구현은 대기                                               |
 | [.agents/code-style-convention/SKILLS.md](.agents/code-style-convention/SKILLS.md) | ⭐ **eslint/prettier 의 근거 문서.** 명명 규칙, CDD 순서, 상태관리 원칙(서버/클라 분리, Zustand 마운트당 생성, useShallow 강제), 폼 규칙, 이미지·접근성·애니메이션·번들 전략, **"eslint 규칙 매핑 예시" 표**                                     | ✅ 실제 문서 존재 (스코프1). eslint/prettier 설정 파일은 스코프2                                                                     |
 | [.agents/git-convention/SKILLS.md](.agents/git-convention/SKILLS.md)               | (지금 적용) 브랜치 전략, Conventional Commits, PR 준비 체크리스트, 리뷰 포인트. **+ ⏳ 예정 작업 명세(스코프2)**: PR/Issue 템플릿, 브랜치 룰셋, husky, CI typecheck, Storybook 규약, eslint/prettier 강제 구성                                   | 📋 스코프1 규칙은 즉시 적용. 스코프2 7개 항목은 **문서 내 명세만 존재**, 실제 파일(`.github/`, `.husky/`, `.storybook/` 등)은 미생성 |
 | [.agents/security-convention/SKILLS.md](.agents/security-convention/SKILLS.md)     | 프론트엔드 시큐어 코딩 FE-01~FE-16, 각 항목의 "이 프로젝트 적용 지점"(없으면 ⏳), 릴리스 전 보안 체크리스트                                                                                                                                      | ✅ 실제 문서 존재 (스코프1). 상당수 적용 지점은 ⏳(해당 코드 미구현)                                                                 |
@@ -31,7 +31,7 @@
 
 ---
 
-## 지금 당장 적용되는 규칙 10개
+## 지금 당장 적용되는 규칙 11개
 
 `.agents/**` 에서 발췌한, **오늘부터 지켜야 하는** 규칙.
 
@@ -45,6 +45,7 @@
 8. **`<img>` 금지 → `next/image` + 종횡비 CSS 선고정.** LCP 후보만 `priority`. (경쟁사 실측: PNG 2.4MB, LCP 20s, CLS 0.77) — structure §5 / code-style §6
 9. **접근성:** 아이콘 버튼 `aria-label` 필수, 링크는 목적지 서술, `user-scalable` 제한 금지, 본문 대비 ≥ 4.5:1. (경쟁사 접근성 82점 → 목표 95+) — code-style §5
 10. **커밋은 Conventional Commits, 브랜치는 `feat/…` `fix/…` 등 목적 단일.** `NEXT_PUBLIC_` 에 서버 비밀 금지(빌드 타임 번들 인라인). 인가는 서버에서(`middleware.ts` 는 UX용). — git-convention §1~2 / security FE-10·FE-15
+11. **디자인 핸드오프: 디자인팀은 상태값, FE 는 스펙.** 수치·간격·컬러·radius 는 디자인팀 문서를 기다리지 말고 **FE 가 Figma 에서 직접 확정**(MCP, 값 1:1). 변경은 해당 노드 **Figma 코멘트**로 통지. 정리 우선순위 = 스펙 > 예외 처리(로딩/에러/빈) > 사용 예시. — structure §6-1
 
 Optimistic Update 는 **기본적으로 하지 않는다**(성공 후 `invalidateQueries`). 유일한 예외는 장바구니 수량 증감이며, 그 경우에도 PR 에서 3가지 근거에 답해야 한다. — api-convention §7
 
