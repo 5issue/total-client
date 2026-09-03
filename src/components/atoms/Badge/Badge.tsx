@@ -2,20 +2,25 @@ import type { ReactNode } from 'react';
 
 export type BadgeColor = 'purple' | 'cyan';
 export type BadgeSize = 'small' | 'medium' | 'large';
+/** purple 은 Figma 에 large 가 없다 — 타입에서부터 그 조합을 만들 수 없게 막는다. */
+type PurpleBadgeSize = 'small' | 'medium';
 
-export interface BadgeProps {
-  color?: BadgeColor;
-  size?: BadgeSize;
+interface BadgeCommonProps {
   className?: string;
   /** 순수 정보 표시용이라 항상 필수 — Chip/Button과 달리 상호작용이 없다. */
   children: ReactNode;
 }
 
+export type BadgeProps =
+  | ({ color?: 'cyan'; size?: BadgeSize } & BadgeCommonProps)
+  | ({ color: 'purple'; size?: PurpleBadgeSize } & BadgeCommonProps);
+
 /**
  * cyan 은 Figma 세 사이즈 전부 동일 hex(#00c0da = --color-cyan)라 그대로 매핑했다.
  * purple 은 Figma 컴포넌트 세트에 Small(#d8a5e9 = brand-200) / Medium(#c16edd = brand-300)
- * 두 사이즈만 정의돼 있고 Large 는 애초에 존재하지 않는다(디자이너 확인 완료). large 는
- * BadgeSize 가 색상 공통 타입이라 API 상 막을 수 없어 Medium 값을 그대로 재사용한다.
+ * 두 사이즈만 정의돼 있고 Large 는 애초에 존재하지 않는다(디자이너 확인 완료) — BadgeProps
+ * 타입에서 이미 purple+large 조합 자체를 막아뒀다. large 항목은 Record<BadgeSize,...> 를
+ * 완전하게 채우기 위한 내부 구현 디테일일 뿐, 정상적인 타입 경로로는 절대 쓰이지 않는다.
  */
 const PURPLE_BG_CLASSNAME: Record<BadgeSize, string> = {
   small: 'bg-brand-200',

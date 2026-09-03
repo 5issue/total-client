@@ -7,11 +7,12 @@ import { Badge, type BadgeColor, type BadgeSize } from './Badge';
 const COLORS: BadgeColor[] = ['cyan', 'purple'];
 const SIZES: BadgeSize[] = ['small', 'medium', 'large'];
 
-/** purple 은 Figma 컴포넌트 세트에 large 가 없다(Badge.tsx 주석 참고) — 매트릭스에서 제외. */
-const SIZES_BY_COLOR: Record<BadgeColor, BadgeSize[]> = {
-  cyan: ['small', 'medium', 'large'],
-  purple: ['small', 'medium'],
-};
+/**
+ * purple 은 Figma 컴포넌트 세트에 large 가 없다 — BadgeProps 타입에서부터 막혀 있어서(Badge.tsx
+ * 참고) 여기도 'small'|'medium' 으로 좁게 타입을 잡아야 Badge 에 그대로 넘길 수 있다.
+ */
+const CYAN_SIZES: readonly BadgeSize[] = ['small', 'medium', 'large'];
+const PURPLE_SIZES: readonly ('small' | 'medium')[] = ['small', 'medium'];
 
 const meta = {
   title: 'atoms/Badge',
@@ -60,17 +61,24 @@ const SAMPLE_CHILDREN: Record<BadgeColor, Partial<Record<BadgeSize, ReactNode>>>
 };
 
 export const AllColorsAndSizes: Story = {
+  // BadgeProps 가 discriminated union(purple 은 large 를 아예 못 받음)이라, 제네릭 color
+  // 변수로는 타입이 안 좁혀져 색상별로 나눠 렌더한다.
   render: () => (
     <div className="flex flex-col items-start gap-3">
-      {COLORS.map((color) => (
-        <div key={color} className="flex items-center gap-3">
-          {SIZES_BY_COLOR[color].map((size) => (
-            <Badge key={size} color={color} size={size}>
-              {SAMPLE_CHILDREN[color][size]}
-            </Badge>
-          ))}
-        </div>
-      ))}
+      <div className="flex items-center gap-3">
+        {CYAN_SIZES.map((size) => (
+          <Badge key={size} color="cyan" size={size}>
+            {SAMPLE_CHILDREN.cyan[size]}
+          </Badge>
+        ))}
+      </div>
+      <div className="flex items-center gap-3">
+        {PURPLE_SIZES.map((size) => (
+          <Badge key={size} color="purple" size={size}>
+            {SAMPLE_CHILDREN.purple[size]}
+          </Badge>
+        ))}
+      </div>
     </div>
   ),
 };
