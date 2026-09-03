@@ -5,9 +5,9 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { Icon, type IconName } from '@/components/atoms/Icon/Icon';
 
 /**
- * Black/Danger 의 Hover·Pressed 는 Figma 소스 자체가 Default 와 동일하거나(Black)
- * 채움→외곽선으로 바뀌는(Danger) 이상치라, 다른 filled 타입과 일관되게 opacity 로
- * 대체했다 — 디자이너 확인 후 정식 색상으로 교체 필요.
+ * Black 은 Hover/Pressed 에서 색이 바뀌지 않는 게 디자인 확정값이다(2026-09-03 확인).
+ * Danger 는 Default 가 outline 스타일로 변경되고 Hover 가 삭제돼(Default 와 동일),
+ * Pressed 만 옅은 오렌지 오버레이(`bg-orange/4`)로 구분한다 — Figma node 2867-2886 반영.
  */
 export type ButtonVariant =
   | 'primary'
@@ -43,16 +43,15 @@ const VARIANT_CLASSNAME: Record<ButtonVariant, string> = {
   secondary:
     'bg-brand-100 text-primary hover:bg-brand-200 active:bg-brand-300 active:text-brand-900 disabled:border disabled:border-neutral-400 disabled:bg-surface-secondary disabled:text-fg-disabled',
   tertiary:
-    'bg-surface-secondary text-fg hover:bg-neutral-700 active:bg-neutral-800 disabled:bg-neutral-700 disabled:text-fg-disabled',
-  black:
-    'bg-black text-fg-inverse hover:opacity-90 active:opacity-80 disabled:bg-neutral-700 disabled:text-fg-disabled',
+    'bg-surface-secondary text-fg hover:bg-neutral-500 active:bg-neutral-500 disabled:bg-neutral-700 disabled:text-fg-disabled',
+  black: 'bg-black text-fg-inverse disabled:bg-neutral-700 disabled:text-fg-disabled',
   outlinePrimary:
     'border border-primary text-primary hover:bg-brand-50 hover:text-brand-700 active:bg-brand-200 active:text-brand-700 disabled:border-neutral-400 disabled:text-fg-disabled',
   outlineBlack:
-    'border border-neutral-400 text-fg hover:border-neutral-800 hover:bg-surface-secondary active:border-neutral-800 active:bg-neutral-700 disabled:text-fg-disabled',
+    'border border-neutral-400 text-fg hover:border-neutral-800 hover:bg-surface-secondary active:border-neutral-800 active:bg-surface-secondary disabled:text-fg-disabled',
   text: 'text-primary hover:bg-brand-100 active:bg-brand-200 disabled:text-fg-disabled',
   danger:
-    'bg-fg-danger text-fg-inverse hover:opacity-90 active:opacity-80 disabled:border disabled:border-neutral-400 disabled:bg-surface-secondary disabled:text-fg-disabled',
+    'border border-fg-danger text-fg-danger active:bg-orange/4 disabled:border-neutral-400 disabled:bg-surface-secondary disabled:text-fg-disabled',
 };
 
 const SIZE_TEXT_CLASSNAME: Record<ButtonSize, string> = {

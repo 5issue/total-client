@@ -44,10 +44,6 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-export const TextOnly: Story = {
-  args: { leadingIcon: undefined, trailingIcon: undefined },
-};
-
 // xs 는 Figma 에 outlineBlack 타입만 실제로 만들어져 있어 별도 스토리로 둔다(AllSizes 매트릭스 제외).
 export const XsOutlineBlack: Story = {
   args: { variant: 'outlineBlack', size: 'xs' },
