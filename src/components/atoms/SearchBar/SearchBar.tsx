@@ -29,7 +29,7 @@ export interface SearchBarProps extends Omit<InputHTMLAttributes<HTMLInputElemen
 }
 
 const BOX_BASE =
-  'flex h-10 items-center gap-2 rounded-m border border-transparent bg-surface-secondary pl-2 transition-colors focus-within:border-border-active';
+  'flex h-10 items-center gap-2 rounded-m border border-transparent bg-surface-secondary pl-2 transition-colors';
 
 export function SearchBar({
   label,
