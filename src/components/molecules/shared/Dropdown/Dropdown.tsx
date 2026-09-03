@@ -190,7 +190,9 @@ export function Dropdown({
         onKeyDown={handleKeyDown}
         className={triggerClass}
       >
-        <span className="min-w-0 truncate">{selected ? selected.label : placeholder}</span>
+        <span className={block ? 'min-w-0 truncate' : undefined}>
+          {selected ? selected.label : placeholder}
+        </span>
         <Icon
           name="arrow-down"
           size={20}
@@ -204,7 +206,7 @@ export function Dropdown({
           id={listboxId}
           role="listbox"
           aria-label={label}
-          className="shadow-m rounded-m bg-surface absolute top-full left-0 z-50 mt-1 flex min-w-full flex-col gap-1 p-1"
+          className="shadow-m rounded-m bg-surface absolute top-full left-0 z-50 mt-1 flex w-max min-w-full flex-col gap-1 p-1"
         >
           {options.map((opt, i) => {
             const isSelected = opt.value === value;
@@ -219,7 +221,7 @@ export function Dropdown({
                 onClick={() => selectAt(i)}
                 onPointerMove={() => !opt.disabled && setActiveIndex(i)}
                 className={[
-                  'flex items-center px-2 py-3',
+                  'flex items-center px-2 py-3 whitespace-nowrap',
                   opt.disabled
                     ? 'text-fg-disabled cursor-not-allowed'
                     : isSelected
