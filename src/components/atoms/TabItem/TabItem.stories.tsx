@@ -36,6 +36,12 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+/**
+ * 상태별 스토리 규칙(git-convention S2-6)의 예외: TabItem/TabBar 는 disabled 상태를
+ * 지원하지 않는다 — Figma "Tab_Bar" 컴포넌트 세트에 disabled variant 가 없어
+ * 의도적으로 제거했다(이슈 #37). 그래서 이 파일과 TabBar.stories.tsx 모두
+ * Disabled 스토리가 없다.
+ */
 export const Default: Story = {};
 
 export const Active: Story = {
@@ -45,7 +51,7 @@ export const Active: Story = {
 export const AllStates: Story = {
   name: '전체 상태 (default / active)',
   render: () => (
-    <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--color-border)' }}>
+    <div className="border-border flex border-b">
       <TabItem label="상품설명" />
       <TabItem label="상세정보" active />
       <TabItem label="후기 30,042" />
@@ -56,7 +62,7 @@ export const AllStates: Story = {
 export const Tones: Story = {
   name: 'tone 별 active 색 (brand-secondary / black / brand-primary)',
   render: () => (
-    <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--color-border)' }}>
+    <div className="border-border flex gap-2 border-b">
       <TabItem label="상품설명" active tone="brand-secondary" />
       <TabItem label="카테고리" active tone="black" />
       <TabItem label="추천" active tone="brand-primary" size="sm" />

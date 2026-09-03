@@ -53,6 +53,11 @@ function ControlledTabBar({
   return <TabBar items={[...items]} activeId={activeId} onChange={setActiveId} fitted={fitted} />;
 }
 
+/**
+ * 상태별 스토리 규칙(git-convention S2-6)의 예외: TabBar/TabItem 은 disabled 상태를
+ * 지원하지 않는다 — Figma "Tab_Bar" 컴포넌트 세트에 disabled variant 가 없어
+ * 의도적으로 제거했다(이슈 #37). 그래서 Disabled 스토리가 없다.
+ */
 export const Scroll: Story = {
   name: '자연폭 + 가로 스크롤 (Tab_Bar)',
   render: () => <ControlledTabBar items={PRODUCT_TABS} />,
