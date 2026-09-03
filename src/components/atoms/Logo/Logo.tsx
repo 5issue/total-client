@@ -1,3 +1,5 @@
+'use client';
+
 import { useId } from 'react';
 
 import { LOGOS, type LogoName } from './logos.generated';
