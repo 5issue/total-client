@@ -30,6 +30,12 @@ const BASE_CLASSNAME =
  */
 const SOLID_TEXT_CLASSNAME = 'text-body-m';
 
+/**
+ * Figma 에 변수 바인딩이 없던 로컬 색이라 --color-surface-tag(-active) 로 새로 토큰화했다
+ * (color.css 참고 — 노드 2563:3023/2603:3297 픽셀 샘플링 실측값).
+ */
+const OUTLINE_FILL_CLASSNAME = 'bg-surface-tag active:bg-surface-tag-active';
+
 export function Chip({
   selected = false,
   onRemove,
@@ -48,6 +54,7 @@ export function Chip({
         className={[
           BASE_CLASSNAME,
           'border-border text-label-l text-fg rounded-full border px-4 py-2',
+          OUTLINE_FILL_CLASSNAME,
           disabled ? 'pointer-events-none opacity-50' : '',
           className,
         ]
@@ -56,12 +63,14 @@ export function Chip({
       >
         {leadingIcon ? <Icon name={leadingIcon} size={20} aria-hidden /> : null}
         {children}
+        {/* 삭제 아이콘 색은 칩 라벨(text-fg, #222)과 다르다 — Figma 변수는 Icon/Tertiary(#8aa1ab) =
+            text-fg-quaternary 로 별도 지정돼 있다(get_variable_defs 로 노드 2563:3023 확인). */}
         <button
           type="button"
           onClick={onRemove}
           disabled={disabled}
           aria-label={removeLabel}
-          className="active:bg-overlay-blue -mr-1 shrink-0 rounded-full disabled:pointer-events-none"
+          className="text-fg-quaternary shrink-0 rounded-full disabled:pointer-events-none"
         >
           <Icon name="close" size={20} aria-hidden />
         </button>
