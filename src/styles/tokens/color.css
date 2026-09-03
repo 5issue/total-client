@@ -80,6 +80,10 @@
   --color-surface-secondary: var(--surface-secondary); /* Surface/Secondary */
   --color-overlay: var(--overlay); /* Surface/Overlay_gray */
   --color-overlay-blue: var(--overlay-blue); /* Surface/Overlay_blue */
+  --color-surface-tag: var(
+    --surface-tag
+  ); /* Chip(removable) 채움 — Figma 변수 미바인딩, 아래 :root 주석 참고 */
+  --color-surface-tag-active: var(--surface-tag-active); /* 위와 동일, pressed */
 
   /* Text (foreground) — Figma "Text" */
   --color-fg: var(--fg); /* Text/primary */
@@ -111,6 +115,13 @@
   --surface-secondary: #f0f5f8; /* Surface/Secondary */
   --overlay: #22222299; /* Surface/Overlay_gray (alpha 0.6) */
   --overlay-blue: #a1b3be66; /* Surface/Overlay_blue (alpha 0.4) */
+
+  /* Chip(removable, "샐러드 ×") 채움 — Figma 컴포넌트 노드(2563:3023 default, 2603:3297 pressed)의
+     로컬 fill 이라 get_variable_defs 로도 안 잡힌다(변수 바인딩 자체가 없음). 노드 스크린샷을
+     픽셀 샘플링해서 확인한 실측값. active 는 이 default 위에 overlay-blue 40% 를 얹은 결과와
+     계산상 정확히 일치(계산 검증 완료, 별도 합성 불필요 — 그냥 이 값을 그대로 쓰면 됨). */
+  --surface-tag: #c6c6c6;
+  --surface-tag-active: #b7bfc3;
 
   /* Text — Figma "Text/*" → 프리미티브 */
   --fg: #222222; /* Text/primary    = Normal/Black */
