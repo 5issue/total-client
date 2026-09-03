@@ -93,7 +93,10 @@ export function Tooltip({
   const bubbleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (open) bubbleRef.current?.focus();
+    if (!open) return;
+    const prevFocus = document.activeElement as HTMLElement | null;
+    bubbleRef.current?.focus();
+    return () => prevFocus?.focus?.();
   }, [open]);
 
   function handleKeyDown(e: KeyboardEvent<HTMLDivElement>) {
@@ -114,18 +117,23 @@ export function Tooltip({
           aria-labelledby={titleId}
           tabIndex={-1}
           onKeyDown={handleKeyDown}
-          className={`rounded-m absolute z-50 flex w-max items-start gap-2 bg-black px-3 py-2 focus:outline-none ${BUBBLE_POS[placement][align]}`}
+          className={`rounded-m bg-fg absolute z-50 flex w-max items-start gap-2 px-3 py-2 focus:outline-none ${BUBBLE_POS[placement][align]}`}
         >
-          <div className="text-label-xs flex flex-col text-white">
+          <div className="text-label-xs text-fg-inverse flex flex-col">
             <p id={titleId}>{title}</p>
             {description ? <p>{description}</p> : null}
           </div>
-          <button type="button" onClick={onClose} aria-label="닫기" className="shrink-0 text-white">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="닫기"
+            className="text-fg-inverse shrink-0"
+          >
             <Icon name="close" size={20} aria-hidden />
           </button>
           <span
             aria-hidden="true"
-            className={`absolute size-2.5 rotate-45 bg-black ${TAIL_POS[placement][align]}`}
+            className={`bg-fg absolute size-2.5 rotate-45 ${TAIL_POS[placement][align]}`}
           />
         </div>
       ) : null}

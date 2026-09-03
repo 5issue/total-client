@@ -43,7 +43,7 @@ export function AccordionOrder({
               <div className="border-border mb-3 border-t" />
             </>
           ) : null}
-          <div className="flex flex-col gap-[18px]">{children}</div>
+          <div className="flex flex-col gap-4.5">{children}</div>
         </div>
       </div>
     </Accordion>

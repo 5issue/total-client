@@ -21,12 +21,32 @@ function DemoButton({
       onClick={onClick}
       className={
         tone === 'primary'
-          ? 'text-label-xl rounded-m flex h-11 items-center justify-center bg-black text-white'
+          ? 'text-label-xl bg-primary text-primary-foreground rounded-m flex h-11 items-center justify-center'
           : 'text-label-l bg-surface-secondary text-fg rounded-m flex h-11 items-center justify-center'
       }
     >
       {children}
     </button>
+  );
+}
+
+/** 중첩 모달 — 안쪽을 닫아도 바깥이 열려 있으면 스크롤 잠금·포커스가 유지되는지 확인용. */
+function StackedDemo() {
+  const [outer, setOuter] = useState(true);
+  const [inner, setInner] = useState(false);
+  return (
+    <div className="p-8">
+      <Modal open={outer} onClose={() => setOuter(false)} title="바깥 모달">
+        <button
+          type="button"
+          onClick={() => setInner(true)}
+          className="text-label-m rounded-m border-border text-fg bg-surface border px-3 py-2"
+        >
+          안쪽 열기
+        </button>
+      </Modal>
+      <Modal open={inner} onClose={() => setInner(false)} title="안쪽 모달" />
+    </div>
   );
 }
 
@@ -130,5 +150,19 @@ export const ClosesOnCancelButton: Story = {
   play: async () => {
     await userEvent.click(await screen.findByRole('button', { name: '닫기' }));
     await expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  },
+};
+
+/** 중첩 모달: 안쪽을 닫아도 바깥이 열려 있으면 body 스크롤 잠금이 풀리지 않는다. */
+export const StackedKeepsScrollLock: Story = {
+  tags: ['!autodocs'],
+  render: () => <StackedDemo />,
+  play: async () => {
+    await userEvent.click(await screen.findByRole('button', { name: '안쪽 열기' }));
+    await expect(await screen.findByRole('dialog', { name: '안쪽 모달' })).toBeInTheDocument();
+    await userEvent.keyboard('{Escape}');
+    await expect(screen.queryByRole('dialog', { name: '안쪽 모달' })).not.toBeInTheDocument();
+    await expect(screen.getByRole('dialog', { name: '바깥 모달' })).toBeInTheDocument();
+    await expect(document.body).toHaveStyle({ overflow: 'hidden' });
   },
 };

@@ -27,7 +27,7 @@ function BreakdownItem({
   return (
     <div className="flex items-center justify-between gap-3">
       <div className="flex min-w-0 flex-1 items-start gap-3">
-        <div className="bg-fg-disabled h-[84px] w-[63px] shrink-0 rounded-s" />
+        <div className="bg-fg-disabled aspect-3/4 w-16 shrink-0 rounded-s" />
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <p className="text-heading-6 text-fg-tertiary">{deliveryLabel}</p>
           <p className="text-heading-6 text-fg truncate">{name}</p>

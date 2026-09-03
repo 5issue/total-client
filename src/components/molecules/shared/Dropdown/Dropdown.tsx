@@ -73,7 +73,9 @@ export function Dropdown({
   function openMenu(toLast = false) {
     if (disabled || enabledIndexes.length === 0) return;
     const edge = (toLast ? enabledIndexes[enabledIndexes.length - 1] : enabledIndexes[0]) ?? 0;
-    setActiveIndex(selectedIndex >= 0 && !toLast ? selectedIndex : edge);
+    setActiveIndex(
+      selectedIndex >= 0 && !toLast && !options[selectedIndex]?.disabled ? selectedIndex : edge,
+    );
     setOpen(true);
   }
 

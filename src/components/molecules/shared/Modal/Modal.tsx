@@ -36,6 +36,9 @@ export interface ModalProps {
 const FOCUSABLE =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
+let openModalCount = 0;
+let bodyOverflowBeforeLock = '';
+
 export function Modal({
   open,
   onClose,
@@ -55,15 +58,20 @@ export function Modal({
   useEffect(() => {
     if (!open) return;
     const restore = document.activeElement as HTMLElement | null;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+
+    if (openModalCount === 0) {
+      bodyOverflowBeforeLock = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+    }
+    openModalCount += 1;
 
     const card = cardRef.current;
     const first = card?.querySelector<HTMLElement>(FOCUSABLE);
     (first ?? card)?.focus();
 
     return () => {
-      document.body.style.overflow = prevOverflow;
+      openModalCount -= 1;
+      if (openModalCount === 0) document.body.style.overflow = bodyOverflowBeforeLock;
       restore?.focus?.();
     };
   }, [open]);

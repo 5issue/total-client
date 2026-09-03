@@ -31,7 +31,7 @@ function Demo({ open: initial = true, ...rest }: Partial<TooltipProps>) {
 const meta = {
   title: 'molecules/shared/Tooltip',
   component: Tooltip,
-  render: (args) => <Demo {...args} />,
+  render: (args) => <Demo key={args.open ? 'open' : 'closed'} {...args} />,
   args: {
     open: true,
     onClose: fn(),
@@ -50,7 +50,7 @@ const meta = {
   parameters: { layout: 'centered' },
   decorators: [
     (Story) => (
-      <div className="flex min-h-[220px] items-center justify-center p-12">
+      <div className="flex min-h-55 items-center justify-center p-12">
         <Story />
       </div>
     ),
@@ -108,5 +108,20 @@ export const LabelledByTitle: Story = {
     await expect(
       within(canvasElement).getByRole('dialog', { name: '알림 설정을 켜보세요' }),
     ).toBeInTheDocument();
+  },
+};
+
+/** 닫으면 포커스가 열기 전 요소(앵커)로 돌아온다. */
+export const RestoresFocusOnClose: Story = {
+  tags: ['!autodocs'],
+  args: { open: false },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const anchor = canvas.getByRole('button', { name: '앵커' });
+    await userEvent.click(anchor);
+    await expect(canvas.getByRole('dialog')).toBeInTheDocument();
+    await userEvent.keyboard('{Escape}');
+    await expect(canvas.queryByRole('dialog')).not.toBeInTheDocument();
+    await expect(anchor).toHaveFocus();
   },
 };

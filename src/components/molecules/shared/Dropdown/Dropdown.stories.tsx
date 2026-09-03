@@ -50,7 +50,7 @@ const meta = {
   parameters: { layout: 'padded' },
   decorators: [
     (Story) => (
-      <div className="min-h-[320px] max-w-sm">
+      <div className="min-h-80 max-w-sm">
         <Story />
       </div>
     ),
@@ -89,6 +89,16 @@ export const Text: Story = {
 
 export const Disabled: Story = {
   args: { disabled: true, value: 'recommend' },
+};
+
+/** 옵션이 없을 때 — 트리거는 placeholder 를 유지하고 열리지 않는다. */
+export const Empty: Story = {
+  args: { options: [], value: null },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('combobox'));
+    await expect(canvas.queryByRole('listbox')).not.toBeInTheDocument();
+  },
 };
 
 /** 열린 상태 — 트리거를 누르면 listbox 가 뜨고 선택값이 강조된다. */

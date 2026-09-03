@@ -20,7 +20,7 @@ function OrderItem({
 }) {
   return (
     <div className="flex gap-3">
-      <div className="bg-fg-disabled size-[54px] shrink-0 rounded-s" />
+      <div className="bg-fg-disabled aspect-3/4 w-13.5 shrink-0 rounded-s" />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <p className="text-heading-6 text-fg">{name}</p>
         <div className="flex items-center gap-1">

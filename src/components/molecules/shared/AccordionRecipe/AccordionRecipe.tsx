@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 import { Accordion } from '@/components/molecules/shared/Accordion';
 
 /**
@@ -82,7 +84,17 @@ export function AccordionRecipe({
               key={`${item.name}-${i}`}
               className="border-border bg-surface rounded-m flex items-center gap-2 border px-3 py-2"
             >
-              <div className="bg-fg-disabled size-[60px] shrink-0 rounded-s" />
+              <div className="bg-fg-disabled relative size-15 shrink-0 overflow-hidden rounded-s">
+                {item.thumbnailUrl ? (
+                  <Image
+                    src={item.thumbnailUrl}
+                    alt=""
+                    fill
+                    sizes="60px"
+                    className="object-cover"
+                  />
+                ) : null}
+              </div>
               <div className="flex min-w-0 flex-col gap-1">
                 {item.badge ? (
                   <span className="bg-surface-secondary text-caption-m text-fg-secondary inline-flex h-6 items-center self-start rounded-full px-2">
