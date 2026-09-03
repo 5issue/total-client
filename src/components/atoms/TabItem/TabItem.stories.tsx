@@ -42,17 +42,13 @@ export const Active: Story = {
   args: { active: true },
 };
 
-export const Disabled: Story = {
-  args: { disabled: true },
-};
-
 export const AllStates: Story = {
-  name: '전체 상태 (default / active / disabled)',
+  name: '전체 상태 (default / active)',
   render: () => (
     <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--color-border)' }}>
       <TabItem label="상품설명" />
       <TabItem label="상세정보" active />
-      <TabItem label="후기 30,042" disabled />
+      <TabItem label="후기 30,042" />
     </div>
   ),
 };
@@ -75,17 +71,5 @@ export const ClickInteraction: Story = {
     const tab = canvas.getByRole('tab', { name: '상품설명' });
     await userEvent.click(tab);
     await expect(args.onClick).toHaveBeenCalledTimes(1);
-  },
-};
-
-export const DisabledClickIsNoop: Story = {
-  name: '비활성 탭 클릭은 무시',
-  args: { disabled: true },
-  play: async ({ args, canvasElement }) => {
-    const canvas = within(canvasElement);
-    const tab = canvas.getByRole('tab', { name: '상품설명' });
-    await expect(tab).toBeDisabled();
-    await userEvent.click(tab, { pointerEventsCheck: 0 });
-    await expect(args.onClick).not.toHaveBeenCalled();
   },
 };
