@@ -11,6 +11,11 @@ import { forwardRef, type KeyboardEventHandler } from 'react';
  * 그룹마다 active 색이 다르다(상품설명=Brand-Secondary, 카테고리=Static-Black,
  * 추천=Brand-Primary) — `tone` 으로 선택. 추천 탭은 폰트 스케일도 다르다
  * (Label/M 14px SemiBold vs 나머지 Heading/M 18px Medium) — `size` 로 선택.
+ *
+ * lg 탭은 Figma 실측(node 2429-1850, dev-mode 간격 측정) 기준 슬롯이 최소 96px
+ * (`min-width`, 넘치는 라벨은 폰트 축소 없이 자연스럽게 더 넓어짐)이다. Gap/XS(8px)는
+ * 프레임 사이 간격이 아니라 프레임↔텍스트 내부 패딩(`px-2`) — TabBar 는 아이템끼리
+ * gap 없이 바로 붙인다.
  */
 export type TabItemTone = 'brand-secondary' | 'brand-primary' | 'black';
 export type TabItemSize = 'sm' | 'lg';
@@ -23,16 +28,15 @@ const TONE_CLASSNAME: Record<TabItemTone, string> = {
 
 const SIZE_CLASSNAME: Record<TabItemSize, string> = {
   sm: 'text-label-l',
-  lg: 'text-heading-2',
+  lg: 'min-w-24 text-heading-2',
 };
 
 export type TabItemProps = {
   label: string;
   active?: boolean;
-  disabled?: boolean;
   /** active 상태 색. 기본 brand-secondary(#50006B, 상품설명 등 콘텐츠 탭) */
   tone?: TabItemTone;
-  /** 기본 lg(Heading/M 18px). 추천 키워드 탭처럼 작은 맥락은 sm(Label/M 14px) */
+  /** 기본 lg(Heading/M 18px, 최소폭 96px). 추천 키워드 탭처럼 작은 맥락은 sm(Label/M 14px) */
   size?: TabItemSize;
   /** roving tabIndex — TabBar 가 관리(활성 탭만 0, 나머지 -1). 단독 사용 시 기본 포커스 가능(0) */
   tabIndex?: number;
@@ -45,7 +49,6 @@ export const TabItem = forwardRef<HTMLButtonElement, TabItemProps>(function TabI
   {
     label,
     active = false,
-    disabled = false,
     tone = 'brand-secondary',
     size = 'lg',
     tabIndex = 0,
@@ -55,11 +58,7 @@ export const TabItem = forwardRef<HTMLButtonElement, TabItemProps>(function TabI
   },
   ref,
 ) {
-  const colorClassName = disabled
-    ? 'border-transparent text-fg-disabled'
-    : active
-      ? TONE_CLASSNAME[tone]
-      : 'border-transparent text-fg-secondary';
+  const colorClassName = active ? TONE_CLASSNAME[tone] : 'border-transparent text-fg-secondary';
 
   return (
     <button
@@ -67,11 +66,10 @@ export const TabItem = forwardRef<HTMLButtonElement, TabItemProps>(function TabI
       type="button"
       role="tab"
       aria-selected={active}
-      disabled={disabled}
       tabIndex={tabIndex}
       onClick={onClick}
       onKeyDown={onKeyDown}
-      className={`flex h-11 min-w-11 shrink-0 items-center justify-center border-b-2 px-1 whitespace-nowrap transition-colors motion-reduce:transition-none ${colorClassName} ${SIZE_CLASSNAME[size]} ${className ?? ''}`.trim()}
+      className={`flex h-11 min-w-11 shrink-0 items-center justify-center border-b-2 px-2 whitespace-nowrap transition-colors motion-reduce:transition-none ${colorClassName} ${SIZE_CLASSNAME[size]} ${className ?? ''}`.trim()}
     >
       {label}
     </button>

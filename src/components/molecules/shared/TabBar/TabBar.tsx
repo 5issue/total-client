@@ -8,13 +8,16 @@ import { TabItem, type TabItemSize, type TabItemTone } from '@/components/atoms/
  * TabItem 리스트를 감싸는 컨테이너 (Figma "Tab_Bar" / "Tab_Bar_Ver2").
  * 상태는 갖지 않는 컨트롤드 컴포넌트 — 어떤 탭이 활성인지는 activeId 로 받고,
  * 선택이 바뀌면 onChange 로만 알린다(상태 소유는 부모 organism/page 몫).
- * WAI-ARIA tablist 패턴대로 roving tabIndex + 방향키(← → Home End) 이동을 관리한다
- * (비활성 탭은 건너뜀). 방향키로 포커스가 옮겨가면 즉시 activate(automatic activation).
+ * WAI-ARIA tablist 패턴대로 roving tabIndex + 방향키(← → Home End) 이동을 관리한다.
+ * 방향키로 포커스가 옮겨가면 즉시 activate(automatic activation).
+ *
+ * 컨테이너는 Figma dev-mode 실측 기준 `padding: 0 8px` 만 갖고 아이템끼리는 gap 없이
+ * 바로 붙는다 — Gap/XS(8px)는 프레임 사이 간격이 아니라 각 TabItem 자신의 내부
+ * 패딩(프레임↔텍스트)이다. 탭 사이 여백은 각 아이템의 내부 패딩만으로 만들어진다.
  */
 export type TabBarItem = {
   id: string;
   label: string;
-  disabled?: boolean;
 };
 
 export type TabBarProps = {
@@ -41,7 +44,7 @@ export function TabBar({
   className,
 }: TabBarProps) {
   const buttonRefs = useRef(new Map<string, HTMLButtonElement>());
-  const enabledIds = items.filter((item) => !item.disabled).map((item) => item.id);
+  const ids = items.map((item) => item.id);
 
   function focusAndActivate(id: string) {
     buttonRefs.current.get(id)?.focus();
@@ -49,27 +52,27 @@ export function TabBar({
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>, currentId: string) {
-    const currentIndex = enabledIds.indexOf(currentId);
-    if (currentIndex === -1 || enabledIds.length === 0) return;
+    const currentIndex = ids.indexOf(currentId);
+    if (currentIndex === -1 || ids.length === 0) return;
 
     let nextIndex: number;
     switch (event.key) {
       case 'ArrowRight':
-        nextIndex = (currentIndex + 1) % enabledIds.length;
+        nextIndex = (currentIndex + 1) % ids.length;
         break;
       case 'ArrowLeft':
-        nextIndex = (currentIndex - 1 + enabledIds.length) % enabledIds.length;
+        nextIndex = (currentIndex - 1 + ids.length) % ids.length;
         break;
       case 'Home':
         nextIndex = 0;
         break;
       case 'End':
-        nextIndex = enabledIds.length - 1;
+        nextIndex = ids.length - 1;
         break;
       default:
         return;
     }
-    const nextId = enabledIds[nextIndex];
+    const nextId = ids[nextIndex];
     if (!nextId) return;
     event.preventDefault();
     focusAndActivate(nextId);
@@ -78,7 +81,7 @@ export function TabBar({
   return (
     <div
       role="tablist"
-      className={`border-border flex border-b ${fitted ? '' : 'overflow-x-auto'} ${className ?? ''}`.trim()}
+      className={`border-border flex border-b px-2 ${fitted ? '' : 'overflow-x-auto'} ${className ?? ''}`.trim()}
     >
       {items.map((item) => (
         <TabItem
@@ -89,7 +92,6 @@ export function TabBar({
           }}
           label={item.label}
           active={item.id === activeId}
-          disabled={item.disabled}
           tabIndex={item.id === activeId ? 0 : -1}
           tone={tone}
           size={size}
