@@ -9,22 +9,16 @@ import type { ReactNode } from 'react';
  *   `role="status"`(code-style §5 "동적 영역 알림").
  * - 실제 배치(화면 하단 고정 등)와 등장/퇴장 애니메이션은 이 atom의 책임이 아니다 —
  *   사용하는 organism/컨테이너가 위치를 잡는다.
- * - `default`의 아이콘("Icon/Ic/20/Card", node 3050:2865)은 Figma에 vector 데이터가
- *   없는 raster 전용 에셋이라(`download_assets` 확인 결과 `svgAssets: []`) 기존
- *   `Icon` 아톰(SVG 레지스트리) 대신 `public/graphic-icons/toast-card.webp` 로 받아
- *   `next/image` 로 그린다 — 그래서 `icon` prop 은 `IconName` 이 아니라 `ReactNode`로
- *   받는다(Card atom의 `icon` prop 과 동일한 이유·패턴).
- * - `default` 텍스트는 Figma에 `Pretendard:Bold`로 바인딩돼 있어(프로젝트
- *   `text-label-l` 자체는 600) `font-bold` 로 굵기만 덮어씀. 예시 카피가 두 색(흰색
- *   + `#F8EEFB`/brand-50 옅은 보라)으로 나뉘어 있었는데, 이건 특정 문구의 강조
- *   표현이라 컴포넌트가 강제하지 않고 `children` 을 통해 호출부가 구성한다(Card 의
- *   title/subtitle 과 동일한 원칙).
- * - `error` 는 아이콘이 없고, 모양 자체가 pill 이 아니라 카드형(`rounded-m`, 상하좌우
- *   균등 패딩, `shadow-m`)이라 `default` 와 클래스를 공유하지 않고 완전히 분리했다.
- * - `error` 는 hug-contents 가 아니라 실측 고정폭이다 — Figma 프레임이 385px 인데
- *   안쪽 텍스트("배송 상세정보를 입력해주세요.")보다 뚜렷하게 넓어서(내용에 딱
- *   맞췄다면 남는 여백이 없어야 함) 의도된 고정폭으로 판단, `w-96`(384px, 가장
- *   가까운 Tailwind 표준값)을 적용함.
+ * - `default`의 아이콘(node 3050:2865)은 Figma에 벡터 데이터가 없는 raster 전용
+ *   에셋이라 `public/graphic-icons/toast-card.webp`로 받아 `next/image`로 그린다 —
+ *   그래서 `icon` prop은 `IconName`이 아니라 `ReactNode`로 받는다(Card atom과 동일
+ *   패턴).
+ * - `default` 텍스트는 Figma에서 Bold 굵기라 `font-bold`로 덮어쓴다(`text-label-l`
+ *   자체 굵기는 600). 문구 일부를 다른 색으로 강조하는 건 컴포넌트가 강제하지 않고
+ *   `children`을 통해 호출부가 구성한다(Card의 title/subtitle과 동일한 원칙).
+ * - `error`는 아이콘이 없고 pill이 아니라 카드형(`rounded-m`, 균등 패딩, `shadow-m`)
+ *   이라 `default`와 클래스를 공유하지 않는다. 폭은 hug-contents가 아니라 Figma
+ *   실측 고정폭(385px → `w-96`)이다.
  */
 export type ToastVariant = 'default' | 'error';
 

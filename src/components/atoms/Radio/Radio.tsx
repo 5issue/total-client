@@ -9,37 +9,19 @@ import type { InputHTMLAttributes } from 'react';
  * Figma "5팀 디자인 시스템" — node 2426-1195 "Checkbox" 섹션 중 "Radio" 프레임
  * (Radio_Purple/Radio_Check/Radio_Black × Default/Selected/Disabled).
  *
- * 각 상태를 실제 벡터(path) 단위로 다시 뽑아 렌더링까지 확인해 정정함(이전 두 차례
- * 잘못된 가정이 있었음 — 채움을 selected 때만 흰색으로 바꾼다고 했다가, 그다음엔
- * 상시 회색(#C6C6C6) 채움이 있다고 했었는데, 둘 다 틀렸다):
- * - 채움은 **disabled 일 때만** 존재한다(`surface-secondary`, #F0F5F8). Default/Selected
- *   는 채움이 아예 없다(투명 — 뒤 배경이 그대로 비친다).
- * - 선택 여부는 테두리 **색+굵기**로만 표현한다: Default(얇음, neutral-400) →
- *   Selected(굵음, 톤 색). Disabled 는 ring variant 만 테두리 색이 neutral-500(다른
- *   회색조 — neutral-400 대비 밝기가 아니라 색상만 다름)으로 바뀐다 — check variant 는
- *   disabled 여도 테두리가 default 와 동일(neutral-400, 안 바뀜).
- * - 굵기 실측(9개 노드 SVG 좌표를 직접 다운받아 중심 대비 반지름으로 역산, 2026-09-04
- *   재검증): 아이콘 자체는 28×28 프레임 안에서 지름 23.33px 로 그려진다(프레임에 여백
- *   2.33px 포함 — 28px 는 프레임 크기이지 도형 지름이 아니다). Default/Disabled 링
- *   두께 ≈ 1.73px(지름 대비 7.4%) 는 두 variant 공통. Selected 는 **variant 별로 다르다**
- *   — `ring`(Purple/Black) 은 두 도넛 조각(반지름 5.84→9.33, 9.33→11.67)이 이어붙어
- *   두께 ≈ 5.83px(지름 대비 25%, 거의 1/4)이지만, `check` 는 체크마크가 들어갈 안쪽
- *   구멍을 남겨둬야 해서 바깥쪽 도넛 조각 하나(반지름 9.33→11.67)만 쓰고 두께 ≈
- *   2.33px(지름 대비 10%)로 Default 와 큰 차이가 없다. 28px 박스 기준 Tailwind 굵기
- *   (0/1/2/4/8) 로 매핑하면 Default `border-2`(7.1%, 근접), ring Selected `border-8`
- *   (28.6%, 25%에 근접) 인데, check Selected 는 목표 10%에 `border-2`(7.1%) 가
- *   `border-4`(14.3%) 보다 더 가까워 **check 는 selected 여도 굵기를 바꾸지 않는다**
- *   (대괄호 임의값 금지, code-style §6-1). 처음에 두 variant 를 구분하지 않고
- *   `checked:border-8` 을 공통 베이스에 넣었다가, 두꺼워진 링 안쪽 구멍(28-16=12px)이
- *   체크마크 자체 크기(size-3.5=14px)보다 작아져 체크가 도넛 구멍을 다 가리고 꽉 찬
- *   원처럼 보이는 회귀가 생겨 정정함 — variant 별 별도 클래스로 분리했다.
- * - `variant="check"`: 체크마크는 **모든 상태에서 항상** 그려지고(Default/Disabled 는
- *   테두리와 같은 옅은 색), selected 일 때만 primary 색으로 바뀐다.
- *   check+black 조합은 Figma 예시가 없어(purple만 확인) 타입에서 차단한다(Badge
- *   purple+large 차단과 동일 근거).
- * - 시각적 라벨 텍스트는 컴포넌트가 그리지 않는다(Figma 컴포넌트 자체에 텍스트가 없음) —
- *   접근성 이름은 항상 `label`(sr-only)이 담당하고, 화면에 보이는 라벨은 이 atom을 쓰는
- *   molecule(예: 주소 선택 행)이 별도로 구성한다.
+ * - 채움은 disabled 일 때만 있다(`surface-secondary`) — Default/Selected는 투명.
+ * - 선택 여부는 테두리 색+굵기로 표현한다: Default(얇음, neutral-400) → Selected(굵음,
+ *   톤 색). Disabled는 ring variant만 테두리 색이 neutral-500으로 바뀐다(check는
+ *   Default와 동일하게 유지).
+ * - 굵기는 variant별로 다르다: ring은 Figma 실측 두께 비율(지름 대비 25%)에 맞춰
+ *   selected 시 `border-8`을 쓰지만, check는 안쪽에 체크마크가 들어갈 자리를 남겨둬야
+ *   해서 두께 차이가 작고(10%) selected여도 `border-2`를 그대로 유지한다(대괄호
+ *   임의값 금지, code-style §6-1).
+ * - check variant의 체크마크는 모든 상태에서 항상 그려지고(비선택 시 테두리와 같은
+ *   옅은 색), selected일 때만 톤 색으로 바뀐다. check+black 조합은 Figma 예시가 없어
+ *   타입에서 차단한다.
+ * - 시각적 라벨 텍스트는 그리지 않는다 — 접근성 이름은 `label`(sr-only)이 담당하고,
+ *   화면 라벨은 이 atom을 쓰는 molecule이 구성한다.
  */
 export type RadioTone = 'purple' | 'black';
 

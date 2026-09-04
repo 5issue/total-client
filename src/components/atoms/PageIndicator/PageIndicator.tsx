@@ -6,12 +6,9 @@
  * 이름이 헷갈릴 수 있는데 용도가 다르다 — 이쪽은 라벨 없이 순수 위치 표시용.
  *
  * Figma 실측: 비활성 점 = 검정 30% 불투명도, 활성 점만 톤 색(black/purple) 100%.
- * black(2428:1857)은 점 3개·8px 점·8px 간격, purple(2428:1858)은 점 **2개**·
- * **6px** 점·**6px** 간격으로 서로 다르다(2026-09-04 재검증, index 1/2 두 상태
- * 모두 확인) — 처음엔 tone 상관없이 8px/8px 하나로 고정했었는데 purple 도 같은
- * 크기를 썼던 게 틀림, `TONE_DOT_CLASSNAME`/`TONE_GAP_CLASSNAME` 으로 분리함.
- * `count`/`activeIndex` 는 호출부가 정하는 값이라 강제하지 않지만, Figma에 정의된
- * purple 예시는 항상 2개뿐이었다.
+ * black은 점 8px·간격 8px, purple은 점 6px·간격 6px 로 크기 자체가 다르다
+ * (`TONE_DOT_CLASSNAME`/`TONE_GAP_CLASSNAME`). `count`/`activeIndex` 는 호출부가
+ * 정하는 값이라 강제하지 않지만, Figma에 정의된 purple 예시는 항상 점 2개뿐이었다.
  * 표시 전용, 상호작용 없음(RSC 유지).
  */
 export type PageIndicatorTone = 'black' | 'purple';
