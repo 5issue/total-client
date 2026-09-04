@@ -53,10 +53,7 @@ export const CheckVariantUnselected: Story = {
   args: { variant: 'check' },
 };
 
-/**
- * Figma 원본 스펙 시트와 동일한 배치(행: Radio_Purple/Radio_Check/Radio_Black,
- * 열: Default/Selected/Disabled)로 9개 상태를 한 화면에서 비교한다.
- */
+/** 행: Radio_Purple/Radio_Check/Radio_Black, 열: Default/Selected/Disabled 로 9개 상태를 한 화면에서 비교한다. */
 export const AllStates: Story = {
   render: () => {
     const columns = ['Default', 'Selected', 'Disabled'] as const;
