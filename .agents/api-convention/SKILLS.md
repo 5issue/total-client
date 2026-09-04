@@ -247,7 +247,7 @@ useMutation({
 - [ ] mutation 은 기본 `invalidateQueries`. Optimistic 필요 시 §7 의 3질문 PR 답변
 - [ ] 인증 필요 여부 확인 → `privateFetch` + Route Handler 경유
 - [ ] 에러 경로(4xx/5xx) 처리 확인: 훅 `error` 로 전달되는지, 화면 표시 방식 합의
-- [ ] 이 훅을 소비하는 **화면/organism 컨테이너**의 로딩·에러·빈 상태 UI 정의 (표현 컴포넌트가 아니라 컨테이너 계층 — structure §6-1, code-style §3-1)
+- [ ] 이 훅을 소비하는 **화면/organism 컨테이너**의 로딩·에러 상태 UI 정의 (리스트 응답이면 빈 상태도). 표현 컴포넌트가 아니라 컨테이너 계층 — structure §6-1, code-style §3-1
 - [ ] `security-convention` 의 FE-03(민감정보 로깅 금지), FE-07(응답 검증) 위반 없는지 확인
 
 ---
