@@ -60,12 +60,14 @@
 > **스펙 출처 (structure §6-1)**: 상태값 목록·인터랙션 조건은 디자인팀 핸드오프 기준.
 > 수치·간격·컬러·radius 등 구체 스펙은 **FE 가 Figma 에서 직접 확정**한다(MCP `get_design_context` / `get_variable_defs`, 값 1:1).
 > 디자인팀 스펙 문서를 기다리지 말 것. 상태 커버리지(step 4)를 수치보다 먼저 챙긴다.
+>
+> **상태 목록은 컴포넌트마다 다르다** — 핸드오프에 있는 상태만 다룬다. 설계상 없는 상태(Calendar 의 loading 등)를 위해 분기·스토리·prop 을 만들지 않는다. (structure §6-1 "⭐ 상태 커버리지" 참고)
 
 1. **계층 결정.** atom / molecule / organism 중 무엇인지, 어느 도메인 폴더인지 먼저 정한다.
 2. **Props 인터페이스.** 무엇을 받는지 타입으로 확정. 필수/선택 구분.
 3. **표현(presentational) 컴포넌트 구현.** 데이터 fetch 없음. props 로만 렌더. `"use client"` 는 상호작용이 있을 때만.
-4. **상태별 분기 정리.** default / loading / empty / error / disabled / (스켈레톤). 디자인팀이 넘긴 상태값 목록을 기준으로, 각 상태를 컴포넌트가 표현 가능해야 한다.
-5. **(스코프 2) 스토리 작성.** 상태별 스토리 + `play` 함수 인터랙션 테스트. 파일은 컴포넌트 옆에 co-location(`ProductThumbnail.stories.tsx`).
+4. **상태별 분기 정리.** 디자인팀이 그 컴포넌트에 대해 넘긴 상태값 목록(structure §6-1)에 있는 상태만 분기한다. `default` 는 항상, `loading`/`empty`/`error`/`disabled`/스켈레톤 등은 **그 목록에 있을 때만**. 목록에 없는 상태는 만들지 않는다.
+5. **(스코프 2) 스토리 작성.** step 4 에서 정리한 상태마다 스토리 1개 + 상호작용은 `play` 함수 인터랙션 테스트. 파일은 컴포넌트 옆에 co-location(`ProductThumbnail.stories.tsx`).
 6. **컨테이너/훅 연결.** `hooks/<domain>/` 의 query hook 을 붙인 wrapper(organism 컨테이너 또는 `page.tsx`)를 별도로.
 7. **접근성 점검.** §5 체크리스트 통과.
 8. **문서화.** 복잡한 props 는 JSDoc.
