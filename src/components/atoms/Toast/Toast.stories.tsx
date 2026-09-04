@@ -19,6 +19,11 @@ const meta = {
       />
     ),
   },
+  argTypes: {
+    variant: { control: 'select', options: ['default', 'error'] },
+    icon: { control: false },
+    children: { control: false },
+  },
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
 } satisfies Meta<typeof Toast>;

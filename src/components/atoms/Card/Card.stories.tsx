@@ -13,6 +13,12 @@ const meta = {
     title: '컬리 큐레이터',
     subtitle: '시작하기',
   },
+  argTypes: {
+    variant: { control: 'select', options: ['surface', 'plain'] },
+    icon: { control: false },
+    title: { control: false },
+    subtitle: { control: false },
+  },
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
 } satisfies Meta<typeof Card>;

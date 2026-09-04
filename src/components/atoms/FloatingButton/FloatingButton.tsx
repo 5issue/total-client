@@ -25,8 +25,8 @@ export interface FloatingButtonProps extends ButtonHTMLAttributes<HTMLButtonElem
   variant?: FloatingButtonVariant;
   /** 장식용(aria-hidden)으로 렌더한다 — 접근 가능한 이름은 항상 children 텍스트가 담당. */
   icon?: IconName;
-  /** 아이콘 전용 사용은 미지원이라 항상 필수. */
-  children: ReactNode;
+  /** 아이콘 전용 사용은 미지원이라 항상 필수(`null` 도 금지 — 접근 가능한 이름 보장). */
+  children: NonNullable<ReactNode>;
 }
 
 const VARIANT_CLASSNAME: Record<FloatingButtonVariant, string> = {

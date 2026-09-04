@@ -24,7 +24,7 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const SecondActive: Story = {
-  args: { activeIndex: 1 },
+  args: { activeIndex: 1, 'aria-label': '배너 3개 중 2번째' },
 };
 
 /** Figma purple 예시(2428:1858)는 항상 점 2개뿐이다(black 은 3개). */

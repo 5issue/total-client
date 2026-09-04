@@ -60,7 +60,11 @@ export function Toast({ variant = 'default', icon, children, className }: ToastP
         .filter(Boolean)
         .join(' ')}
     >
-      {icon ? <span className="shrink-0">{icon}</span> : null}
+      {icon ? (
+        <span aria-hidden="true" className="shrink-0">
+          {icon}
+        </span>
+      ) : null}
       {children}
     </div>
   );
