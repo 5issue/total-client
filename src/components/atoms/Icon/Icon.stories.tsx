@@ -5,9 +5,11 @@ import { ICONS, type IconName } from './icons.generated';
 
 const ICON_NAMES = Object.keys(ICONS) as IconName[];
 
-// pause/play 는 색이 고정된 흰색 글리프라 어두운/색 있는 원형 버튼 위에 쓰도록 디자인됐다.
+// pause/right-small 은 색이 고정된 흰색 글리프라 어두운/색 있는 원형 버튼 위에 쓰도록 디자인됐다.
 // 그리드 배경(흰색)에서는 안 보이므로 QA용으로만 어두운 칩 위에 올린다.
-const FIXED_WHITE_ICONS = new Set<IconName>(['pause', 'play']);
+// right-small: Figma 레이어명이 원래 "Pause"였으나 실제 글리프는 화살표라 디자이너가
+// "Right_Small"로 정정(#43) — 예전 임시명 "play"는 폐기.
+const FIXED_WHITE_ICONS = new Set<IconName>(['pause', 'right-small']);
 
 const meta = {
   title: 'atoms/Icon',
