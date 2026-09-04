@@ -89,6 +89,13 @@ export const Text: Story = {
 
 export const Disabled: Story = {
   args: { disabled: true, value: 'recommend' },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const trigger = canvas.getByRole('combobox');
+    await expect(trigger).toBeDisabled();
+    await userEvent.click(trigger);
+    await expect(canvas.queryByRole('listbox')).not.toBeInTheDocument();
+  },
 };
 
 /**
