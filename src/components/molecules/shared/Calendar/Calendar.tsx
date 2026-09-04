@@ -111,11 +111,11 @@ function buildWeeks(month: Date): (Date | null)[][] {
 
 /** 탭 타깃은 44px(접근성 §5), 보이는 원은 Figma 스펙대로 36px. */
 const NAV_BUTTON =
-  'text-fg-secondary disabled:text-fg-disabled flex size-11 items-center justify-center disabled:cursor-not-allowed';
+  'text-fg-secondary disabled:text-fg-disabled focus-visible:outline-border-active flex size-11 items-center justify-center rounded-full outline-offset-2 focus-visible:outline-2 disabled:cursor-not-allowed';
 const NAV_CIRCLE = 'border-border flex size-9 items-center justify-center rounded-full border';
 
 const DAY_BASE =
-  'text-label-m flex size-11 items-center justify-center rounded-full transition-colors';
+  'text-label-m focus-visible:outline-border-active flex size-11 items-center justify-center rounded-full outline-offset-2 transition-colors focus-visible:outline-2';
 
 export function Calendar({
   value,
@@ -170,10 +170,19 @@ export function Calendar({
     setFocusedDate(clampDayOfMonth(next, focusedDate.getDate()));
   }
 
+  // 방향키/Home/End/PageUp/PageDown 이동도 이전·다음 달 버튼과 같은 min/max 경계를 지켜야 한다.
+  // 그렇지 않으면 버튼은 막혀 있는데 키보드로는 그 밖 달까지 계속 진입할 수 있다.
+  function clampToRange(date: Date) {
+    if (min && date < startOfDay(min)) return startOfDay(min);
+    if (max && date > startOfDay(max)) return startOfDay(max);
+    return date;
+  }
+
   function moveFocus(next: Date) {
+    const target = clampToRange(next);
     shouldRefocus.current = true;
-    if (!isSameMonth(next, viewMonth)) setViewMonth(startOfMonth(next));
-    setFocusedDate(next);
+    if (!isSameMonth(target, viewMonth)) setViewMonth(startOfMonth(target));
+    setFocusedDate(target);
   }
 
   function selectDate(date: Date) {

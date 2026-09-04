@@ -155,6 +155,31 @@ export const KeyboardMonthJump: Story = {
   },
 };
 
+/**
+ * 방향키/PageUp/PageDown 으로도 min/max 경계를 넘어갈 수 없어야 한다.
+ * (리뷰 지적: 이전·다음 달 버튼은 경계에서 비활성화되지만, 키보드 이동은 경계를
+ * 확인하지 않아 그 밖 달까지 계속 진입할 수 있었다.)
+ */
+export const KeyboardStaysWithinRange: Story = {
+  tags: ['!autodocs'],
+  args: {
+    value: new Date(2026, 8, 15),
+    min: new Date(2026, 8, 8),
+    max: new Date(2026, 8, 22),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    canvas.getByRole('button', { name: /2026년 9월 15일/ }).focus();
+    await userEvent.keyboard('{PageDown}');
+    // max(9/22) 를 넘어가지 않고 그 날짜로 고정되며, 표시 월도 9월 그대로여야 한다.
+    await expect(canvas.getByRole('grid')).toHaveAccessibleName('2026년 9월');
+    await expect(canvas.getByRole('button', { name: /2026년 9월 22일/ })).toHaveFocus();
+    await userEvent.keyboard('{PageDown}');
+    await expect(canvas.getByRole('grid')).toHaveAccessibleName('2026년 9월');
+    await expect(canvas.getByRole('button', { name: /2026년 9월 22일/ })).toHaveFocus();
+  },
+};
+
 /** 비활성 날짜는 클릭해도 선택되지 않는다. */
 export const DisabledDatesNotSelectable: Story = {
   tags: ['!autodocs'],
