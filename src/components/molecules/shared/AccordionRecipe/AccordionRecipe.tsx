@@ -19,6 +19,11 @@ export interface AccordionRecipeIngredient {
 export interface AccordionRecipeOwnedItem {
   name: string;
   badge?: string;
+  /**
+   * 썸네일 이미지. `public/` 기준 내부 절대 경로(`/…`)만 지원한다.
+   * 외부 URL 은 `next.config` `images.remotePatterns` 설정이 필요해 렌더하지 않고
+   * placeholder 로 대체된다.
+   */
   thumbnailUrl?: string;
 }
 
@@ -85,7 +90,7 @@ export function AccordionRecipe({
               className="border-border bg-surface rounded-m flex items-center gap-2 border px-3 py-2"
             >
               <div className="bg-fg-disabled relative size-15 shrink-0 overflow-hidden rounded-s">
-                {item.thumbnailUrl ? (
+                {item.thumbnailUrl?.startsWith('/') ? (
                   <Image
                     src={item.thumbnailUrl}
                     alt=""

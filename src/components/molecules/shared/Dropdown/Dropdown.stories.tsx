@@ -91,12 +91,27 @@ export const Disabled: Story = {
   args: { disabled: true, value: 'recommend' },
 };
 
+/**
+ * 옵션을 불러오는 중 — 상위(쿼리 훅)가 `disabled` + 안내 placeholder 로 표현한다.
+ * Dropdown 은 표현 컴포넌트라 로딩/에러 상태를 직접 갖지 않는다(code-style §3-1).
+ */
+export const Loading: Story = {
+  args: { disabled: true, options: [], value: null, placeholder: '불러오는 중…' },
+  play: async ({ canvasElement }) => {
+    const trigger = within(canvasElement).getByRole('combobox');
+    await expect(trigger).toBeDisabled();
+    await expect(trigger).toHaveTextContent('불러오는 중…');
+  },
+};
+
 /** 옵션이 없을 때 — 트리거는 placeholder 를 유지하고 열리지 않는다. */
 export const Empty: Story = {
   args: { options: [], value: null },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await userEvent.click(canvas.getByRole('combobox'));
+    const trigger = canvas.getByRole('combobox');
+    await userEvent.click(trigger);
+    await expect(trigger).toHaveTextContent('선택하기');
     await expect(canvas.queryByRole('listbox')).not.toBeInTheDocument();
   },
 };
