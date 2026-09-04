@@ -172,3 +172,21 @@ export const DisabledDatesNotSelectable: Story = {
     await expect(args.onChange).toHaveBeenCalledTimes(1);
   },
 };
+
+/**
+ * roving tabIndex 불변식 — `value`(10월)와 `defaultMonth`(9월)의 달이 달라
+ * `focusedDate` 가 표시 월 밖이어도, 그리드 안에 `tabIndex=0` 셀이 정확히 하나
+ * 있어야 키보드로 진입할 수 있다.
+ */
+export const GridIsKeyboardReachable: Story = {
+  tags: ['!autodocs'],
+  args: { value: new Date(2026, 9, 15), defaultMonth: SEPT_2026 },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole('grid')).toHaveAccessibleName('2026년 9월');
+    const tabbable = within(canvas.getByRole('grid'))
+      .getAllByRole('button')
+      .filter((b) => b.getAttribute('tabindex') === '0');
+    await expect(tabbable).toHaveLength(1);
+  },
+};

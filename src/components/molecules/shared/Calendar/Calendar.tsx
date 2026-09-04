@@ -145,6 +145,15 @@ export function Calendar({
   const today = startOfDay(new Date());
   const weeks = buildWeeks(viewMonth);
 
+  // roving tabIndex 대상은 항상 표시 중인 달 안에 있어야 한다(APG grid). `focusedDate` 가
+  // 이탈했으면(예: defaultMonth 만 지정 + value=null, 외부 value 변경) 선택일이 보이면 그것,
+  // 아니면 그 달 1일로 클램프 — 그래야 키보드로 그리드에 진입할 수 있다.
+  const focusTarget = isSameMonth(focusedDate, viewMonth)
+    ? focusedDate
+    : value && isSameMonth(value, viewMonth)
+      ? startOfDay(value)
+      : startOfMonth(viewMonth);
+
   function isDisabledDate(date: Date) {
     const d = startOfDay(date);
     if (min && d < startOfDay(min)) return true;
@@ -269,7 +278,7 @@ export function Calendar({
               const isDisabled = isDisabledDate(date);
               const isHighlighted =
                 !isSelected && !isDisabled && (isDateHighlighted?.(date) ?? false);
-              const isFocusTarget = isSameDay(date, focusedDate);
+              const isFocusTarget = isSameDay(date, focusTarget);
 
               return (
                 <span key={i} role="gridcell" aria-selected={isSelected}>
