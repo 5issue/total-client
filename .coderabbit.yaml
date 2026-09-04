@@ -1,8 +1,10 @@
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 #
-# CodeRabbit PR 자동 리뷰 설정 (issue #12)
+# CodeRabbit PR 자동 리뷰 설정 (issue #12, #41)
 # - 리뷰 규칙의 "근거"는 .agents/**/SKILLS.md 에 있다. 여기서는 그걸 경로별로 연결만 한다.
-# - 우선 로컬(CodeRabbit CLI)에서만 검증한다. GitHub App 연동·필수 체크 등록은 후속 이슈.
+# - CodeRabbit 은 GitHub App 연동돼 PR 자동 리뷰하지만 **필수 상태 체크가 아니다**(조언만).
+#   머지 게이트는 승인 리뷰어 1명 + 필수 상태 체크뿐이고, 봇 스레드 resolve 는 강제되지 않는다
+#   (git-convention S2-3, 2026-09-04 #41). 조언 반영 여부는 리뷰어·작성자가 판단한다.
 # - 스키마 검증: npx --yes ajv-cli validate -s <schema> -d .coderabbit.yaml (또는 CLI 실행 시 자동)
 
 language: 'ko-KR'
@@ -102,9 +104,15 @@ reviews:
         근거: .agents/code-style-convention/SKILLS.md §6-1.
     - path: '**/*.stories.tsx'
       instructions: >-
-        상태별 스토리(Default/Loading/Empty/Error/Disabled) + 상호작용은 play() 로 검증(storybook/test).
-        Meta 에 component·args·argTypes, tags: ["autodocs"]. 파일은 컴포넌트 옆 co-location.
-        근거: .agents/git-convention/SKILLS.md (S2-6), .agents/code-style-convention/SKILLS.md §2-2.
+        상태별 스토리는 그 컴포넌트가 실제로 갖는 상태만 다룬다. Default 는 항상,
+        Loading/Empty/Error/Disabled 등은 컴포넌트 설계(디자인 핸드오프 상태 목록)에 그 상태가
+        있을 때만 요구한다. 설계상 없는 상태(예: Calendar 에 Loading, 옵션이 정적인 select-only
+        Dropdown 에 Error, 순수 표현용 Accordion·Tooltip 에 Empty)를 위해 스토리·prop·API 를
+        새로 만들 것을 요구하지 말 것. "없는 상태가 빠졌다"는 지적하지 않는다.
+        상호작용은 play() 로 검증(storybook/test). Meta 에 component·args·argTypes,
+        tags: ["autodocs"]. 파일은 컴포넌트 옆 co-location.
+        근거: .agents/structure-convention/SKILLS.md §6-1 (상태 커버리지 = 디자인 핸드오프 목록),
+        .agents/git-convention/SKILLS.md S2-6, .agents/code-style-convention/SKILLS.md §2-2.
     - path: '.github/workflows/*.yml'
       instructions: >-
         job 이름("Lint · Type · Format · Build", "Storybook build · test")은 main·develop 브랜치 룰셋의

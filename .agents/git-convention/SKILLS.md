@@ -82,7 +82,7 @@
 - [ ] 관련 없는 파일 변경 없음(불필요한 포맷 diff 제거)
 - [ ] `console.log`, 주석 처리된 코드, 디버그 잔여물 제거
 - [ ] 새 엔드포인트면 api-convention §8 체크리스트 수행
-- [ ] UI 변경이면 상태별(로딩/빈/에러) 처리 및 스크린샷 첨부
+- [ ] UI 변경이면 **해당 컴포넌트의 상태 목록(디자인 핸드오프, structure §6-1)** 대로 처리 및 스크린샷 첨부 — 없는 상태는 만들지 않는다
 - [ ] 접근성 체크(code-style-convention §5) — 아이콘 버튼 `aria-label`, 대비, 키보드
 - [ ] 환경변수 추가 시 `.env.example` 갱신 + `src/lib/env.ts` 스키마 갱신
 - [ ] 커밋이 Conventional Commits 형식
@@ -92,20 +92,20 @@
 
 자동 도구가 못 잡는 것 위주로 본다.
 
-| 영역          | 확인                                                                                              |
-| ------------- | ------------------------------------------------------------------------------------------------- |
-| 상태 분리     | 서버 응답을 Zustand 에 넣지 않았는가? URL 상태를 로컬 state 로 복제하지 않았는가?                 |
-| 데이터 흐름   | 컴포넌트가 `fetch` 직접 호출하지 않는가? query hook 경유인가?                                     |
-| 쿼리 키       | 문자열 하드코딩 없이 키 팩토리를 쓰는가? 무효화 범위가 맞는가?                                    |
-| Optimistic    | 장바구니 외 도입 시 3가지 근거(api-convention §7)에 답했는가? 롤백/수렴 처리했는가?               |
-| RSC 경계      | `"use client"` 가 필요한 잎에만 있는가? 트리 상단에 올라가지 않았는가?                            |
-| Zustand       | 모듈 최상단 `create()` 싱글턴이 아닌가? Provider + useRef 패턴인가? useShallow 썼는가?            |
-| 접근성        | 아이콘 버튼 라벨, 링크 텍스트, 폼 라벨, 포커스, 대비                                              |
-| 이미지        | `next/image` 인가? 종횡비 고정했는가? LCP 후보만 `priority` 인가?                                 |
-| 스키마        | 응답을 Zod 로 검증하는가? 스키마 위치/명명 규칙 준수?                                             |
-| 보안          | security-convention FE 항목 위반 없는가? (특히 FE-02 XSS, FE-05 토큰 저장, FE-09 오픈 리다이렉트) |
-| 테스트/스토리 | (스코프 2) 상태별 스토리 + play 함수 있는가?                                                      |
-| 커밋/브랜치   | 브랜치 목적 단일, 커밋 형식 준수                                                                  |
+| 영역          | 확인                                                                                                     |
+| ------------- | -------------------------------------------------------------------------------------------------------- |
+| 상태 분리     | 서버 응답을 Zustand 에 넣지 않았는가? URL 상태를 로컬 state 로 복제하지 않았는가?                        |
+| 데이터 흐름   | 컴포넌트가 `fetch` 직접 호출하지 않는가? query hook 경유인가?                                            |
+| 쿼리 키       | 문자열 하드코딩 없이 키 팩토리를 쓰는가? 무효화 범위가 맞는가?                                           |
+| Optimistic    | 장바구니 외 도입 시 3가지 근거(api-convention §7)에 답했는가? 롤백/수렴 처리했는가?                      |
+| RSC 경계      | `"use client"` 가 필요한 잎에만 있는가? 트리 상단에 올라가지 않았는가?                                   |
+| Zustand       | 모듈 최상단 `create()` 싱글턴이 아닌가? Provider + useRef 패턴인가? useShallow 썼는가?                   |
+| 접근성        | 아이콘 버튼 라벨, 링크 텍스트, 폼 라벨, 포커스, 대비                                                     |
+| 이미지        | `next/image` 인가? 종횡비 고정했는가? LCP 후보만 `priority` 인가?                                        |
+| 스키마        | 응답을 Zod 로 검증하는가? 스키마 위치/명명 규칙 준수?                                                    |
+| 보안          | security-convention FE 항목 위반 없는가? (특히 FE-02 XSS, FE-05 토큰 저장, FE-09 오픈 리다이렉트)        |
+| 테스트/스토리 | 디자인 핸드오프 상태 목록대로 스토리가 있는가? **없는 상태를 억지로 만들지 않았는가?** play 함수 있는가? |
+| 커밋/브랜치   | 브랜치 목적 단일, 커밋 형식 준수                                                                         |
 
 리뷰 규모: PR 은 리뷰 가능한 크기로(변경 400줄 이하 권장). 크면 쪼갠다.
 
@@ -187,6 +187,8 @@
 > ✅ 이미 적용됨: `main protection`(main 대상), `develop protection`(develop 대상) 룰셋이
 > GitHub Repository Ruleset 으로 실제 등록돼 있다(아래 명세와 동일 조건). 신규 팀원 추가 등
 > 조건을 바꿀 때만 이 문서를 먼저 고치고 룰셋을 맞춘다.
+>
+> **2026-09-04 변경(#41)**: "대화 해결 필수"(`required_review_thread_resolution`)를 **끈다**. 사유는 아래 해당 항목 참고.
 
 `main`, `develop` 브랜치 공통 대상:
 
@@ -204,7 +206,10 @@
 - **linear history 필수** (merge commit 금지).
 - **병합 방식: Squash and merge 권장** (1 PR = 1 커밋, 커밋 메시지는 PR 제목=Conventional Commits).
   - Rebase merge 허용 가능, Merge commit 비활성화.
-- **대화(conversation) 해결 필수**: 모든 리뷰 코멘트 resolve 후 병합.
+- **대화(conversation) 해결**: GitHub 룰셋의 **필수 강제는 끈다**(`required_review_thread_resolution: false`, #41).
+  - 이유: CodeRabbit 봇이 조언성 스레드를 대량 생성하는데 GitHub 이 봇/사람 스레드를 구분하지 못해, 강제 시 "스토리 하나 더" 같은 코멘트까지 전부 머지 블로커가 된다. CodeRabbit 은 **필수 상태 체크가 아니다**(조언만 — `.coderabbit.yaml` `request_changes_workflow: false`).
+  - 실질 게이트: **승인 리뷰어 1명 + 필수 상태 체크(`Lint · Type · Format · Build`, `Storybook build · test`)**. 리뷰어는 반영이 꼭 필요한 스레드가 있으면 **승인을 보류**해 게이트한다.
+  - 봇 스레드 정리: `@coderabbitai resolve`(top-level 코멘트) 또는 GitHub UI 에서 수동 resolve. 필수는 아님.
 - 관리자에게도 규칙 적용(Include administrators), 우회는 명시적 bypass 목록으로만.
 - 태그 보호: `v*` 릴리스 태그 생성/삭제 제한.
 
@@ -277,7 +282,7 @@ head -1 "$1" | grep -Eq "$pattern" || {
 - **CDD 순서**(code-style-convention §2)를 지켜 작성: Props → 표현 컴포넌트 → 상태 분기 → **스토리** → 컨테이너 연결.
 - 스토리 필수 구성:
   - `Meta` 에 `title`(도메인 계층: `Product/ProductCard`), `component`, `args`, `argTypes`, `tags: ["autodocs"]`.
-  - **상태별 스토리**: `Default`, `Loading`, `Empty`, `Error`, `SoldOut`, `Disabled` 등 컴포넌트가 표현하는 모든 상태.
+  - **상태별 스토리**: **디자인팀이 그 컴포넌트에 대해 넘긴 상태값 목록**(structure §6-1)의 각 상태마다 1개. `Default` 는 항상, 나머지(`Loading`/`Empty`/`Error`/`SoldOut`/`Disabled` 등)는 **그 목록에 있을 때만**. 설계상 없는 상태(`Calendar` 의 로딩, 정적 옵션 select-only `Dropdown` 의 에러 등)는 스토리를 만들지 않는다 — 리뷰(사람·자동 도구)도 이를 요구하지 않는다.
   - **인터랙션 테스트**: 상호작용 있는 컴포넌트는 `play` 함수로 시나리오 검증(`@storybook/test` 의 `userEvent`, `expect`).
   - a11y 애드온(`@storybook/addon-a11y`) 활성화, 스토리별 위반 0 목표.
 - **주의사항 (flaky)**: `motion` / 애니메이션 컴포넌트는 자동 a11y 스캔이 **전환 중 스냅샷을 잡아 간헐적으로 실패**한다.
