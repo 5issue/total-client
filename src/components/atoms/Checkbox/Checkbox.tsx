@@ -32,8 +32,8 @@ export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement
   label: string;
 }
 
-// 24px 는 Figma 실측 고정값(2426:1195, 벡터 18px + 여백 3px) — 접근성 권장 44px 터치
-// 타깃에는 못 미치지만 검증된 디자인 치수를 임의로 늘리지 않는다.
+// 24px 는 Figma 실측 고정값(2426:1195, 벡터 18px + 여백 3px) — 시각 크기는 그대로 두고,
+// 44px 터치 타깃은 감싸는 label 쪽에서 확보한다(code-style §5).
 const BASE_CLASSNAME =
   'peer size-6 shrink-0 appearance-none rounded-s transition-colors ' +
   'disabled:pointer-events-none ' +
@@ -59,32 +59,37 @@ export function Checkbox({ variant = 'outline', label, id, className, ...props }
   const inputId = id ?? autoId;
 
   return (
-    <span className={['relative inline-flex', className].filter(Boolean).join(' ')}>
-      <input
-        type="checkbox"
-        id={inputId}
-        className={[BASE_CLASSNAME, VARIANT_CLASSNAME[variant]].join(' ')}
-        {...props}
-      />
-      <label htmlFor={inputId} className="sr-only">
-        {label}
-      </label>
-      <svg
-        viewBox="0 0 18 18"
-        fill="none"
-        aria-hidden
-        className={[
-          'pointer-events-none absolute inset-0 m-auto size-4.5 opacity-0 peer-checked:opacity-100',
-          'peer-disabled:text-fg-disabled',
-          VARIANT_TICK_CLASSNAME[variant],
-        ].join(' ')}
-      >
-        <path
-          d="M4.29297 8.58537L7.51248 11.8049L13.9515 5.36586"
-          stroke="currentColor"
-          strokeWidth={1.5}
+    <label
+      htmlFor={inputId}
+      className={['inline-flex size-11 items-center justify-center', className]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      <span className="relative inline-flex">
+        <input
+          type="checkbox"
+          id={inputId}
+          className={[BASE_CLASSNAME, VARIANT_CLASSNAME[variant]].join(' ')}
+          {...props}
         />
-      </svg>
-    </span>
+        <svg
+          viewBox="0 0 18 18"
+          fill="none"
+          aria-hidden
+          className={[
+            'pointer-events-none absolute inset-0 m-auto size-4.5 opacity-0 peer-checked:opacity-100',
+            'peer-disabled:text-fg-disabled',
+            VARIANT_TICK_CLASSNAME[variant],
+          ].join(' ')}
+        >
+          <path
+            d="M4.29297 8.58537L7.51248 11.8049L13.9515 5.36586"
+            stroke="currentColor"
+            strokeWidth={1.5}
+          />
+        </svg>
+      </span>
+      <span className="sr-only">{label}</span>
+    </label>
   );
 }

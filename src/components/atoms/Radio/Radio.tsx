@@ -43,8 +43,8 @@ const TONE_CHECK_CLASSNAME: Record<RadioTone, string> = {
   black: 'peer-checked:text-fg',
 };
 
-// 28px 는 Figma 실측 고정값(2426:1195) — 접근성 권장 44px 터치 타깃에는 못 미치지만
-// 검증된 디자인 치수를 임의로 늘리지 않는다(Chip h-10 과 동일한 판단).
+// 28px 는 Figma 실측 고정값(2426:1195) — 시각 크기는 그대로 두고, 44px 터치 타깃은
+// 감싸는 label 쪽에서 확보한다(code-style §5).
 const INPUT_BASE =
   'peer size-7 shrink-0 appearance-none rounded-full bg-transparent border-2 border-neutral-400 transition-colors ' +
   'disabled:pointer-events-none disabled:bg-surface-secondary ' +
@@ -69,41 +69,46 @@ export function Radio({
   const inputId = id ?? autoId;
 
   return (
-    <span className={['relative inline-flex', className].filter(Boolean).join(' ')}>
-      <input
-        type="radio"
-        id={inputId}
-        className={[
-          INPUT_BASE,
-          TONE_BORDER_CLASSNAME[tone],
-          variant === 'ring' ? RING_VARIANT_CLASSNAME : '',
-        ]
-          .filter(Boolean)
-          .join(' ')}
-        {...props}
-      />
-      <label htmlFor={inputId} className="sr-only">
-        {label}
-      </label>
-      {variant === 'check' ? (
-        <svg
-          viewBox="0 0 13.5 10"
-          fill="none"
-          aria-hidden
+    <label
+      htmlFor={inputId}
+      className={['inline-flex size-11 items-center justify-center', className]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      <span className="relative inline-flex">
+        <input
+          type="radio"
+          id={inputId}
           className={[
-            'pointer-events-none absolute inset-0 m-auto size-3.5 text-neutral-400',
-            TONE_CHECK_CLASSNAME[tone],
-          ].join(' ')}
-        >
-          <path
-            d="M1 5.5L4.5 9L12.5 1"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      ) : null}
-    </span>
+            INPUT_BASE,
+            TONE_BORDER_CLASSNAME[tone],
+            variant === 'ring' ? RING_VARIANT_CLASSNAME : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+          {...props}
+        />
+        {variant === 'check' ? (
+          <svg
+            viewBox="0 0 13.5 10"
+            fill="none"
+            aria-hidden
+            className={[
+              'pointer-events-none absolute inset-0 m-auto size-3.5 text-neutral-400',
+              TONE_CHECK_CLASSNAME[tone],
+            ].join(' ')}
+          >
+            <path
+              d="M1 5.5L4.5 9L12.5 1"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        ) : null}
+      </span>
+      <span className="sr-only">{label}</span>
+    </label>
   );
 }

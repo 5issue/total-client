@@ -10,8 +10,8 @@ export type ScrollIndicatorPosition = 'left' | 'center' | 'right';
 
 export interface ScrollIndicatorProps {
   position: ScrollIndicatorPosition;
-  /** 전체를 설명하는 접근성 라벨(예: "카테고리 탭 가로 스크롤 위치"). */
-  'aria-label'?: string;
+  /** 전체를 설명하는 접근성 라벨(예: "카테고리 탭 가로 스크롤 위치"). `role="img"`이라 항상 필수. */
+  'aria-label': string;
   className?: string;
 }
 
@@ -35,7 +35,7 @@ export function ScrollIndicator({
         .join(' ')}
     >
       <span
-        className={`bg-fg absolute top-0 h-1 w-4 rounded-full transition-[left] motion-reduce:transition-none ${POSITION_CLASSNAME[position]}`}
+        className={`bg-fg absolute top-0 h-1 w-4 rounded-full transition-all motion-reduce:transition-none ${POSITION_CLASSNAME[position]}`}
       />
     </div>
   );
