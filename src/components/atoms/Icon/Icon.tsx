@@ -24,7 +24,14 @@ export type IconProps = {
 
 export function Icon({ name, size = 20, className, ...aria }: IconProps) {
   const uid = useId();
-  const variant = pickVariant(ICONS[name], size);
+  const variants = ICONS[name];
+  if (!variants) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`[Icon] Unknown icon name: "${name}"`);
+    }
+    return null;
+  }
+  const variant = pickVariant(variants, size);
   const idFor = (raw: string) => `icon-${uid}-${raw}`;
 
   const hasLabel = 'aria-label' in aria && Boolean(aria['aria-label']);
