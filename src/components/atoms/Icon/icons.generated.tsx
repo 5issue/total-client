@@ -914,7 +914,7 @@ function render_naver_24(idFor: (raw: string) => string): ReactNode {
       <g mask={`url(#${idFor('mask0_2374_1982')})`}>
         <path
           d="M14.5784 12.49L9.34 5H5V19H9.55V11.51L14.7766 19H19.1166V5H14.5784V12.49Z"
-          fill="var(--color-black)"
+          fill="var(--color-white)"
         />
       </g>
     </>
