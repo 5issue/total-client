@@ -4,6 +4,7 @@
 import type { ReactNode } from 'react';
 
 export type IconName =
+  | 'add'
   | 'alert'
   | 'apple'
   | 'arrow-down'
@@ -46,6 +47,7 @@ export type IconName =
   | 'location-filled'
   | 'member'
   | 'milk'
+  | 'minus'
   | 'my'
   | 'naver'
   | 'new'
@@ -70,6 +72,15 @@ type IconVariant = {
   themable: boolean;
   render: (idFor: (raw: string) => string) => ReactNode;
 };
+
+function render_add_14(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <path d="M0 7L14 7" stroke="currentColor" strokeWidth={1.5} />
+      <path d="M7.005 0.005L7.005 14.005" stroke="currentColor" strokeWidth={1.5} />
+    </>
+  );
+}
 
 function render_alert_16(_idFor: (raw: string) => string): ReactNode {
   return (
@@ -880,6 +891,14 @@ function render_milk_28(_idFor: (raw: string) => string): ReactNode {
   );
 }
 
+function render_minus_14(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <path d="M0 7L14 7" stroke="currentColor" strokeWidth={1.5} />
+    </>
+  );
+}
+
 function render_my_28(_idFor: (raw: string) => string): ReactNode {
   return (
     <>
@@ -914,7 +933,7 @@ function render_naver_24(idFor: (raw: string) => string): ReactNode {
       <g mask={`url(#${idFor('mask0_2374_1982')})`}>
         <path
           d="M14.5784 12.49L9.34 5H5V19H9.55V11.51L14.7766 19H19.1166V5H14.5784V12.49Z"
-          fill="var(--color-black)"
+          fill="var(--color-white)"
         />
       </g>
     </>
@@ -1213,6 +1232,7 @@ function render_up_28(_idFor: (raw: string) => string): ReactNode {
 }
 
 export const ICONS: Record<IconName, IconVariant[]> = {
+  add: [{ viewBox: '0 0 14 14', themable: true, render: (idFor) => render_add_14(idFor) }],
   alert: [
     { viewBox: '0 0 16 16', themable: false, render: (idFor) => render_alert_16(idFor) },
     { viewBox: '0 0 56 56', themable: false, render: (idFor) => render_alert_56(idFor) },
@@ -1325,6 +1345,7 @@ export const ICONS: Record<IconName, IconVariant[]> = {
   ],
   member: [{ viewBox: '0 0 24 24', themable: false, render: (idFor) => render_member_24(idFor) }],
   milk: [{ viewBox: '0 0 28 28', themable: true, render: (idFor) => render_milk_28(idFor) }],
+  minus: [{ viewBox: '0 0 14 14', themable: true, render: (idFor) => render_minus_14(idFor) }],
   my: [{ viewBox: '0 0 28 28', themable: true, render: (idFor) => render_my_28(idFor) }],
   naver: [{ viewBox: '0 0 24 24', themable: false, render: (idFor) => render_naver_24(idFor) }],
   new: [{ viewBox: '0 0 14 14', themable: false, render: (idFor) => render_new_14(idFor) }],
