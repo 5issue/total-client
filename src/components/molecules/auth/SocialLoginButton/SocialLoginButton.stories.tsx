@@ -52,7 +52,7 @@ export const Kurly: Story = {
 export const AllProviders: Story = {
   name: `전체 (${PROVIDERS.length}종)`,
   render: () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div className="flex flex-col gap-3">
       {PROVIDERS.map((provider) => (
         <SocialLoginButton key={provider} provider={provider} />
       ))}

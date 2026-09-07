@@ -43,11 +43,7 @@ export const AllPaymentMethods: Story = {
     function Group() {
       const [selected, setSelected] = useState('kakao-pay');
       return (
-        <div
-          role="radiogroup"
-          aria-label="결제수단"
-          style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}
-        >
+        <div role="radiogroup" aria-label="결제수단" className="flex flex-wrap gap-2">
           <PaymentMethodButton
             type="logo"
             logo="kakao-pay"
