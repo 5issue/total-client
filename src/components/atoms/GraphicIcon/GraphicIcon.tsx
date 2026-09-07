@@ -24,6 +24,12 @@ export type GraphicIconProps = {
 export function GraphicIcon({ name, size, className, ...aria }: GraphicIconProps) {
   const uid = useId();
   const variant = GRAPHIC_ICONS[name];
+  if (!variant) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`[GraphicIcon] Unknown icon name: "${name}"`);
+    }
+    return null;
+  }
   const idFor = (raw: string) => `graphic-icon-${uid}-${raw}`;
   const resolvedSize = size ?? viewBoxSize(variant.viewBox);
 
