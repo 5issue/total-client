@@ -102,14 +102,25 @@ export const CloseControl: Story = {
   },
 };
 
-/** 액션은 목적지를 서술하는 접근 가능한 이름을 갖는다(code-style §5). */
+/**
+ * 액션은 목적지를 서술하는 접근 가능한 이름을 갖는다(code-style §5).
+ * `href` 액션은 링크로, `onClick` 액션은 버튼으로 렌더되고 클릭 시 콜백이 호출된다.
+ */
 export const ActionLinks: Story = {
   tags: ['!autodocs'],
-  play: async ({ canvasElement }) => {
+  args: {
+    actions: [...ACTIONS, { icon: 'search', label: '검색', onClick: fn() }],
+  },
+  play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getByRole('link', { name: '장바구니' })).toHaveAttribute('href', '/cart');
     await expect(canvas.getByRole('link', { name: '배송지 설정' })).toBeInTheDocument();
     await expect(canvas.getByRole('link', { name: '알림' })).toBeInTheDocument();
+
+    await userEvent.click(canvas.getByRole('button', { name: '검색' }));
+    const onClickAction = args.actions?.[3];
+    const onClick = onClickAction && 'onClick' in onClickAction ? onClickAction.onClick : undefined;
+    await expect(onClick).toHaveBeenCalledOnce();
   },
 };
 

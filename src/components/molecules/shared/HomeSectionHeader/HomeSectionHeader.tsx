@@ -66,12 +66,13 @@ export function HomeSectionHeader({
           </Heading>
           {ad ? (
             /*
-             * Figma Ad_Label_M(node 2838-2230) 실측 그대로. text-fg-disabled(#b5c4cf) on
-             * bg-surface-secondary(#f0f5f8) 는 대비 ~1.3:1 로 본문 기준(4.5:1, code-style §5) 미달.
-             * Figma 픽셀 일치를 우선하고 해당 노드에 Figma 코멘트로 대비 재검토를 요청한다
-             * (Badge atom 과 동일한 선결정).
+             * Figma Ad_Label_M(node 2838-2230)의 회색 pill. 배경·크기·radius 는 Figma 값 그대로.
+             * 텍스트 색은 Figma 의 `Text/disabled`(#b5c4cf)가 `bg-surface-secondary`(#f0f5f8) 대비
+             * 1.6:1 로 code-style §5 "본문 대비 ≥ 4.5:1" 미달 — "광고"는 화면·스크린리더 모두에
+             * 노출되는 고지 텍스트라 승인된 대비 조합 `text-fg-secondary`(#515e69, 5.9:1)로 올린다.
+             * 해당 노드에 Figma 코멘트로 색 동기화 요청. (CodeRabbit PR #49 반영)
              */
-            <span className="text-caption-l text-fg-disabled bg-surface-secondary inline-flex h-5 shrink-0 items-center rounded-full px-2">
+            <span className="text-caption-l text-fg-secondary bg-surface-secondary inline-flex h-5 shrink-0 items-center rounded-full px-2">
               광고
             </span>
           ) : null}
