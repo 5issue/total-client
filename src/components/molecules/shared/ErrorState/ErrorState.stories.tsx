@@ -1,10 +1,22 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import Image from 'next/image';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
 import { FloatingButton } from '@/components/atoms/FloatingButton';
 import { Icon } from '@/components/atoms/Icon';
 
 import { ErrorState } from './ErrorState';
+
+/** Figma node 3011-3796 "Icon Api"(Payment) — 벡터 없는 raster 전용 에셋(Toast 아이콘과 동일 패턴). */
+const paymentErrorIcon = (
+  <Image
+    src="/graphic-icons/payment-error.webp"
+    alt=""
+    width={100}
+    height={100}
+    className="size-25"
+  />
+);
 
 const meta = {
   title: 'molecules/shared/ErrorState',
@@ -46,11 +58,11 @@ export const WithoutAction: Story = {
 };
 
 /**
- * `description` 이 있으면 헤드라인 톤으로 바뀐다 — Figma "Error_API"(3009:3775)
- * 결제 에러 형태. 결제 전용 raster 일러스트는 이 이슈 범위 밖이라 `alert` 아이콘으로 대체.
+ * `description` 이 있으면 헤드라인 톤으로 바뀐다 — Figma "Error_API"(3009:3775) 결제 에러 형태.
  */
 export const WithDescription: Story = {
   args: {
+    icon: paymentErrorIcon,
     title: '결제 처리 오류',
     description: '결제 상태를 확인하신 후 다시 시도해 주세요',
     action: (
@@ -67,6 +79,7 @@ export const WithDescription: Story = {
  */
 export const WithDetailBox: Story = {
   args: {
+    icon: paymentErrorIcon,
     title: '결제 처리 오류',
     description: '결제 상태를 확인하신 후 다시 시도해 주세요',
     action: (
