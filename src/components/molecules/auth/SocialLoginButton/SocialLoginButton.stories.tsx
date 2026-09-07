@@ -3,7 +3,7 @@ import { expect, fn, userEvent, within } from 'storybook/test';
 
 import { SocialLoginButton, type SocialProvider } from './SocialLoginButton';
 
-const PROVIDERS: SocialProvider[] = ['naver', 'kakao', 'apple', 'kurly'];
+const PROVIDERS: SocialProvider[] = ['naver', 'kakao'];
 
 const meta = {
   title: 'molecules/auth/SocialLoginButton',
@@ -38,15 +38,6 @@ export const Naver: Story = {
 
 export const Kakao: Story = {
   args: { provider: 'kakao' },
-};
-
-export const Apple: Story = {
-  args: { provider: 'apple' },
-};
-
-export const Kurly: Story = {
-  name: '컬리 아이디 로그인 (아이콘 없음)',
-  args: { provider: 'kurly' },
 };
 
 export const AllProviders: Story = {

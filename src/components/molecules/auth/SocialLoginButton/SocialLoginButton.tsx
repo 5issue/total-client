@@ -5,12 +5,12 @@ import type { ButtonHTMLAttributes } from 'react';
 import { Icon, type IconName } from '@/components/atoms/Icon/Icon';
 
 /**
- * 소셜/컬리 로그인 진입 버튼 (Figma "button_Social", node 2429-2130~2133).
+ * 소셜 로그인 진입 버튼 (Figma "button_Social", node 2429-2130~2133).
  * 공급자별 브랜드색이 디자인 시스템 컬러 토큰(--color-naver 등)으로 고정돼
  * atoms/Button 의 시맨틱 variant 로는 표현할 수 없어 별도 molecule 로 둔다.
- * Kurly 는 아이콘 없이 텍스트만 사용한다(Figma 반영).
+ * Apple/컬리 로그인은 사용하지 않기로 해 제외했다(2026-09-07 확인).
  */
-export type SocialProvider = 'naver' | 'kakao' | 'apple' | 'kurly';
+export type SocialProvider = 'naver' | 'kakao';
 
 export type SocialLoginButtonProps = {
   provider: SocialProvider;
@@ -19,23 +19,18 @@ export type SocialLoginButtonProps = {
 const PROVIDER_LABEL: Record<SocialProvider, string> = {
   naver: '네이버로 계속하기',
   kakao: '카카오로 계속하기',
-  apple: 'Apple로 계속하기',
-  kurly: '컬리 아이디로 로그인',
 };
 
-const PROVIDER_ICON: Partial<Record<SocialProvider, IconName>> = {
+const PROVIDER_ICON: Record<SocialProvider, IconName> = {
   naver: 'naver',
   kakao: 'kakao',
-  apple: 'apple',
 };
 
-// naver/apple 아이콘은 themable: false(고정 흰색) 또는 currentColor 를 그대로 쓰므로
+// naver 아이콘은 themable: false(고정 흰색), kakao 는 currentColor 를 그대로 쓰므로
 // 컨테이너 text 색만 맞추면 라벨과 아이콘이 함께 톤이 맞는다.
 const PROVIDER_CLASSNAME: Record<SocialProvider, string> = {
   naver: 'bg-naver text-white',
   kakao: 'bg-kakao text-black',
-  apple: 'bg-apple text-white',
-  kurly: 'bg-primary text-fg-inverse',
 };
 
 export function SocialLoginButton({
@@ -44,8 +39,6 @@ export function SocialLoginButton({
   type = 'button',
   ...props
 }: SocialLoginButtonProps) {
-  const icon = PROVIDER_ICON[provider];
-
   return (
     <button
       type={type}
@@ -58,7 +51,7 @@ export function SocialLoginButton({
         .join(' ')}
       {...props}
     >
-      {icon ? <Icon name={icon} size={24} aria-hidden /> : null}
+      <Icon name={PROVIDER_ICON[provider]} size={24} aria-hidden />
       {PROVIDER_LABEL[provider]}
     </button>
   );
