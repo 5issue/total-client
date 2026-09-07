@@ -37,13 +37,13 @@ export function BottomNavItem({
     <Link
       href={href}
       aria-current={active ? 'page' : undefined}
-      className={`flex h-[54px] min-w-14 items-center justify-center ${className ?? ''}`.trim()}
+      className={`h-nav-item flex min-w-14 items-center justify-center ${className ?? ''}`.trim()}
     >
       <span className="relative flex w-14 flex-col items-center gap-0.5">
         {active && (
           <span
             aria-hidden="true"
-            className="bg-overlay-blue absolute top-1/2 left-1/2 h-[58px] w-[76px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+            className="bg-overlay-blue h-nav-capsule w-nav-capsule absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
           />
         )}
         {badge && (
@@ -52,7 +52,7 @@ export function BottomNavItem({
             className="bg-orange absolute top-0 right-2 size-1.5 rounded-full"
           />
         )}
-        <TabIcon tab={tab} active={active} aria-hidden />
+        <TabIcon tab={tab} active={active} aria-hidden className="relative z-10" />
         <span
           className={`text-caption-s relative font-bold ${active ? 'text-primary' : 'text-fg'}`}
         >

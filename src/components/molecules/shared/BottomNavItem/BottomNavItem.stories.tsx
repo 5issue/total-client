@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import { expect, within } from 'storybook/test';
 
 import { BottomNavItem } from './BottomNavItem';
 
@@ -28,11 +29,22 @@ export const Default: Story = {};
 
 export const Active: Story = {
   args: { active: true },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const link = canvas.getByRole('link', { name: '홈' });
+    await expect(link).toHaveAttribute('href', '/');
+    await expect(link).toHaveAttribute('aria-current', 'page');
+  },
 };
 
 export const WithBadge: Story = {
   name: '알림 배지 (badge)',
   args: { tab: 'lounge', label: '라운지', href: '/lounge', badge: true },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const link = canvas.getByRole('link', { name: '라운지 (새 알림 있음)' });
+    await expect(link).toHaveAttribute('href', '/lounge');
+  },
 };
 
 export const AllTabs: Story = {

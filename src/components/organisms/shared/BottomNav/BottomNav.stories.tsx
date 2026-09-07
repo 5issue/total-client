@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import { expect, within } from 'storybook/test';
 
 import { BottomNav } from './BottomNav';
 
@@ -12,6 +13,12 @@ const meta = {
   title: 'organisms/shared/BottomNav',
   component: BottomNav,
   tags: ['autodocs'],
+  args: {
+    badges: {},
+  },
+  argTypes: {
+    badges: { control: 'object' },
+  },
   parameters: {
     layout: 'fullscreen',
     nextjs: { appDirectory: true },
@@ -20,9 +27,9 @@ const meta = {
     (Story) => (
       // BottomNav 는 실제 앱에서도 position:fixed 라 뷰포트 기준으로 뜬다. 이 래퍼가
       // 없으면 Storybook 캔버스 전체 너비를 기준으로 떠버려 Figma 402px 모바일 프레임과
-      // 비율이 안 맞게 보인다 — `contain:layout` 으로 이 래퍼를 fixed 자식의 containing
+      // 비율이 안 맞게 보인다 — `contain-layout` 으로 이 래퍼를 fixed 자식의 containing
       // block 으로 만들어 402px 안에 가둔다(Figma 프레임 실측 폭 그대로).
-      <div className="relative mx-auto h-40 w-[402px] overflow-hidden [contain:layout]">
+      <div className="w-mobile-frame relative mx-auto h-40 overflow-hidden contain-layout">
         <Story />
       </div>
     ),
@@ -32,8 +39,18 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Home: Story = {
+export const Default: Story = {
   parameters: { nextjs: { navigation: { pathname: '/' } } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const home = canvas.getByRole('link', { name: '홈' });
+    await expect(home).toHaveAttribute('href', '/');
+    await expect(home).toHaveAttribute('aria-current', 'page');
+
+    const search = canvas.getByRole('link', { name: '검색' });
+    await expect(search).toHaveAttribute('href', '/search');
+    await expect(search).not.toHaveAttribute('aria-current');
+  },
 };
 
 export const Lounge: Story = {
