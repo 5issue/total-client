@@ -42,7 +42,9 @@ src/
         ├── layout.tsx                   # Header(+장바구니 아이콘), BottomNav
         ├── page.tsx                     # 홈 (SL-HOME 001~004, 006)
         ├── search/page.tsx              # 검색
-        ├── ai/page.tsx                  # AI 탭 — 레시피 추천 등 (백엔드 명세 대기)
+        ├── lounge/page.tsx              # 라운지 (BottomNav 탭, 이슈 #57) — 뼈대만, 기능 범위 미정
+        ├── category/page.tsx            # 카테고리 (BottomNav 탭, 이슈 #57) — 뼈대만, 기능 범위 미정
+        ├── ai/page.tsx                  # AI — 마이컬리 경유 진입으로 변경 예정(이슈 #57), 라우트 자체는 유지
         ├── products/page.tsx            # 상품 컬렉션 리스트 (SL-LIST 001~005)
         ├── products/[productId]/page.tsx# 상품 상세 (SL-COM, SL-PROD, SL-SPEC)
         ├── cart/page.tsx                # 장바구니 (SL-CART 001~004, 007) — 진입은 헤더 아이콘
@@ -59,7 +61,9 @@ src/
 | ------------------ | ----------------------- | ------------------------------------------------------------ | ------------------------ | --------------------------------------------------------------- |
 | 홈                 | `/`                     | ISR 셸 + CSR 개인화 구획                                     | 공개                     | LCP < 2.5s, CLS < 0.1                                           |
 | 검색               | `/search`               | SSR (`searchParams` 의존)                                    | 공개                     | 빈 결과 UI 필수, TTFB < 0.8s                                    |
-| AI                 | `/ai`                   | 미정 (백엔드 명세 대기)                                      | 공개                     | —                                                               |
+| 라운지             | `/lounge`               | 미정 (뼈대만, 이슈 #57)                                      | 공개                     | —                                                               |
+| 카테고리           | `/category`             | 미정 (뼈대만, 이슈 #57)                                      | 공개                     | —                                                               |
+| AI                 | `/ai`                   | 미정 (백엔드 명세 대기) — 마이컬리 경유 진입으로 변경 예정   | 공개                     | —                                                               |
 | 상품 컬렉션 리스트 | `/products`             | 첫 페이지 ISR + 이후 CSR(`useInfiniteQuery`)                 | 공개                     | 첫 페이지 SSR, 이미지 종횡비 고정 → CLS < 0.1                   |
 | 상품 상세          | `/products/[productId]` | ISR (`generateStaticParams` + `revalidate`) + CSR(담기/옵션) | 공개                     | LCP < 2.5s, 대표 이미지 `priority`, 원본 ≤ 200KB                |
 | 장바구니           | `/cart`                 | CSR (로그인 데이터, 상호작용 중심)                           | 공개(게스트 여부 미확정) | 수량 변경 반영 < 100ms (Optimistic — api-convention §7)         |
