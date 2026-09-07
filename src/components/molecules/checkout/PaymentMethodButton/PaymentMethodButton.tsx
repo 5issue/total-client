@@ -19,6 +19,12 @@ export type PaymentMethodButtonProps = {
   className?: string;
 } & ({ type: 'logo'; logo: LogoName } | { type: 'text' });
 
+function containerClassName(disabled: boolean, selected: boolean): string {
+  if (disabled) return 'bg-surface-secondary border-border text-fg-disabled';
+  if (selected) return 'bg-surface border-border-active text-fg';
+  return 'bg-surface active:bg-surface-secondary text-fg border-neutral-400';
+}
+
 export function PaymentMethodButton(props: PaymentMethodButtonProps) {
   const {
     selected = false,
@@ -40,11 +46,7 @@ export function PaymentMethodButton(props: PaymentMethodButtonProps) {
       onClick={onClick}
       className={[
         'rounded-m relative flex h-10 w-40 items-center justify-center gap-1 border p-1 transition-colors disabled:pointer-events-none motion-reduce:transition-none',
-        disabled
-          ? 'bg-surface-secondary border-border text-fg-disabled'
-          : selected
-            ? 'bg-surface border-border-active text-fg'
-            : 'bg-surface active:bg-surface-secondary text-fg border-neutral-400',
+        containerClassName(disabled, selected),
         className,
       ]
         .filter(Boolean)
@@ -55,6 +57,8 @@ export function PaymentMethodButton(props: PaymentMethodButtonProps) {
       ) : (
         <span className="text-heading-4">{label}</span>
       )}
+      {/* atoms/Badge 는 항상 rounded-s(4px) 라 이 노드의 완전한 원형(rounded-full) 배지와
+          모양 자체가 다르다 — 재사용 대신 이 컴포넌트 전용 스타일로 둔다. */}
       {showBadge && (
         <span className="bg-error text-orange text-caption-l absolute -top-2 right-2.5 flex h-5 w-[39px] items-center justify-center rounded-full">
           혜택

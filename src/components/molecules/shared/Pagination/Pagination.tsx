@@ -1,6 +1,6 @@
 'use client';
 
-import { Icon } from '@/components/atoms/Icon/Icon';
+import { Icon, type IconName } from '@/components/atoms/Icon/Icon';
 
 /**
  * 이전/다음 화살표 + "현재/전체" 카운터 페이지네이션 (Figma node 2482-3601).
@@ -20,43 +20,56 @@ export type PaginationProps = {
   className?: string;
 };
 
+function glyphColorClassName(enabled: boolean): string {
+  return enabled ? 'text-fg' : 'text-fg-disabled';
+}
+
+function ArrowButton({
+  icon,
+  label,
+  enabled,
+  onClick,
+}: {
+  icon: IconName;
+  label: string;
+  enabled: boolean;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      disabled={!enabled}
+      onClick={onClick}
+      className="flex size-10 items-center justify-center"
+    >
+      <span
+        className={`border-border flex size-9 items-center justify-center rounded-full border ${glyphColorClassName(enabled)}`}
+      >
+        <Icon name={icon} size={14} aria-hidden />
+      </span>
+    </button>
+  );
+}
+
 export function Pagination({ current, total, onPrevious, onNext, className }: PaginationProps) {
   const canGoPrevious = current > 1;
   const canGoNext = current < total;
 
   return (
     <div className={['flex items-center gap-4', className].filter(Boolean).join(' ')}>
-      <button
-        type="button"
-        aria-label="이전 페이지"
-        disabled={!canGoPrevious}
+      <ArrowButton
+        icon="arrow-left"
+        label="이전 페이지"
+        enabled={canGoPrevious}
         onClick={onPrevious}
-        className="flex size-10 items-center justify-center"
-      >
-        <span
-          className={`border-border flex size-9 items-center justify-center rounded-full border ${canGoPrevious ? 'text-fg' : 'text-fg-disabled'}`}
-        >
-          <Icon name="arrow-left" size={14} aria-hidden />
-        </span>
-      </button>
+      />
       <span className="text-label-xs flex items-center gap-2 whitespace-nowrap">
         <span className="text-fg">{current}</span>
         <span className="text-fg-quaternary">/</span>
         <span className="text-fg-quaternary">{total}</span>
       </span>
-      <button
-        type="button"
-        aria-label="다음 페이지"
-        disabled={!canGoNext}
-        onClick={onNext}
-        className="flex size-10 items-center justify-center"
-      >
-        <span
-          className={`border-border flex size-9 items-center justify-center rounded-full border ${canGoNext ? 'text-fg' : 'text-fg-disabled'}`}
-        >
-          <Icon name="arrow-right" size={14} aria-hidden />
-        </span>
-      </button>
+      <ArrowButton icon="arrow-right" label="다음 페이지" enabled={canGoNext} onClick={onNext} />
     </div>
   );
 }

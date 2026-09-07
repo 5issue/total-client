@@ -9,7 +9,15 @@ import { Logo } from '@/components/atoms/Logo/Logo';
  * 그라데이션(Secondary/Blue → Brand/Light, 113deg)은 재사용 가치가 낮은
  * 일회성 배경이라 토큰화하지 않고 인라인 style 로 둔다(기본색 2개만 토큰화:
  * --color-blue, 기존 --color-brand-200).
+ *
+ * 키워드/리셋 칩은 atoms/Chip(h-10, solid/outline+삭제 전용) 이나 KeywordChip(배경 없음,
+ * 활성/비활성 타이포 전환)과 스펙이 달라(h-8, 항상 흰 배경, 트레일링 아이콘) 재사용하지
+ * 않고 이 컴포넌트 전용으로 둔다.
  */
+const GRADIENT_STYLE = {
+  backgroundImage:
+    'linear-gradient(113deg, color-mix(in srgb, var(--color-blue) 40%, transparent) 0%, color-mix(in srgb, var(--color-brand-200) 40%, transparent) 100%)',
+};
 export type RecommendedKeywordsContainerProps = {
   title: string;
   description: string;
@@ -33,10 +41,7 @@ export function RecommendedKeywordsContainer({
   return (
     <div
       className={['flex w-full flex-col gap-3 px-4 pt-5 pb-3', className].filter(Boolean).join(' ')}
-      style={{
-        backgroundImage:
-          'linear-gradient(113deg, color-mix(in srgb, var(--color-blue) 40%, transparent) 0%, color-mix(in srgb, var(--color-brand-200) 40%, transparent) 100%)',
-      }}
+      style={GRADIENT_STYLE}
     >
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-1">

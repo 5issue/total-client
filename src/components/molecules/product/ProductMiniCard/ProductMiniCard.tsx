@@ -35,11 +35,13 @@ export function ProductMiniCard({
       <div className="bg-surface-secondary relative aspect-square w-full overflow-hidden rounded-s">
         <Image src={imageSrc} alt={name} fill sizes="124px" className="object-cover" />
       </div>
+      {/* atoms/Button 의 outlineBlack 과 팔레트는 같지만, Button 사이즈는 이 노드의
+          고정 32px(h-8) 스펙과 안 맞아(가장 작은 s 사이즈도 36px) 직접 스타일링한다. */}
       <button
         type="button"
         onClick={onAddToCart}
         aria-label={`${name} 장바구니 담기`}
-        className="rounded-m text-label-l text-fg flex h-8 w-full items-center justify-center gap-1 border border-neutral-400"
+        className="rounded-m text-label-l text-fg active:bg-surface-secondary flex h-8 w-full items-center justify-center gap-1 border border-neutral-400"
       >
         <Icon name="cart" size={20} aria-hidden />
         담기

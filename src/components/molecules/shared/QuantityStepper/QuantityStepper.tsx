@@ -16,6 +16,10 @@ export type QuantityStepperProps = {
   className?: string;
 };
 
+function glyphColorClassName(enabled: boolean): string {
+  return enabled ? 'text-fg' : 'text-fg-disabled';
+}
+
 export function QuantityStepper({
   value,
   onChange,
@@ -43,7 +47,7 @@ export function QuantityStepper({
         aria-label={`${label} 감소`}
         disabled={!canDecrease}
         onClick={() => onChange(value - 1)}
-        className={`flex items-center transition-colors ${canDecrease ? 'text-fg' : 'text-fg-disabled'}`}
+        className={`flex items-center transition-colors ${glyphColorClassName(canDecrease)}`}
       >
         <Icon name="minus" size={14} aria-hidden />
       </button>
@@ -53,7 +57,7 @@ export function QuantityStepper({
         aria-label={`${label} 증가`}
         disabled={!canIncrease}
         onClick={() => onChange(value + 1)}
-        className={`flex items-center transition-colors ${canIncrease ? 'text-fg' : 'text-fg-disabled'}`}
+        className={`flex items-center transition-colors ${glyphColorClassName(canIncrease)}`}
       >
         <Icon name="add" size={14} aria-hidden />
       </button>
