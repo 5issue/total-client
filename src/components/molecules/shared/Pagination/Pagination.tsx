@@ -53,8 +53,8 @@ function ArrowButton({
 }
 
 export function Pagination({ current, total, onPrevious, onNext, className }: PaginationProps) {
-  const canGoPrevious = current > 1;
-  const canGoNext = current < total;
+  const canGoPrevious = current > 1 && Boolean(onPrevious);
+  const canGoNext = current < total && Boolean(onNext);
 
   return (
     <div className={['flex items-center gap-4', className].filter(Boolean).join(' ')}>

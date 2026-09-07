@@ -50,7 +50,7 @@ export function SocialLoginButton({
     <button
       type={type}
       className={[
-        'rounded-m text-heading-4 flex h-[52px] w-full items-center justify-center gap-1 px-4 py-3 whitespace-nowrap transition-colors motion-reduce:transition-none',
+        'rounded-m text-heading-4 flex h-13 w-full items-center justify-center gap-1 px-4 py-3 whitespace-nowrap transition-colors motion-reduce:transition-none',
         PROVIDER_CLASSNAME[provider],
         className,
       ]

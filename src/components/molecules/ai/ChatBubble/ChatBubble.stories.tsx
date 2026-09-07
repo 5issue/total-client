@@ -10,6 +10,9 @@ const meta = {
     role: 'user',
     message: '과일과 채소 위주로 추천해줘',
   },
+  argTypes: {
+    role: { control: 'select', options: ['user', 'assistant'] },
+  },
   parameters: { layout: 'padded' },
   decorators: [
     (Story) => (
@@ -23,7 +26,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof ChatBubble>;
 
-export const User: Story = {
+export const Default: Story = {
   name: '사용자 메시지',
   args: {
     role: 'user',

@@ -60,7 +60,7 @@ export function PaymentMethodButton(props: PaymentMethodButtonProps) {
       {/* atoms/Badge 는 항상 rounded-s(4px) 라 이 노드의 완전한 원형(rounded-full) 배지와
           모양 자체가 다르다 — 재사용 대신 이 컴포넌트 전용 스타일로 둔다. */}
       {showBadge && (
-        <span className="bg-error text-orange text-caption-l absolute -top-2 right-2.5 flex h-5 w-[39px] items-center justify-center rounded-full">
+        <span className="bg-error text-orange text-caption-l absolute -top-2 right-2.5 flex h-5 w-9.75 items-center justify-center rounded-full">
           혜택
         </span>
       )}

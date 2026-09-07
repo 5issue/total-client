@@ -15,6 +15,12 @@ const meta = {
     keywords: ['라떼용', '딸기라테용', '온가족용', '하루 아침용', '멸균'],
     onSelectKeyword: fn(),
   },
+  argTypes: {
+    title: { control: 'text' },
+    description: { control: 'text' },
+    promptLabel: { control: 'text' },
+    keywords: { control: 'object' },
+  },
   parameters: { layout: 'padded' },
   decorators: [
     (Story) => (
@@ -45,6 +51,11 @@ export const RecommendedVariant: Story = {
       '밀키트·레토르트 위주의 간편식',
     ],
     onReset: fn(),
+  },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: '다시 추천 받기' }));
+    await expect(args.onReset).toHaveBeenCalledTimes(1);
   },
 };
 

@@ -31,7 +31,7 @@ export function ProductMiniCard({
   className,
 }: ProductMiniCardProps) {
   return (
-    <div className={['flex w-[124px] flex-col gap-1', className].filter(Boolean).join(' ')}>
+    <div className={['flex w-31 flex-col gap-1', className].filter(Boolean).join(' ')}>
       <div className="bg-surface-secondary relative aspect-square w-full overflow-hidden rounded-s">
         <Image src={imageSrc} alt={name} fill sizes="124px" className="object-cover" />
       </div>

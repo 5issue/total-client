@@ -20,7 +20,7 @@ export function QuickMenu({ icon, label, count, onClick, className }: QuickMenuP
     <button
       type="button"
       onClick={onClick}
-      className={['flex w-[52px] flex-col items-center justify-center gap-1 py-1', className]
+      className={['flex w-13 flex-col items-center justify-center gap-1 py-1', className]
         .filter(Boolean)
         .join(' ')}
     >

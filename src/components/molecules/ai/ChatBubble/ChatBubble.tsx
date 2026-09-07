@@ -16,7 +16,7 @@ export function ChatBubble(props: ChatBubbleProps) {
   if (props.role === 'user') {
     return (
       <div className={['flex justify-end py-4', props.className].filter(Boolean).join(' ')}>
-        <p className="text-label-l rounded-br-s bg-brand-300 max-w-[300px] rounded-tl-xl rounded-tr-xl rounded-bl-xl px-4 py-3 text-white">
+        <p className="text-label-l rounded-br-s bg-brand-300 max-w-75 rounded-tl-xl rounded-tr-xl rounded-bl-xl px-4 py-3 text-white">
           {props.message}
         </p>
       </div>

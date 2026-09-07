@@ -13,6 +13,12 @@ const meta = {
     value: 1,
     onChange: () => {},
   },
+  argTypes: {
+    value: { control: 'number' },
+    min: { control: 'number' },
+    max: { control: 'number' },
+    label: { control: 'text' },
+  },
 } satisfies Meta<typeof QuantityStepper>;
 
 export default meta;

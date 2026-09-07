@@ -47,7 +47,7 @@ export function QuickMenuItem({
       type="button"
       onClick={onClick}
       className={[
-        'relative flex w-[55px] flex-col items-center justify-center gap-1 py-1',
+        'relative flex w-13.75 flex-col items-center justify-center gap-1 py-1',
         className,
       ]
         .filter(Boolean)
@@ -57,7 +57,7 @@ export function QuickMenuItem({
       <span className="text-caption-m text-fg-secondary text-center whitespace-nowrap">
         {label}
       </span>
-      {isNew && <Icon name="new" size={14} aria-hidden className="absolute top-0 left-[42px]" />}
+      {isNew && <Icon name="new" size={14} aria-hidden className="absolute top-0 left-10.5" />}
     </button>
   );
 }

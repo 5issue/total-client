@@ -5,6 +5,10 @@ import { Icon } from '@/components/atoms/Icon/Icon';
 /**
  * 수량 증감 스테퍼 (Figma "Stepper", node 2429-3870). min 에 도달하면 감소 버튼이,
  * max 에 도달하면 증가 버튼이 disabled 된다(Figma "Disabled" variant 는 count=0 예시).
+ *
+ * 증감 버튼은 44px 접근성 권장 터치 타깃에 못 미친다(h-full 로 세로 32px 까지만 확보) —
+ * 전체 폭이 Figma 실측 84px 로 고정돼 있어, 두 버튼을 44px 씩 확보하면(88px) 카운트 텍스트
+ * 자리가 없어진다. 디자인 확정값을 임의로 늘리지 않고 현재 폭 안에서 최대한 넓혔다.
  */
 export type QuantityStepperProps = {
   value: number;
@@ -36,7 +40,7 @@ export function QuantityStepper({
       role="group"
       aria-label={label}
       className={[
-        'bg-surface-secondary flex h-8 w-[84px] items-center justify-center gap-2 rounded-full',
+        'bg-surface-secondary flex h-8 w-21 items-center justify-center gap-2 rounded-full',
         className,
       ]
         .filter(Boolean)
@@ -47,17 +51,17 @@ export function QuantityStepper({
         aria-label={`${label} 감소`}
         disabled={!canDecrease}
         onClick={() => onChange(value - 1)}
-        className={`flex items-center transition-colors ${glyphColorClassName(canDecrease)}`}
+        className={`flex h-full flex-1 items-center justify-center transition-colors ${glyphColorClassName(canDecrease)}`}
       >
         <Icon name="minus" size={14} aria-hidden />
       </button>
-      <span className="text-numeric-l font-numeric text-fg w-[18px] text-center">{value}</span>
+      <span className="text-numeric-l font-numeric text-fg w-4.5 text-center">{value}</span>
       <button
         type="button"
         aria-label={`${label} 증가`}
         disabled={!canIncrease}
         onClick={() => onChange(value + 1)}
-        className={`flex items-center transition-colors ${glyphColorClassName(canIncrease)}`}
+        className={`flex h-full flex-1 items-center justify-center transition-colors ${glyphColorClassName(canIncrease)}`}
       >
         <Icon name="add" size={14} aria-hidden />
       </button>

@@ -13,6 +13,10 @@ const meta = {
     current: 1,
     total: 2,
   },
+  argTypes: {
+    current: { control: 'number' },
+    total: { control: 'number' },
+  },
 } satisfies Meta<typeof Pagination>;
 
 export default meta;
