@@ -28,7 +28,7 @@ export function StepInstructionCard({
         .filter(Boolean)
         .join(' ')}
     >
-      <div className="rounded-m relative h-61.75 w-full overflow-hidden">
+      <div className="rounded-m relative aspect-[339/247] w-full overflow-hidden">
         <Image src={imageSrc} alt={imageAlt} fill sizes="339px" className="object-cover" />
       </div>
       <div className="flex items-start gap-2">
