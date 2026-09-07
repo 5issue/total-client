@@ -31,6 +31,8 @@
   --radius-m: 8px;
   --radius-l: 12px;
   --radius-xl: 16px;
+  /* node 3215-3217 "Step_Instruction_Card" 에서 확인(get_variable_defs: Radius/XXL). */
+  --radius-xxl: 18px;
 }
 
 /* @layer base 에 둬야 Tailwind 유틸리티(@layer utilities)가 이 기본값을 오버라이드할 수 있다.
