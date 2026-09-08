@@ -35,12 +35,16 @@ src/
     ├── manifest.ts                      # PWA manifest (App Router 네이티브)
     ├── sw.ts                            # 서비스 워커 소스 (Serwist)
     ├── serwist/[path]/route.ts          # @serwist/turbopack Route Handler
-    ├── api/                             # ⏳ Route Handler(BFF) — 다음 단계
-    │   └── health/route.ts              # ⏳ k8s probe (/api/health)
+    ├── api/                             # Route Handler(BFF) — 브라우저↔Spring 사이 프록시
+    │   ├── health/route.ts              # ⏳ k8s probe (/api/health)
+    │   └── auth/                        # 소셜 로그인 BFF (api-convention §3, security FE-05)
+    │       ├── oauth/[provider]/route.ts# POST: Spring 에서 로그인 URL 발급 (kakao|naver)
+    │       └── refresh/route.ts         # POST: refresh_token 쿠키로 accessToken 재발급
     ├── (auth)/
-    │   ├── login/page.tsx               # 로그인 (US-AUTH-003: 카카오/네이버)
+    │   ├── layout.tsx                   # 모바일 폭 세로 프레임 ((shop) 과 동일 역할, Header/Nav 없음)
+    │   ├── login/page.tsx               # 로그인 (US-AUTH-003: 카카오/네이버) — 정적 셸 + SocialLoginPanel(잎)
     │   ├── signup/page.tsx              # 회원가입
-    │   └── callback/[provider]/route.ts # OAuth 콜백 (provider: kakao | naver)
+    │   └── callback/[provider]/route.ts # OAuth 콜백 (provider: kakao | naver) — GET, code→세션쿠키→리다이렉트
     └── (shop)/
         ├── layout.tsx                   # 모바일 프레임 + <ShopShell>(경로별 크롬: Header·BottomNav·스와이프 탭)
         ├── page.tsx                     # 홈 (SL-HOME 001~004, 006)
@@ -75,7 +79,7 @@ src/
 | 마이컬리 홈        | `/mypage`               | SSR 셸(요약) + CSR 위젯                                      | **보호**                 | 로그인 가드                                                     |
 | 배송지 관리        | `/mypage/addresses`     | CSR (CRUD 상호작용)                                          | **보호**                 | 기본 배송지 일관성                                              |
 | 회원 프로필        | `/mypage/profile`       | SSR(조회) + CSR(수정 폼, 재인증)                             | **보호**                 | 재인증(ReauthSheet) 후 수정                                     |
-| 로그인             | `/login`                | CSR (폼)                                                     | 비로그인 전용            | 접근성 목표(§code-style 5), 소셜 로그인                         |
+| 로그인             | `/login`                | 정적 셸 + CSR 잎 (소셜 트리거만 클라, 폼 없음)               | 비로그인 전용            | 접근성 목표(§code-style 5), 소셜 로그인(카카오/네이버)          |
 | 회원가입           | `/signup`               | CSR (폼)                                                     | 비로그인 전용            | 단계별 검증, `user-scalable` 제한 금지                          |
 | OAuth 콜백         | `/callback/[provider]`  | Route Handler (서버)                                         | —                        | 토큰 교환 → 세션 쿠키                                           |
 
@@ -153,37 +157,43 @@ src/components/
 ```
 src/
 ├── middleware.ts                # 인증 가드 (matcher: /checkout, /mypage)
+├── instrumentation.ts           # Node 런타임 훅 — API_MOCKING=enabled 시 MSW 서버 등록(로컬 전용)
 ├── app/                         # 라우트 맵(§2) 그대로
+├── mocks/                       # MSW — 백엔드(Spring) 미배포 구간 목킹. handlers/<domain>.ts + server.ts
 ├── components/                  # Atomic Design 3계층(§3)
 │   ├── atoms/
 │   ├── molecules/{shared,product,cart,auth}/
 │   └── organisms/{shared,home,product,cart,checkout,mypage,ai,auth}/
-├── hooks/                       # TanStack Query 커스텀 훅 — 도메인별 폴더
+├── hooks/                       # TanStack Query 커스텀 훅 — 도메인별 폴더 (+ 도메인 store selector 훅)
 │   ├── product/                 # useProducts, useProductDetail, useProductFilters
 │   ├── cart/                    # useCart, useUpdateCartQuantity
 │   ├── order/                   # useCreateOrderSheet, useCancelOrder, useReturnOrder(미확정)
 │   ├── payment/                 # useRequestPayment, usePaymentReceipt(미확정)
 │   ├── address/                 # useAddresses, useSetDefaultAddress
 │   ├── user/                    # useProfile
-│   ├── auth/                    # useSocialLogin, useReauthPassword
+│   ├── auth/                    # useSocialLogin(✅), useAuthToken(✅ 토큰 store selector), useReauthPassword(⏳)
 │   └── useUIStore.ts            # (범용) Zustand UI 스토어 selector 훅
 ├── stores/                      # Zustand — 순수 클라이언트 UI 상태만 (서버 상태 금지)
 │   ├── uiStore.ts               # 마운트당 생성 팩토리 + Provider + 훅까지 배선된 참조 구현
 │   ├── useFilterUIStore.ts      # 필터 바텀시트 임시 선택값 (팩토리 존재, Provider/훅은 FilterSheet 구현 시)
-│   └── useAuthTokenStore.ts     # Access Token 메모리 보관 (팩토리 존재, 배선은 auth 구현 시)
+│   └── useAuthTokenStore.ts     # Access Token 메모리 보관 (팩토리 + Provider/훅 배선 완료 ✅)
 ├── types/                       # Zod 스키마 + 추론 타입 (도메인별 1파일)
-│   ├── product.ts  cart.ts  order.ts  payment.ts  address.ts  user.ts  auth.ts   # ⏳
+│   ├── auth.ts                  # ✅ Spring 원본 응답 스키마(SpringEnvelopeSchema 등) — 우리 봉투와 구분
+│   └── product.ts cart.ts order.ts payment.ts address.ts user.ts   # ⏳
 ├── providers/                   # Provider 구현 ("use client")
 │   ├── QueryProvider.tsx
-│   └── UIStoreProvider.tsx
+│   ├── UIStoreProvider.tsx
+│   └── AuthTokenStoreProvider.tsx  # ✅ Access Token store + authTokenRef 배선
 ├── lib/
 │   ├── env.ts                   # Zod 런타임 env 검증
 │   ├── queryClient.ts           # QueryClient 팩토리 (서버/브라우저 분기)
-│   ├── apiClient.ts             # ⏳ fetch 래퍼 + 401 재발급 인터셉터
+│   ├── apiClient.ts             # ✅ publicFetch/privateFetch + 401 인터셉터 + 엔드포인트 함수
+│   ├── apiResponse.ts           # ✅ ok()/fail() — Route Handler 공용 응답 봉투 (§api-convention 6)
+│   ├── authCookies.ts · authTokenRef.ts · springCookie.ts · safeRedirect.ts  # ✅ 소셜 로그인 지원(쿠키·토큰 다리·오픈리다이렉트 방지)
 │   ├── formatters.ts            # 가격/날짜 포맷
 │   └── constants.ts
 ├── errors/
-│   └── ApiError.ts              # 공용 응답 포맷 에러 봉투
+│   └── ApiError.ts              # 공용 응답 포맷 에러 봉투 (+ ApiError.fromResponse)
 └── styles/
     ├── globals.css              # @import "tailwindcss" + tokens @import + @custom-variant dark + --radius-{sm,m,lg,xl,xxl}
     └── tokens/                  # 디자인 토큰 — Figma 5팀 디자인 시스템에서 값 1:1 추출 (code-style §6-1)
