@@ -5,25 +5,17 @@ import { usePathname } from 'next/navigation';
 import type { TabName } from '@/components/atoms/TabIcon';
 import { BottomNavItem } from '@/components/molecules/shared/BottomNavItem';
 
+import { isNavItemActive, NAV_ITEMS } from './nav-items';
+
 /**
  * (shop) 셸 공통 플로팅 하단 네비게이션 바. Figma "State=Home/Rounge/Category/Search/Mypage"
  * (node 2368-429 외 4개) 1:1 매핑 — 5개 상태는 전부 usePathname() 기준 activeTab 만 다르다.
- * 순서는 Figma 그대로: 홈 - 라운지 - 카테고리 - 검색 - 마이컬리.
+ * 순서는 Figma 그대로: 홈 - 라운지 - 카테고리 - 검색 - 마이컬리(nav-items.ts 에서 관리).
+ *
+ * 스와이프로 탭 전환은 이 컴포넌트가 아니라 SwipeTabShell(organisms/shared/SwipeTabShell)
+ * 이 (shop) 레이아웃 전체를 감싸 처리한다 — "바 위에서만"이 아니라 화면 어디서든 스와이프가
+ * 되어야 한다는 요구(디자인팀, PR #58 리뷰)라 이 컴포넌트 범위를 벗어난다.
  */
-type NavItem = {
-  tab: TabName;
-  label: string;
-  href: string;
-};
-
-const NAV_ITEMS: NavItem[] = [
-  { tab: 'home', label: '홈', href: '/' },
-  { tab: 'lounge', label: '라운지', href: '/lounge' },
-  { tab: 'category', label: '카테고리', href: '/category' },
-  { tab: 'search', label: '검색', href: '/search' },
-  { tab: 'my', label: '마이컬리', href: '/mypage' },
-];
-
 export type BottomNavProps = {
   /** 탭별 알림 배지. 알림 도메인 훅이 아직 없어 상위 컨테이너가 주입하는 형태로 시작
    *  (구현 예정 — hooks/notification 등). 기본은 전부 노출 안 함. */
@@ -50,7 +42,7 @@ export function BottomNav({ badges, className }: BottomNavProps) {
               tab={item.tab}
               label={item.label}
               href={item.href}
-              active={isActive(pathname, item.href)}
+              active={isNavItemActive(pathname, item.href)}
               badge={badges?.[item.tab]}
               className="flex-1"
             />
@@ -59,9 +51,4 @@ export function BottomNav({ badges, className }: BottomNavProps) {
       </div>
     </nav>
   );
-}
-
-function isActive(pathname: string, href: string): boolean {
-  if (href === '/') return pathname === '/';
-  return pathname === href || pathname.startsWith(`${href}/`);
 }

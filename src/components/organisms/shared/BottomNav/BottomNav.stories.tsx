@@ -8,6 +8,8 @@ import { BottomNav } from './BottomNav';
  * (node 2368-429, 2479-2364, 2481-2480, 2481-2541, 2481-2586) 5개 = activeTab 만 다르다.
  * 라우트는 `parameters.nextjs.navigation.pathname` 으로 mock 한다 — usePathname() 이
  * app 디렉토리 전용이라 appDirectory: true 가 함께 필요하다.
+ * 스와이프 전환 테스트는 organisms/shared/SwipeTabShell 쪽으로 옮겼다 — 이 컴포넌트는
+ * 더 이상 터치 핸들러를 갖지 않는다(PR #58 리뷰: "화면 어디서든" 스와이프 요구로 범위 이동).
  */
 const meta = {
   title: 'organisms/shared/BottomNav',
