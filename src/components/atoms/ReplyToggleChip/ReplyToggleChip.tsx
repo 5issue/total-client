@@ -5,9 +5,6 @@
  * Property1=Default/Pressed/Selected — Disabled 상태는 디자인에 없어 만들지 않는다,
  * structure-convention §6-1). 시각 라벨은 "ㄴ" 고정 글리프라 accessible
  * name 은 항상 `aria-label` 로 대체한다(children 없음).
- *
- * Pressed 스펙(Figma 코드 패널 확인): border-radius full(기존과 동일),
- * background Surface/Neutral_Mid(#B5C4CF) → `active:bg-neutral-500`.
  */
 export interface ReplyToggleChipProps {
   selected?: boolean;

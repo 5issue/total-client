@@ -8,11 +8,8 @@ import { Icon } from '@/components/atoms/Icon/Icon';
  * structure-convention §6-1). 아이콘은 기존 `atoms/Icon` 의 `like`(outline, 같은 path)를
  * 재사용 — currentColor 라 `selected` 텍스트색만 바꾸면 아이콘도 같이 바뀐다.
  *
- * Pressed 스펙(Figma 코드 패널 확인): border-radius full, border 1px solid
- * Icon/Tertiary(#8AA1AB) → `border-neutral-700`, background Surface/Secondary(#F0F5F8)
- * → `active:bg-surface-secondary`. 보더는 Default/Selected 에서도 동일해 상시 클래스로 둔다.
  * `Property 1` 이 Default/Pressed/Selected 중 하나뿐인 단일 값이라(Selected+Pressed 조합
- * 없음), pressed 배경은 selected 가 아닐 때만 적용한다.
+ * 없음), pressed 배경(`active:bg-surface-secondary`)은 selected 가 아닐 때만 적용한다.
  */
 export interface HelpfulVoteChipProps {
   selected?: boolean;

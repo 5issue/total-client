@@ -8,12 +8,9 @@ import { Icon, type IconName } from '@/components/atoms/Icon/Icon';
  * 필터/멤버십 혜택 토글 칩 (Figma "Filter_Chip", node 2424-1469/1471/1468/1470).
  * State(Default/Selected) × Style(Basic/Gradient) 2×2 조합.
  *
- * Style=Gradient 의 보더는 실제로 그라데이션(왼쪽 #D665FF → 오른쪽 #00E3FF)이다 —
- * `get_design_context` 는 그라데이션 스트로크를 첫 스톱만 남기고 단색으로
- * 뭉개서 반환해(#d665ff) 처음엔 단색 토큰으로 잘못 구현했다가, Figma 스크린샷
- * (좌: 보라 우: 청록)으로 정정했다. 좌→우 수평이라 CSS 90deg.
- * CSS 는 `border`가 그라데이션을 직접 못 받아 padding-box 이중 배경 트릭으로 구현:
- * 바깥 span 이 그라데이션 배경 위에 1px 패딩만 두고, 안쪽 button 이 상태별 배경을 채운다.
+ * Style=Gradient 보더는 그라데이션(`--gradient-filter-chip-border`, color.css)이라
+ * `border` 로 못 받는다 — 바깥 span 이 그라데이션 배경 위에 1px 패딩만 두고 안쪽 button 이
+ * 상태별 배경을 채우는 padding-box 트릭으로 구현.
  *
  * 트레일링 화살표(arrow-down)는 필터 확장 가능함을 나타내는 고정 요소라 prop 이 아니다.
  */
@@ -26,8 +23,6 @@ export interface FilterChipProps extends ButtonHTMLAttributes<HTMLButtonElement>
   leadingIcon?: IconName;
   children: ReactNode;
 }
-
-const GRADIENT_BORDER = 'linear-gradient(90deg, #d665ff 0%, #00e3ff 100%)';
 
 const BASIC_VARIANT_CLASSNAME: Record<'default' | 'selected', string> = {
   default: 'border-primary text-brand-secondary',
@@ -63,8 +58,12 @@ export function FilterChip({
   if (tone === 'gradient') {
     return (
       <span
-        className={['inline-flex shrink-0 rounded-full p-px', className].filter(Boolean).join(' ')}
-        style={{ backgroundImage: GRADIENT_BORDER }}
+        className={[
+          'inline-flex shrink-0 rounded-full [background-image:var(--gradient-filter-chip-border)] p-px',
+          className,
+        ]
+          .filter(Boolean)
+          .join(' ')}
       >
         <button
           type={type}
