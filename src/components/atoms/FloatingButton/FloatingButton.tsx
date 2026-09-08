@@ -14,10 +14,9 @@ import { Icon, type IconName } from '@/components/atoms/Icon/Icon';
  *
  * 아이콘-텍스트 간격은 `Gap/2XS`(4px). Secondary 배경은 `Icon/Tertiary` =
  * `#8AA1AB`(neutral-700, 회청색)다.
- * 텍스트/아이콘 색은 variant 가 아니라 요소별로 고정이다 — 두 variant 모두 아이콘은
- * `fg`(#222222), 텍스트는 `fg-inverse`(흰색)를 쓴다. primary 는 그 결과 보라 배경
- * 위에 아이콘이 저대비로 어둡게 보이는데, 이게 Figma 원본 그대로다(의도인지는
- * 디자인 확인 필요).
+ * 텍스트/아이콘 색은 variant 가 아니라 요소별로 고정이다 — 두 variant 모두 텍스트와
+ * 동일하게 `fg-inverse`(흰색)를 쓴다(#54 — 원래 아이콘만 `fg` 로 고정돼 저대비였던 것을
+ * 디자인 확인 후 흰색으로 통일).
  */
 export type FloatingButtonVariant = 'primary' | 'secondary';
 
@@ -55,7 +54,7 @@ export function FloatingButton({
         .join(' ')}
       {...props}
     >
-      {icon ? <Icon name={icon} size={20} aria-hidden className="text-fg" /> : null}
+      {icon ? <Icon name={icon} size={20} aria-hidden className="text-fg-inverse" /> : null}
       {children}
     </button>
   );
