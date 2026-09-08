@@ -1,7 +1,7 @@
 'use client';
 
-import { useId } from 'react';
-import type { InputHTMLAttributes } from 'react';
+import { useEffect, useId, useRef } from 'react';
+import type { InputHTMLAttributes, Ref } from 'react';
 
 /**
  * 단일 체크박스 (atom). 실제 `<input type="checkbox">` 를 시각적으로만 감싼다 —
@@ -22,6 +22,9 @@ import type { InputHTMLAttributes } from 'react';
  *   `neutral-400`이고 테두리는 없다.
  * - disabled+checked 조합은 Figma "Disabled" 행에 정의가 없다(unselected만 정의) —
  *   Radio와 동일한 기준으로 합리적으로 확장했다(디자인 확인 필요).
+ * - `indeterminate`(일부 선택, 전체선택 UI 등): Figma 정의가 없어 체크마크와 같은
+ *   stroke 로 가로 대시를 그린다. `checked` 와 독립이고 DOM 제어(`ref` + `useEffect`)는
+ *   컴포넌트가 삼킨다 — 소비자는 boolean prop 만 넘긴다.
  * - 시각적 라벨 텍스트는 그리지 않는다 — 접근성 이름은 `label`(sr-only)이 담당.
  */
 export type CheckboxVariant = 'outline' | 'filled';
@@ -30,6 +33,9 @@ export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement
   variant?: CheckboxVariant;
   /** `<label htmlFor>` 로 연결되는 접근성 라벨(sr-only). */
   label: string;
+  /** 일부 선택 상태. `checked` 와 독립적으로 표시된다(전체선택 등). */
+  indeterminate?: boolean;
+  ref?: Ref<HTMLInputElement>;
 }
 
 // 24px 는 Figma 실측 고정값(2426:1195, 벡터 18px + 여백 3px) — 시각 크기는 그대로 두고,
@@ -42,10 +48,10 @@ const BASE_CLASSNAME =
 
 const VARIANT_CLASSNAME: Record<CheckboxVariant, string> = {
   outline:
-    'border-2 border-neutral-400 bg-transparent checked:border-primary ' +
+    'border-2 border-neutral-400 bg-transparent checked:border-primary indeterminate:border-primary ' +
     'disabled:border-neutral-400 disabled:checked:border-neutral-400 disabled:bg-surface-secondary',
   filled:
-    'bg-surface-secondary checked:bg-fg ' +
+    'bg-surface-secondary checked:bg-fg indeterminate:bg-fg ' +
     'disabled:bg-neutral-400 disabled:checked:bg-neutral-400',
 };
 
@@ -54,9 +60,28 @@ const VARIANT_TICK_CLASSNAME: Record<CheckboxVariant, string> = {
   filled: 'text-fg-inverse',
 };
 
-export function Checkbox({ variant = 'outline', label, id, className, ...props }: CheckboxProps) {
+export function Checkbox({
+  variant = 'outline',
+  label,
+  id,
+  className,
+  indeterminate = false,
+  ref,
+  ...props
+}: CheckboxProps) {
   const autoId = useId();
   const inputId = id ?? autoId;
+  const innerRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (innerRef.current) innerRef.current.indeterminate = indeterminate;
+  }, [indeterminate]);
+
+  const tickClassName = [
+    'pointer-events-none absolute inset-0 m-auto size-4.5 opacity-0',
+    'peer-disabled:text-fg-disabled',
+    VARIANT_TICK_CLASSNAME[variant],
+  ].join(' ');
 
   return (
     <label
@@ -69,24 +94,35 @@ export function Checkbox({ variant = 'outline', label, id, className, ...props }
         <input
           type="checkbox"
           id={inputId}
+          ref={(node) => {
+            innerRef.current = node;
+            if (typeof ref === 'function') ref(node);
+            else if (ref) ref.current = node;
+          }}
           className={[BASE_CLASSNAME, VARIANT_CLASSNAME[variant]].join(' ')}
           {...props}
         />
+        {/* 체크: checked 이고 indeterminate 가 아닐 때 */}
         <svg
           viewBox="0 0 18 18"
           fill="none"
           aria-hidden
-          className={[
-            'pointer-events-none absolute inset-0 m-auto size-4.5 opacity-0 peer-checked:opacity-100',
-            'peer-disabled:text-fg-disabled',
-            VARIANT_TICK_CLASSNAME[variant],
-          ].join(' ')}
+          className={`${tickClassName} peer-checked:opacity-100 peer-indeterminate:opacity-0`}
         >
           <path
             d="M4.29297 8.58537L7.51248 11.8049L13.9515 5.36586"
             stroke="currentColor"
             strokeWidth={1.5}
           />
+        </svg>
+        {/* 일부 선택: 가로 대시 */}
+        <svg
+          viewBox="0 0 18 18"
+          fill="none"
+          aria-hidden
+          className={`${tickClassName} peer-indeterminate:opacity-100`}
+        >
+          <path d="M4.5 9H13.5" stroke="currentColor" strokeWidth={1.5} />
         </svg>
       </span>
       <span className="sr-only">{label}</span>
