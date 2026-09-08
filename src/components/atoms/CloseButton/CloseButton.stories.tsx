@@ -10,6 +10,9 @@ const meta = {
   args: {
     onClick: fn(),
   },
+  argTypes: {
+    className: { control: false },
+  },
   parameters: { layout: 'padded' },
 } satisfies Meta<typeof CloseButton>;
 

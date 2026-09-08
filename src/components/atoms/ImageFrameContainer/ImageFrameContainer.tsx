@@ -20,7 +20,7 @@ export function ImageFrameContainer({ src, alt, className }: ImageFrameContainer
   return (
     <div
       className={[
-        'bg-surface-secondary rounded-xxl relative size-14 shrink-0 overflow-hidden',
+        'bg-surface-secondary rounded-xxl relative aspect-square w-14 shrink-0 overflow-hidden',
         className,
       ]
         .filter(Boolean)

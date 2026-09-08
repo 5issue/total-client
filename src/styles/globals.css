@@ -33,6 +33,10 @@
   --radius-xl: 16px;
   /* node 3215-3217 "Step_Instruction_Card" 에서 확인(get_variable_defs: Radius/XXL). */
   --radius-xxl: 18px;
+
+  /* 고정 너비 — 4px 스케일에 안 맞는 컴포넌트 실측값. 대괄호 임의값 대신 토큰화(code-style §6-1). */
+  --width-close-button: 62px; /* CloseButton, node 2529-7362 */
+  --width-shortcut-chip: 73px; /* ShortcutChip, node 3235-4368/4370 */
 }
 
 /* @layer base 에 둬야 Tailwind 유틸리티(@layer utilities)가 이 기본값을 오버라이드할 수 있다.

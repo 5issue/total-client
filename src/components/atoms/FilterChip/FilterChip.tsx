@@ -8,9 +8,10 @@ import { Icon, type IconName } from '@/components/atoms/Icon/Icon';
  * 필터/멤버십 혜택 토글 칩 (Figma "Filter_Chip", node 2424-1469/1471/1468/1470).
  * State(Default/Selected) × Style(Basic/Gradient) 2×2 조합.
  *
- * Style=Gradient 보더는 그라데이션(`--gradient-filter-chip-border`, color.css)이라
- * `border` 로 못 받는다 — 바깥 span 이 그라데이션 배경 위에 1px 패딩만 두고 안쪽 button 이
- * 상태별 배경을 채우는 padding-box 트릭으로 구현.
+ * Style=Gradient 보더는 그라데이션(`bg-filter-chip-gradient`, color.css)이라 `border` 로
+ * 못 받는다 — 바깥 button 이 그라데이션 배경 위에 1px 패딩만 두고 안쪽 span 이 상태별 배경을
+ * 채우는 padding-box 트릭으로 구현. 바깥 요소를 button 으로 둬야 1px 보더 위 클릭도
+ * 이벤트가 잡힌다(안쪽만 button 이면 보더 부분 클릭이 씹힘).
  *
  * 트레일링 화살표(arrow-down)는 필터 확장 가능함을 나타내는 고정 요소라 prop 이 아니다.
  */
@@ -57,27 +58,27 @@ export function FilterChip({
 }: FilterChipProps) {
   if (tone === 'gradient') {
     return (
-      <span
+      <button
+        type={type}
+        disabled={disabled}
+        aria-pressed={selected}
         className={[
-          'inline-flex shrink-0 rounded-full [background-image:var(--gradient-filter-chip-border)] p-px',
+          'bg-filter-chip-gradient inline-flex h-9 shrink-0 items-center justify-center rounded-full p-px disabled:pointer-events-none',
           className,
         ]
           .filter(Boolean)
           .join(' ')}
+        {...props}
       >
-        <button
-          type={type}
-          disabled={disabled}
-          aria-pressed={selected}
+        <span
           className={[
-            'text-brand-secondary text-label-m inline-flex h-[34px] items-center justify-center gap-1 rounded-full px-3 py-2 whitespace-nowrap transition-colors disabled:pointer-events-none motion-reduce:transition-none',
+            'text-brand-secondary text-label-m inline-flex h-full items-center justify-center gap-1 rounded-full px-3 py-2 whitespace-nowrap transition-colors motion-reduce:transition-none',
             selected ? 'bg-brand-50' : 'bg-surface',
           ].join(' ')}
-          {...props}
         >
           <FilterChipContent leadingIcon={leadingIcon}>{children}</FilterChipContent>
-        </button>
-      </span>
+        </span>
+      </button>
     );
   }
 

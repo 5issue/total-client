@@ -10,6 +10,10 @@ const meta = {
     src: '/recommended-keywords/peach.png',
     alt: '복숭아',
   },
+  argTypes: {
+    src: { control: 'text' },
+    alt: { control: 'text' },
+  },
   parameters: { layout: 'padded' },
 } satisfies Meta<typeof ImageFrameContainer>;
 

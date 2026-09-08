@@ -11,6 +11,9 @@ const meta = {
     children: '바로가기',
     onClick: fn(),
   },
+  argTypes: {
+    children: { control: 'text' },
+  },
   parameters: { layout: 'padded' },
 } satisfies Meta<typeof ShortcutChip>;
 
