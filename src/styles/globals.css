@@ -37,6 +37,11 @@
   /* 고정 너비 — 4px 스케일에 안 맞는 컴포넌트 실측값. 대괄호 임의값 대신 토큰화(code-style §6-1). */
   --width-close-button: 62px; /* CloseButton, node 2529-7362 */
   --width-shortcut-chip: 73px; /* ShortcutChip, node 3235-4368/4370 */
+
+  /* 고정 높이 — 4px 스케일에 안 맞는 컴포넌트 실측값. 대괄호 임의값 대신 토큰화(code-style §6-1). */
+  --height-status-label-rewards: 22px; /* StatusLabel(rewards), node 2429-2342 */
+  --height-kbank-pointer: 7.794px; /* StatusLabel(kbank) 말풍선 꼬리, node 2825-2141 */
+  --width-kbank-pointer: 5.25px; /* StatusLabel(kbank) 말풍선 꼬리, node 2825-2141 */
 }
 
 /* @layer base 에 둬야 Tailwind 유틸리티(@layer utilities)가 이 기본값을 오버라이드할 수 있다.

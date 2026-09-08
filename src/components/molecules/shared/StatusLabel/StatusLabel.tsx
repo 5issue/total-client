@@ -49,14 +49,15 @@ const STYLE_BY_TYPE: Record<StatusLabelType, string> = {
   subscribed: 'bg-brand-50 text-primary rounded-s px-2 py-1 text-label-m',
   inactive: 'bg-overlay-blue text-fg rounded-s h-5 px-2 text-caption-s font-bold',
   notice: 'bg-overlay-blue text-fg rounded-s px-2 py-1 text-caption-s font-bold',
-  rewards: 'bg-orange/4 text-fg-danger rounded-full h-[22px] px-2 text-caption-s font-bold',
+  rewards:
+    'bg-orange/4 text-fg-danger rounded-full h-status-label-rewards px-2 text-caption-s font-bold',
   defaultAddress: 'bg-surface-secondary text-fg-secondary rounded-full h-6 px-2 text-caption-m',
   kurlyOnly: 'bg-overlay-blue text-primary rounded-s px-2 py-1 text-numeric-s',
-  adLabelS: 'bg-overlay text-white rounded-s px-1 text-caption-s font-bold',
-  adLabelL: 'bg-overlay text-white rounded-s px-2 py-1 text-caption-s font-bold',
+  adLabelS: 'bg-overlay text-fg-inverse rounded-s px-1 text-caption-s font-bold',
+  adLabelL: 'bg-overlay text-fg-inverse rounded-s px-2 py-1 text-caption-s font-bold',
   adLabelM:
     'bg-surface-secondary text-fg-disabled rounded-full h-5 px-2 text-caption-m font-semibold',
-  kbank: 'text-white rounded-s h-4 px-1 text-caption-s font-bold',
+  kbank: 'text-fg-inverse rounded-s h-4 px-1 text-caption-s font-bold',
 };
 
 const BASE_CLASSNAME = 'inline-flex items-center justify-center whitespace-nowrap';
@@ -66,13 +67,7 @@ export function StatusLabel({ type, children, className }: StatusLabelProps) {
     return (
       <span className={['inline-flex items-center', className].filter(Boolean).join(' ')}>
         <KbankPointer />
-        <span
-          className={[
-            BASE_CLASSNAME,
-            'bg-[image:var(--background-image-kbank-gradient)]',
-            STYLE_BY_TYPE.kbank,
-          ].join(' ')}
-        >
+        <span className={[BASE_CLASSNAME, 'bg-kbank-gradient', STYLE_BY_TYPE.kbank].join(' ')}>
           {children}
         </span>
       </span>
@@ -93,7 +88,7 @@ export function StatusLabel({ type, children, className }: StatusLabelProps) {
  */
 function KbankPointer() {
   return (
-    <span className="inline-flex h-[7.794px] w-[5.25px] shrink-0 items-center justify-center">
+    <span className="h-kbank-pointer w-kbank-pointer inline-flex shrink-0 items-center justify-center">
       <svg
         width="7.79423"
         height="4.57226"

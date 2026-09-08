@@ -10,6 +10,10 @@ const meta = {
     username: '정**',
     badge: { color: 'purple', size: 'small', children: '베스트' },
   },
+  argTypes: {
+    username: { control: 'text' },
+    badge: { control: 'object' },
+  },
   parameters: { layout: 'padded' },
 } satisfies Meta<typeof ReviewerBadge>;
 

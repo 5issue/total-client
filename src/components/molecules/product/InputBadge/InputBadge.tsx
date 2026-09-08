@@ -22,7 +22,7 @@ export type InputBadgeProps =
 
 const S_COLOR_CLASSNAME: Record<SColor, string> = {
   light: 'bg-surface-secondary text-fg-secondary',
-  selected: 'bg-neutral-950 text-white',
+  selected: 'bg-neutral-950 text-fg-inverse',
 };
 
 /** S 는 Figma 상 Bold(700) — `text-caption-s`(기본 400) 뒤에 `font-bold` 를 붙여 맞춘다. */
