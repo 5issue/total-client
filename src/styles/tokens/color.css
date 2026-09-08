@@ -82,8 +82,14 @@
   /* Gradient — Figma 변수 미바인딩, 컴포넌트 노드에서 직접 실측(node 2424-1468/1470).
      `--background-image-*` 네임스페이스라 `bg-filter-chip-gradient` 유틸리티로 생성된다. */
   --background-image-filter-chip-gradient: linear-gradient(90deg, #d665ff 0%, #00e3ff 100%);
-  /* StatusLabel(kbank) 프로모 배지 배경 — Figma 변수 미바인딩, 컴포넌트 노드에서 직접 실측(node 2825-2142). */
-  --background-image-kbank-gradient: linear-gradient(90deg, #8a38f5 0%, #7480f4 100%);
+  /* StatusLabel(kbank) 프로모 배지 배경 — Figma 변수 미바인딩, 컴포넌트 노드에서 직접 실측(node 2825-2142).
+     시작색은 좌측 말풍선 꼬리(StatusLabel.tsx KbankPointer)와 같은 색이라 토큰으로 공유한다. */
+  --color-kbank-pointer: #8a38f5;
+  --background-image-kbank-gradient: linear-gradient(
+    90deg,
+    var(--color-kbank-pointer) 0%,
+    #7480f4 100%
+  );
 }
 
 /* ── 시맨틱 토큰 (테마 인식) — 값은 아래 :root 에서 ──────────── */

@@ -59,6 +59,8 @@ const STYLE_BY_TYPE: Record<StatusLabelType, string> = {
   kbank: 'text-white rounded-s h-4 px-1 text-caption-s font-bold',
 };
 
+const BASE_CLASSNAME = 'inline-flex items-center justify-center whitespace-nowrap';
+
 export function StatusLabel({ type, children, className }: StatusLabelProps) {
   if (type === 'kbank') {
     return (
@@ -66,7 +68,7 @@ export function StatusLabel({ type, children, className }: StatusLabelProps) {
         <KbankPointer />
         <span
           className={[
-            'inline-flex items-center justify-center whitespace-nowrap',
+            BASE_CLASSNAME,
             'bg-[image:var(--background-image-kbank-gradient)]',
             STYLE_BY_TYPE.kbank,
           ].join(' ')}
@@ -78,15 +80,7 @@ export function StatusLabel({ type, children, className }: StatusLabelProps) {
   }
 
   return (
-    <span
-      className={[
-        'inline-flex items-center justify-center whitespace-nowrap',
-        STYLE_BY_TYPE[type],
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
-    >
+    <span className={[BASE_CLASSNAME, STYLE_BY_TYPE[type], className].filter(Boolean).join(' ')}>
       {children}
     </span>
   );
@@ -110,7 +104,7 @@ function KbankPointer() {
       >
         <path
           d="M3.09416 0.403961C3.49398 -0.134653 4.30025 -0.134654 4.70007 0.40396L7.79423 4.57226H0L3.09416 0.403961Z"
-          fill="#8A38F5"
+          fill="var(--color-kbank-pointer)"
         />
       </svg>
     </span>
