@@ -40,6 +40,7 @@ export const HEX_TO_VAR = {
   '#12000e': '--color-brand-950',
   '#67bfa4': '--color-cold',
   '#69a3e1': '--color-freeze',
+  '#d24b3a': '--color-fg-danger',
 };
 
 export async function svgFileToJsx(svgPath) {
