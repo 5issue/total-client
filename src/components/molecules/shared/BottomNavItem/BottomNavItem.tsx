@@ -43,7 +43,7 @@ export function BottomNavItem({
         {active && (
           <span
             aria-hidden="true"
-            className="bg-overlay-blue h-nav-capsule w-nav-capsule absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+            className="bg-overlay-blue h-nav-capsule-y w-nav-capsule-x absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
           />
         )}
         {badge && (
