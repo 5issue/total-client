@@ -24,5 +24,5 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** 기본 — 네이버·카카오 버튼. 클릭 시 `useOAuthLogin` 이 제공자 동의화면으로 이동시킨다. */
+/** 기본 — 네이버·카카오 버튼. 클릭 시 `useSocialLogin` 이 제공자 동의화면으로 이동시킨다. */
 export const Default: Story = {};

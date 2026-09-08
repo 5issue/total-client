@@ -3,6 +3,7 @@ import type { ZodType } from 'zod';
 import { ApiError } from '@/errors/ApiError';
 import type { ApiEnvelope } from '@/lib/apiResponse';
 import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/authTokenRef';
+import { SpringLoginUrlDataSchema, type OAuthProvider } from '@/types/auth';
 
 /**
  * HTTP 클라이언트 — publicFetch / privateFetch (api-convention §3).
@@ -87,4 +88,11 @@ async function tryRefresh(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+// --- 엔드포인트 함수 (api-convention §1·§8 — 훅은 이 함수를 호출, publicFetch 직접 호출 금지) ---
+
+/** 소셜 로그인 URL 발급 (카카오/네이버). 로그인 전 단계라 인증 불필요. */
+export function requestSocialLoginUrl(provider: OAuthProvider) {
+  return publicFetch(`/api/auth/oauth/${provider}`, SpringLoginUrlDataSchema, { method: 'POST' });
 }

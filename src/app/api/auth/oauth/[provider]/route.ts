@@ -6,7 +6,7 @@ import { env } from '@/lib/env';
 import { SpringEnvelopeSchema, SpringLoginUrlDataSchema } from '@/types/auth';
 
 /**
- * 카카오/네이버 로그인 URL 발급 — 로그인 버튼 클릭 시 `useOAuthLogin` 이 호출.
+ * 카카오/네이버 로그인 URL 발급 — 로그인 버튼 클릭 시 `useSocialLogin` 이 호출.
  * `redirectUri` 는 클라이언트 입력을 신뢰하지 않고 요청 origin 에서 서버가 직접 계산한다
  * (카카오/네이버 콘솔에 등록된 값과 일치해야 하며, `/callback/[provider]` 가 그 착지 지점).
  */
