@@ -19,6 +19,9 @@ import { QuantityStepper } from '@/components/molecules/shared/QuantityStepper';
  * 정가 취소선 `Label/M_Medium`14/500 + `Text/Quaternary`#8aa1ab → `text-label-m text-fg-quaternary`,
  * 삭제 아이콘 `Icon/Secondary`#7e8f9b → `text-fg-tertiary`, 썸네일 radius `Radius/S`4 → `rounded-s`,
  * 가격↔스테퍼 간격 `Gap/XXL`28 → `gap-7`.
+ *
+ * 레이아웃(Figma `Item_H_Cart`): 2번째 줄(썸네일+가격)은 1번째 줄 상품명과 좌측 정렬 —
+ * 체크박스 터치타깃(44) + gap(4) 만큼 들여쓴다 → `pl-12`.
  */
 export interface CartLineItemProps {
   name: string;
@@ -78,7 +81,7 @@ export function CartLineItem({
         <Icon name="close" size={20} aria-hidden />
       </button>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 pl-12">
         {imageSrc ? (
           <Image
             src={imageSrc}

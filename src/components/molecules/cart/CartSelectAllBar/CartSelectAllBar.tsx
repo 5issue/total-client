@@ -40,9 +40,10 @@ export function CartSelectAllBar({
           disabled={totalCount === 0}
           onChange={(e) => onToggleAll(e.target.checked)}
         />
-        <span className="text-label-l text-fg">
-          전체선택{' '}
-          <span className="text-fg-quaternary">
+        {/* Figma node 188-9366/9367: "전체선택"·"n/4" 모두 Heading/H5_Medium(16/500) · Text/Primary. */}
+        <span className="text-heading-5 text-fg flex items-center gap-1">
+          <span>전체선택</span>
+          <span>
             {selectedCount}/{totalCount}
           </span>
         </span>

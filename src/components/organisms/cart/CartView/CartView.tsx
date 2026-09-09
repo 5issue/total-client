@@ -60,13 +60,25 @@ export function CartView() {
     for (const g of groups) {
       for (const item of g.items) {
         if (!selectedIds.has(item.id)) continue;
-        productPrice += item.price * item.quantity;
-        if (item.originalPrice) {
-          productDiscount += (item.originalPrice - item.price) * item.quantity;
-        }
+        const listPrice = item.originalPrice ?? item.price;
+        productPrice += listPrice * item.quantity;
+        productDiscount += (listPrice - item.price) * item.quantity;
       }
     }
-    return { productPrice, productDiscount, shippingFee: 0, total: productPrice };
+    // 쿠폰은 아직 미구현(퍼블리싱 단계) — 데이터 연동 시 훅에서 계산해 채운다.
+    const productCouponDiscount = 0;
+    const cartCouponDiscount = 0;
+    const couponDiscount = productCouponDiscount + cartCouponDiscount;
+    const shippingFee = 0;
+    return {
+      productPrice,
+      productDiscount,
+      couponDiscount,
+      productCouponDiscount,
+      cartCouponDiscount,
+      shippingFee,
+      total: productPrice - productDiscount - couponDiscount + shippingFee,
+    };
   }, [groups, selectedIds]);
 
   function setItemChecked(id: string, checked: boolean) {

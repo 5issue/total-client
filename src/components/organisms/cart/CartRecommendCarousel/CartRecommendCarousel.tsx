@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 import { Button } from '@/components/atoms/Button';
-import { CarouselArrow } from '@/components/atoms/CarouselArrow';
+import { Pagination } from '@/components/molecules/shared/Pagination';
 import type { RecommendProductView } from '@/components/organisms/cart/model';
 
 /**
@@ -14,6 +14,8 @@ import type { RecommendProductView } from '@/components/organisms/cart/model';
  * 제목 `Heading/H4_SemiBold` → `text-heading-4 text-fg`, 부제·상품명 `Label/XS_Regular`
  * → `text-label-xs`, 가격 `Caption/L`(12/600) → `text-caption-l`.
  * `Item_V_XS` 카드마다 이미지와 상품명 사이에 담기 버튼(Button xs/outlineBlack, h-32).
+ * 페이지네이션은 `molecules/shared/Pagination` — 화살표 글리프가 이동 가능 여부에 따라
+ * 진하게(#222)/연하게 바뀐다(node 188-9652: 비활성 prev 는 연한 톤, 활성 next 는 Text/Primary).
  */
 export interface CartRecommendCarouselProps {
   items: RecommendProductView[];
@@ -68,30 +70,13 @@ export function CartRecommendCarousel({ items, onAdd, className }: CartRecommend
       </ul>
 
       {pageCount > 1 ? (
-        <div className="flex items-center justify-center gap-4">
-          <button
-            type="button"
-            aria-label="이전 상품"
-            disabled={page === 0}
-            onClick={() => setPage((p) => Math.max(0, p - 1))}
-            className="disabled:opacity-30"
-          >
-            <CarouselArrow direction="left" aria-hidden />
-          </button>
-          <span className="text-label-xs tabular-nums">
-            <span className="text-fg">{page + 1}</span>
-            <span className="text-fg-quaternary"> / {pageCount}</span>
-          </span>
-          <button
-            type="button"
-            aria-label="다음 상품"
-            disabled={page === pageCount - 1}
-            onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
-            className="disabled:opacity-30"
-          >
-            <CarouselArrow direction="right" aria-hidden />
-          </button>
-        </div>
+        <Pagination
+          className="justify-center"
+          current={page + 1}
+          total={pageCount}
+          onPrevious={() => setPage((p) => Math.max(0, p - 1))}
+          onNext={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+        />
       ) : null}
     </section>
   );

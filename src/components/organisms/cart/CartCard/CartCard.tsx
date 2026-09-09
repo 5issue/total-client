@@ -15,7 +15,8 @@ import type { CartDeliveryGroup } from '@/components/organisms/cart/model';
  * 구분선 `Border/Strong`#dde4ed → `border-border`, radius `Radius/XL`16 → `rounded-xl`,
  * 라벨 `Heading/H1_SemiBold`18/600 → `text-heading-1`, 소계문구 `Label/M_Medium`14/500 + `Text/Quaternary`#8aa1ab
  * → `text-label-m text-fg-quaternary`, 소계금액 `Heading/H0_SemiBold`20/600 → `text-heading-0`,
- * 소계박스 `Surface/Secondary`#f0f5f8 `Radius/L`12 → `bg-surface-secondary rounded-l`.
+ * 소계박스 `Surface/Secondary`#f0f5f8 `Radius/L`12(네 모서리) → `bg-surface-secondary rounded-[var(--radius-l)]`
+ * (`rounded-l` 은 Tailwind 코어의 방향형(왼쪽만) 유틸리티와 충돌해 좌우 비대칭이 됨 — 명시 토큰 사용).
  * 온도 아이콘은 체크박스 글리프(44px 타깃 중앙 = +10px)와 맞추려 `pl-2.5`.
  */
 export interface CartCardProps {
@@ -93,7 +94,7 @@ export function CartCard({
         ))}
       </div>
 
-      <div className="bg-surface-secondary flex flex-col items-center gap-px rounded-l px-2.5 pt-3 pb-4 text-center">
+      <div className="bg-surface-secondary flex flex-col items-center rounded-[var(--radius-l)] px-2.5 pt-3 pb-4 text-center">
         <p className="text-label-m text-fg-quaternary">
           상품 {won(group.subtotalPrice)} + 배송비{' '}
           {group.shippingFee === 0 ? '무료' : won(group.shippingFee)}

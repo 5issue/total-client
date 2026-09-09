@@ -30,10 +30,18 @@ export interface CartDeliveryGroup {
 }
 
 export interface CartAmounts {
+  /** 상품 금액 — 선택 상품의 정가 합계. */
   productPrice: number;
+  /** 상품할인 금액 — (정가 − 판매가) 합계. */
   productDiscount: number;
+  /** 쿠폰 할인 금액 합계(상품 쿠폰 + 장바구니 쿠폰). */
+  couponDiscount: number;
+  /** 상품 쿠폰 할인. */
+  productCouponDiscount: number;
+  /** 장바구니 쿠폰 할인. */
+  cartCouponDiscount: number;
   shippingFee: number;
-  /** 결제 예정 금액. */
+  /** 결제 예정 금액 = 상품 금액 − 상품할인 − 쿠폰할인 + 배송비. */
   total: number;
 }
 
