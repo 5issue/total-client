@@ -35,6 +35,7 @@ export function CartRecommendSheet({
       open={open}
       onClose={onClose}
       ariaLabel="함께 구매하면 좋은 상품"
+      maxHeight="55dvh"
       footer={
         <CartOrderBar
           totalPrice={totalPrice}

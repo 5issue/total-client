@@ -6,6 +6,7 @@ export const MOCK_CART_GROUPS: CartDeliveryGroup[] = [
   {
     id: 'saetbyeol',
     deliveryLabel: '샛별배송',
+    checked: true,
     subtotalPrice: 30800,
     shippingFee: 0,
     items: [

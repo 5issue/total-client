@@ -90,18 +90,9 @@ export function CartView() {
     });
   }
 
+  // 배송유형(샛별배송) 체크박스 — 상품 선택과 무관하게 그룹의 checked 플래그만 토글한다.
   function setGroupChecked(groupId: string, checked: boolean) {
-    const group = groups.find((g) => g.id === groupId);
-    if (!group) return;
-    const ids = group.items.filter((i) => !i.soldOut).map((i) => i.id);
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      for (const id of ids) {
-        if (checked) next.add(id);
-        else next.delete(id);
-      }
-      return next;
-    });
+    setGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, checked } : g)));
   }
 
   function setAllChecked(checked: boolean) {
@@ -229,10 +220,10 @@ export function CartView() {
         )}
       </div>
 
-      {!isEmpty && tab === 'items' ? (
+      {tab === 'items' ? (
         <CartOrderBar
           className="border-border sticky bottom-0 border-t"
-          state={address ? 'order' : 'no-address'}
+          state={isEmpty ? 'empty' : address ? 'order' : 'no-address'}
           totalPrice={amounts.total}
           onOrder={() => setSheetOpen(true)}
         />

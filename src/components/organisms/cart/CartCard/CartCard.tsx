@@ -9,7 +9,8 @@ import type { CartDeliveryGroup } from '@/components/organisms/cart/model';
  * 배송 유형 하나의 장바구니 카드 (organism). Figma "5팀 UI 공유용" — `Card_Cart` (node 2600-1933).
  *
  * [배송유형 체크박스 + 라벨] / 온도대 섹션(냉장·냉동)별 `CartLineItem` 목록 / 카드 푸터(소계).
- * 데이터·핸들러는 상위(CartList/CartView)가 주입 — 선택 상태는 id Set 으로 받는다.
+ * 데이터·핸들러는 상위(CartList/CartView)가 주입 — 상품 선택은 id Set(`selectedIds`),
+ * 배송유형 체크는 `group.checked`(별개 상태, API 값). 배송유형 체크박스는 상품을 건드리지 않는다.
  *
  * 토큰(`get_variable_defs` node 188-9589): 카드 `Surface/Base` → `bg-surface`(회색 컨테이너 위 흰 블록),
  * 구분선 `Border/Strong`#dde4ed → `border-border`, radius `Radius/XL`16 → `rounded-xl`,
@@ -41,9 +42,6 @@ export function CartCard({
   onGroupToggle,
   className,
 }: CartCardProps) {
-  const selectable = group.items.filter((i) => !i.soldOut);
-  const groupChecked = selectable.length > 0 && selectable.every((i) => selectedIds.has(i.id));
-
   const sections = TEMPERATURE_ORDER.map((temp) => ({
     temp,
     items: group.items.filter((i) => i.temperature === temp),
@@ -59,9 +57,8 @@ export function CartCard({
         <span className="flex size-8 shrink-0 items-center justify-center">
           <Checkbox
             variant="filled"
-            label={`${group.deliveryLabel} 전체 선택`}
-            checked={groupChecked}
-            disabled={selectable.length === 0}
+            label={`${group.deliveryLabel} 선택`}
+            checked={group.checked}
             onChange={(e) => onGroupToggle(group.id, e.target.checked)}
           />
         </span>

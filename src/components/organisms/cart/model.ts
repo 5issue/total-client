@@ -22,6 +22,11 @@ export interface CartDeliveryGroup {
   id: string;
   /** 배송 유형 라벨. 예: "샛별배송". */
   deliveryLabel: string;
+  /**
+   * 배송 유형 선택 여부. 상품 선택(`selectedIds`)과 무관한 별개 상태로, API 로 내려온다.
+   * 이 체크박스는 배송 유형만 토글하고 그룹 내 상품 체크박스는 건드리지 않는다.
+   */
+  checked: boolean;
   items: CartItemView[];
   /** 이 그룹 소계(원). */
   subtotalPrice: number;
