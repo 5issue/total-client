@@ -104,6 +104,7 @@
     --surface-tag
   ); /* Chip(removable) 채움 — Figma 변수 미바인딩, 아래 :root 주석 참고 */
   --color-surface-tag-active: var(--surface-tag-active); /* 위와 동일, pressed */
+  --color-surface-subtle: var(--surface-subtle); /* Surface/Neutral_subtle */
 
   /* Text (foreground) — Figma "Text" */
   --color-fg: var(--fg); /* Text/primary */
@@ -142,6 +143,11 @@
      계산상 정확히 일치(계산 검증 완료, 별도 합성 불필요 — 그냥 이 값을 그대로 쓰면 됨). */
   --surface-tag: #c6c6c6;
   --surface-tag-active: #b7bfc3;
+
+  /* TabItem filled variant 의 pressed 배경(node 2923-2723/2728) — Figma 변수
+     "Surface/Neutral_subtle" 바인딩값, neutral-100 과 우연히 같은 값이지만
+     시맨틱 의미가 달라 별도 토큰으로 뒀다(#68 코드래빗 리뷰). */
+  --surface-subtle: #f7f7f7;
 
   /* Text — Figma "Text/*" → 프리미티브 */
   --fg: #222222; /* Text/primary    = Normal/Black */

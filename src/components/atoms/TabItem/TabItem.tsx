@@ -82,7 +82,7 @@ export const TabItem = forwardRef<HTMLButtonElement, TabItemProps>(function TabI
         tabIndex={tabIndex}
         onClick={onClick}
         onKeyDown={onKeyDown}
-        className={`rounded-m flex h-12 flex-col items-center justify-between px-2 pt-3 transition-colors active:bg-neutral-100 motion-reduce:transition-none ${className ?? ''}`.trim()}
+        className={`rounded-m active:bg-surface-subtle flex h-12 flex-col items-center justify-between px-2 pt-3 transition-colors motion-reduce:transition-none ${className ?? ''}`.trim()}
       >
         <span
           className={`text-heading-5 flex w-full items-center justify-between whitespace-nowrap ${active ? 'text-fg' : 'text-fg-secondary'}`}

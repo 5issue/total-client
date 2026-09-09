@@ -95,7 +95,7 @@ export const FilledVariantActive: Story = {
  * 클래스로만 처리하는데(TabItem.tsx 참고), `:active` 는 실제 마우스 다운 상태에서만
  * 켜져 정적 문서·자동화 테스트로는 안정적으로 재현할 수 없다(Playwright 환경에서
  * `fireEvent`/`userEvent.pointer` 로 시도했으나 실제 브라우저 `:active` 를 트리거하지
- * 못함 확인). 그래서 pressed 두 칸은 동일한 배경색(`bg-neutral-100`)을 `className` 으로
+ * 못함 확인). 그래서 pressed 두 칸은 동일한 배경색(`bg-surface-subtle`)을 `className` 으로
  * 강제 적용해 "이렇게 보인다"만 미리보기하는 문서 전용 스토리다 — 실제 눌림 동작은
  * 로컬 Storybook에서 직접 클릭해 확인한다.
  */
@@ -104,9 +104,9 @@ export const FilledVariantAllStates: Story = {
   render: () => (
     <div className="flex gap-2">
       <TabItem variant="filled" label="카테고리" count={1} />
-      <TabItem variant="filled" label="카테고리" count={1} className="bg-neutral-100" />
+      <TabItem variant="filled" label="카테고리" count={1} className="bg-surface-subtle" />
       <TabItem variant="filled" label="카테고리" count={1} active />
-      <TabItem variant="filled" label="카테고리" count={1} active className="bg-neutral-100" />
+      <TabItem variant="filled" label="카테고리" count={1} active className="bg-surface-subtle" />
     </div>
   ),
 };

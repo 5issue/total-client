@@ -122,14 +122,21 @@ export const WithDetailBox: Story = {
   },
 };
 
+/** apiErrorArgs 스토리 공통 검증 — "다시 시도" 버튼이 접근 가능한 이름으로 클릭 가능한지 확인. */
+const playRetryAction: Story['play'] = async ({ canvasElement }) => {
+  await userEvent.click(within(canvasElement).getByRole('button', { name: '다시 시도' }));
+};
+
 /** Error_API — 문서를 불러오지 못했을 때. */
 export const DocumentError: Story = {
   args: apiErrorArgs('document', '문서를 불러오지 못했어요', '잠시 후 다시 시도해 주세요'),
+  play: playRetryAction,
 };
 
 /** Error_API — 상품/패키지 정보를 불러오지 못했을 때. */
 export const PackageError: Story = {
   args: apiErrorArgs('package', '상품 정보를 불러오지 못했어요', '잠시 후 다시 시도해 주세요'),
+  play: playRetryAction,
 };
 
 /** Error_API — 네트워크 연결이 끊겼을 때. */
@@ -139,16 +146,19 @@ export const WifiError: Story = {
     '네트워크 연결을 확인해 주세요',
     '인터넷 연결 상태를 확인한 후 다시 시도해 주세요',
   ),
+  play: playRetryAction,
 };
 
 /** Error_API — 요청 시간이 초과됐을 때. */
 export const TimeoutError: Story = {
   args: apiErrorArgs('timeout', '요청 시간이 초과됐어요', '잠시 후 다시 시도해 주세요'),
+  play: playRetryAction,
 };
 
 /** Error_API — 서버(DB) 오류가 발생했을 때. */
 export const DatabaseError: Story = {
   args: apiErrorArgs('database', '일시적인 오류가 발생했어요', '잠시 후 다시 시도해 주세요'),
+  play: playRetryAction,
 };
 
 // --- 인터랙션 테스트 전용 (autodocs 에서 숨김) ---

@@ -86,6 +86,19 @@ export const AllPaymentMethods: Story = {
     }
     return <Group />;
   },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const kakaoRadio = canvas.getByRole('radio', { name: '카카오페이' });
+    const tossRadio = canvas.getByRole('radio', { name: '토스페이' });
+
+    await expect(kakaoRadio).toHaveAttribute('aria-checked', 'true');
+    await expect(tossRadio).toHaveAttribute('aria-checked', 'false');
+
+    await userEvent.click(tossRadio);
+
+    await expect(tossRadio).toHaveAttribute('aria-checked', 'true');
+    await expect(kakaoRadio).toHaveAttribute('aria-checked', 'false');
+  },
 };
 
 export const ClickTogglesSelected: Story = {
