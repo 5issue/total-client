@@ -128,6 +128,22 @@ export function CartView() {
     setDeleteTarget(null);
   }
 
+  // 빈 상태 — 담은상품이 없을 때 / "자주 산 상품" 탭(미구현). Figma node 188-8841 "Error".
+  const emptyState = (
+    <>
+      <div className="flex min-h-80 flex-col items-center justify-center">
+        <ErrorState
+          icon={<Icon name="alert" size={56} aria-hidden />}
+          title="담은 상품이 없어요"
+          action={
+            <FloatingButton onClick={() => router.push('/products')}>구매하러 가기</FloatingButton>
+          }
+        />
+      </div>
+      <CartRecommendCarousel items={MOCK_RECOMMEND} onAdd={() => undefined} className="mx-4" />
+    </>
+  );
+
   return (
     <>
       <SectionHeader
@@ -160,9 +176,7 @@ export function CartView() {
         </div>
 
         {tab === 'frequent' ? (
-          <p className="bg-surface text-label-m text-fg-tertiary px-4 py-10 text-center">
-            자주 산 상품은 준비 중이에요.
-          </p>
+          emptyState
         ) : isEmpty ? (
           <>
             <CartSelectAllBar
@@ -172,24 +186,7 @@ export function CartView() {
               onToggleAll={setAllChecked}
               onDeleteSelected={() => setDeleteTarget({ kind: 'selected' })}
             />
-            {/* Figma node 188-8841 "Error": 회색 배경 위 중앙정렬(h-316), alert 그래픽 56px +
-                FloatingButton(brand-secondary pill). 그 아래 추천 캐러셀은 상품 있을 때와 동일. */}
-            <div className="flex min-h-80 flex-col items-center justify-center">
-              <ErrorState
-                icon={<Icon name="alert" size={56} aria-hidden />}
-                title="담은 상품이 없어요"
-                action={
-                  <FloatingButton onClick={() => router.push('/products')}>
-                    구매하러 가기
-                  </FloatingButton>
-                }
-              />
-            </div>
-            <CartRecommendCarousel
-              items={MOCK_RECOMMEND}
-              onAdd={() => undefined}
-              className="mx-4"
-            />
+            {emptyState}
           </>
         ) : (
           <>
