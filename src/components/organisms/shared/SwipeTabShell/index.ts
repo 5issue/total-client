@@ -1,0 +1,1 @@
+export { SwipeTabShell } from './SwipeTabShell';

@@ -88,7 +88,7 @@ export function StatusLabel({ type, children, className }: StatusLabelProps) {
  */
 function KbankPointer() {
   return (
-    <span className="h-kbank-pointer w-kbank-pointer inline-flex shrink-0 items-center justify-center">
+    <span className="h-kbank-pointer-height w-kbank-pointer-width inline-flex shrink-0 items-center justify-center">
       <svg
         width="7.79423"
         height="4.57226"
