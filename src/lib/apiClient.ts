@@ -96,3 +96,17 @@ async function tryRefresh(): Promise<boolean> {
 export function requestSocialLoginUrl(provider: OAuthProvider) {
   return publicFetch(`/api/auth/oauth/${provider}`, SpringLoginUrlDataSchema, { method: 'POST' });
 }
+
+/**
+ * 앱 부팅 시 무음 재발급 — `refresh_token` 쿠키가 있으면 accessToken 을 메모리에 채운다.
+ * 게스트(쿠키 없음)는 조용히 `authenticated: false` 로 처리한다(에러 아님).
+ * `privateFetch` 의 401 lazy refresh 와 별개로, 첫 인증 요청 전에 세션을 미리 세운다.
+ */
+export async function bootstrapSession(): Promise<{ authenticated: boolean }> {
+  const ok = await tryRefresh();
+  if (!ok) {
+    clearAccessToken();
+    return { authenticated: false };
+  }
+  return { authenticated: true };
+}

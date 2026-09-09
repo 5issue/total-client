@@ -3,6 +3,8 @@ import type { Metadata } from 'next';
 import { SocialLoginPanel } from '@/components/organisms/auth/SocialLoginPanel';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 
+import { GuestGate } from './GuestGate';
+
 export const metadata: Metadata = { title: '로그인' };
 
 /**
@@ -10,8 +12,8 @@ export const metadata: Metadata = { title: '로그인' };
  * 카카오·네이버 소셜 로그인만. 상태바(OS)·하단 네비게이션(별도 담당자)은 구현 범위 밖.
  *
  * 렌더링(structure §2-1): **정적 셸**. 폼이 없어(소셜 전용) 동적 API 를 안 쓰고,
- * 상호작용은 `SocialLoginPanel`(클라 잎) 한 곳에만 있다. "비로그인 전용" 가드는
- * 세션 무음 재발급 배선과 함께 별도(#50).
+ * 상호작용은 클라 잎(`GuestGate` 세션 가드 / `SocialLoginPanel` 소셜 트리거)에만 있다.
+ * "비로그인 전용" 가드: 이미 로그인 시 `GuestGate` 가 `?redirect=` 대상으로 돌려보낸다.
  *
  * 헤더 우측 아이콘은 목적지 라우트가 있는 장바구니만 배선한다 — 위치/알림 아이콘은
  * 대상 화면이 아직 없어 제외(디자인 코멘트로 통지).
@@ -19,6 +21,7 @@ export const metadata: Metadata = { title: '로그인' };
 export default function LoginPage() {
   return (
     <>
+      <GuestGate />
       <SectionHeader
         center={<span className="text-heading-0 text-fg">마이컬리</span>}
         actions={[{ icon: 'cart', label: '장바구니', href: '/cart' }]}
