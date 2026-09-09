@@ -50,8 +50,9 @@ export function CartSelectAllBar({
           </span>
         </span>
       </div>
+      {/* Figma node 188-9634: h-32(=size xs), w-74 는 px-3 로 근사. */}
       <Button
-        size="s"
+        size="xs"
         variant="outlineBlack"
         onClick={onDeleteSelected}
         disabled={selectedCount === 0}
