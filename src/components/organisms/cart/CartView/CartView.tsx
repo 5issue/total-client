@@ -5,13 +5,13 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/atoms/Button';
+import { FloatingButton } from '@/components/atoms/FloatingButton';
 import { Icon } from '@/components/atoms/Icon';
 import { CartDeliveryAddress } from '@/components/molecules/cart/CartDeliveryAddress';
 import { CartSelectAllBar } from '@/components/molecules/cart/CartSelectAllBar';
 import { ErrorState } from '@/components/molecules/shared/ErrorState';
 import { Modal } from '@/components/molecules/shared/Modal';
 import { TabBar } from '@/components/molecules/shared/TabBar';
-import { CartFrequentProducts } from '@/components/organisms/cart/CartFrequentProducts';
 import { CartList } from '@/components/organisms/cart/CartList';
 import { CartOrderBar } from '@/components/organisms/cart/CartOrderBar';
 import { CartRecommendCarousel } from '@/components/organisms/cart/CartRecommendCarousel';
@@ -173,19 +173,33 @@ export function CartView() {
             자주 산 상품은 준비 중이에요.
           </p>
         ) : isEmpty ? (
-          <div className="bg-surface flex flex-col">
-            <ErrorState
-              className="py-12"
-              icon={<Icon name="info-line" size={40} aria-hidden />}
-              title="담은 상품이 없어요"
-              action={
-                <Button variant="tertiary" size="m" onClick={() => router.push('/products')}>
-                  구매하러 가기
-                </Button>
-              }
+          <>
+            <CartSelectAllBar
+              className="bg-surface"
+              selectedCount={0}
+              totalCount={0}
+              onToggleAll={setAllChecked}
+              onDeleteSelected={() => setDeleteTarget({ kind: 'selected' })}
             />
-            <CartFrequentProducts items={MOCK_RECOMMEND} onAdd={() => undefined} />
-          </div>
+            {/* Figma node 188-8841 "Error": 회색 배경 위 중앙정렬(h-316), alert 그래픽 56px +
+                FloatingButton(brand-secondary pill). 그 아래 추천 캐러셀은 상품 있을 때와 동일. */}
+            <div className="flex min-h-80 flex-col items-center justify-center">
+              <ErrorState
+                icon={<Icon name="alert" size={56} aria-hidden />}
+                title="담은 상품이 없어요"
+                action={
+                  <FloatingButton onClick={() => router.push('/products')}>
+                    구매하러 가기
+                  </FloatingButton>
+                }
+              />
+            </div>
+            <CartRecommendCarousel
+              items={MOCK_RECOMMEND}
+              onAdd={() => undefined}
+              className="mx-4"
+            />
+          </>
         ) : (
           <>
             <CartSelectAllBar
