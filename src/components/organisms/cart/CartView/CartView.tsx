@@ -146,7 +146,9 @@ export function CartView() {
         title="장바구니"
       />
 
-      <div className="bg-surface-secondary flex flex-1 flex-col gap-2 pb-20">
+      {/* 섹션은 서로 붙는다(Figma: 배송지·탭·전체선택·회색 카드 영역·결제요약 영역 모두 flush).
+          결제요약 → 추천 캐러셀 사이만 16px 회색 밴드(node 188-9378 gap-4). */}
+      <div className="bg-surface-secondary flex flex-1 flex-col pb-4">
         <div className="bg-surface">
           <CartDeliveryAddress
             address={address}
@@ -201,12 +203,14 @@ export function CartView() {
               onItemRemove={(id) => setDeleteTarget({ kind: 'item', id })}
               onGroupToggle={setGroupChecked}
             />
-            <CartSummary amounts={amounts} className="bg-surface" />
-            <CartRecommendCarousel
-              items={MOCK_RECOMMEND}
-              onAdd={() => undefined}
-              className="mx-4 mb-3"
-            />
+            <div className="flex flex-col gap-4">
+              <CartSummary amounts={amounts} className="bg-surface" />
+              <CartRecommendCarousel
+                items={MOCK_RECOMMEND}
+                onAdd={() => undefined}
+                className="mx-4"
+              />
+            </div>
           </>
         )}
       </div>
