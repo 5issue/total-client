@@ -7,22 +7,14 @@ import { Icon } from '@/components/atoms/Icon';
 
 import { ErrorState } from './ErrorState';
 
-/** Figma node 3011-3796 "Icon Api"(Payment) — 벡터 없는 raster 전용 에셋(Toast 아이콘과 동일 패턴). */
-const paymentErrorIcon = (
-  <Image
-    src="/graphic-icons/payment-error.webp"
-    alt=""
-    width={100}
-    height={100}
-    className="size-25"
-  />
-);
+type ApiErrorIconName = 'payment' | 'document' | 'package' | 'wifi' | 'timeout' | 'database';
 
 /**
- * Figma "Icon Api" 컴포넌트셋(node 3013-2621~2626) — Payment 와 동일하게 전부
- * 벡터 없는 raster 전용 에셋. 상태별로 같은 도안에 배지만 다르다.
+ * Figma "Icon Api" 컴포넌트셋(node 3013-2621~2626, Payment 는 3011-3796) — 전부
+ * 벡터 없는 raster 전용 에셋(Toast 아이콘과 동일 패턴). 상태별로 같은 도안에
+ * 배지만 다르다.
  */
-const apiErrorIcon = (name: 'document' | 'package' | 'wifi' | 'timeout' | 'database') => (
+const apiErrorIcon = (name: ApiErrorIconName) => (
   <Image
     src={`/graphic-icons/${name}-error.webp`}
     alt=""
@@ -31,6 +23,17 @@ const apiErrorIcon = (name: 'document' | 'package' | 'wifi' | 'timeout' | 'datab
     className="size-25"
   />
 );
+
+/** Error_API 공통 액션 — 재시도 버튼. 스토리마다 새 mock 이 필요해 호출 시점에 만든다. */
+const retryAction = () => (
+  <FloatingButton icon="refresh" onClick={fn()}>
+    다시 시도
+  </FloatingButton>
+);
+
+function apiErrorArgs(name: ApiErrorIconName, title: string, description: string) {
+  return { icon: apiErrorIcon(name), title, description, action: retryAction() };
+}
 
 const meta = {
   title: 'molecules/shared/ErrorState',
@@ -76,7 +79,7 @@ export const WithoutAction: Story = {
  */
 export const WithDescription: Story = {
   args: {
-    icon: paymentErrorIcon,
+    icon: apiErrorIcon('payment'),
     title: '결제 처리 오류',
     description: '결제 상태를 확인하신 후 다시 시도해 주세요',
     action: (
@@ -93,7 +96,7 @@ export const WithDescription: Story = {
  */
 export const WithDetailBox: Story = {
   args: {
-    icon: paymentErrorIcon,
+    icon: apiErrorIcon('payment'),
     title: '결제 처리 오류',
     description: '결제 상태를 확인하신 후 다시 시도해 주세요',
     action: (
@@ -121,72 +124,31 @@ export const WithDetailBox: Story = {
 
 /** Error_API — 문서를 불러오지 못했을 때. */
 export const DocumentError: Story = {
-  args: {
-    icon: apiErrorIcon('document'),
-    title: '문서를 불러오지 못했어요',
-    description: '잠시 후 다시 시도해 주세요',
-    action: (
-      <FloatingButton icon="refresh" onClick={fn()}>
-        다시 시도
-      </FloatingButton>
-    ),
-  },
+  args: apiErrorArgs('document', '문서를 불러오지 못했어요', '잠시 후 다시 시도해 주세요'),
 };
 
 /** Error_API — 상품/패키지 정보를 불러오지 못했을 때. */
 export const PackageError: Story = {
-  args: {
-    icon: apiErrorIcon('package'),
-    title: '상품 정보를 불러오지 못했어요',
-    description: '잠시 후 다시 시도해 주세요',
-    action: (
-      <FloatingButton icon="refresh" onClick={fn()}>
-        다시 시도
-      </FloatingButton>
-    ),
-  },
+  args: apiErrorArgs('package', '상품 정보를 불러오지 못했어요', '잠시 후 다시 시도해 주세요'),
 };
 
 /** Error_API — 네트워크 연결이 끊겼을 때. */
 export const WifiError: Story = {
-  args: {
-    icon: apiErrorIcon('wifi'),
-    title: '네트워크 연결을 확인해 주세요',
-    description: '인터넷 연결 상태를 확인한 후 다시 시도해 주세요',
-    action: (
-      <FloatingButton icon="refresh" onClick={fn()}>
-        다시 시도
-      </FloatingButton>
-    ),
-  },
+  args: apiErrorArgs(
+    'wifi',
+    '네트워크 연결을 확인해 주세요',
+    '인터넷 연결 상태를 확인한 후 다시 시도해 주세요',
+  ),
 };
 
 /** Error_API — 요청 시간이 초과됐을 때. */
 export const TimeoutError: Story = {
-  args: {
-    icon: apiErrorIcon('timeout'),
-    title: '요청 시간이 초과됐어요',
-    description: '잠시 후 다시 시도해 주세요',
-    action: (
-      <FloatingButton icon="refresh" onClick={fn()}>
-        다시 시도
-      </FloatingButton>
-    ),
-  },
+  args: apiErrorArgs('timeout', '요청 시간이 초과됐어요', '잠시 후 다시 시도해 주세요'),
 };
 
 /** Error_API — 서버(DB) 오류가 발생했을 때. */
 export const DatabaseError: Story = {
-  args: {
-    icon: apiErrorIcon('database'),
-    title: '일시적인 오류가 발생했어요',
-    description: '잠시 후 다시 시도해 주세요',
-    action: (
-      <FloatingButton icon="refresh" onClick={fn()}>
-        다시 시도
-      </FloatingButton>
-    ),
-  },
+  args: apiErrorArgs('database', '일시적인 오류가 발생했어요', '잠시 후 다시 시도해 주세요'),
 };
 
 // --- 인터랙션 테스트 전용 (autodocs 에서 숨김) ---

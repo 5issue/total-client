@@ -55,16 +55,10 @@ export function FloatingButton(props: FloatingButtonProps) {
   const { className, type = 'button' } = props;
 
   if (props.shape === 'icon') {
-    const {
-      shape: _shape,
-      icon,
-      children: _children,
-      className: _cn,
-      type: _type,
-      ...buttonProps
-    } = props;
+    const { shape: _shape, icon, children: _children, ...buttonProps } = props;
     return (
       <button
+        {...buttonProps}
         type={type}
         className={[
           'border-border bg-surface inline-flex size-12 items-center justify-center rounded-full border p-2.5',
@@ -73,25 +67,17 @@ export function FloatingButton(props: FloatingButtonProps) {
         ]
           .filter(Boolean)
           .join(' ')}
-        {...buttonProps}
       >
         <Icon name={icon} size={24} aria-hidden />
       </button>
     );
   }
 
-  const {
-    shape: _shape,
-    variant = 'primary',
-    icon,
-    children,
-    className: _cn,
-    type: _type,
-    ...buttonProps
-  } = props;
+  const { shape: _shape, variant = 'primary', icon, children, ...buttonProps } = props;
 
   return (
     <button
+      {...buttonProps}
       type={type}
       className={[
         'inline-flex h-11 items-center justify-center gap-1 rounded-full px-4',
@@ -101,7 +87,6 @@ export function FloatingButton(props: FloatingButtonProps) {
       ]
         .filter(Boolean)
         .join(' ')}
-      {...buttonProps}
     >
       {icon ? <Icon name={icon} size={20} aria-hidden className="text-fg-inverse" /> : null}
       {children}
