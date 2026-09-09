@@ -45,6 +45,12 @@
   --spacing-nav-capsule-y: 58px; /* active 선택 캡슐(Selection) 높이 → h-nav-capsule-y */
   --spacing-nav-capsule-x: 76px; /* active 선택 캡슐(Selection) 너비 → w-nav-capsule-x */
   --spacing-mobile-frame: 402px; /* Figma 모바일 프레임 폭 — Storybook 프리뷰 전용 → w-mobile-frame */
+
+  /* StatusLabel 전용 사이즈 — 4px 스케일에 안 맞는 실측값. 위 BottomNav 전례를 따라
+   * --spacing- 네임스페이스로 선언한다(code-style §6-1, 대괄호 임의값 대신 토큰화). */
+  --spacing-status-label-rewards: 22px; /* StatusLabel(rewards), node 2429-2342 → h-status-label-rewards */
+  --spacing-kbank-pointer-height: 7.794px; /* StatusLabel(kbank) 말풍선 꼬리, node 2825-2141 → h-kbank-pointer-height */
+  --spacing-kbank-pointer-width: 5.25px; /* StatusLabel(kbank) 말풍선 꼬리, node 2825-2141 → w-kbank-pointer-width */
 }
 
 /* @layer base 에 둬야 Tailwind 유틸리티(@layer utilities)가 이 기본값을 오버라이드할 수 있다.
