@@ -11,8 +11,8 @@ import type { CartDeliveryGroup } from '@/components/organisms/cart/model';
  * [배송유형 체크박스 + 라벨] / 온도대 섹션(냉장·냉동)별 `CartLineItem` 목록 / 카드 푸터(소계).
  * 데이터·핸들러는 상위(CartList/CartView)가 주입 — 선택 상태는 id Set 으로 받는다.
  *
- * 토큰(`get_variable_defs` node 188-9589): 카드 `Surface/Base`+`Border/Strong`#dde4ed → `bg-surface border-border`,
- * 구분선 `Border/Strong` → `border-border`, radius `Radius/XL`16 → `rounded-xl`,
+ * 토큰(`get_variable_defs` node 188-9589): 카드 `Surface/Base` → `bg-surface`(회색 컨테이너 위 흰 블록),
+ * 구분선 `Border/Strong`#dde4ed → `border-border`, radius `Radius/XL`16 → `rounded-xl`,
  * 라벨 `Heading/H1_SemiBold`18/600 → `text-heading-1`, 소계문구 `Label/M_Medium`14/500 + `Text/Quaternary`#8aa1ab
  * → `text-label-m text-fg-quaternary`, 소계금액 `Heading/H0_SemiBold`20/600 → `text-heading-0`,
  * 소계박스 `Surface/Secondary`#f0f5f8 `Radius/L`12 → `bg-surface-secondary rounded-l`.
@@ -50,10 +50,7 @@ export function CartCard({
 
   return (
     <div
-      className={[
-        'bg-surface border-border flex flex-col gap-3 rounded-xl border pt-3 pr-2 pb-5 pl-3',
-        className,
-      ]
+      className={['bg-surface flex flex-col gap-3 rounded-xl pt-3 pr-2 pb-5 pl-3', className]
         .filter(Boolean)
         .join(' ')}
     >

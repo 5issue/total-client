@@ -48,6 +48,12 @@ export function CartView() {
   const selectableIds = useMemo(() => allItemIds(groups), [groups]);
   const isEmpty = groups.every((g) => g.items.length === 0);
 
+  // 선택된 아이템이 있는 배송 그룹의 라벨 → 배송지 뱃지("샛별배송" 등)
+  const selectedDeliveryBadge = useMemo(
+    () => groups.find((g) => g.items.some((i) => selectedIds.has(i.id)))?.deliveryLabel,
+    [groups, selectedIds],
+  );
+
   const amounts = useMemo<CartAmounts>(() => {
     let productPrice = 0;
     let productDiscount = 0;
@@ -128,30 +134,32 @@ export function CartView() {
         title="장바구니"
       />
 
-      <div className="flex flex-1 flex-col pb-20">
-        <CartDeliveryAddress
-          address={address}
-          onEdit={() =>
-            setAddress('서울특별시 강남구 테헤란로 152, 10층 1502호 (역삼동, 강남파이낸스센터)')
-          }
-        />
-
-        <TabBar
-          fitted
-          activeId={tab}
-          onChange={setTab}
-          items={[
-            { id: 'items', label: `담은상품 ${selectableIds.length}` },
-            { id: 'frequent', label: '자주 산 상품' },
-          ]}
-        />
+      <div className="bg-surface-secondary flex flex-1 flex-col gap-2 pb-20">
+        <div className="bg-surface">
+          <CartDeliveryAddress
+            address={address}
+            deliveryBadge={address ? selectedDeliveryBadge : undefined}
+            onEdit={() =>
+              setAddress('서울특별시 강남구 테헤란로 152, 10층 1502호 (역삼동, 강남파이낸스센터)')
+            }
+          />
+          <TabBar
+            fitted
+            activeId={tab}
+            onChange={setTab}
+            items={[
+              { id: 'items', label: `담은상품 ${selectableIds.length}` },
+              { id: 'frequent', label: '자주 산 상품' },
+            ]}
+          />
+        </div>
 
         {tab === 'frequent' ? (
-          <p className="text-label-m text-fg-tertiary px-4 py-10 text-center">
+          <p className="bg-surface text-label-m text-fg-tertiary px-4 py-10 text-center">
             자주 산 상품은 준비 중이에요.
           </p>
         ) : isEmpty ? (
-          <div className="flex flex-col">
+          <div className="bg-surface flex flex-col">
             <ErrorState
               className="py-12"
               icon={<Icon name="info-line" size={40} aria-hidden />}
@@ -167,6 +175,7 @@ export function CartView() {
         ) : (
           <>
             <CartSelectAllBar
+              className="bg-surface"
               selectedCount={selectedIds.size}
               totalCount={selectableIds.length}
               onToggleAll={setAllChecked}
@@ -180,10 +189,12 @@ export function CartView() {
               onItemRemove={(id) => setDeleteTarget({ kind: 'item', id })}
               onGroupToggle={setGroupChecked}
             />
-            <div className="bg-surface-secondary h-2" />
-            <CartSummary amounts={amounts} />
-            <div className="bg-surface-secondary h-2" />
-            <CartRecommendCarousel items={MOCK_RECOMMEND} className="mx-4 my-3" />
+            <CartSummary amounts={amounts} className="bg-surface" />
+            <CartRecommendCarousel
+              items={MOCK_RECOMMEND}
+              onAdd={() => undefined}
+              className="mx-4 mb-3"
+            />
           </>
         )}
       </div>

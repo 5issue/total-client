@@ -2,47 +2,62 @@
 
 import { useState } from 'react';
 
+import { Button } from '@/components/atoms/Button';
 import { CarouselArrow } from '@/components/atoms/CarouselArrow';
 import type { RecommendProductView } from '@/components/organisms/cart/model';
 
 /**
  * "지금 장바구니에 많이 담기는 상품" 캐러셀 (organism).
- * Figma "5팀 UI 공유용" — `Card_Cart_Reccomend` (node 2636-2800). 3×2 그리드 페이지네이션.
- * 표시·페이지 이동만 — 상품 클릭 동작은 이번 퍼블리싱 범위 밖.
+ * Figma "5팀 UI 공유용" — `Card_Cart_Reccomend` (node 188-9499). 3×2 그리드 페이지네이션.
+ *
+ * 토큰(node 188-9499): 카드 `Surface/Base` `Radius/XL`16 `px-4 py-5` `gap-6`,
+ * 제목 `Heading/H4_SemiBold` → `text-heading-4 text-fg`, 부제·상품명 `Label/XS_Regular`
+ * → `text-label-xs`, 가격 `Caption/L`(12/600) → `text-caption-l`.
+ * `Item_V_XS` 카드마다 이미지와 상품명 사이에 담기 버튼(Button xs/outlineBlack, h-32).
  */
 export interface CartRecommendCarouselProps {
   items: RecommendProductView[];
+  onAdd: (id: string) => void;
   className?: string;
 }
 
 const PAGE_SIZE = 6;
 
-export function CartRecommendCarousel({ items, className }: CartRecommendCarouselProps) {
+export function CartRecommendCarousel({ items, onAdd, className }: CartRecommendCarouselProps) {
   const [page, setPage] = useState(0);
   const pageCount = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
   const visible = items.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
 
   return (
     <section
-      className={[
-        'bg-surface border-border flex flex-col gap-5 rounded-xl border px-4 py-5',
-        className,
-      ]
+      className={['bg-surface flex flex-col gap-6 rounded-xl px-4 py-5', className]
         .filter(Boolean)
         .join(' ')}
     >
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col">
         <h2 className="text-heading-4 text-fg">지금 장바구니에 많이 담기는 상품</h2>
-        <p className="text-label-m text-fg-tertiary">실시간 고객들이 많이 담는 상품을 모아봤어요</p>
+        <p className="text-label-xs text-fg-tertiary">
+          실시간 고객들이 많이 담는 상품을 모아봤어요
+        </p>
       </div>
 
-      <ul className="grid grid-cols-3 gap-x-2 gap-y-4">
+      <ul className="grid grid-cols-3 gap-x-3 gap-y-5">
         {visible.map((item) => (
           <li key={item.id} className="flex flex-col gap-1">
             {/* 퍼블리싱 단계 — 실제 썸네일은 데이터 연동 시 next/image 로 교체 */}
             <div aria-hidden className="bg-surface-secondary aspect-square w-full rounded-s" />
+            <Button
+              size="xs"
+              variant="outlineBlack"
+              leadingIcon="cart"
+              onClick={() => onAdd(item.id)}
+              aria-label={`${item.name} 담기`}
+              className="w-full"
+            >
+              담기
+            </Button>
             <p className="text-label-xs text-fg line-clamp-2">{item.name}</p>
-            <p className="text-label-xl flex items-center gap-1">
+            <p className="text-caption-l flex items-center gap-1">
               {item.discountPercent !== undefined ? (
                 <span className="text-orange">{item.discountPercent}%</span>
               ) : null}
@@ -53,7 +68,7 @@ export function CartRecommendCarousel({ items, className }: CartRecommendCarouse
       </ul>
 
       {pageCount > 1 ? (
-        <div className="flex items-center justify-center gap-3">
+        <div className="flex items-center justify-center gap-4">
           <button
             type="button"
             aria-label="이전 상품"
@@ -63,8 +78,9 @@ export function CartRecommendCarousel({ items, className }: CartRecommendCarouse
           >
             <CarouselArrow direction="left" aria-hidden />
           </button>
-          <span className="text-label-m text-fg-tertiary tabular-nums">
-            {page + 1} / {pageCount}
+          <span className="text-label-xs tabular-nums">
+            <span className="text-fg">{page + 1}</span>
+            <span className="text-fg-quaternary"> / {pageCount}</span>
           </span>
           <button
             type="button"
