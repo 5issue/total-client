@@ -55,14 +55,16 @@ export function CartCard({
         .filter(Boolean)
         .join(' ')}
     >
-      <div className="border-border flex items-center gap-1 border-b pb-2">
-        <Checkbox
-          variant="filled"
-          label={`${group.deliveryLabel} 전체 선택`}
-          checked={groupChecked}
-          disabled={selectable.length === 0}
-          onChange={(e) => onGroupToggle(group.id, e.target.checked)}
-        />
+      <div className="border-border flex items-center border-b pb-2">
+        <span className="flex size-8 shrink-0 items-center justify-center">
+          <Checkbox
+            variant="filled"
+            label={`${group.deliveryLabel} 전체 선택`}
+            checked={groupChecked}
+            disabled={selectable.length === 0}
+            onChange={(e) => onGroupToggle(group.id, e.target.checked)}
+          />
+        </span>
         <span className="text-heading-1 text-fg">{group.deliveryLabel}</span>
       </div>
 

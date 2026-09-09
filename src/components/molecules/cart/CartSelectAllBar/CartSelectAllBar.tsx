@@ -32,14 +32,16 @@ export function CartSelectAllBar({
         .filter(Boolean)
         .join(' ')}
     >
-      <div className="flex items-center gap-1">
-        <Checkbox
-          variant="filled"
-          label="전체 선택"
-          checked={allSelected}
-          disabled={totalCount === 0}
-          onChange={(e) => onToggleAll(e.target.checked)}
-        />
+      <div className="flex items-center">
+        <span className="flex size-8 shrink-0 items-center justify-center">
+          <Checkbox
+            variant="filled"
+            label="전체 선택"
+            checked={allSelected}
+            disabled={totalCount === 0}
+            onChange={(e) => onToggleAll(e.target.checked)}
+          />
+        </span>
         {/* Figma node 188-9366/9367: "전체선택"·"n/4" 모두 Heading/H5_Medium(16/500) · Text/Primary. */}
         <span className="text-heading-5 text-fg flex items-center gap-1">
           <span>전체선택</span>

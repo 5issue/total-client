@@ -21,7 +21,7 @@ import { QuantityStepper } from '@/components/molecules/shared/QuantityStepper';
  * 가격↔스테퍼 간격 `Gap/XXL`28 → `gap-7`.
  *
  * 레이아웃(Figma `Item_H_Cart`): 2번째 줄(썸네일+가격)은 1번째 줄 상품명과 좌측 정렬 —
- * 체크박스 터치타깃(44) + gap(4) 만큼 들여쓴다 → `pl-12`.
+ * 체크박스 래퍼(size-8) + gap(4) = 36px 만큼 들여쓴다 → `pl-9`.
  */
 export interface CartLineItemProps {
   name: string;
@@ -62,13 +62,17 @@ export function CartLineItem({
         .join(' ')}
     >
       <div className="flex items-start gap-1 py-1 pr-11">
-        <Checkbox
-          variant="filled"
-          label={`${name} 선택`}
-          checked={checked}
-          disabled={soldOut}
-          onChange={(e) => onCheckedChange(e.target.checked)}
-        />
+        {/* Figma Item_H_Cart: 체크박스는 size-32 래퍼에 중앙정렬, 상품명은 py-1 —
+            둘 다 첫 줄 세로 중심이 맞는다. */}
+        <span className="flex size-8 shrink-0 items-center justify-center">
+          <Checkbox
+            variant="filled"
+            label={`${name} 선택`}
+            checked={checked}
+            disabled={soldOut}
+            onChange={(e) => onCheckedChange(e.target.checked)}
+          />
+        </span>
         <p className="text-heading-6 text-fg min-w-0 flex-1 py-1">{name}</p>
       </div>
 
@@ -81,7 +85,7 @@ export function CartLineItem({
         <Icon name="close" size={20} aria-hidden />
       </button>
 
-      <div className="flex items-center gap-4 pl-12">
+      <div className="flex items-center gap-4 pl-9">
         {imageSrc ? (
           <Image
             src={imageSrc}
