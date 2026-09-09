@@ -32,6 +32,17 @@ export const WithoutIcon: Story = {
   args: { icon: undefined },
 };
 
+/** shape="icon"(issue #67) — 텍스트 없이 아이콘만 있는 원형 변형(예: 스크롤 톱). */
+export const IconOnly: Story = {
+  name: 'shape="icon" (원형, 텍스트 없음)',
+  args: {
+    shape: 'icon',
+    icon: 'scroll',
+    children: undefined,
+    'aria-label': '맨 위로',
+  },
+};
+
 // --- 인터랙션 테스트 전용 (autodocs 에서 숨김) ---
 
 export const ClickFires: Story = {
