@@ -17,32 +17,67 @@ import { Icon, type IconName } from '@/components/atoms/Icon/Icon';
  * 텍스트/아이콘 색은 variant 가 아니라 요소별로 고정이다 — 두 variant 모두 텍스트와
  * 동일하게 `fg-inverse`(흰색)를 쓴다(#54 — 원래 아이콘만 `fg` 로 고정돼 저대비였던 것을
  * 디자인 확인 후 흰색으로 통일).
+ *
+ * `shape="icon"`(issue #67, Figma node 3410-6270 "Floating")은 텍스트 없이 아이콘만
+ * 있는 원형 변형이다 — 흰 배경 + `border-border`(#DDE4ED) 테두리로 `pill`(텍스트형,
+ * 브랜드 배경)과 배색이 완전히 달라 `variant` 로 묶지 않고 별도 `shape` 로 분기했다.
+ * 시각 콘텐츠가 아이콘뿐이라 `aria-label` 이 필수다(아이콘 자체는 장식용 aria-hidden).
  */
 export type FloatingButtonVariant = 'primary' | 'secondary';
+export type FloatingButtonShape = 'pill' | 'icon';
 
-export interface FloatingButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+type FloatingButtonPillProps = {
+  shape?: 'pill';
   variant?: FloatingButtonVariant;
   /** 장식용(aria-hidden)으로 렌더한다 — 접근 가능한 이름은 항상 children 텍스트가 담당. */
   icon?: IconName;
   /** 아이콘 전용 사용은 미지원이라 항상 필수(`null` 도 금지 — 접근 가능한 이름 보장). */
   children: NonNullable<ReactNode>;
-}
+};
+
+type FloatingButtonIconProps = {
+  shape: 'icon';
+  icon: IconName;
+  /** 시각 콘텐츠가 아이콘뿐이라 접근 가능한 이름 필수. */
+  'aria-label': string;
+  children?: undefined;
+};
+
+export type FloatingButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> &
+  (FloatingButtonPillProps | FloatingButtonIconProps);
 
 const VARIANT_CLASSNAME: Record<FloatingButtonVariant, string> = {
   primary: 'bg-brand-secondary text-fg-inverse',
   secondary: 'bg-neutral-700 text-fg-inverse',
 };
 
-export function FloatingButton({
-  variant = 'primary',
-  icon,
-  children,
-  className,
-  type = 'button',
-  ...props
-}: FloatingButtonProps) {
+export function FloatingButton(props: FloatingButtonProps) {
+  const { className, type = 'button' } = props;
+
+  if (props.shape === 'icon') {
+    const { shape: _shape, icon, children: _children, ...buttonProps } = props;
+    return (
+      <button
+        {...buttonProps}
+        type={type}
+        className={[
+          'border-border bg-surface inline-flex size-12 items-center justify-center rounded-full border p-2.5',
+          'transition-colors motion-reduce:transition-none',
+          className,
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
+        <Icon name={icon} size={24} aria-hidden />
+      </button>
+    );
+  }
+
+  const { shape: _shape, variant = 'primary', icon, children, ...buttonProps } = props;
+
   return (
     <button
+      {...buttonProps}
       type={type}
       className={[
         'inline-flex h-11 items-center justify-center gap-1 rounded-full px-4',
@@ -52,7 +87,6 @@ export function FloatingButton({
       ]
         .filter(Boolean)
         .join(' ')}
-      {...props}
     >
       {icon ? <Icon name={icon} size={20} aria-hidden className="text-fg-inverse" /> : null}
       {children}

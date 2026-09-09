@@ -18,6 +18,7 @@ export type IconName =
   | 'caret-up'
   | 'cart'
   | 'check'
+  | 'check-brand'
   | 'close'
   | 'close-circle'
   | 'company'
@@ -44,8 +45,10 @@ export type IconName =
   | 'kakao'
   | 'left'
   | 'like'
+  | 'loading'
   | 'location'
   | 'location-filled'
+  | 'lock'
   | 'member'
   | 'milk'
   | 'minus'
@@ -55,6 +58,7 @@ export type IconName =
   | 'number'
   | 'pause'
   | 'plus'
+  | 'plus-small'
   | 'receipt'
   | 'refresh'
   | 'refrigerated'
@@ -62,9 +66,11 @@ export type IconName =
   | 'review'
   | 'right'
   | 'right-small'
+  | 'scroll'
   | 'search'
   | 'search-fill'
   | 'share'
+  | 'sun'
   | 'touch'
   | 'up';
 
@@ -287,6 +293,15 @@ function render_check_20(_idFor: (raw: string) => string): ReactNode {
     <>
       <circle cx={10} cy={10} r={9} fill="var(--color-black)" />
       <path d="M5 10L8.5 13.5L15 7" stroke="white" strokeWidth={1.5} />
+    </>
+  );
+}
+
+function render_check_brand_28(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <circle cx={14} cy={14} r={12.6} fill="var(--color-brand-500)" />
+      <path d="M7 14L11.9 18.9L21 9.79999" stroke="white" strokeWidth={2.1} />
     </>
   );
 }
@@ -788,6 +803,14 @@ function render_like_20(_idFor: (raw: string) => string): ReactNode {
   );
 }
 
+function render_loading_12(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <circle cx={6} cy={6} r={4} fill="var(--color-black)" />
+    </>
+  );
+}
+
 function render_location_24(_idFor: (raw: string) => string): ReactNode {
   return (
     <>
@@ -867,6 +890,18 @@ function render_location_filled_28(_idFor: (raw: string) => string): ReactNode {
         clipRule="evenodd"
         d="M13.8 7.28C12.7057 7.27605 11.6511 7.68946 10.851 8.436C10.4584 8.80207 10.1449 9.24469 9.92991 9.73658C9.71493 10.2285 9.60299 10.7592 9.60101 11.296C9.60101 12.105 9.85501 12.89 10.324 13.551C10.7972 14.2132 11.4539 14.7225 12.213 15.016C12.9754 15.3115 13.8051 15.3887 14.609 15.239C15.4111 15.091 16.1539 14.7158 16.749 14.158C17.3403 13.6047 17.7482 12.8838 17.918 12.092C18.085 11.301 17.998 10.482 17.673 9.74C17.3441 8.99812 16.8003 8.37185 16.112 7.942C15.4194 7.50813 14.6183 7.27866 13.801 7.28"
         fill="var(--color-brand-50)"
+      />
+    </>
+  );
+}
+
+function render_lock_20(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <path
+        d="M6.72727 7C6.72727 6 6.94545 3 10 3C13.0545 3 13.2727 5.5 13.2721 7M13.2721 7C10.7268 7 6.07273 7 5.63636 7C4.54545 7 4 7.5 4 8.5C4 10.5 4 14.2 4 15C4 15.8 4.72727 16 5.09091 16C8 16 14.0364 16 14.9091 16C15.7818 16 16 15.3333 16 15C16 13.5 16 9.7 16 8.5C16 8.02826 16 7 14.3636 7C13.8182 7 13.8666 7 13.2721 7ZM10 13V11.5M10 11.5C10.3636 11 10.8727 10 10 10C9.12727 10 9.63636 11 10 11.5Z"
+        stroke="var(--color-neutral-400)"
+        strokeLinejoin="round"
       />
     </>
   );
@@ -1004,6 +1039,14 @@ function render_plus_48(_idFor: (raw: string) => string): ReactNode {
       <circle cx={24} cy={24} r={22} fill="var(--color-brand-300)" />
       <path d="M16 23.7451H32" stroke="white" strokeWidth={2} />
       <path d="M24 16L24 32" stroke="white" strokeWidth={2} />
+    </>
+  );
+}
+
+function render_plus_small_20(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <path d="M10.75 9.25H17V10.75H10.75V17H9.25V10.75H3V9.25H9.25V3H10.75V9.25Z" fill="black" />
     </>
   );
 }
@@ -1178,6 +1221,20 @@ function render_right_small_10(_idFor: (raw: string) => string): ReactNode {
   );
 }
 
+function render_scroll_24(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <path
+        d="M5.5 12L12 5L18.5 12M12 5V19.5"
+        stroke="var(--color-black)"
+        strokeWidth={1.5}
+        strokeLinecap="square"
+        strokeLinejoin="round"
+      />
+    </>
+  );
+}
+
 function render_search_24(_idFor: (raw: string) => string): ReactNode {
   return (
     <>
@@ -1210,6 +1267,17 @@ function render_share_24(_idFor: (raw: string) => string): ReactNode {
       <path
         d="M3 12V18.5C3 20.433 4.567 22 6.5 22H17.5C19.433 22 21 20.433 21 18.5V12C21 10.3431 19.6569 9 18 9H16V11H18C18.5523 11 19 11.4477 19 12V18.5C19 19.3284 18.3284 20 17.5 20H6.5C5.67157 20 5 19.3284 5 18.5V12C5 11.4477 5.44772 11 6 11H8V9H6C4.34315 9 3 10.3431 3 12Z"
         fill="currentColor"
+      />
+    </>
+  );
+}
+
+function render_sun_20(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <path
+        d="M9.99902 14.4429C10.4349 14.4429 10.7888 14.7961 10.7891 15.2319V16.395C10.7891 16.831 10.435 17.1841 9.99902 17.1841C9.56321 17.1839 9.20997 16.8309 9.20996 16.395V15.2319C9.21018 14.7962 9.56334 14.4431 9.99902 14.4429ZM13.1416 13.1421C13.4499 12.8338 13.9505 12.8338 14.2588 13.1421L15.0801 13.9634C15.3884 14.2717 15.3884 14.7723 15.0801 15.0806C14.7717 15.3885 14.2721 15.3887 13.9639 15.0806L13.1416 14.2583C12.8335 13.9501 12.8337 13.4505 13.1416 13.1421ZM5.74316 13.1411C6.05145 12.8331 6.55117 12.833 6.85938 13.1411C7.16769 13.4494 7.16769 13.95 6.85938 14.2583L6.03711 15.0796C5.7288 15.3879 5.22921 15.3879 4.9209 15.0796C4.61272 14.7712 4.61264 14.2717 4.9209 13.9634L5.74316 13.1411ZM10 6.51221C11.9262 6.51221 13.488 8.07335 13.4883 9.99951C13.4883 11.9259 11.9264 13.4878 10 13.4878C8.07373 13.4877 6.5127 11.9258 6.5127 9.99951C6.51296 8.07343 8.07389 6.51234 10 6.51221ZM4.76855 9.21143C5.20451 9.21143 5.55753 9.56455 5.55762 10.0005C5.55762 10.4365 5.20457 10.7905 4.76855 10.7905H3.60547C3.16964 10.7903 2.81641 10.4364 2.81641 10.0005C2.8165 9.56468 3.1697 9.21165 3.60547 9.21143H4.76855ZM16.3945 9.21045C16.8304 9.21046 17.1834 9.56369 17.1836 9.99951C17.1836 10.4355 16.8306 10.7895 16.3945 10.7896H15.2314C14.7956 10.7893 14.4424 10.4354 14.4424 9.99951C14.4426 9.56382 14.7957 9.21067 15.2314 9.21045H16.3945ZM4.92188 4.92041C5.23018 4.6121 5.72978 4.6121 6.03809 4.92041L6.86035 5.74268C7.16846 6.051 7.16859 6.55065 6.86035 6.85889C6.55211 7.16713 6.05247 7.16699 5.74414 6.85889L4.92188 6.03662C4.61356 5.72831 4.61356 5.22872 4.92188 4.92041ZM13.9639 4.92041C14.2722 4.61217 14.7717 4.61213 15.0801 4.92041C15.3882 5.22872 15.3883 5.72834 15.0801 6.03662L14.2578 6.85889C13.9496 7.16707 13.4499 7.16705 13.1416 6.85889C12.8333 6.55061 12.8333 6.05099 13.1416 5.74268L13.9639 4.92041ZM10 2.81592C10.4359 2.81592 10.7898 3.16915 10.79 3.60498V4.76807C10.79 5.20408 10.436 5.55713 10 5.55713C9.56417 5.55691 9.21094 5.20394 9.21094 4.76807V3.60498C9.21116 3.16929 9.56431 2.81614 10 2.81592Z"
+        fill="#F2774E"
       />
     </>
   );
@@ -1278,6 +1346,9 @@ export const ICONS: Record<IconName, IconVariant[]> = {
     { viewBox: '0 0 28 28', themable: true, render: (idFor) => render_cart_28(idFor) },
   ],
   check: [{ viewBox: '0 0 20 20', themable: false, render: (idFor) => render_check_20(idFor) }],
+  'check-brand': [
+    { viewBox: '0 0 28 28', themable: false, render: (idFor) => render_check_brand_28(idFor) },
+  ],
   close: [
     { viewBox: '0 0 20 20', themable: true, render: (idFor) => render_close_20(idFor) },
     { viewBox: '0 0 24 24', themable: true, render: (idFor) => render_close_24(idFor) },
@@ -1350,6 +1421,7 @@ export const ICONS: Record<IconName, IconVariant[]> = {
   kakao: [{ viewBox: '0 0 24 24', themable: true, render: (idFor) => render_kakao_24(idFor) }],
   left: [{ viewBox: '0 0 28 28', themable: true, render: (idFor) => render_left_28(idFor) }],
   like: [{ viewBox: '0 0 20 20', themable: true, render: (idFor) => render_like_20(idFor) }],
+  loading: [{ viewBox: '0 0 12 12', themable: false, render: (idFor) => render_loading_12(idFor) }],
   location: [
     { viewBox: '0 0 24 24', themable: true, render: (idFor) => render_location_24(idFor) },
     { viewBox: '0 0 28 28', themable: true, render: (idFor) => render_location_28(idFor) },
@@ -1358,6 +1430,7 @@ export const ICONS: Record<IconName, IconVariant[]> = {
     { viewBox: '0 0 24 24', themable: false, render: (idFor) => render_location_filled_24(idFor) },
     { viewBox: '0 0 28 28', themable: false, render: (idFor) => render_location_filled_28(idFor) },
   ],
+  lock: [{ viewBox: '0 0 20 20', themable: false, render: (idFor) => render_lock_20(idFor) }],
   member: [{ viewBox: '0 0 24 24', themable: false, render: (idFor) => render_member_24(idFor) }],
   milk: [{ viewBox: '0 0 28 28', themable: true, render: (idFor) => render_milk_28(idFor) }],
   minus: [{ viewBox: '0 0 14 14', themable: true, render: (idFor) => render_minus_14(idFor) }],
@@ -1367,6 +1440,9 @@ export const ICONS: Record<IconName, IconVariant[]> = {
   number: [{ viewBox: '0 0 20 20', themable: false, render: (idFor) => render_number_20(idFor) }],
   pause: [{ viewBox: '0 0 20 20', themable: false, render: (idFor) => render_pause_20(idFor) }],
   plus: [{ viewBox: '0 0 48 48', themable: false, render: (idFor) => render_plus_48(idFor) }],
+  'plus-small': [
+    { viewBox: '0 0 20 20', themable: false, render: (idFor) => render_plus_small_20(idFor) },
+  ],
   receipt: [{ viewBox: '0 0 28 28', themable: true, render: (idFor) => render_receipt_28(idFor) }],
   refresh: [{ viewBox: '0 0 20 20', themable: true, render: (idFor) => render_refresh_20(idFor) }],
   refrigerated: [
@@ -1381,11 +1457,13 @@ export const ICONS: Record<IconName, IconVariant[]> = {
   'right-small': [
     { viewBox: '0 0 10 16', themable: false, render: (idFor) => render_right_small_10(idFor) },
   ],
+  scroll: [{ viewBox: '0 0 24 24', themable: false, render: (idFor) => render_scroll_24(idFor) }],
   search: [{ viewBox: '0 0 24 24', themable: true, render: (idFor) => render_search_24(idFor) }],
   'search-fill': [
     { viewBox: '0 0 24 24', themable: true, render: (idFor) => render_search_fill_24(idFor) },
   ],
   share: [{ viewBox: '0 0 24 24', themable: true, render: (idFor) => render_share_24(idFor) }],
+  sun: [{ viewBox: '0 0 20 20', themable: false, render: (idFor) => render_sun_20(idFor) }],
   touch: [{ viewBox: '0 0 40 40', themable: false, render: (idFor) => render_touch_40(idFor) }],
   up: [{ viewBox: '0 0 28 28', themable: true, render: (idFor) => render_up_28(idFor) }],
 };
