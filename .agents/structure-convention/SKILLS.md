@@ -114,15 +114,15 @@ Atomic Design 은 원래 5단계(atoms → molecules → organisms → templates
 src/components/
 ├── atoms/                     # Button, Input, Badge, Spinner, Typography ...
 ├── molecules/
-│   ├── shared/                # SearchBar, PriceTag, QuantityStepper, FilterChip
+│   ├── shared/                # SearchBar, PriceTag, QuantityStepper, FilterChip, Modal, BottomSheet, Pagination, ErrorState
 │   ├── product/               # ProductThumbnail, WishlistToggleButton, DeliveryTypeBadge
-│   ├── cart/                  # CartLineItem, CartTemperatureSectionHeader
+│   ├── cart/                  # CartLineItem, CartTemperatureSectionHeader, CartDeliveryAddress, CartSelectAllBar, CartAmountRow
 │   └── auth/                  # SocialLoginButton, ReauthPasswordField
 └── organisms/
     ├── shared/                # Header, Footer, BottomNav, FilterSheet
     ├── home/                  # CategoryTabs, QuickMenuSection, DisplaySectionList, HeroBanner
     ├── product/               # ProductGrid, ProductDetailPanel, ProductOptionSheet
-    ├── cart/                  # CartList(온도별 그룹핑), CartSummary
+    ├── cart/                  # CartView(컨테이너), CartList(배송그룹)→CartCard(온도별), CartSummary, CartOrderBar, CartRecommendCarousel/Sheet
     ├── checkout/              # CheckoutStepper, DeliveryRequestForm, PaymentMethodList
     ├── mypage/                # MyKurlyHomeSummary, AddressManageList, ProfileForm
     ├── ai/                    # AIRecipePanel (백엔드 명세 대기, 뼈대만)
