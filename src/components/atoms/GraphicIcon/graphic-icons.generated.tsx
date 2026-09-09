@@ -4,12 +4,14 @@
 import type { ReactNode } from 'react';
 
 export type GraphicIconName =
+  | 'answer'
   | 'cart-badge'
   | 'delivery'
   | 'eco-package'
   | 'kurly-box'
   | 'price-search'
   | 'product-spec'
+  | 'question'
   | 'showcase';
 
 type GraphicIconVariant = {
@@ -17,6 +19,21 @@ type GraphicIconVariant = {
   themable: boolean;
   render: (idFor: (raw: string) => string) => ReactNode;
 };
+
+function render_answer(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <path
+        d="M0 12C0 5.37258 5.37258 0 12 0C18.6274 0 24 5.37258 24 12C24 18.6274 18.6274 24 12 24C5.37258 24 0 18.6274 0 12Z"
+        fill="var(--color-brand-600)"
+      />
+      <path
+        d="M7.79883 16L10.6172 7.54492H12.5918V9.44922H11.9473L10.1602 16H7.79883ZM9.48047 14.1953L9.98438 12.584H13.9512L14.4551 14.1953H9.48047ZM13.8457 16L12.0586 9.44922V7.54492H13.3887L16.207 16H13.8457Z"
+        fill="white"
+      />
+    </>
+  );
+}
 
 function render_cart_badge(_idFor: (raw: string) => string): ReactNode {
   return (
@@ -142,6 +159,21 @@ function render_product_spec(idFor: (raw: string) => string): ReactNode {
   );
 }
 
+function render_question(_idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <path
+        d="M0 12C0 5.37258 5.37258 0 12 0C18.6274 0 24 5.37258 24 12C24 18.6274 18.6274 24 12 24C5.37258 24 0 18.6274 0 12Z"
+        fill="var(--color-brand-300)"
+      />
+      <path
+        d="M12 16.2285C11.1445 16.2285 10.4023 16.0488 9.77344 15.6895C9.14453 15.3301 8.6582 14.8184 8.31445 14.1543C7.97461 13.4863 7.80469 12.6934 7.80469 11.7754V11.7637C7.80469 10.8496 7.97656 10.0605 8.32031 9.39648C8.66797 8.72852 9.1543 8.21484 9.7793 7.85547C10.4082 7.49609 11.1484 7.31641 12 7.31641C12.8516 7.31641 13.5898 7.49609 14.2148 7.85547C14.8438 8.21484 15.3301 8.72852 15.6738 9.39648C16.0176 10.0605 16.1895 10.8496 16.1895 11.7637V11.7754C16.1895 12.6934 16.0176 13.4863 15.6738 14.1543C15.3301 14.8184 14.8438 15.3301 14.2148 15.6895C13.5898 16.0488 12.8516 16.2285 12 16.2285ZM12 14.377C12.3789 14.377 12.7109 14.2715 12.9961 14.0605C13.2852 13.8457 13.5078 13.543 13.6641 13.1523C13.8242 12.7617 13.9043 12.3027 13.9043 11.7754V11.7637C13.9043 11.2363 13.8242 10.7793 13.6641 10.3926C13.5078 10.002 13.2852 9.70117 12.9961 9.49023C12.7109 9.27539 12.3789 9.16797 12 9.16797C11.6211 9.16797 11.2871 9.27539 10.998 9.49023C10.7129 9.70117 10.4902 10.002 10.3301 10.3926C10.1699 10.7793 10.0898 11.2363 10.0898 11.7637V11.7754C10.0898 12.3027 10.1699 12.7617 10.3301 13.1523C10.4902 13.543 10.7129 13.8457 10.998 14.0605C11.2832 14.2715 11.6172 14.377 12 14.377ZM14.0449 16.7617L11.1504 12.9824H13.1074L16.002 16.7617H14.0449Z"
+        fill="white"
+      />
+    </>
+  );
+}
+
 function render_showcase(_idFor: (raw: string) => string): ReactNode {
   return (
     <>
@@ -187,6 +219,7 @@ function render_showcase(_idFor: (raw: string) => string): ReactNode {
 }
 
 export const GRAPHIC_ICONS: Record<GraphicIconName, GraphicIconVariant> = {
+  answer: { viewBox: '0 0 24 24', themable: false, render: (idFor) => render_answer(idFor) },
   'cart-badge': {
     viewBox: '0 0 44 44',
     themable: false,
@@ -213,5 +246,6 @@ export const GRAPHIC_ICONS: Record<GraphicIconName, GraphicIconVariant> = {
     themable: false,
     render: (idFor) => render_product_spec(idFor),
   },
+  question: { viewBox: '0 0 24 24', themable: false, render: (idFor) => render_question(idFor) },
   showcase: { viewBox: '0 0 44 44', themable: false, render: (idFor) => render_showcase(idFor) },
 };
