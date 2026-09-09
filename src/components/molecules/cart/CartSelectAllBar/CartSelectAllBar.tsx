@@ -23,8 +23,8 @@ export function CartSelectAllBar({
   onDeleteSelected,
   className,
 }: CartSelectAllBarProps) {
+  // check / not check 2가지만 — 일부 선택은 not checked 로 표시(indeterminate 미사용).
   const allSelected = totalCount > 0 && selectedCount === totalCount;
-  const someSelected = selectedCount > 0 && !allSelected;
 
   return (
     <div
@@ -37,7 +37,6 @@ export function CartSelectAllBar({
           variant="filled"
           label="전체 선택"
           checked={allSelected}
-          indeterminate={someSelected}
           disabled={totalCount === 0}
           onChange={(e) => onToggleAll(e.target.checked)}
         />

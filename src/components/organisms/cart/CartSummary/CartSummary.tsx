@@ -15,7 +15,7 @@ const won = (n: number) => `${n.toLocaleString('ko-KR')}원`;
 
 export function CartSummary({ amounts, className }: CartSummaryProps) {
   return (
-    <div className={['flex flex-col gap-5 px-4 py-5', className].filter(Boolean).join(' ')}>
+    <div className={['flex flex-col gap-3 px-4 py-3', className].filter(Boolean).join(' ')}>
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-2">
           <CartAmountRow label="상품 금액" value={won(amounts.productPrice)} />
@@ -29,7 +29,7 @@ export function CartSummary({ amounts, className }: CartSummaryProps) {
             value={amounts.shippingFee === 0 ? '무료' : won(amounts.shippingFee)}
           />
         </div>
-        <hr className="border-neutral-200" />
+        <hr className="border-border" />
         <CartAmountRow label="결제예정금액" value={won(amounts.total)} emphasis />
       </div>
       <InfoBox variant="bar">적립·쿠폰은 주문서에서 확인 및 적용 가능합니다</InfoBox>

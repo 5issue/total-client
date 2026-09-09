@@ -39,7 +39,7 @@ export function CartRecommendSheet({
         <CartOrderBar
           totalPrice={totalPrice}
           onOrder={onOrder}
-          className="border-t border-neutral-200"
+          className="border-border border-t"
         />
       }
     >

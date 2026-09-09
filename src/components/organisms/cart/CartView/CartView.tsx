@@ -180,17 +180,17 @@ export function CartView() {
               onItemRemove={(id) => setDeleteTarget({ kind: 'item', id })}
               onGroupToggle={setGroupChecked}
             />
-            <div className="bg-surface-secondary mt-3 h-2" />
+            <div className="bg-surface-secondary h-2" />
             <CartSummary amounts={amounts} />
-            <div className="bg-surface-secondary mb-3 h-2" />
-            <CartRecommendCarousel items={MOCK_RECOMMEND} className="mx-4" />
+            <div className="bg-surface-secondary h-2" />
+            <CartRecommendCarousel items={MOCK_RECOMMEND} className="mx-4 my-3" />
           </>
         )}
       </div>
 
       {!isEmpty && tab === 'items' ? (
         <CartOrderBar
-          className="sticky bottom-0 border-t border-neutral-200"
+          className="border-border sticky bottom-0 border-t"
           state={address ? 'order' : 'no-address'}
           totalPrice={amounts.total}
           onOrder={() => setSheetOpen(true)}

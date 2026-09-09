@@ -24,7 +24,10 @@ export function CartRecommendCarousel({ items, className }: CartRecommendCarouse
 
   return (
     <section
-      className={['bg-surface flex flex-col gap-5 rounded-xl px-4 py-5', className]
+      className={[
+        'bg-surface border-border flex flex-col gap-5 rounded-xl border px-4 py-5',
+        className,
+      ]
         .filter(Boolean)
         .join(' ')}
     >
@@ -39,7 +42,7 @@ export function CartRecommendCarousel({ items, className }: CartRecommendCarouse
             {/* 퍼블리싱 단계 — 실제 썸네일은 데이터 연동 시 next/image 로 교체 */}
             <div aria-hidden className="bg-surface-secondary aspect-square w-full rounded-s" />
             <p className="text-label-xs text-fg line-clamp-2">{item.name}</p>
-            <p className="text-label-l flex items-center gap-1">
+            <p className="text-label-xl flex items-center gap-1">
               {item.discountPercent !== undefined ? (
                 <span className="text-orange">{item.discountPercent}%</span>
               ) : null}

@@ -13,6 +13,12 @@ import { QuantityStepper } from '@/components/molecules/shared/QuantityStepper';
  * `soldOut` 이면 흐리게 표시하고 스테퍼 대신 "품절"만 둔다(Figma 품절 상태 그대로).
  * 표시·핸들러만 받는다 — 선택/수량/삭제 상태는 상위(CartCard/CartView)가 소유.
  * 썸네일은 퍼블리싱 단계라 `imageSrc` 없으면 회색 박스(#61 Image_Frame_Container 도입 시 교체).
+ *
+ * 토큰(`get_variable_defs` node 188-9589): 상품명 `Heading/H6_Regular`16/400 → `text-heading-6`,
+ * 판매가 `Numeric/Numeric_L`(SF PRO Black 16) → `text-numeric-l font-numeric`,
+ * 정가 취소선 `Label/M_Medium`14/500 + `Text/Quaternary`#8aa1ab → `text-label-m text-fg-quaternary`,
+ * 삭제 아이콘 `Icon/Secondary`#7e8f9b → `text-fg-tertiary`, 썸네일 radius `Radius/S`4 → `rounded-s`,
+ * 가격↔스테퍼 간격 `Gap/XXL`28 → `gap-7`.
  */
 export interface CartLineItemProps {
   name: string;
@@ -67,7 +73,7 @@ export function CartLineItem({
         type="button"
         onClick={onRemove}
         aria-label={`${name} 삭제`}
-        className="absolute top-0 right-0 inline-flex size-11 items-center justify-center"
+        className="text-fg-tertiary absolute top-0 right-0 inline-flex size-11 items-center justify-center"
       >
         <Icon name="close" size={20} aria-hidden />
       </button>
@@ -84,7 +90,7 @@ export function CartLineItem({
         ) : (
           <div aria-hidden className="bg-surface-secondary h-21 w-[63px] shrink-0 rounded-s" />
         )}
-        <div className="flex min-w-0 flex-1 flex-col items-start gap-3">
+        <div className="flex min-w-0 flex-1 flex-col items-start gap-7">
           <div className="flex flex-wrap items-baseline gap-1">
             <span className="text-numeric-l font-numeric text-fg">{won(price)}</span>
             {originalPrice !== undefined ? (

@@ -46,7 +46,7 @@ export function CartRecommendItemRow({
         )}
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <p className="text-label-m text-fg line-clamp-2">{name}</p>
-          <p className="text-label-l flex items-center gap-1">
+          <p className="text-label-xl flex items-center gap-1">
             {discountPercent !== undefined ? (
               <span className="text-orange">{discountPercent}%</span>
             ) : null}

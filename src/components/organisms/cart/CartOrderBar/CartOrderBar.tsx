@@ -3,7 +3,7 @@
 /**
  * 하단 주문 CTA 바 (organism). Figma "5팀 UI 공유용" — `CTA_Horizontal` (node 2483-3766).
  *
- * 흰 배경 위 풀폭 버튼 + 약관 안내 캡션. 위치(메인 화면 sticky / 바텀시트 하단)는 상위가 정한다.
+ * 흰 배경 위 풀폭 버튼. 위치(메인 화면 sticky / 바텀시트 하단)는 상위가 정한다.
  * - `no-address`: 비활성 "배송지를 입력해주세요"
  * - `order`(할인 없음): "{total}원 주문하기"
  * - `order`(할인 있음): 혜택가(outline) + 혜택없이(filled) 2줄
@@ -30,11 +30,7 @@ export function CartOrderBar({
   className,
 }: CartOrderBarProps) {
   return (
-    <div
-      className={['bg-surface flex flex-col gap-2 px-4 pt-3 pb-4', className]
-        .filter(Boolean)
-        .join(' ')}
-    >
+    <div className={['bg-surface flex flex-col px-4 py-3', className].filter(Boolean).join(' ')}>
       {state === 'no-address' ? (
         <button type="button" disabled className={`${PRIMARY_BTN} bg-primary text-fg-inverse`}>
           배송지를 입력해주세요
@@ -65,10 +61,6 @@ export function CartOrderBar({
           {won(totalPrice)} 주문하기
         </button>
       )}
-
-      <p className="text-caption-m text-fg-tertiary text-center">
-        결제 전 <span className="underline">이용약관 및 정보제공</span> 동의를 확인해 주세요
-      </p>
     </div>
   );
 }

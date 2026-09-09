@@ -19,7 +19,7 @@ export interface CartListProps {
 
 export function CartList({ groups, className, ...handlers }: CartListProps) {
   return (
-    <div className={['flex flex-col gap-3 px-4', className].filter(Boolean).join(' ')}>
+    <div className={['flex flex-col gap-3 px-4 py-3', className].filter(Boolean).join(' ')}>
       {groups.map((group) => (
         <CartCard key={group.id} group={group} {...handlers} />
       ))}

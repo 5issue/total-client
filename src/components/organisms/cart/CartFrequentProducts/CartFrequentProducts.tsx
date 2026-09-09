@@ -43,7 +43,7 @@ export function CartFrequentProducts({ items, onAdd, className }: CartFrequentPr
               담기
             </Button>
             <p className="text-label-xs text-fg line-clamp-2">{item.name}</p>
-            <p className="text-label-l flex items-center gap-1">
+            <p className="text-label-xl flex items-center gap-1">
               {item.discountPercent !== undefined ? (
                 <span className="text-orange">{item.discountPercent}%</span>
               ) : null}

@@ -18,7 +18,7 @@ export interface CartDeliveryAddressProps {
 export function CartDeliveryAddress({ address, onEdit, className }: CartDeliveryAddressProps) {
   return (
     <div
-      className={['flex items-start justify-between gap-3 px-4 py-2', className]
+      className={['flex items-start justify-between gap-3 px-4 py-3', className]
         .filter(Boolean)
         .join(' ')}
     >
