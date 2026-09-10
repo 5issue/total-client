@@ -47,7 +47,7 @@ export function CartRecommendCarousel({ items, onAdd, className }: CartRecommend
         {visible.map((item) => (
           <li key={item.id} className="flex flex-col gap-1">
             {/* 퍼블리싱 단계 — 실제 썸네일은 데이터 연동 시 next/image 로 교체 */}
-            <div aria-hidden className="bg-surface-secondary aspect-square w-full rounded-s" />
+            <div aria-hidden className="bg-surface-secondary aspect-square w-full rounded-sm" />
             <Button
               size="xs"
               variant="outlineBlack"

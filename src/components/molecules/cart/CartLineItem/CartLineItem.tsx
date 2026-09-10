@@ -17,8 +17,9 @@ import { QuantityStepper } from '@/components/molecules/shared/QuantityStepper';
  * 토큰(`get_variable_defs` node 188-9589): 상품명 `Heading/H6_Regular`16/400 → `text-heading-6`,
  * 판매가 `Numeric/Numeric_L`(SF PRO Black 16) → `text-numeric-l font-numeric`,
  * 정가 취소선 `Label/M_Medium`14/500 + `Text/Quaternary`#8aa1ab → `text-label-m text-fg-quaternary`,
- * 삭제 아이콘 `Icon/Secondary`#7e8f9b → `text-fg-tertiary`, 썸네일 radius `Radius/S`4 → `rounded-s`,
+ * 삭제 아이콘 `Icon/Secondary`#7e8f9b → `text-fg-tertiary`, 썸네일 radius `Radius/S`4 → `rounded-sm`,
  * 가격↔스테퍼 간격 `Gap/XXL`28 → `gap-7`.
+ * 썸네일은 63×84(3:4) — `h-21`(84) + `aspect-3/4` 로 로드 전 크기 선고정(CLS 방지, code-style §6).
  *
  * 레이아웃(Figma `Item_H_Cart`): 2번째 줄(썸네일+가격)은 1번째 줄 상품명과 좌측 정렬 —
  * 체크박스 래퍼(size-8) + gap(4) = 36px 만큼 들여쓴다 → `pl-9`.
@@ -92,10 +93,10 @@ export function CartLineItem({
             alt=""
             width={63}
             height={84}
-            className="h-21 w-[63px] shrink-0 rounded-s object-cover"
+            className="aspect-3/4 h-21 w-auto shrink-0 rounded-sm object-cover"
           />
         ) : (
-          <div aria-hidden className="bg-surface-secondary h-21 w-[63px] shrink-0 rounded-s" />
+          <div aria-hidden className="bg-surface-secondary aspect-3/4 h-21 shrink-0 rounded-sm" />
         )}
         <div className="flex min-w-0 flex-1 flex-col items-start gap-7">
           <div className="flex flex-wrap items-baseline gap-1">

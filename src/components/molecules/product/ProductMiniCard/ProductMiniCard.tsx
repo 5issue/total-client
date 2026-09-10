@@ -32,7 +32,7 @@ export function ProductMiniCard({
 }: ProductMiniCardProps) {
   return (
     <div className={['flex w-31 flex-col gap-1', className].filter(Boolean).join(' ')}>
-      <div className="bg-surface-secondary relative aspect-square w-full overflow-hidden rounded-s">
+      <div className="bg-surface-secondary relative aspect-square w-full overflow-hidden rounded-sm">
         <Image src={imageSrc} alt={name} fill sizes="124px" className="object-cover" />
       </div>
       {/* atoms/Button 의 outlineBlack 과 팔레트는 같지만, Button 사이즈는 이 노드의

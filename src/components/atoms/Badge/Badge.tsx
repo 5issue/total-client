@@ -61,7 +61,7 @@ export function Badge({ color = 'cyan', size = 'small', className, children }: B
   return (
     <span
       className={[
-        'inline-flex items-center justify-center rounded-s whitespace-nowrap',
+        'inline-flex items-center justify-center rounded-sm whitespace-nowrap',
         bgClassName,
         TEXT_CLASSNAME,
         SIZE_PADDING_CLASSNAME[size],

@@ -63,8 +63,11 @@ export function BottomSheet({
   const dragStartRef = useRef<number | null>(null);
 
   // body 스크롤 잠금 + 포커스 이동/복귀 (Modal 과 동일). setState 없이 DOM 만 만진다.
+  // `hydrated` 도 의존성에 둔다 — SSR/1차 렌더는 포털이 없어(`sheetRef.current === null`)
+  // `open`이 이미 true 여도 포커스가 시트로 못 간다. 하이드레이션으로 포털이 생긴 뒤
+  // 다시 실행돼야 초기 포커스·트랩·Esc 가 동작한다.
   useEffect(() => {
-    if (!open) return;
+    if (!open || !hydrated) return;
     const restore = document.activeElement as HTMLElement | null;
     if (openSheetCount === 0) {
       bodyOverflowBeforeLock = document.body.style.overflow;
@@ -78,7 +81,7 @@ export function BottomSheet({
       if (openSheetCount === 0) document.body.style.overflow = bodyOverflowBeforeLock;
       restore?.focus?.();
     };
-  }, [open]);
+  }, [open, hydrated]);
 
   function handleKeyDown(e: KeyboardEvent<HTMLDivElement>) {
     if (e.key === 'Escape') {
@@ -127,8 +130,12 @@ export function BottomSheet({
   if (!hydrated) return null;
 
   return createPortal(
+    // 닫혀 있어도 children/footer 는 마운트된 채로 남는다(양방향 애니메이션). `pointer-events-none`
+    // 는 포인터만 막고 키보드 포커스는 못 막으므로, React 19 `inert` 로 닫힌 시트의 포커스 가능
+    // 요소(CartOrderBar 주문 버튼 등)를 Tab 순서에서 완전히 빼고 aria-hidden 내부 포커스도 없앤다.
     <div
       aria-hidden={!open}
+      inert={!open}
       className={`bg-overlay fixed inset-0 z-50 flex items-end justify-center transition-opacity duration-200 ${
         open ? 'opacity-100' : 'pointer-events-none opacity-0'
       }`}

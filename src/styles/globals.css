@@ -26,10 +26,17 @@
 @theme static {
   /* Radius — 컴포넌트(Input/Card) 바인딩 값 기준. node 2002-13 "Color System" 은
    * 색상 스와치 보드일 뿐 radius 스펙이 없다 — 거기 스와치 카드의 장식용 20px 모서리를
-   * radius/m 으로 잘못 추출했던 걸 정정(이전: --radius-m: 20px). Full 은 rounded-full 로 대체. */
-  --radius-s: 4px;
+   * radius/m 으로 잘못 추출했던 걸 정정(이전: --radius-m: 20px). Full 은 rounded-full 로 대체.
+   *
+   * ⚠️ Figma 스케일은 S/M/L/XL/XXL 이지만 `--radius-s`·`--radius-l` 은 쓰지 않는다 —
+   * Tailwind v4 코어의 방향형 단축 유틸리티 `rounded-s`(start 두 모서리)·`rounded-l`(left 두
+   * 모서리)와 이름이 겹쳐, 생성된 토큰 유틸리티가 코어 규칙에 밀려(소스 순서 뒤) 네 모서리가
+   * 아닌 두 모서리만 둥글어진다. 겹치지 않는 코어 크기명 `sm`·`lg` 로 선언하면 코어 기본값을
+   * 덮어써 단일 규칙(`border-radius`)으로 나온다. `m`(rounded-m)·`xl`·`xxl` 은 방향형이
+   * 없어 충돌하지 않으므로 그대로 둔다. */
+  --radius-sm: 4px; /* Figma Radius/S */
   --radius-m: 8px;
-  --radius-l: 12px;
+  --radius-lg: 12px; /* Figma Radius/L */
   --radius-xl: 16px;
   /* node 3215-3217 "Step_Instruction_Card" 에서 확인(get_variable_defs: Radius/XXL). */
   --radius-xxl: 18px;

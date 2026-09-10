@@ -36,7 +36,7 @@ export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement
 // 24px 프레임이 감싼다(2426:1195 / node 188-8927 Group 26: radius 3.727 ≈ radius/s).
 // 이전엔 24px 프레임을 박스로 그려 실제보다 컸다. 44px 터치 타깃은 감싸는 label(size-11)이 확보한다(code-style §5).
 const BASE_CLASSNAME =
-  'peer size-4.5 shrink-0 appearance-none rounded-s transition-colors ' +
+  'peer size-4.5 shrink-0 appearance-none rounded-sm transition-colors ' +
   'disabled:pointer-events-none ' +
   'focus-visible:outline-border-active outline-offset-2 focus-visible:outline-2 ' +
   'motion-reduce:transition-none';

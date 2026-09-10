@@ -39,10 +39,10 @@ export function CartRecommendItemRow({
             alt=""
             width={63}
             height={84}
-            className="h-21 w-[63px] shrink-0 rounded-s object-cover"
+            className="aspect-3/4 h-21 w-auto shrink-0 rounded-sm object-cover"
           />
         ) : (
-          <div aria-hidden className="bg-surface-secondary h-21 w-[63px] shrink-0 rounded-s" />
+          <div aria-hidden className="bg-surface-secondary aspect-3/4 h-21 shrink-0 rounded-sm" />
         )}
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <p className="text-label-m text-fg line-clamp-2">{name}</p>

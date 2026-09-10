@@ -50,6 +50,14 @@ const meta = {
     onOrder: () => undefined,
     onAddItem: () => undefined,
   },
+  argTypes: {
+    open: { control: 'boolean', description: '시트 열림 상태 — 부모가 소유.' },
+    items: { control: 'object', description: '추천 상품 목록.' },
+    totalPrice: { control: 'number', description: '하단 CTA 에 표시할 주문 금액(원).' },
+    onClose: { action: 'close', description: '드래그·백드롭·Esc 로 닫기 요청.' },
+    onOrder: { action: 'order', description: '하단 CTA 주문하기.' },
+    onAddItem: { action: 'addItem', description: '추천 상품 담기 — 상품 id 를 넘긴다.' },
+  },
   render: () => <Harness />,
   tags: ['autodocs'],
 } satisfies Meta<typeof CartRecommendSheet>;
