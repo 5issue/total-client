@@ -45,19 +45,19 @@ export interface StatusLabelProps {
  * 없어 Pretendard(`--font-sans`) 그대로 간다.
  */
 const STYLE_BY_TYPE: Record<StatusLabelType, string> = {
-  owned: 'bg-orange/4 text-orange rounded-s p-1 text-caption-s font-bold',
-  subscribed: 'bg-brand-50 text-primary rounded-s px-2 py-1 text-label-m',
-  inactive: 'bg-overlay-blue text-fg rounded-s h-5 px-2 text-caption-s font-bold',
-  notice: 'bg-overlay-blue text-fg rounded-s px-2 py-1 text-caption-s font-bold',
+  owned: 'bg-orange/4 text-orange rounded-sm p-1 text-caption-s font-bold',
+  subscribed: 'bg-brand-50 text-primary rounded-sm px-2 py-1 text-label-m',
+  inactive: 'bg-overlay-blue text-fg rounded-sm h-5 px-2 text-caption-s font-bold',
+  notice: 'bg-overlay-blue text-fg rounded-sm px-2 py-1 text-caption-s font-bold',
   rewards:
     'bg-orange/4 text-fg-danger rounded-full h-status-label-rewards px-2 text-caption-s font-bold',
   defaultAddress: 'bg-surface-secondary text-fg-secondary rounded-full h-6 px-2 text-caption-m',
-  kurlyOnly: 'bg-overlay-blue text-primary rounded-s px-2 py-1 text-numeric-s',
-  adLabelS: 'bg-overlay text-fg-inverse rounded-s px-1 text-caption-s font-bold',
-  adLabelL: 'bg-overlay text-fg-inverse rounded-s px-2 py-1 text-caption-s font-bold',
+  kurlyOnly: 'bg-overlay-blue text-primary rounded-sm px-2 py-1 text-numeric-s',
+  adLabelS: 'bg-overlay text-fg-inverse rounded-sm px-1 text-caption-s font-bold',
+  adLabelL: 'bg-overlay text-fg-inverse rounded-sm px-2 py-1 text-caption-s font-bold',
   adLabelM:
     'bg-surface-secondary text-fg-disabled rounded-full h-5 px-2 text-caption-m font-semibold',
-  kbank: 'text-fg-inverse rounded-s h-4 px-1 text-caption-s font-bold',
+  kbank: 'text-fg-inverse rounded-sm h-4 px-1 text-caption-s font-bold',
 };
 
 const BASE_CLASSNAME = 'inline-flex items-center justify-center whitespace-nowrap';

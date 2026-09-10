@@ -18,6 +18,9 @@ App Router 라우트 그룹으로 **레이아웃 경계**를 나눈다. URL 에�
 - 인증 가드는 **`src/middleware.ts`** 가 담당한다. `matcher: ["/checkout/:path*", "/mypage/:path*"]` — 이 경로는 미인증 시 `/login?redirect=` 로 이동.
 - middleware 는 UX 목적이고 **실제 인가는 서버(Route Handler/외부 API)가 매 요청 검증**한다 (security-convention FE-15).
 - 그룹별 `layout.tsx` 는 그 그룹의 공통 셸만 담당한다. 공유 UI 는 `components/` 로 올린다.
+- `(shop)` 크롬(BottomNav + 전역 스와이프 탭 + 하단 여백)은 **경로마다 다르다**. `layout.tsx` 는
+  서버로 두고, `usePathname` 이 필요한 `<ShopShell>`(클라) 이 크롬을 켠다. 자체 하단 CTA 를 가진
+  전체화면 뷰(`/cart` 등)는 크롬을 끈다 — `ShopShell.CHROMELESS_PREFIXES` (PR #58 리뷰).
 
 ---
 
@@ -39,7 +42,7 @@ src/
     │   ├── signup/page.tsx              # 회원가입
     │   └── callback/[provider]/route.ts # OAuth 콜백 (provider: kakao | naver)
     └── (shop)/
-        ├── layout.tsx                   # Header(+장바구니 아이콘), BottomNav
+        ├── layout.tsx                   # 모바일 프레임 + <ShopShell>(경로별 크롬: Header·BottomNav·스와이프 탭)
         ├── page.tsx                     # 홈 (SL-HOME 001~004, 006)
         ├── search/page.tsx              # 검색
         ├── lounge/page.tsx              # 라운지 (BottomNav 탭, 이슈 #57) — 뼈대만, 기능 범위 미정
@@ -47,7 +50,7 @@ src/
         ├── ai/page.tsx                  # AI — 마이컬리 경유 진입으로 변경 예정(이슈 #57), 라우트 자체는 유지
         ├── products/page.tsx            # 상품 컬렉션 리스트 (SL-LIST 001~005)
         ├── products/[productId]/page.tsx# 상품 상세 (SL-COM, SL-PROD, SL-SPEC)
-        ├── cart/page.tsx                # 장바구니 (SL-CART 001~004, 007) — 진입은 헤더 아이콘
+        ├── cart/page.tsx                # 장바구니 (SL-CART 001~004, 007) — 진입은 헤더 아이콘, 셸 크롬 없음(자체 CTA)
         ├── checkout/
         │   ├── page.tsx                 # 주문서 작성 (SL-ORD 001~004, 008)
         │   └── complete/page.tsx        # 주문 완료 (결제 영수증 조회 API)
@@ -114,15 +117,15 @@ Atomic Design 은 원래 5단계(atoms → molecules → organisms → templates
 src/components/
 ├── atoms/                     # Button, Input, Badge, Spinner, Typography ...
 ├── molecules/
-│   ├── shared/                # SearchBar, PriceTag, QuantityStepper, FilterChip
+│   ├── shared/                # SearchBar, PriceTag, QuantityStepper, FilterChip, Modal, BottomSheet, Pagination, ErrorState
 │   ├── product/               # ProductThumbnail, WishlistToggleButton, DeliveryTypeBadge
-│   ├── cart/                  # CartLineItem, CartTemperatureSectionHeader
+│   ├── cart/                  # CartLineItem, CartTemperatureSectionHeader, CartDeliveryAddress, CartSelectAllBar, CartAmountRow
 │   └── auth/                  # SocialLoginButton, ReauthPasswordField
 └── organisms/
-    ├── shared/                # Header, Footer, BottomNav, FilterSheet
+    ├── shared/                # Header, Footer, BottomNav, ShopShell(셸 크롬 온·오프), FilterSheet
     ├── home/                  # CategoryTabs, QuickMenuSection, DisplaySectionList, HeroBanner
     ├── product/               # ProductGrid, ProductDetailPanel, ProductOptionSheet
-    ├── cart/                  # CartList(온도별 그룹핑), CartSummary
+    ├── cart/                  # CartView(컨테이너), CartList(배송그룹)→CartCard(온도별), CartSummary, CartOrderBar, CartRecommendCarousel/Sheet
     ├── checkout/              # CheckoutStepper, DeliveryRequestForm, PaymentMethodList
     ├── mypage/                # MyKurlyHomeSummary, AddressManageList, ProfileForm
     ├── ai/                    # AIRecipePanel (백엔드 명세 대기, 뼈대만)
@@ -182,7 +185,7 @@ src/
 ├── errors/
 │   └── ApiError.ts              # 공용 응답 포맷 에러 봉투
 └── styles/
-    ├── globals.css              # @import "tailwindcss" + tokens @import + @custom-variant dark + --radius-{s,m,l,xl}
+    ├── globals.css              # @import "tailwindcss" + tokens @import + @custom-variant dark + --radius-{sm,m,lg,xl,xxl}
     └── tokens/                  # 디자인 토큰 — Figma 5팀 디자인 시스템에서 값 1:1 추출 (code-style §6-1)
         ├── color.css            # 팔레트 · 시맨틱 색(@theme inline + :root) · shadow (node 2002-13)
         └── typography.css       # 폰트 패밀리 · 타입 스케일 (node 2054-1038)

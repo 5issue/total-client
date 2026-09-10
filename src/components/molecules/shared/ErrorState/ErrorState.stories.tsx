@@ -105,7 +105,7 @@ export const WithDetailBox: Story = {
       </FloatingButton>
     ),
     children: (
-      <div className="bg-surface-secondary flex w-full flex-col gap-2 rounded-l px-4 py-5">
+      <div className="bg-surface-secondary flex w-full flex-col gap-2 rounded-lg px-4 py-5">
         {[
           ['주문 번호', 'order122334455667788'],
           ['주문 시간', '2026.09.04 11:11:11'],

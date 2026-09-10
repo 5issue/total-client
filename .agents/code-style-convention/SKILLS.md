@@ -223,11 +223,11 @@ const {
 
 ### 계층
 
-| 계층        | 정의 위치                                                                              | 예                                                                                         | 생성 유틸리티                                                      |
-| ----------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
-| 프리미티브  | `@theme { }`                                                                           | `--color-neutral-500`, `--color-brand-500`, `--radius-{s,m,l,xl}`(4/8/12/16), `--shadow-m` | `bg-neutral-500`, `bg-brand-500`, `rounded-{s,m,l,xl}`, `shadow-m` |
-| 타입 스케일 | `@theme { }` (`--text-*` + `--text-*--line-height`/`--letter-spacing`/`--font-weight`) | `--text-body-m`                                                                            | `text-body-m` (size+lh+ls+weight 한 번에)                          |
-| 시맨틱      | `@theme inline { }` → `:root` 캐스케이드                                               | `--color-fg`, `--color-surface`, `--color-border`, `--color-primary`                       | `text-fg`, `bg-surface`, `border-border`, `bg-primary`             |
+| 계층        | 정의 위치                                                                              | 예                                                                                                                                                                                              | 생성 유틸리티                                                            |
+| ----------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| 프리미티브  | `@theme { }`                                                                           | `--color-neutral-500`, `--color-brand-500`, `--radius-{sm,m,lg,xl,xxl}`(4/8/12/16/18 — `s`·`l` 은 코어 방향형 `rounded-s`/`rounded-l` 과 충돌해 `sm`·`lg` 사용, globals.css 주석), `--shadow-m` | `bg-neutral-500`, `bg-brand-500`, `rounded-{sm,m,lg,xl,xxl}`, `shadow-m` |
+| 타입 스케일 | `@theme { }` (`--text-*` + `--text-*--line-height`/`--letter-spacing`/`--font-weight`) | `--text-body-m`                                                                                                                                                                                 | `text-body-m` (size+lh+ls+weight 한 번에)                                |
+| 시맨틱      | `@theme inline { }` → `:root` 캐스케이드                                               | `--color-fg`, `--color-surface`, `--color-border`, `--color-primary`                                                                                                                            | `text-fg`, `bg-surface`, `border-border`, `bg-primary`                   |
 
 ### 컬러 (Figma → 토큰)
 
