@@ -38,10 +38,27 @@ import { useUIStoreShallow } from '@/hooks/useUIStore';
  * 스토어가 앱 전역에서 살아있는 싱글턴이라 안 그러면 다른 화면에서도 BottomNav 가
  * 계속 숨는다.
  *
+ * `sticky top-0`(+ `z-10`) — 스크롤 중에도 검색창이 상단에 계속 보이도록 하는
+ * UX 개선. ⚠️ 스크롤 중 BottomNav 가 다시 나타나는 현상과는 무관하다 — 실기기
+ * 디버그로 확인한 원인은 "입력창이 화면 밖으로 나가서"가 아니라, 스크롤하려고
+ * 다른 요소(급상승 검색어 등)를 터치하는 순간 iOS Safari 가 그 터치 자체로 포커스를
+ * 풀어버리는 것(정상 동작)이었다 — sticky 여부와 무관하게 항상 일어난다. 키보드가
+ * 닫히면 `isSearchInputFocused` 가 false 가 되어 BottomNav 가 다시 보이는 것은
+ * 의도된 흐름(키패드 ON 전용 레이아웃은 키보드가 실제로 떠 있을 때만 적용).
+ *
  * `onSearch`(Enter) 시 `useRecentSearches().addKeyword` 로 최근 검색어에 기록한다
  * — `organisms/search/RecentSearchesSection` 이 같은 훅을 구독해 화면에 반영한다.
+ *
+ * 입력값은 이 컴포넌트의 로컬 state 가 아니라 부모(`SearchPageContent`)가 소유한
+ * 제어값이다 — 본문이 입력값 유무로 기본 콘텐츠/자동완성 드롭다운을 갈라 렌더해야
+ * 해서, 형제 컴포넌트가 같은 값을 읽어야 한다(#69 자동완성 드롭다운).
  */
-export function SearchPageHeader() {
+export interface SearchPageHeaderProps {
+  value: string;
+  onQueryChange: (value: string) => void;
+}
+
+export function SearchPageHeader({ value, onQueryChange }: SearchPageHeaderProps) {
   const router = useRouter();
   const { setSearchInputFocused } = useUIStoreShallow((s) => ({
     setSearchInputFocused: s.setSearchInputFocused,
@@ -57,11 +74,15 @@ export function SearchPageHeader() {
     <SectionHeader
       leading="back"
       onLeadingClick={() => router.back()}
+      className="sticky top-0 z-10"
       center={
         <div className="w-73">
           <SearchBar
             label="검색어 입력"
             autoFocus
+            value={value}
+            onChange={(e) => onQueryChange(e.target.value)}
+            onClear={() => onQueryChange('')}
             onFocus={() => setSearchInputFocused(true)}
             onBlur={() => setSearchInputFocused(false)}
             onSearch={addKeyword}
