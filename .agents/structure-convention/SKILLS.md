@@ -10,12 +10,12 @@
 
 App Router 라우트 그룹으로 **레이아웃 경계**를 나눈다. URL 에는 그룹명이 노출되지 않는다.
 
-| 그룹     | 레이아웃 성격                                                              | 인증                          |
-| -------- | -------------------------------------------------------------------------- | ----------------------------- |
-| `(auth)` | 헤더/푸터 없는 인증 전용 화면                                              | 비로그인 전용                 |
-| `(shop)` | `Header`(+장바구니 아이콘) + `BottomNav`(홈/라운지/카테고리/검색/마이컬리) | 대부분 공개, 일부 경로만 보호 |
+| 그룹     | 레이아웃 성격                                                              | 인증                                             |
+| -------- | -------------------------------------------------------------------------- | ------------------------------------------------ |
+| `(auth)` | 헤더/푸터 없는 인증 전용 화면                                              | 비로그인 전용                                    |
+| `(shop)` | `Header`(+장바구니 아이콘) + `BottomNav`(홈/라운지/카테고리/검색/마이컬리) | 대부분 공개, `/checkout`·`/mypage/*` 상세만 보호 |
 
-- 인증 가드는 **`src/middleware.ts`** 가 담당한다. `matcher: ["/checkout/:path*", "/mypage/:path*"]` — 이 경로는 미인증 시 `/login?redirect=` 로 이동.
+- 인증 가드는 **`src/middleware.ts`** 가 담당한다. `matcher: ["/checkout/:path*", "/mypage/:path*"]` — 주문 전체 + 마이컬리 전부(랜딩 포함). 미인증 시 `/login?redirect=` 로 이동. 로그인 화면은 `(shop)/login`(마이컬리 탭에서 진입하는 로그아웃 상태 — 헤더·BottomNav 유지, BottomNav 마이컬리 활성).
 - middleware 는 UX 목적이고 **실제 인가는 서버(Route Handler/외부 API)가 매 요청 검증**한다 (security-convention FE-15).
 - 그룹별 `layout.tsx` 는 그 그룹의 공통 셸만 담당한다. 공유 UI 는 `components/` 로 올린다.
 - `(shop)` 크롬(BottomNav + 전역 스와이프 탭 + 하단 여백)은 **경로마다 다르다**. `layout.tsx` 는
@@ -28,7 +28,7 @@ App Router 라우트 그룹으로 **레이아웃 경계**를 나눈다. URL 에�
 
 ```
 src/
-├── middleware.ts                        # /checkout/:path*, /mypage/:path*
+├── middleware.ts                        # /checkout/:path*, /mypage/:path* → 미인증 시 /login?redirect=
 └── app/
     ├── layout.tsx                       # 루트: <html>, <SerwistProvider>, <Providers>
     ├── providers.tsx                    # 모든 클라 Provider 합성 (여기서만)
@@ -40,13 +40,13 @@ src/
     │   └── auth/                        # 소셜 로그인 BFF (api-convention §3, security FE-05)
     │       ├── oauth/[provider]/route.ts# POST: Spring 에서 로그인 URL 발급 (kakao|naver)
     │       └── refresh/route.ts         # POST: refresh_token 쿠키로 accessToken 재발급
-    ├── (auth)/
-    │   ├── layout.tsx                   # 모바일 폭 세로 프레임 ((shop) 과 동일 역할, Header/Nav 없음)
-    │   ├── login/page.tsx               # 로그인 (US-AUTH-003: 카카오/네이버) — 정적 셸 + SocialLoginPanel(잎)
+    ├── (auth)/                          # signup 전용 (login 은 (shop)/login — 헤더·BottomNav 필요, Figma 577-13111)
+    │   ├── layout.tsx                   # 모바일 폭 세로 프레임 (Header/Nav 없음)
     │   ├── signup/page.tsx              # 회원가입
     │   └── callback/[provider]/route.ts # OAuth 콜백 (provider: kakao | naver) — GET, code→세션쿠키→리다이렉트
     └── (shop)/
         ├── layout.tsx                   # 모바일 프레임 + <ShopShell>(경로별 크롬: Header·BottomNav·스와이프 탭)
+        ├── login/page.tsx               # 로그인 (US-AUTH-003: 카카오/네이버) — LoginView(잎), 헤더+BottomNav(마이컬리 활성)
         ├── page.tsx                     # 홈 (SL-HOME 001~004, 006)
         ├── search/page.tsx              # 검색
         ├── lounge/page.tsx              # 라운지 (BottomNav 탭, 이슈 #57) — 뼈대만, 기능 범위 미정
@@ -59,29 +59,29 @@ src/
         │   ├── page.tsx                 # 주문서 작성 (SL-ORD 001~004, 008)
         │   └── complete/page.tsx        # 주문 완료 (결제 영수증 조회 API)
         └── mypage/
-            ├── page.tsx                 # 마이컬리 홈 (US-MY-001)
+            ├── page.tsx                 # 마이컬리 홈 (US-MY-001) — 로그아웃 시 미들웨어가 /login 으로
             ├── addresses/page.tsx       # 배송지 관리 (US-ADDR 001~002)
             └── profile/page.tsx         # 회원 프로필 (US-PROF-001, US-AUTH-005)
 ```
 
-| 화면               | 실제 URL                | 렌더링 전략                                                  | 보호                     | 책임 지표                                                       |
-| ------------------ | ----------------------- | ------------------------------------------------------------ | ------------------------ | --------------------------------------------------------------- |
-| 홈                 | `/`                     | ISR 셸 + CSR 개인화 구획                                     | 공개                     | LCP < 2.5s, CLS < 0.1                                           |
-| 검색               | `/search`               | SSR (`searchParams` 의존)                                    | 공개                     | 빈 결과 UI 필수, TTFB < 0.8s                                    |
-| 라운지             | `/lounge`               | SSG — 동적 데이터 없음 (뼈대만, 이슈 #57)                    | 공개                     | —                                                               |
-| 카테고리           | `/category`             | SSG — 동적 데이터 없음 (뼈대만, 이슈 #57)                    | 공개                     | —                                                               |
-| AI                 | `/ai`                   | 미정 (백엔드 명세 대기) — 마이컬리 경유 진입으로 변경 예정   | 공개                     | —                                                               |
-| 상품 컬렉션 리스트 | `/products`             | 첫 페이지 ISR + 이후 CSR(`useInfiniteQuery`)                 | 공개                     | 첫 페이지 SSR, 이미지 종횡비 고정 → CLS < 0.1                   |
-| 상품 상세          | `/products/[productId]` | ISR (`generateStaticParams` + `revalidate`) + CSR(담기/옵션) | 공개                     | LCP < 2.5s, 대표 이미지 `priority`, 원본 ≤ 200KB                |
-| 장바구니           | `/cart`                 | CSR (로그인 데이터, 상호작용 중심)                           | 공개(게스트 여부 미확정) | 수량 변경 반영 < 100ms (Optimistic — api-convention §7)         |
-| 주문서 작성        | `/checkout`             | SSR(초기 배송지·결제수단) + CSR 폼 + 서버 액션(주문 생성)    | **보호**                 | 폼 검증 즉시성, 3단계 API(주문서생성→결제승인→주문확정, 미확정) |
-| 주문 완료          | `/checkout/complete`    | SSR (주문 1건 조회, 본인 검증)                               | **보호**                 | 영수증 조회 API                                                 |
-| 마이컬리 홈        | `/mypage`               | SSR 셸(요약) + CSR 위젯                                      | **보호**                 | 로그인 가드                                                     |
-| 배송지 관리        | `/mypage/addresses`     | CSR (CRUD 상호작용)                                          | **보호**                 | 기본 배송지 일관성                                              |
-| 회원 프로필        | `/mypage/profile`       | SSR(조회) + CSR(수정 폼, 재인증)                             | **보호**                 | 재인증(ReauthSheet) 후 수정                                     |
-| 로그인             | `/login`                | 정적 셸 + CSR 잎 (소셜 트리거만 클라, 폼 없음)               | 비로그인 전용            | 접근성 목표(§code-style 5), 소셜 로그인(카카오/네이버)          |
-| 회원가입           | `/signup`               | CSR (폼)                                                     | 비로그인 전용            | 단계별 검증, `user-scalable` 제한 금지                          |
-| OAuth 콜백         | `/callback/[provider]`  | Route Handler (서버)                                         | —                        | 토큰 교환 → 세션 쿠키                                           |
+| 화면               | 실제 URL                | 렌더링 전략                                                                              | 보호                     | 책임 지표                                                            |
+| ------------------ | ----------------------- | ---------------------------------------------------------------------------------------- | ------------------------ | -------------------------------------------------------------------- |
+| 홈                 | `/`                     | ISR 셸 + CSR 개인화 구획                                                                 | 공개                     | LCP < 2.5s, CLS < 0.1                                                |
+| 검색               | `/search`               | SSR (`searchParams` 의존)                                                                | 공개                     | 빈 결과 UI 필수, TTFB < 0.8s                                         |
+| 라운지             | `/lounge`               | SSG — 동적 데이터 없음 (뼈대만, 이슈 #57)                                                | 공개                     | —                                                                    |
+| 카테고리           | `/category`             | SSG — 동적 데이터 없음 (뼈대만, 이슈 #57)                                                | 공개                     | —                                                                    |
+| AI                 | `/ai`                   | 미정 (백엔드 명세 대기) — 마이컬리 경유 진입으로 변경 예정                               | 공개                     | —                                                                    |
+| 상품 컬렉션 리스트 | `/products`             | 첫 페이지 ISR + 이후 CSR(`useInfiniteQuery`)                                             | 공개                     | 첫 페이지 SSR, 이미지 종횡비 고정 → CLS < 0.1                        |
+| 상품 상세          | `/products/[productId]` | ISR (`generateStaticParams` + `revalidate`) + CSR(담기/옵션)                             | 공개                     | LCP < 2.5s, 대표 이미지 `priority`, 원본 ≤ 200KB                     |
+| 장바구니           | `/cart`                 | CSR (로그인 데이터, 상호작용 중심)                                                       | 공개(게스트 여부 미확정) | 수량 변경 반영 < 100ms (Optimistic — api-convention §7)              |
+| 주문서 작성        | `/checkout`             | SSR(초기 배송지·결제수단) + CSR 폼 + 서버 액션(주문 생성)                                | **보호**                 | 폼 검증 즉시성, 3단계 API(주문서생성→결제승인→주문확정, 미확정)      |
+| 주문 완료          | `/checkout/complete`    | SSR (주문 1건 조회, 본인 검증)                                                           | **보호**                 | 영수증 조회 API                                                      |
+| 로그인             | `/login`                | 정적 셸 + CSR 잎(소셜 트리거·세션 가드) — Figma 577-13111, 헤더+BottomNav(마이컬리 활성) | 공개(마이컬리 로그아웃)  | 소셜 로그인(카카오/네이버), 이미 로그인 시 `?redirect=`/`/mypage` 로 |
+| 마이컬리 홈        | `/mypage`               | SSR 셸(요약) + CSR 위젯 — 로그아웃 시 미들웨어가 `/login?redirect=` 로                   | **보호**                 | 로그인 가드                                                          |
+| 배송지 관리        | `/mypage/addresses`     | CSR (CRUD 상호작용)                                                                      | **보호**                 | 기본 배송지 일관성                                                   |
+| 회원 프로필        | `/mypage/profile`       | SSR(조회) + CSR(수정 폼, 재인증)                                                         | **보호**                 | 재인증(ReauthSheet) 후 수정                                          |
+| 회원가입           | `/signup`               | CSR (폼)                                                                                 | 비로그인 전용            | 단계별 검증, `user-scalable` 제한 금지                               |
+| OAuth 콜백         | `/callback/[provider]`  | Route Handler (서버)                                                                     | —                        | 토큰 교환 → 세션 쿠키                                                |
 
 **렌더링 기본값**: 정적(prerender). `"use client"` 는 상호작용/브라우저 API/상태가 필요한 잎 컴포넌트에만.
 
@@ -126,14 +126,14 @@ src/components/
 │   ├── cart/                  # CartLineItem, CartTemperatureSectionHeader, CartDeliveryAddress, CartSelectAllBar, CartAmountRow
 │   └── auth/                  # SocialLoginButton, ReauthPasswordField
 └── organisms/
-    ├── shared/                # Header, Footer, BottomNav, ShopShell(셸 크롬 온·오프), FilterSheet
+    ├── shared/                # Header, Footer, BottomNav, ShopShell(셸 크롬 온·오프), FilterSheet, SectionHeader, KurlyHeader(마이컬리+아이콘)
     ├── home/                  # CategoryTabs, QuickMenuSection, DisplaySectionList, HeroBanner
     ├── product/               # ProductGrid, ProductDetailPanel, ProductOptionSheet
     ├── cart/                  # CartView(컨테이너), CartList(배송그룹)→CartCard(온도별), CartSummary, CartOrderBar, CartRecommendCarousel/Sheet
     ├── checkout/              # CheckoutStepper, DeliveryRequestForm, PaymentMethodList
-    ├── mypage/                # MyKurlyHomeSummary, AddressManageList, ProfileForm
+    ├── mypage/                # AddressManageList, ProfileForm
     ├── ai/                    # AIRecipePanel (백엔드 명세 대기, 뼈대만)
-    └── auth/                  # SocialLoginPanel, ReauthSheet
+    └── auth/                  # LoginView(/login 화면), SocialLoginPanel, ReauthSheet
 ```
 
 | 계층              | 정의                                                          | 규칙                                                                                      | 예                                             |
@@ -156,7 +156,7 @@ src/components/
 
 ```
 src/
-├── middleware.ts                # 인증 가드 (matcher: /checkout, /mypage)
+├── middleware.ts                # 인증 가드 (matcher: /checkout/:path*, /mypage/:path*)
 ├── instrumentation.ts           # Node 런타임 훅 — API_MOCKING=enabled 시 MSW 서버 등록(로컬 전용)
 ├── app/                         # 라우트 맵(§2) 그대로
 ├── mocks/                       # MSW — 백엔드(Spring) 미배포 구간 목킹. handlers/<domain>.ts + server.ts

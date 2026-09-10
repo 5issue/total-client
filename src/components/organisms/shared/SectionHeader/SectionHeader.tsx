@@ -29,10 +29,14 @@ interface SectionHeaderActionBase {
   label: string;
 }
 
-/** `href`(링크) 또는 `onClick`(버튼) 중 하나는 필수 — 동작 없는 버튼을 타입에서 막는다. */
+/**
+ * `href`(링크) / `onClick`(버튼) 중 하나는 필수 — 동작 없는 버튼을 타입에서 막는다.
+ * 예외: `pending: true` — 아이콘은 노출하되 아직 목적지가 없어 비배선(비상호작용)인 상태.
+ */
 export type SectionHeaderAction =
-  | (SectionHeaderActionBase & { href: string; onClick?: () => void })
-  | (SectionHeaderActionBase & { href?: never; onClick: () => void });
+  | (SectionHeaderActionBase & { href: string; onClick?: () => void; pending?: never })
+  | (SectionHeaderActionBase & { href?: never; onClick: () => void; pending?: never })
+  | (SectionHeaderActionBase & { href?: never; onClick?: never; pending: true });
 
 export interface SectionHeaderProps {
   /** 왼쪽 컨트롤 프리셋. `leadingHref`/`onLeadingClick` 중 하나와 함께 써야 렌더된다. */
@@ -62,19 +66,29 @@ const LEADING_PRESET: Record<'back' | 'close', { icon: IconName; label: string }
   close: { icon: 'close', label: '닫기' },
 };
 
-/** 아이콘 하나짜리 링크 또는 버튼 (44px 터치 타깃). `href` 가 지정되면 링크. */
+/** 아이콘 하나짜리 링크 / 버튼 / (pending) 비배선 표시 (44px 터치 타깃). */
 function IconControl({
   icon,
   label,
   href,
   onClick,
+  pending,
 }: {
   icon: IconName;
   label: string;
   href?: string;
   onClick?: () => void;
+  pending?: boolean;
 }) {
   const glyph = <Icon name={icon} size={28} aria-hidden />;
+  if (pending) {
+    // 목적지 화면이 아직 없어 클릭 불가 — 시각적으로만 노출한다(스크린리더 대상 아님).
+    return (
+      <span aria-hidden className={ICON_BUTTON}>
+        {glyph}
+      </span>
+    );
+  }
   return href !== undefined ? (
     <Link href={href} aria-label={label} className={ICON_BUTTON}>
       {glyph}

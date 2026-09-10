@@ -20,5 +20,7 @@ export const NAV_ITEMS: NavItem[] = [
 
 export function isNavItemActive(pathname: string, href: string): boolean {
   if (href === '/') return pathname === '/';
+  // 로그인 화면은 마이컬리 탭에서 진입하는 로그아웃 상태 — 마이컬리 탭을 활성으로 본다.
+  if (href === '/mypage' && pathname === '/login') return true;
   return pathname === href || pathname.startsWith(`${href}/`);
 }
