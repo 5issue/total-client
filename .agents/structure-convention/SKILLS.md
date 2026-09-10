@@ -60,7 +60,7 @@ src/
         │   └── complete/page.tsx        # 주문 완료 (결제 영수증 조회 API)
         └── mypage/
             ├── page.tsx                 # 마이컬리 홈 (US-MY-001) — 로그아웃 시 미들웨어가 /login 으로
-            ├── addresses/page.tsx       # 배송지 관리 (US-ADDR 001~002) — 장바구니 "추가" 진입, 빈 상태 퍼블 완료
+            ├── addresses/page.tsx       # 배송지 관리 (US-ADDR 001~002) — 장바구니 "추가" 진입, 화면 퍼블 완료(로컬 state, API 대기)
             └── profile/page.tsx         # 회원 프로필 (US-PROF-001, US-AUTH-005)
 ```
 
