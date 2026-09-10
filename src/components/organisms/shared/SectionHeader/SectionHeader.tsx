@@ -21,7 +21,8 @@ import { Icon, type IconName } from '@/components/atoms/Icon';
  *
  * 토큰(`get_variable_defs` node 2438-1743): 배경 `Bg/default` → `bg-surface`,
  * 제목 `Heading/H0_SemiBold` + `Text/Primary` → `text-heading-0 text-fg`,
- * 아이콘 28 / 터치 타깃 `Icon Height/XL` 44 → `size-11`, 여백 `Gap/XS`·`Margin/Default` → `pl-2 pr-4`.
+ * 터치 타깃 `Icon Height/XL` 44 → `size-11`, 여백 `Gap/XS`·`Margin/Default` → `pl-2 pr-4`.
+ * 아이콘 글리프는 32 — Figma 실측(28)보다 키운 값으로, 모바일에서 back/close 가시성을 높였다.
  */
 interface SectionHeaderActionBase {
   icon: IconName;
@@ -80,7 +81,7 @@ function IconControl({
   onClick?: () => void;
   pending?: boolean;
 }) {
-  const glyph = <Icon name={icon} size={28} aria-hidden />;
+  const glyph = <Icon name={icon} size={32} aria-hidden />;
   if (pending) {
     // 목적지 화면이 아직 없어 클릭 불가 — 시각적으로만 노출한다(스크린리더 대상 아님).
     return (
