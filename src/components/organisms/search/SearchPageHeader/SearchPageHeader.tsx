@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 
 import { SearchBar } from '@/components/atoms/SearchBar';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
+import { useRecentSearches } from '@/hooks/search/useRecentSearches';
 import { useUIStoreShallow } from '@/hooks/useUIStore';
 
 /**
@@ -36,12 +37,16 @@ import { useUIStoreShallow } from '@/hooks/useUIStore';
  * 키패드 ON 목업엔 하단 탭바가 없다). unmount(화면 이탈) 시 반드시 false 로 되돌린다 —
  * 스토어가 앱 전역에서 살아있는 싱글턴이라 안 그러면 다른 화면에서도 BottomNav 가
  * 계속 숨는다.
+ *
+ * `onSearch`(Enter) 시 `useRecentSearches().addKeyword` 로 최근 검색어에 기록한다
+ * — `organisms/search/RecentSearchesSection` 이 같은 훅을 구독해 화면에 반영한다.
  */
 export function SearchPageHeader() {
   const router = useRouter();
   const { setSearchInputFocused } = useUIStoreShallow((s) => ({
     setSearchInputFocused: s.setSearchInputFocused,
   }));
+  const { addKeyword } = useRecentSearches();
 
   useEffect(() => {
     return () => setSearchInputFocused(false);
@@ -59,6 +64,7 @@ export function SearchPageHeader() {
             autoFocus
             onFocus={() => setSearchInputFocused(true)}
             onBlur={() => setSearchInputFocused(false)}
+            onSearch={addKeyword}
           />
         </div>
       }
