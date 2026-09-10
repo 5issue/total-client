@@ -15,12 +15,16 @@ import { createStore } from 'zustand/vanilla';
 export type UIState = {
   isMobileNavOpen: boolean;
   isCartDrawerOpen: boolean;
+  /** 검색 화면 SearchBar 포커스(키패드 ON) 여부 — true 인 동안 BottomNav 를 숨긴다
+   *  (Figma "화면" node 577-13645, 키패드 ON 목업엔 하단 탭바가 없다). */
+  isSearchInputFocused: boolean;
 };
 
 export type UIActions = {
   openMobileNav: () => void;
   closeMobileNav: () => void;
   toggleCartDrawer: () => void;
+  setSearchInputFocused: (focused: boolean) => void;
   reset: () => void;
 };
 
@@ -29,6 +33,7 @@ export type UIStore = UIState & UIActions;
 export const defaultUIState: UIState = {
   isMobileNavOpen: false,
   isCartDrawerOpen: false,
+  isSearchInputFocused: false,
 };
 
 export const createUIStore = (initState: UIState = defaultUIState) => {
@@ -37,6 +42,7 @@ export const createUIStore = (initState: UIState = defaultUIState) => {
     openMobileNav: () => set({ isMobileNavOpen: true }),
     closeMobileNav: () => set({ isMobileNavOpen: false }),
     toggleCartDrawer: () => set((state) => ({ isCartDrawerOpen: !state.isCartDrawerOpen })),
+    setSearchInputFocused: (focused) => set({ isSearchInputFocused: focused }),
     reset: () => set(defaultUIState),
   }));
 };
