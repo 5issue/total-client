@@ -16,7 +16,8 @@ import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
  *
  * 구성: `SectionHeader`(뒤로 + "배송지 관리") + 중앙 `ErrorState`(안내만, 액션 버튼 없음) +
  * 하단 sticky CTA_Horizontal(흰 바 `pt-3 pb-11 px-4`, 아웃라인 풀폭 버튼 `h-14`).
- * 여백은 Figma `CTA_Horizontal`(node 359-15285) 실측 — 장바구니 `CartOrderBar` 와 동일 규격.
+ * 여백은 Figma `CTA_Horizontal`(node 359-15285) 실측. 이 화면의 CTA 바에는 상단 보더가 없다
+ * (장바구니는 CartView 가 `border-t` 를 추가로 얹는 것 — 컴포넌트 기본형엔 없음).
  */
 export function AddressManageView() {
   const router = useRouter();
@@ -32,7 +33,7 @@ export function AddressManageView() {
         />
       </div>
 
-      <div className="bg-surface border-border sticky bottom-0 flex flex-col border-t px-4 pt-3 pb-11">
+      <div className="bg-surface sticky bottom-0 flex flex-col px-4 pt-3 pb-11">
         <Button
           variant="outlineBlack"
           size="l"
