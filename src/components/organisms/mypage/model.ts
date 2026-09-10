@@ -27,3 +27,6 @@ export interface AddressView {
   /** 기본 배송지 여부. */
   isDefault: boolean;
 }
+
+/** `AddressSearchPanel` 이 저장(추가/수정)할 때 상위로 올리는 값 — `id` 는 컨테이너가 매긴다. */
+export type AddressFormValues = Omit<AddressView, 'id'>;
