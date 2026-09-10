@@ -29,7 +29,7 @@ export function BottomNav({ badges, className }: BottomNavProps) {
   return (
     <nav
       aria-label="주요 메뉴"
-      className={`fixed inset-x-0 bottom-0 z-50 flex justify-center px-6 pt-4 pb-7 ${className ?? ''}`.trim()}
+      className={`pb-nav-pb-safe fixed inset-x-0 bottom-0 z-50 flex justify-center px-6 pt-4 ${className ?? ''}`.trim()}
     >
       {/* 흰 pill(BG)은 콘텐츠 행(352px)보다 사방 4px 더 큰 inset(-4px) 레이어다(node 2368-429
           "BG") — 실제 pill 은 360×62. 콘텐츠 행을 정확히 352px(w-88)로 고정하고 p-1(4px)
