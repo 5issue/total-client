@@ -1,0 +1,1 @@
+export { TrendingSearchesSection } from './TrendingSearchesSection';

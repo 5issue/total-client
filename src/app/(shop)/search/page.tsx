@@ -1,3 +1,15 @@
+import { DietRecommendationBanner } from '@/components/organisms/search/DietRecommendationBanner';
+import { RecommendedKeywordsSection } from '@/components/organisms/search/RecommendedKeywordsSection';
+import { SearchPageHeader } from '@/components/organisms/search/SearchPageHeader';
+import { TrendingSearchesSection } from '@/components/organisms/search/TrendingSearchesSection';
+
 export default function SearchPage() {
-  return <div className="text-label-m text-fg-tertiary p-4">검색 (구현 예정)</div>;
+  return (
+    <div className="flex flex-1 flex-col">
+      <SearchPageHeader />
+      <DietRecommendationBanner />
+      <RecommendedKeywordsSection />
+      <TrendingSearchesSection />
+    </div>
+  );
 }
