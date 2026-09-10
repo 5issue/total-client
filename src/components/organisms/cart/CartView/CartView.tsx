@@ -217,14 +217,14 @@ export function CartView() {
         )}
       </div>
 
-      {tab === 'items' ? (
-        <CartOrderBar
-          className="border-border sticky bottom-0 border-t"
-          state={isEmpty ? 'empty' : address ? 'order' : 'no-address'}
-          totalPrice={amounts.total}
-          onOrder={() => setSheetOpen(true)}
-        />
-      ) : null}
+      {/* 하단 주문 바는 두 탭 모두에 뜬다. "자주 산 상품"(미구현·항상 빈 상태)과 빈 장바구니는
+          비활성 "상품을 담아주세요"(Figma node 188-9295). */}
+      <CartOrderBar
+        className="border-border sticky bottom-0 border-t"
+        state={tab === 'frequent' || isEmpty ? 'empty' : address ? 'order' : 'no-address'}
+        totalPrice={amounts.total}
+        onOrder={() => setSheetOpen(true)}
+      />
 
       <Modal
         open={deleteTarget !== null}
