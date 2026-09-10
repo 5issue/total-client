@@ -99,12 +99,13 @@ export function AddressListItem({
 
         <div className="flex w-full items-center justify-between">
           <span className="text-caption-l text-brand-300">{deliveryType}</span>
+          {/* 삭제·수정은 짧은 텍스트라 최소 44×44 터치 타깃을 강제한다 (code-style §5). */}
           <div className="flex items-center gap-1">
             {onDelete && (
               <button
                 type="button"
                 onClick={onDelete}
-                className="text-caption-l text-fg-tertiary inline-flex items-center justify-center px-2 py-2.5"
+                className="text-caption-l text-fg-tertiary inline-flex min-h-11 min-w-11 items-center justify-center px-2"
               >
                 삭제
               </button>
@@ -114,7 +115,7 @@ export function AddressListItem({
               <button
                 type="button"
                 onClick={onEdit}
-                className="text-caption-l text-fg-tertiary inline-flex items-center justify-center px-2 py-2.5"
+                className="text-caption-l text-fg-tertiary inline-flex min-h-11 min-w-11 items-center justify-center px-2"
               >
                 수정
               </button>

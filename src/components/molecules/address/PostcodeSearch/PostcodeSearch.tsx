@@ -10,6 +10,9 @@ import Script from 'next/script';
  * 주소 입력 폼을 서드파티 위젯에 위임한다(디자인 없음, 예외 결정 — api-convention §3).
  * 스크립트는 키 불필요·CORS 위젯 내부 처리. `embed` 로 이 컴포넌트 안에 인라인 렌더한다.
  *
+ * 스크립트 로드 실패(네트워크·CDN 장애·CSP 차단) 시 빈 컨테이너 대신 안내 + "다시 시도" 를
+ * 노출한다 — 실패해도 사용자가 배송지 추가 흐름에 갇히지 않도록.
+ *
  * ⚠️ 배포 시: security-convention FE-11 CSP `script-src` 에 `t1.kakaocdn.net` 예외 필요.
  */
 const POSTCODE_SCRIPT_SRC = 'https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
@@ -29,6 +32,8 @@ export interface PostcodeSearchProps {
   className?: string;
 }
 
+type ScriptStatus = 'loading' | 'ready' | 'error';
+
 export function PostcodeSearch({ onComplete, className }: PostcodeSearchProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const embeddedRef = useRef(false);
@@ -38,13 +43,16 @@ export function PostcodeSearch({ onComplete, className }: PostcodeSearchProps) {
     onCompleteRef.current = onComplete;
   });
 
-  const [scriptReady, setScriptReady] = useState(
-    () => typeof window !== 'undefined' && Boolean(window.daum?.Postcode),
+  const [status, setStatus] = useState<ScriptStatus>(() =>
+    typeof window !== 'undefined' && window.daum?.Postcode ? 'ready' : 'loading',
   );
+  // 재시도 시 src 에 붙여 next/script 의 로드 캐시를 우회한다.
+  const [retry, setRetry] = useState(0);
+  const scriptSrc = retry === 0 ? POSTCODE_SCRIPT_SRC : `${POSTCODE_SCRIPT_SRC}?r=${retry}`;
 
   useEffect(() => {
     const el = containerRef.current;
-    if (!scriptReady || embeddedRef.current || !el) return;
+    if (status !== 'ready' || embeddedRef.current || !el) return;
     const Postcode = window.daum?.Postcode ?? window.kakao?.Postcode;
     if (!Postcode) return;
 
@@ -75,16 +83,39 @@ export function PostcodeSearch({ onComplete, className }: PostcodeSearchProps) {
     const ro = new ResizeObserver(embed);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [scriptReady]);
+  }, [status]);
 
   return (
     <>
       <Script
-        src={POSTCODE_SCRIPT_SRC}
+        key={retry}
+        src={scriptSrc}
         strategy="afterInteractive"
-        onReady={() => setScriptReady(true)}
+        onReady={() => setStatus('ready')}
+        onError={() => setStatus('error')}
       />
-      <div ref={containerRef} className={className} />
+      {status === 'error' ? (
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center">
+          <p className="text-body-s text-fg-secondary">
+            주소 검색을 불러오지 못했습니다.
+            <br />
+            네트워크 상태를 확인하고 다시 시도해주세요.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              embeddedRef.current = false;
+              setStatus('loading');
+              setRetry((n) => n + 1);
+            }}
+            className="text-label-l text-primary border-primary rounded-m inline-flex h-11 items-center border px-4"
+          >
+            다시 시도
+          </button>
+        </div>
+      ) : (
+        <div ref={containerRef} className={className} />
+      )}
     </>
   );
 }
