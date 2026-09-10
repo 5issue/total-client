@@ -20,7 +20,7 @@ App Router 라우트 그룹으로 **레이아웃 경계**를 나눈다. URL 에�
 - 그룹별 `layout.tsx` 는 그 그룹의 공통 셸만 담당한다. 공유 UI 는 `components/` 로 올린다.
 - `(shop)` 크롬(BottomNav + 전역 스와이프 탭 + 하단 여백)은 **경로마다 다르다**. `layout.tsx` 는
   서버로 두고, `usePathname` 이 필요한 `<ShopShell>`(클라) 이 크롬을 켠다. 자체 하단 CTA 를 가진
-  전체화면 뷰(`/cart` 등)는 크롬을 끈다 — `ShopShell.CHROMELESS_PREFIXES` (PR #58 리뷰).
+  전체화면 뷰(`/cart`, `/mypage/addresses` 등)는 크롬을 끈다 — `ShopShell.CHROMELESS_PREFIXES` (PR #58 리뷰).
 
 ---
 
@@ -60,7 +60,7 @@ src/
         │   └── complete/page.tsx        # 주문 완료 (결제 영수증 조회 API)
         └── mypage/
             ├── page.tsx                 # 마이컬리 홈 (US-MY-001) — 로그아웃 시 미들웨어가 /login 으로
-            ├── addresses/page.tsx       # 배송지 관리 (US-ADDR 001~002)
+            ├── addresses/page.tsx       # 배송지 관리 (US-ADDR 001~002) — 장바구니 "추가" 진입, 빈 상태 퍼블 완료
             └── profile/page.tsx         # 회원 프로필 (US-PROF-001, US-AUTH-005)
 ```
 
@@ -131,7 +131,7 @@ src/components/
     ├── product/               # ProductGrid, ProductDetailPanel, ProductOptionSheet
     ├── cart/                  # CartView(컨테이너), CartList(배송그룹)→CartCard(온도별), CartSummary, CartOrderBar, CartRecommendCarousel/Sheet
     ├── checkout/              # CheckoutStepper, DeliveryRequestForm, PaymentMethodList
-    ├── mypage/                # AddressManageList, ProfileForm
+    ├── mypage/                # AddressManageView(배송지 관리 컨테이너), MyKurlyHomeSummary, ProfileForm
     ├── ai/                    # AIRecipePanel (백엔드 명세 대기, 뼈대만)
     └── auth/                  # LoginView(/login 화면), SocialLoginPanel, ReauthSheet
 ```
