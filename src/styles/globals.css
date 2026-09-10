@@ -45,6 +45,26 @@
   --spacing-nav-capsule-y: 58px; /* active 선택 캡슐(Selection) 높이 → h-nav-capsule-y */
   --spacing-nav-capsule-x: 76px; /* active 선택 캡슐(Selection) 너비 → w-nav-capsule-x */
   --spacing-mobile-frame: 402px; /* Figma 모바일 프레임 폭 — Storybook 프리뷰 전용 → w-mobile-frame */
+
+  /* 화면 하단 안전영역 — 디자인팀 핸드오프 기준값(2026-09-09, 단말기 내비게이션바/CTA
+   * 유무 조합별 4종): BottomNav만 112px · CTA 1줄 124px · CTA 2줄 208px · 없음 80px.
+   * 지금은 BottomNav만 있는 화면(홈/라운지/카테고리/검색/마이컬리)에 필요한 112px만
+   * 토큰화한다 — CTA 조합 값은 해당 화면(장바구니/체크아웃/상품상세 등) 작업 시 추가.
+   * --spacing-nav-pb-safe 는 그 112px 를 BottomNav 자체 렌더 높이(pt-4 16px + p-1 4px×2
+   * + h-nav-item 54px + 이 값)로 역산한 하단 패딩 — pt-4/p-1/nav-item 은 그대로 두고
+   * pb 만 34px 로 늘려 합이 정확히 112px 가 되게 맞춘다. */
+  --spacing-bottom-nav-safe: 112px; /* → pb-bottom-nav-safe (main 콘텐츠 하단 예약 여백) */
+  --spacing-nav-pb-safe: 34px; /* → pb-nav-pb-safe (BottomNav 자체 하단 패딩) */
+}
+
+/* 가로 스크롤 캐러셀(추천 검색어 등)용 — 스크롤 자체는 유지하고 스크롤바만 숨긴다.
+ * 브라우저 3종 모두 대응해야 해서 표준 속성(scrollbar-width)만으로는 부족하다. */
+@utility scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* @layer base 에 둬야 Tailwind 유틸리티(@layer utilities)가 이 기본값을 오버라이드할 수 있다.

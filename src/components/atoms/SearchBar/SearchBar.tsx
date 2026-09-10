@@ -16,6 +16,9 @@ import { Icon } from '@/components/atoms/Icon';
  * - 좌측 돋보기 / 우측 X 는 Icon atom(`search` · `close`, #19).
  * - Figma 에는 포커스 스타일이 없지만, 키보드 포커스 가시성(WCAG 2.4.7)을 위해
  *   `focus-within` 시 활성 보더를 준다. (code-style §5 접근성)
+ * - 루트에 `w-full` 필수 — flex 부모(예: `SectionHeader` 의 center 슬롯) 안에서는
+ *   grow 없는 flex 아이템이 콘텐츠 너비로만 줄어들어(#69 에서 실측 발견) 검색창이
+ *   좁게 렌더된다. block 부모에서는 원래도 기본 동작이라 시각 차이 없다.
  */
 export interface SearchBarProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
   /** `<label htmlFor>` 로 연결되는 접근성 라벨. */
@@ -72,7 +75,7 @@ export function SearchBar({
   };
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex w-full flex-col gap-2">
       <label htmlFor={inputId} className={labelVisible ? 'text-label-l text-fg' : 'sr-only'}>
         {label}
       </label>
