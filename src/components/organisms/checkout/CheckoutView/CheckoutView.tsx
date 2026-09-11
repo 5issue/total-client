@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 
 import { useRouter } from 'next/navigation';
 
@@ -8,6 +9,7 @@ import { Button } from '@/components/atoms/Button';
 import { Icon } from '@/components/atoms/Icon';
 import { InfoBox } from '@/components/atoms/InfoBox';
 import { Input } from '@/components/atoms/Input';
+import { Toast } from '@/components/atoms/Toast';
 import { CartAmountRow } from '@/components/molecules/cart/CartAmountRow';
 import { Accordion } from '@/components/molecules/shared/Accordion';
 import { Modal } from '@/components/molecules/shared/Modal';
@@ -37,6 +39,15 @@ import { MOCK_AMOUNTS, MOCK_CUSTOMER, MOCK_DEFAULT_ADDRESS, MOCK_ORDER_ITEMS } f
  * "주문자 정보"는 node 666-25643 기준 펼치면 받는 분/휴대폰/이메일 + 변경 방법 안내가
  * 나온다 — 공용 `Accordion` 셸을 쓰되, 헤더 오른쪽 요약("이름, 전화번호")은 펼쳤을 때
  * 사라지므로(Figma 원본 확인) `open` 값에 따라 이 컴포넌트가 직접 헤더를 갈아끼운다.
+ *
+ * 필수값 미입력 시 [주문하기] 안내(node 666-23688): 버튼은 `disabled` 로 막지 않는다 —
+ * Figma 스크린샷에서 버튼이 항상 활성(purple) 색이고, 눌렀을 때 상단에 에러 토스트
+ * ("배송 상세정보를 입력해주세요.")가 뜬다. 네이티브 `disabled` 버튼은 클릭 이벤트 자체가
+ * 발생하지 않아 토스트를 못 띄우므로, 유효성 검사는 클릭 핸들러 안에서 직접 한다.
+ *
+ * "주문시간 초과" 모달(node 666-24671)은 실제 서버 세션 만료 신호가 아직 없어(백엔드
+ * 미연동) 클라이언트 타이머로 흉내만 낸다 — `ORDER_TIME_LIMIT_MS` 는 실제 정책값이 아니라
+ * 임시 추정치, 서버 세션 만료 API 나오면 그걸로 교체.
  */
 type DeliveryDetailModal = 'edit' | null;
 /** 배송 상세정보 — node 666-24922: "{위치} | 공동현관 비밀번호({코드})" + "{받는분}, {전화번호}". */
@@ -47,6 +58,11 @@ interface DeliveryDetail {
 type TermsModal = 'privacy' | 'payment' | null;
 
 const won = (n: number) => `${n.toLocaleString('ko-KR')}원`;
+
+/** 주문서 진입 후 결제를 완료해야 하는 유효시간 — 서버 세션 만료 정책 확정 전 임시값(node 666-24671). */
+const ORDER_TIME_LIMIT_MS = 15 * 60 * 1000;
+/** [주문하기] 오류 토스트 노출 시간(node 666-23688, Toast atom 은 자동 소멸을 책임지지 않음). */
+const VALIDATION_TOAST_DURATION_MS = 2500;
 
 export function CheckoutView() {
   const router = useRouter();
@@ -63,7 +79,25 @@ export function CheckoutView() {
   const [termsModal, setTermsModal] = useState<TermsModal>(null);
   const [ordererOpen, setOrdererOpen] = useState(false);
 
+  const [addressChangeInfoOpen, setAddressChangeInfoOpen] = useState(false);
+  const [couponInfoOpen, setCouponInfoOpen] = useState(false);
+  const [pointsInfoOpen, setPointsInfoOpen] = useState(false);
+  const [orderExpired, setOrderExpired] = useState(false);
+  const [showValidationToast, setShowValidationToast] = useState(false);
+  const validationToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const canPay = deliveryDetail != null && deliveryDetail.location !== '' && paymentMethod != null;
+
+  useEffect(() => {
+    const timer = setTimeout(() => setOrderExpired(true), ORDER_TIME_LIMIT_MS);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (validationToastTimer.current) clearTimeout(validationToastTimer.current);
+    };
+  }, []);
 
   function openDeliveryModal() {
     setLocationDraft(deliveryDetail?.location ?? '');
@@ -78,9 +112,30 @@ export function CheckoutView() {
     setDeliveryModal(null);
   }
 
+  function handleSubmitOrder() {
+    if (!canPay) {
+      setShowValidationToast(true);
+      if (validationToastTimer.current) clearTimeout(validationToastTimer.current);
+      validationToastTimer.current = setTimeout(
+        () => setShowValidationToast(false),
+        VALIDATION_TOAST_DURATION_MS,
+      );
+      return;
+    }
+    router.push('/checkout/complete');
+  }
+
   return (
     <>
       <SectionHeader leading="back" onLeadingClick={() => router.back()} title="주문서" />
+
+      {/* node 666-23688: [주문하기] 눌렀는데 필수값이 비어있을 때 상단에 뜨는 에러 토스트.
+          화면 스크롤과 무관하게 계속 보이도록 fixed — 헤더(SectionHeader) 바로 아래 위치. */}
+      {showValidationToast ? (
+        <div className="pointer-events-none fixed inset-x-0 top-16 z-50 flex justify-center px-4">
+          <Toast variant="error">배송 상세정보를 입력해주세요.</Toast>
+        </div>
+      ) : null}
 
       <div className="bg-surface-secondary flex flex-1 flex-col gap-2">
         {/* 주문자 정보 — Figma "Accordion_Orderinfo"(node 666-25643, property1=on). 접힘일
@@ -121,10 +176,16 @@ export function CheckoutView() {
         <div className="bg-surface flex flex-col gap-6 p-4">
           <div className="flex items-center justify-between">
             <p className="text-heading-4 text-fg">배송정보</p>
-            <span className="text-label-m text-fg-tertiary flex items-center gap-1">
+            {/* node 666-25154: 눌렀을 때 "배송지 변경" 확인 모달 — 이 화면(바로구매)엔
+                배송지를 직접 바꾸는 UI가 없어 장바구니로 이동해야 함을 안내한다. */}
+            <button
+              type="button"
+              onClick={() => setAddressChangeInfoOpen(true)}
+              className="text-label-m text-fg-tertiary flex items-center gap-1"
+            >
               배송지 변경 안내
               <Icon name="help-circle" size={20} aria-hidden />
-            </span>
+            </button>
           </div>
 
           <div className="flex flex-col gap-2">
@@ -198,7 +259,10 @@ export function CheckoutView() {
         <div className="bg-surface flex flex-col gap-4 p-4">
           <span className="flex items-center gap-1">
             <p className="text-heading-4 text-fg">쿠폰</p>
-            <Icon name="help-circle" size={20} aria-hidden />
+            {/* node 666-23931: "최대 할인 적용이란?" 안내 모달. */}
+            <button type="button" onClick={() => setCouponInfoOpen(true)} aria-label="쿠폰 안내">
+              <Icon name="help-circle" size={20} aria-hidden />
+            </button>
           </span>
           <InfoBox variant="bar" className="w-full">
             사용할 수 있는 쿠폰이 없어요
@@ -220,7 +284,14 @@ export function CheckoutView() {
         <div className="bg-surface flex flex-col gap-3 p-4">
           <span className="flex items-center gap-1">
             <p className="text-heading-4 text-fg">적립금·컬리캐시</p>
-            <Icon name="help-circle" size={20} aria-hidden />
+            {/* node 666-24420: "적립금·컬리캐시 사용 전 확인해주세요" 안내 모달. */}
+            <button
+              type="button"
+              onClick={() => setPointsInfoOpen(true)}
+              aria-label="적립금·컬리캐시 안내"
+            >
+              <Icon name="help-circle" size={20} aria-hidden />
+            </button>
           </span>
 
           <div className="flex flex-col gap-4">
@@ -397,13 +468,7 @@ export function CheckoutView() {
           여유(pb-11)는 CartOrderBar 와 같은 이유로 유지 — 정적 프레임엔 안 드러나는
           실제 기기 세이프에어리어다. */}
       <div className="bg-surface sticky bottom-0 flex flex-col gap-3 px-4 pt-3 pb-3">
-        <Button
-          variant="primary"
-          size="l"
-          className="h-14 w-full"
-          disabled={!canPay}
-          onClick={() => router.push('/checkout/complete')}
-        >
+        <Button variant="primary" size="l" className="h-14 w-full" onClick={handleSubmitOrder}>
           {won(MOCK_AMOUNTS.total)} 결제하기
         </Button>
         <p className="text-caption-m text-fg-tertiary text-center">
@@ -465,6 +530,74 @@ export function CheckoutView() {
           </Button>
         }
       />
+
+      {/* node 666-25154: "배송지 변경 안내" 아이콘 — 이 화면은 배송지를 직접 못 바꾸니
+          장바구니로 이동해야 함을 확인받는다(2-버튼: 취소는 fill-surface-secondary, Button
+          "tertiary" 가 그 색과 일치). */}
+      <Modal
+        open={addressChangeInfoOpen}
+        onClose={() => setAddressChangeInfoOpen(false)}
+        title="배송지 변경"
+        description="장바구니로 이동하여 다른 배송지로 변경하시겠습니까?"
+        footer={
+          <>
+            <Button variant="tertiary" onClick={() => setAddressChangeInfoOpen(false)}>
+              취소
+            </Button>
+            <Button variant="black" onClick={() => router.push('/cart')}>
+              확인
+            </Button>
+          </>
+        }
+      />
+
+      {/* node 666-23931: 쿠폰 옆 help-circle 아이콘. */}
+      <Modal
+        open={couponInfoOpen}
+        onClose={() => setCouponInfoOpen(false)}
+        title="최대 할인 적용이란?"
+        description="보유한 쿠폰 중 적용할 수 있는 가장 큰 혜택을 자동 적용해드려요. 단, 최저가와는 다를 수 있어요."
+        footer={
+          <Button variant="black" onClick={() => setCouponInfoOpen(false)}>
+            확인
+          </Button>
+        }
+      />
+
+      {/* node 666-24420: 적립금·컬리캐시 옆 help-circle 아이콘. 불릿 아이콘은 Figma 실측
+          지름 3px 원 — 우리 아이콘 세트로는 못 재현해(이전 라운드에도 같은 이유로 "·"
+          문자 사용) 여기도 동일 패턴. */}
+      <Modal
+        open={pointsInfoOpen}
+        onClose={() => setPointsInfoOpen(false)}
+        title="적립금·컬리캐시 사용 전 확인해주세요"
+        footer={
+          <Button variant="black" onClick={() => setPointsInfoOpen(false)}>
+            확인
+          </Button>
+        }
+      >
+        <ul className="flex flex-col gap-2">
+          <InfoBullet>컬리캐시는 계좌를 통해 충전하는 결제수단이에요.</InfoBullet>
+          <InfoBullet>잔액은 적립금과 컬리캐시를 합한 금액이에요.</InfoBullet>
+          <InfoBullet>컬리캐시 결제 적립 혜택은 계좌로 충전한 캐시에만 적용돼요.</InfoBullet>
+        </ul>
+      </Modal>
+
+      {/* node 666-24671: 서버 세션 만료를 흉내낸 클라이언트 타이머(ORDER_TIME_LIMIT_MS)가
+          쏘는 모달 — 백드롭/Esc 로 못 닫게 하고 [확인]으로 장바구니 이동만 허용한다. */}
+      <Modal
+        open={orderExpired}
+        onClose={() => setOrderExpired(false)}
+        closeOnBackdrop={false}
+        title="주문시간이 초과되었어요"
+        description="주문시간이 초과되어 장바구니로 이동합니다. 주문을 다시 시도해주세요."
+        footer={
+          <Button variant="black" onClick={() => router.push('/cart')}>
+            확인
+          </Button>
+        }
+      />
     </>
   );
 }
@@ -489,5 +622,18 @@ function OrdererInfoRow({ label, value }: { label: string; value: string }) {
       <dt className="text-body-m text-fg-tertiary w-16 shrink-0">{label}</dt>
       <dd className="text-body-m text-fg">{value}</dd>
     </div>
+  );
+}
+
+/** 안내 모달 본문의 불릿 한 줄("·" + 문구) — PaymentMethodAccordion 의 동일 모달에도 같은
+ * 모양이 필요해질 수 있지만, 지금은 이 화면 안에서만 쓰여 굳이 공용 컴포넌트로 빼지 않았다. */
+function InfoBullet({ children }: { children: ReactNode }) {
+  return (
+    <li className="text-body-s text-fg-secondary flex gap-1">
+      <span aria-hidden className="text-fg-tertiary shrink-0">
+        ·
+      </span>
+      {children}
+    </li>
   );
 }

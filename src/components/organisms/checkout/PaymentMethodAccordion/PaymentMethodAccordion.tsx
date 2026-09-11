@@ -1,13 +1,16 @@
 'use client';
 
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 
+import { Button } from '@/components/atoms/Button';
 import { Icon } from '@/components/atoms/Icon';
 import { Logo } from '@/components/atoms/Logo/Logo';
 import { Radio } from '@/components/atoms/Radio';
 import { PaymentBenefitNotice } from '@/components/molecules/checkout/PaymentBenefitNotice';
 import { PaymentMethodButton } from '@/components/molecules/checkout/PaymentMethodButton';
 import { Dropdown } from '@/components/molecules/shared/Dropdown';
+import { Modal } from '@/components/molecules/shared/Modal';
 import { StatusLabel } from '@/components/molecules/shared/StatusLabel';
 import type { OtherPaymentMethodId, PaymentMethodId } from '@/components/organisms/checkout/model';
 
@@ -80,6 +83,9 @@ function OptionRow({
   onSelect,
   disabled = false,
   children,
+  trailing,
+  onTrailingClick,
+  trailingLabel,
 }: {
   value: PaymentMethodId;
   /** 접근 가능한 이름(sr-only) — 행의 시각 콘텐츠(뱃지 포함)는 `children` 이 대신 그린다. */
@@ -89,6 +95,13 @@ function OptionRow({
   /** 아직 미제공 수단(예: 네이버페이) — 선택 불가, `CartLineItem` 품절과 같은 흐림 처리. */
   disabled?: boolean;
   children: ReactNode;
+  /** 행 오른쪽 끝의 독립 클릭 대상(예: 컬리캐시 충전결제의 정보 아이콘). 선택 버튼과
+   * 겹치지 않도록 별도 `<button>` 으로 그린다 — `<button>` 안에 `<button>` 을 못 넣으므로
+   * `children`(라디오 선택 버튼)과 이 `trailing` 을 감싸는 바깥 `justify-between` 행을 하나
+   * 더 두고, 안쪽 선택 버튼 자체는 더 이상 `flex-1`/`justify-between` 을 갖지 않는다. */
+  trailing?: ReactNode;
+  onTrailingClick?: () => void;
+  trailingLabel?: string;
 }) {
   return (
     <div
@@ -105,14 +118,26 @@ function OptionRow({
         disabled={disabled}
         onChange={onSelect}
       />
-      <button
-        type="button"
-        onClick={onSelect}
-        disabled={disabled}
-        className="flex min-w-0 flex-1 items-center justify-between gap-1 text-left disabled:pointer-events-none"
-      >
-        {children}
-      </button>
+      <div className="flex min-w-0 flex-1 items-center justify-between gap-1">
+        <button
+          type="button"
+          onClick={onSelect}
+          disabled={disabled}
+          className="flex min-w-0 items-center gap-1 text-left disabled:pointer-events-none"
+        >
+          {children}
+        </button>
+        {trailing ? (
+          <button
+            type="button"
+            onClick={onTrailingClick}
+            aria-label={trailingLabel}
+            className="shrink-0"
+          >
+            {trailing}
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -126,6 +151,10 @@ export function PaymentMethodAccordion({
   onCardIssuerChange,
   className,
 }: PaymentMethodAccordionProps) {
+  // node 666-24169: "컬리캐시 충전결제란?" 안내 모달 — 정보 아이콘 전용, 라디오 선택과는
+  // 별개 동작이라 이 컴포넌트 로컬 state 로 둔다(CheckoutView 로 끌어올릴 이유 없음).
+  const [chargeInfoOpen, setChargeInfoOpen] = useState(false);
+
   return (
     <div className={['flex flex-col pb-5', className].filter(Boolean).join(' ')}>
       <p className="text-heading-4 text-fg p-4">결제수단</p>
@@ -136,13 +165,15 @@ export function PaymentMethodAccordion({
           label="컬리캐시 충전결제"
           checked={method === 'charge'}
           onSelect={() => onMethodChange('charge')}
+          // Figma imgGroup23 실측: 원+"i" 형태(정보) — 물음표(help)가 아니다.
+          trailing={<Icon name="info-line" size={20} aria-hidden />}
+          onTrailingClick={() => setChargeInfoOpen(true)}
+          trailingLabel="컬리캐시 충전결제 안내"
         >
           <span className="flex items-center gap-1">
             <span className="text-heading-4 text-fg">컬리캐시 충전결제</span>
             <StatusLabel type="kbank">케이뱅크 충전결제 3% 추가적립</StatusLabel>
           </span>
-          {/* Figma imgGroup23 실측: 원+"i" 형태(정보) — 물음표(help)가 아니다. */}
-          <Icon name="info-line" size={20} aria-hidden />
         </OptionRow>
         {method === 'charge' ? (
           <div className="px-4 pb-6">
@@ -297,6 +328,47 @@ export function PaymentMethodAccordion({
           </div>
         </div>
       </div>
+
+      {/* node 666-24169. 불릿 아이콘은 Figma 실측 지름 3px 원이라 우리 아이콘 세트로는
+          재현이 안 돼(다른 안내 모달들과 동일 사유) "·" 문자로 대신한다. */}
+      <Modal
+        open={chargeInfoOpen}
+        onClose={() => setChargeInfoOpen(false)}
+        title="컬리캐시 충전결제란?"
+        footer={
+          <Button variant="black" onClick={() => setChargeInfoOpen(false)}>
+            확인
+          </Button>
+        }
+      >
+        <ul className="flex flex-col gap-2">
+          <li className="text-body-s text-fg-secondary flex gap-1">
+            <span aria-hidden className="text-fg-tertiary shrink-0">
+              ·
+            </span>
+            {/* Figma 원문 "컬계좌로..." 는 "컬리"+"계좌로" 가 겹친 오탈자로 보여 바로잡았다. */}
+            계좌로 캐시를 충전해 사용하는 결제수단이에요. 만원 단위로 충전할 수 있어요.
+          </li>
+          <li className="text-body-s text-fg-secondary flex gap-1">
+            <span aria-hidden className="text-fg-tertiary shrink-0">
+              ·
+            </span>
+            충전결제로 결제 시, 배송완료 8일 후 결제 금액의 1%가 컬리캐시로 적립돼요. (유효기간
+            6개월 / 적립된 캐시는 인출 불가)
+          </li>
+          <li className="text-body-s text-fg-secondary flex gap-1">
+            <span aria-hidden className="text-fg-tertiary shrink-0">
+              ·
+            </span>
+            <span>
+              [추가 이벤트]
+              <br />
+              충전결제(케이뱅크)로 결제 시, 익월 15일에 결제 금액의 3%가 적립금으로 추가 지급돼요.
+              (건당 최대 3천원 / 월 최대 1만원 / 유효기간 2개월)
+            </span>
+          </li>
+        </ul>
+      </Modal>
     </div>
   );
 }
