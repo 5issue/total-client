@@ -11,4 +11,16 @@ export class ApiError extends Error {
     super(message);
     this.name = 'ApiError';
   }
+
+  /** 실패 응답 봉투(`{ statusCode, message, data: null }`)를 ApiError 로 변환한다. */
+  static fromResponse(statusCode: number, json: unknown): ApiError {
+    const message =
+      typeof json === 'object' &&
+      json !== null &&
+      'message' in json &&
+      typeof (json as { message: unknown }).message === 'string'
+        ? (json as { message: string }).message
+        : '요청 처리 중 오류가 발생했습니다.';
+    return new ApiError(statusCode, message);
+  }
 }
