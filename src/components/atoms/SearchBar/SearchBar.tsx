@@ -11,6 +11,8 @@ import { Icon } from '@/components/atoms/Icon';
  *
  * - 상태(Default / Focused / Typing / Filled)는 값·포커스에 따라 자연히 갈린다.
  *   컨테이너 스타일은 모든 상태가 동일하다(Figma 확인).
+ * - 박스 높이 44px(h-11), 클리어 버튼도 44px(size-11)로 박스 전체 높이를 채운다 —
+ *   디자인팀 스펙 갱신(#69, 검색 화면 헤더 실측 40→44px).
  * - 값이 있을 때만 우측 클리어(X) 버튼을 노출한다.
  * - Enter 로 `onSearch`. 제어/비제어 모두 지원(Textarea 와 동일한 방식).
  * - 좌측 돋보기 / 우측 X 는 Icon atom(`search` · `close`, #19).
@@ -37,7 +39,7 @@ export interface SearchBarProps extends Omit<InputHTMLAttributes<HTMLInputElemen
 }
 
 const BOX_BASE =
-  'flex h-10 items-center gap-2 rounded-m border border-transparent bg-surface-secondary pl-2 transition-colors';
+  'flex h-11 items-center gap-2 rounded-m border border-transparent bg-surface-secondary pl-2 transition-colors';
 
 export function SearchBar({
   label,
@@ -105,7 +107,7 @@ export function SearchBar({
             type="button"
             onClick={handleClear}
             aria-label="검색어 지우기"
-            className="text-fg-quaternary flex size-10 shrink-0 items-center justify-center"
+            className="text-fg-quaternary flex size-11 shrink-0 items-center justify-center"
           >
             <Icon name="close" size={24} aria-hidden />
           </button>

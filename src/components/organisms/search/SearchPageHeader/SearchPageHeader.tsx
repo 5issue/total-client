@@ -20,6 +20,11 @@ import { useUIStoreShallow } from '@/hooks/useUIStore';
  * SearchBar 폭은 292px 고정(w-73) — Figma 인스턴스 실측(Dev Mode "Copy as CSS":
  * `width: 292px`, Fill 이 아니라 Fixed)으로 확인된 스펙이다.
  *
+ * 뒤로가기 버튼과 검색창 사이 간격은 0px(디자인팀 스펙 갱신, #69) — `SectionHeader`
+ * 의 center 슬롯 자체 좌측 패딩(`px-2`, 다른 화면에서도 쓰는 공용 스펙이라 그대로
+ * 둔다)을 `-ml-2` 로 이 화면에서만 상쇄한다. 검색창 내부 아이콘의 8px 여백은
+ * `SearchBar` 자체 padding 이라 영향받지 않는다.
+ *
  * 키패드 ON 관련 디자인팀 협의(2026-09-10, #69):
  * - `autoFocus` 는 쓰지 않는다. 모바일 브라우저는 사용자 제스처 없이 키보드를 못
  *   띄우는 데다, autoFocus 로 마운트 시점에 DOM 포커스가 이미 잡혀 있으면 사용자의
@@ -68,7 +73,7 @@ export function SearchPageHeader({ value, onQueryChange }: SearchPageHeaderProps
       onLeadingClick={() => router.back()}
       className="sticky top-0 z-10"
       center={
-        <div className="w-73">
+        <div className="-ml-2 w-73">
           <SearchBar
             label="검색어 입력"
             value={value}
