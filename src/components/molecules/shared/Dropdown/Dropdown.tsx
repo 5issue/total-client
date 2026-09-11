@@ -32,6 +32,11 @@ export interface DropdownProps {
   onChange: (value: string) => void;
   /** `box`(테두리 트리거) / `text`(테두리 없는 인라인 트리거). 기본 box. */
   variant?: 'box' | 'text';
+  /**
+   * `box` 트리거의 모서리 반경(px). Figma Dropdown_Box `Round` 프로퍼티(4 | 12). 기본 4.
+   * 12 는 주변 버튼(Round ≥ 4)과 어우러지는 값 — `text` variant 는 무시한다.
+   */
+  radius?: 4 | 12;
   /** box 를 컨테이너 폭에 맞추고 라벨↔쉐브론을 양끝 정렬(Figma Dropdown_Box Size=L). */
   block?: boolean;
   placeholder?: string;
@@ -48,6 +53,7 @@ export function Dropdown({
   value,
   onChange,
   variant = 'box',
+  radius = 4,
   block = false,
   placeholder = '선택하기',
   disabled = false,
@@ -160,7 +166,8 @@ export function Dropdown({
   const boxClass =
     variant === 'box'
       ? [
-          'rounded-sm border border-border',
+          radius === 12 ? 'rounded-lg' : 'rounded-sm',
+          'border border-border',
           disabled ? 'bg-surface-secondary' : 'bg-surface',
           block ? 'py-1 pr-3 pl-4' : 'h-10 px-3 py-2',
         ].join(' ')
