@@ -43,34 +43,46 @@ export function RecentSearchesSection({ className }: RecentSearchesSectionProps)
   const [activeIndex, setActiveIndex] = useState(0);
 
   // 1단계: 숨겨둔 측정용 사본의 실제 렌더 결과로 줄 바뀜 지점을 찾아 페이지를 만든다.
+  // 화면 회전·분할화면 등으로 측정 사본의 폭이 바뀌면 줄 수도 바뀌므로 keywords
+  // 뿐 아니라 ResizeObserver 로 폭 변경 시에도 다시 계산한다.
   useLayoutEffect(() => {
-    const nodes = keywords.map((k) => chipNodesRef.current.get(k));
-    if (nodes.length === 0 || nodes.some((n) => !n)) {
-      setPages(null);
-      return;
-    }
+    const measureEl = measureRef.current;
+    if (!measureEl) return;
 
-    const rows: string[][] = [];
-    let lastTop = Number.NaN;
-    keywords.forEach((keyword, i) => {
-      const top = nodes[i]!.offsetTop;
-      if (top !== lastTop) {
-        rows.push([]);
-        lastTop = top;
+    const recalcPages = () => {
+      const nodes = keywords.map((k) => chipNodesRef.current.get(k));
+      if (nodes.length === 0 || nodes.some((n) => !n)) {
+        setPages(null);
+        return;
       }
-      rows.at(-1)!.push(keyword);
-    });
 
-    if (rows.length <= 2) {
-      setPages(null);
-      return;
-    }
+      const rows: string[][] = [];
+      let lastTop = Number.NaN;
+      keywords.forEach((keyword, i) => {
+        const top = nodes[i]!.offsetTop;
+        if (top !== lastTop) {
+          rows.push([]);
+          lastTop = top;
+        }
+        rows.at(-1)!.push(keyword);
+      });
 
-    const grouped: string[][] = [];
-    for (let i = 0; i < rows.length; i += 2) {
-      grouped.push(rows.slice(i, i + 2).flat());
-    }
-    setPages(grouped);
+      if (rows.length <= 2) {
+        setPages(null);
+        return;
+      }
+
+      const grouped: string[][] = [];
+      for (let i = 0; i < rows.length; i += 2) {
+        grouped.push(rows.slice(i, i + 2).flat());
+      }
+      setPages(grouped);
+    };
+
+    recalcPages();
+    const observer = new ResizeObserver(recalcPages);
+    observer.observe(measureEl);
+    return () => observer.disconnect();
   }, [keywords]);
 
   // 2단계: 페이지가 여러 개면(가로 스크롤 가능) 스크롤 위치로 현재 페이지를 추적한다.

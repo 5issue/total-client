@@ -12,6 +12,10 @@ const meta = {
     keyword: '원피스',
     onClick: fn(),
   },
+  argTypes: {
+    rank: { control: 'number' },
+    keyword: { control: 'text' },
+  },
 } satisfies Meta<typeof TrendingKeywordItem>;
 
 export default meta;

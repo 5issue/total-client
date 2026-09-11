@@ -12,6 +12,10 @@ const meta = {
     imageSrc: '/recommended-keywords/kit.png',
     onClick: fn(),
   },
+  argTypes: {
+    keyword: { control: 'text' },
+    imageSrc: { control: 'text' },
+  },
 } satisfies Meta<typeof RecommendedKeywordItem>;
 
 export default meta;

@@ -81,6 +81,9 @@ export function SearchSuggestionsSection({
             <button
               type="button"
               onClick={() => handleSelect(keyword)}
+              // h-10(40px)는 Figma 실측 고정값(node 577-13164 "List_Search Item") —
+              // 접근성 권장 44px 터치 타깃과 충돌하지만, atoms/Chip 과 같은 이유로
+              // 검증된 디자인 치수를 임의로 늘리지 않는다.
               className="active:bg-surface-secondary flex h-10 w-full items-center gap-3 px-4 text-left transition-colors"
             >
               <Icon name="search" size={24} className="text-fg-quaternary shrink-0" aria-hidden />
