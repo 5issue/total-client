@@ -21,9 +21,10 @@ import type { OtherPaymentMethodId, PaymentMethodId } from '@/components/organis
  * 둔다 — Figma 뱃지 배치가 라디오와 분리돼 있어 한 `<label>` 에 다 넣기보다 이 편이 자연스럽다.
  *
  * "다른 결제수단" 선택 시에만 2차 라디오그룹(`PaymentMethodButton`, 이미 role="radio" 버튼)이
- * 펼쳐진다 — 신용카드/휴대폰/토스페이/카카오페이/PAYCO. 신용카드를 고르면 할부 드롭다운이 더
- * 나온다(Figma 원본 드롭다운 placeholder 텍스트 "상품불량"은 다른 컴포넌트에서 복사된 것으로
- * 보여 할부 선택으로 대체 — Figma 코멘트로 확인 예정, PR #82 참고).
+ * 펼쳐진다 — 신용카드/휴대폰/토스페이/카카오페이/PAYCO. 신용카드를 고르면 카드사 선택
+ * 드롭다운이 더 나온다(Figma node 666-22997/666-23167 — 할부가 아니라 카드사 선택이었다,
+ * placeholder "카드를 선택해 주세요"). 카드사 목록은 Figma 바텀시트(node 666-23167)
+ * 실측 20개 그대로.
  *
  * 컬리캐시 충전결제의 케이뱅크 그라디언트 뱃지·리스트 각 행의 "혜택" 태그·배송지의
  * "기본배송지" 필은 전부 `StatusLabel`(kbank/rewards/defaultAddress) 재사용 — 새로 안 만든다.
@@ -36,16 +37,34 @@ export interface PaymentMethodAccordionProps {
   onMethodChange: (method: PaymentMethodId) => void;
   otherMethod: OtherPaymentMethodId;
   onOtherMethodChange: (method: OtherPaymentMethodId) => void;
-  installment: string;
-  onInstallmentChange: (value: string) => void;
+  /** 신용카드 선택 시 카드사 드롭다운 값. 미선택은 `null`. */
+  cardIssuer: string | null;
+  onCardIssuerChange: (value: string) => void;
   className?: string;
 }
 
-const INSTALLMENT_OPTIONS = [
-  { value: 'lump', label: '일시불' },
-  { value: '2', label: '2개월 무이자' },
-  { value: '3', label: '3개월 무이자' },
-  { value: '6', label: '6개월' },
+/** Figma 바텀시트(node 666-23167) 카드사 목록 그대로 — 20개. */
+const CARD_ISSUER_OPTIONS = [
+  { value: 'hyundai', label: '현대' },
+  { value: 'shinhan', label: '신한' },
+  { value: 'bc', label: '비씨(페이북)' },
+  { value: 'kb', label: 'KB국민' },
+  { value: 'samsung', label: '삼성' },
+  { value: 'lotte', label: '롯데' },
+  { value: 'hana', label: '하나(외환)' },
+  { value: 'nh', label: 'NH채움' },
+  { value: 'woori', label: '우리' },
+  { value: 'suhyup', label: '수협' },
+  { value: 'citi', label: '씨티' },
+  { value: 'gwangju', label: '광주' },
+  { value: 'jeonbuk', label: '전북' },
+  { value: 'jeju', label: '제주' },
+  { value: 'shinhyup-check', label: '신협체크' },
+  { value: 'mg-check', label: 'MG새마을체크' },
+  { value: 'savings-check', label: '저축은행체크' },
+  { value: 'post-card', label: '우체국카드' },
+  { value: 'kdb', label: 'KDB산업은행' },
+  { value: 'kakaobank', label: '카카오뱅크' },
 ];
 
 function RewardsTag() {
@@ -101,8 +120,8 @@ export function PaymentMethodAccordion({
   onMethodChange,
   otherMethod,
   onOtherMethodChange,
-  installment,
-  onInstallmentChange,
+  cardIssuer,
+  onCardIssuerChange,
   className,
 }: PaymentMethodAccordionProps) {
   return (
@@ -177,7 +196,9 @@ export function PaymentMethodAccordion({
 
         {method === 'other' ? (
           <div className="flex flex-col gap-3 px-4 pb-6">
-            <div className="flex flex-wrap gap-2">
+            {/* Figma 666-22997: 버튼 그리드는 행간 gap/s(12px) · 열간 gap/xs(8px) 로 서로
+                다르다 — 한 `gap` 값으로 합치면 행간이 실측보다 좁아진다. */}
+            <div className="flex flex-wrap gap-x-2 gap-y-3">
               <PaymentMethodButton
                 type="text"
                 label="신용카드"
@@ -218,12 +239,13 @@ export function PaymentMethodAccordion({
               <>
                 <hr className="border-border" />
                 <Dropdown
-                  label="할부 개월 수"
+                  label="카드사"
                   variant="box"
                   block
-                  options={INSTALLMENT_OPTIONS}
-                  value={installment}
-                  onChange={onInstallmentChange}
+                  placeholder="카드를 선택해 주세요"
+                  options={CARD_ISSUER_OPTIONS}
+                  value={cardIssuer}
+                  onChange={onCardIssuerChange}
                 />
               </>
             ) : null}
@@ -232,16 +254,20 @@ export function PaymentMethodAccordion({
 
         <hr className="border-border" />
 
-        <div className="flex flex-col gap-2 px-4 pt-3">
-          <p className="text-label-m text-fg-secondary">무이자 혜택</p>
-          <PaymentBenefitNotice
-            title="토스페이"
-            bullets={[
-              '토스페이 1만원 이상 결제 시, 1만원 토스포인트 추첨 적립',
-              '컬리 회원 중 300명 추첨 제공',
-              '토스ID 당 1회 혜택 적용 - 9/1 ~ 9/30',
-            ]}
-          />
+        {/* Figma node 666-23367: 바깥은 gap/s(12px)+px-4 만 있고 자체 세로 여백은 없다 —
+            앞 구분선이 여백을 대신한다. 안쪽은 제목↔안내 사이 gap/xs(8px). */}
+        <div className="flex flex-col gap-3 px-4">
+          <div className="flex flex-col gap-2">
+            <p className="text-label-m text-fg-secondary">무이자 혜택</p>
+            <PaymentBenefitNotice
+              title="토스페이"
+              bullets={[
+                '토스페이 1만원 이상 결제 시, 1만원 토스포인트 추첨 적립',
+                '컬리 회원 중 300명 추첨 제공',
+                '토스ID 당 1회 혜택 적용 - 9/1 ~ 9/30',
+              ]}
+            />
+          </div>
         </div>
       </div>
     </div>

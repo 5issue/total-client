@@ -19,8 +19,8 @@ const meta = {
     onMethodChange: fn(),
     otherMethod: 'card',
     onOtherMethodChange: fn(),
-    installment: 'lump',
-    onInstallmentChange: fn(),
+    cardIssuer: null,
+    onCardIssuerChange: fn(),
   },
 } satisfies Meta<typeof PaymentMethodAccordion>;
 
@@ -30,7 +30,7 @@ type Story = StoryObj<typeof meta>;
 function Controlled({ initialMethod = 'other' as PaymentMethodId }) {
   const [method, setMethod] = useState<PaymentMethodId>(initialMethod);
   const [otherMethod, setOtherMethod] = useState<OtherPaymentMethodId>('card');
-  const [installment, setInstallment] = useState('lump');
+  const [cardIssuer, setCardIssuer] = useState<string | null>(null);
 
   return (
     <div className="w-mobile-frame bg-surface">
@@ -39,14 +39,14 @@ function Controlled({ initialMethod = 'other' as PaymentMethodId }) {
         onMethodChange={setMethod}
         otherMethod={otherMethod}
         onOtherMethodChange={setOtherMethod}
-        installment={installment}
-        onInstallmentChange={setInstallment}
+        cardIssuer={cardIssuer}
+        onCardIssuerChange={setCardIssuer}
       />
     </div>
   );
 }
 
-/** 기본 — "다른 결제수단" 펼침 + 신용카드 선택(할부 드롭다운 노출). Figma 666-23284. */
+/** 기본 — "다른 결제수단" 펼침 + 신용카드 선택(카드사 드롭다운 노출). Figma 666-23284. */
 export const Default: Story = {
   render: () => <Controlled />,
 };

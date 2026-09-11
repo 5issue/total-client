@@ -44,7 +44,7 @@ export function CheckoutView() {
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>('other');
   const [otherPaymentMethod, setOtherPaymentMethod] = useState<OtherPaymentMethodId>('card');
-  const [installment, setInstallment] = useState('lump');
+  const [cardIssuer, setCardIssuer] = useState<string | null>(null);
 
   const [deliveryDetail, setDeliveryDetail] = useState<string | null>(null);
   const [deliveryDetailDraft, setDeliveryDetailDraft] = useState('');
@@ -229,8 +229,8 @@ export function CheckoutView() {
             onMethodChange={setPaymentMethod}
             otherMethod={otherPaymentMethod}
             onOtherMethodChange={setOtherPaymentMethod}
-            installment={installment}
-            onInstallmentChange={setInstallment}
+            cardIssuer={cardIssuer}
+            onCardIssuerChange={setCardIssuer}
           />
         </div>
 
@@ -282,16 +282,21 @@ export function CheckoutView() {
 
         {/* 약관동의 */}
         <div className="bg-surface flex flex-col">
-          <ul className="text-label-m text-fg-quaternary list-disc px-3 py-5">
-            <li>
-              [주문완료], [배송준비중] 상태일 경우에만 주문 취소가 가능하며, 상품 미배송 시 결제하신
-              수단으로 환불 됩니다.
-            </li>
-            <li>
-              컬리 내 개별 판매자 등록 상품의 경우 컬리는 통신판매중개자로서 주문, 품질, 교환·환불
-              등의 의무·책임을 부담하지 않습니다.
-            </li>
-          </ul>
+          {/* Figma node 666-23393: 바깥 px-3 py-5(gap/s·gap/l) 안에서 `<ul>` 자체엔 여백이
+              없고 각 `<li>` 가 ms-5(≈21px) 를 진다 — 브라우저 기본 list-disc 들여쓰기(40px)에
+              기대면 실측보다 훨씬 오른쪽으로 밀린다. */}
+          <div className="px-3 py-5">
+            <ul className="text-label-m text-fg-quaternary list-disc">
+              <li className="ms-5">
+                [주문완료], [배송준비중] 상태일 경우에만 주문 취소가 가능하며, 상품 미배송 시
+                결제하신 수단으로 환불 됩니다.
+              </li>
+              <li className="ms-5">
+                컬리 내 개별 판매자 등록 상품의 경우 컬리는 통신판매중개자로서 주문, 품질, 교환·환불
+                등의 의무·책임을 부담하지 않습니다.
+              </li>
+            </ul>
+          </div>
 
           <div className="flex flex-col px-4 py-3">
             <div className="flex items-center justify-between">
