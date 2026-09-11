@@ -42,7 +42,9 @@ const won = (n: number) => `${n.toLocaleString('ko-KR')}원`;
 export function CheckoutView() {
   const router = useRouter();
 
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>('other');
+  // 아무 결제수단도 기본 선택돼 있지 않다 — Figma 데모 스크린샷의 "다른 결제수단" 선택
+  // 상태는 예시일 뿐, 실제 기본값은 미선택(2026-09-11 확인).
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | null>(null);
   const [otherPaymentMethod, setOtherPaymentMethod] = useState<OtherPaymentMethodId>('card');
   const [cardIssuer, setCardIssuer] = useState<string | null>(null);
 
@@ -51,7 +53,7 @@ export function CheckoutView() {
   const [deliveryModal, setDeliveryModal] = useState<DeliveryDetailModal>(null);
   const [termsModal, setTermsModal] = useState<TermsModal>(null);
 
-  const canPay = deliveryDetail != null && deliveryDetail.trim() !== '';
+  const canPay = deliveryDetail != null && deliveryDetail.trim() !== '' && paymentMethod != null;
 
   function openDeliveryModal() {
     setDeliveryDetailDraft(deliveryDetail ?? '');
@@ -161,10 +163,14 @@ export function CheckoutView() {
           <InfoBox variant="bar" className="w-full">
             사용할 수 있는 쿠폰이 없어요
           </InfoBox>
-          <p className="text-heading-4 flex items-center gap-1">
-            <span className="text-cyan">컬리멤버스</span>
-            <span className="text-fg-tertiary">컬리멤버스 월 100원으로 무료배송</span>
-            <Icon name="right-small" size={20} aria-hidden />
+          {/* 인터렉션 미정 — 지금은 시각만(Figma node 666-23238). "컬리멤버스"만 SemiBold,
+              나머지 안내문은 Regular — 하나로 묶어 text-heading-4 를 주면 둘 다 굵어진다. */}
+          <p className="flex items-center gap-1">
+            <span className="text-heading-4 text-cyan">컬리멤버스</span>
+            <span className="text-heading-6 text-fg-tertiary">
+              컬리멤버스 월 100원으로 무료배송
+            </span>
+            <Icon name="arrow-right" size={20} aria-hidden />
           </p>
         </div>
 
@@ -204,19 +210,19 @@ export function CheckoutView() {
               >
                 0
               </div>
-              <Button size="s" variant="outlineBlack" disabled>
+              {/* Figma node 666-23248: h-48·w-92·px-12·py-8(gap/s·gap/xs) — Button "s" 는
+                  높이가 고정이 아니라(패딩+콘텐츠로 자연 높이) 48px 에 못 미쳐 h-12 로 보정. */}
+              <Button size="s" variant="outlineBlack" disabled className="h-12 w-23">
                 모두사용
               </Button>
             </div>
 
             <ul className="flex flex-col gap-1">
-              <li className="text-label-m text-fg-tertiary flex items-center gap-1.5">
-                <NoticeDot />
-                적립금이 컬리캐시보다 먼저 사용돼요.
+              <li className="text-label-m text-fg-tertiary">
+                · 적립금이 컬리캐시보다 먼저 사용돼요.
               </li>
-              <li className="text-label-m text-fg-tertiary flex items-center gap-1.5">
-                <NoticeDot />
-                컬리캐시는 컬리페이 가입 후 사용할 수 있어요.
+              <li className="text-label-m text-fg-tertiary">
+                · 컬리캐시는 컬리페이 가입 후 사용할 수 있어요.
               </li>
             </ul>
           </div>
@@ -266,7 +272,19 @@ export function CheckoutView() {
 
             <hr className="border-border" />
 
-            <CartAmountRow label="최종 결제금액" value={won(MOCK_AMOUNTS.total)} emphasis />
+            {/* Figma node 666-23385: 값이 CartAmountRow 의 emphasis(text-heading-0, Pretendard
+                SemiBold)와 달리 SF Pro Black(`text-numeric-xl font-numeric`) + "원"만 별도
+                Regular 18px(`text-heading-3`) — 이 화면 전용이라 CartAmountRow 를 손대지
+                않고 직접 그린다. */}
+            <div className="flex items-center justify-between px-1">
+              <span className="text-heading-4 text-fg">최종 결제금액</span>
+              <span className="text-fg">
+                <span className="text-numeric-xl font-numeric">
+                  {MOCK_AMOUNTS.total.toLocaleString('ko-KR')}
+                </span>{' '}
+                <span className="text-heading-3">원</span>
+              </span>
+            </div>
           </div>
         </div>
 
@@ -329,7 +347,11 @@ export function CheckoutView() {
         </div>
       </div>
 
-      <div className="bg-surface sticky bottom-0 flex flex-col px-4 pt-3 pb-11">
+      {/* Figma "CTA_Horizontal"(node 972-111861) — 버튼 아래 약관 동의 리마인드 문구가
+          있다(체크박스를 없앤 대신 여기서 상기시킴, 위 결제 동의 절 참고). 홈 인디케이터
+          여유(pb-11)는 CartOrderBar 와 같은 이유로 유지 — 정적 프레임엔 안 드러나는
+          실제 기기 세이프에어리어다. */}
+      <div className="bg-surface sticky bottom-0 flex flex-col gap-3 px-4 pt-3 pb-3">
         <Button
           variant="primary"
           size="l"
@@ -339,6 +361,9 @@ export function CheckoutView() {
         >
           {won(MOCK_AMOUNTS.total)} 결제하기
         </Button>
+        <p className="text-caption-m text-fg-tertiary text-center">
+          결제 전 <span className="underline">이용약관 및 정보제공</span> 동의를 확인해 주세요
+        </p>
       </div>
 
       <Modal
@@ -382,18 +407,6 @@ export function CheckoutView() {
         }
       />
     </>
-  );
-}
-
-/**
- * 적립금·컬리캐시 안내 문구 앞 작은 점(Figma node 666-23277/23281, 16px 프레임 안 지름 2px
- * 점) — 우리 `dot` 아이콘(20px 안 지름 10px)은 너무 커서 재사용하지 않고 그대로 옮겼다.
- */
-function NoticeDot() {
-  return (
-    <span aria-hidden className="inline-flex size-4 shrink-0 items-center justify-center">
-      <span className="bg-fg-tertiary size-1 rounded-full" />
-    </span>
   );
 }
 

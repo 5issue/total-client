@@ -33,7 +33,9 @@ import type { OtherPaymentMethodId, PaymentMethodId } from '@/components/organis
  * 흐리게(`opacity-40`) 표시한다.
  */
 export interface PaymentMethodAccordionProps {
-  method: PaymentMethodId;
+  /** 미선택 초기 상태가 있다(Figma 데모 스크린샷은 "다른 결제수단"이 이미 선택된 상태를
+   * 보여줄 뿐, 실제 기본값은 아니다 — 2026-09-11 확인). */
+  method: PaymentMethodId | null;
   onMethodChange: (method: PaymentMethodId) => void;
   otherMethod: OtherPaymentMethodId;
   onOtherMethodChange: (method: OtherPaymentMethodId) => void;
@@ -139,7 +141,8 @@ export function PaymentMethodAccordion({
             <span className="text-heading-4 text-fg">컬리캐시 충전결제</span>
             <StatusLabel type="kbank">케이뱅크 충전결제 3% 추가적립</StatusLabel>
           </span>
-          <Icon name="help-circle" size={20} aria-hidden />
+          {/* Figma imgGroup23 실측: 원+"i" 형태(정보) — 물음표(help)가 아니다. */}
+          <Icon name="info-line" size={20} aria-hidden />
         </OptionRow>
         {method === 'charge' ? (
           <div className="px-4 pb-6">
@@ -195,7 +198,9 @@ export function PaymentMethodAccordion({
         </OptionRow>
 
         {method === 'other' ? (
-          <div className="flex flex-col gap-3 px-4 pb-6">
+          // Figma node 666-23344(666-23354): 버튼그리드↔구분선↔드롭다운 사이는 gap/xs(8px) —
+          // 버튼 "행"간 gap/s(12px, 아래 gap-y-3)와는 다른 레벨이라 헷갈리기 쉽다.
+          <div className="flex flex-col gap-2 px-4 pb-6">
             {/* Figma 666-22997: 버튼 그리드는 행간 gap/s(12px) · 열간 gap/xs(8px) 로 서로
                 다르다 — 한 `gap` 값으로 합치면 행간이 실측보다 좁아진다. */}
             <div className="flex flex-wrap gap-x-2 gap-y-3">
