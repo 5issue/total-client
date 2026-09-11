@@ -42,9 +42,8 @@ const won = (n: number) => `${n.toLocaleString('ko-KR')}원`;
 export function CheckoutView() {
   const router = useRouter();
 
-  // 아무 결제수단도 기본 선택돼 있지 않다 — Figma 데모 스크린샷의 "다른 결제수단" 선택
-  // 상태는 예시일 뿐, 실제 기본값은 미선택(2026-09-11 확인).
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | null>(null);
+  // 기본값은 "다른 결제수단" 선택 상태 — Figma 스크린샷 그대로(사용자 확인, 2026-09-11).
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | null>('other');
   const [otherPaymentMethod, setOtherPaymentMethod] = useState<OtherPaymentMethodId>('card');
   const [cardIssuer, setCardIssuer] = useState<string | null>(null);
 

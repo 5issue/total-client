@@ -33,8 +33,8 @@ import type { OtherPaymentMethodId, PaymentMethodId } from '@/components/organis
  * 흐리게(`opacity-40`) 표시한다.
  */
 export interface PaymentMethodAccordionProps {
-  /** 미선택 초기 상태가 있다(Figma 데모 스크린샷은 "다른 결제수단"이 이미 선택된 상태를
-   * 보여줄 뿐, 실제 기본값은 아니다 — 2026-09-11 확인). */
+  /** `null` 도 타입상 허용하지만(호출부가 언젠가 미선택을 필요로 할 경우 대비) 기본값은
+   * "다른 결제수단" — Figma 스크린샷 그대로(사용자 확인, 2026-09-11). */
   method: PaymentMethodId | null;
   onMethodChange: (method: PaymentMethodId) => void;
   otherMethod: OtherPaymentMethodId;
@@ -200,7 +200,9 @@ export function PaymentMethodAccordion({
         {method === 'other' ? (
           // Figma node 666-23344(666-23354): 버튼그리드↔구분선↔드롭다운 사이는 gap/xs(8px) —
           // 버튼 "행"간 gap/s(12px, 아래 gap-y-3)와는 다른 레벨이라 헷갈리기 쉽다.
-          <div className="flex flex-col gap-2 px-4 pb-6">
+          // 왼쪽은 px-4(16px)가 아니라 pl-12(48px) — 라디오 터치 영역(size-11,44px)+gap-1(4px)
+          // 만큼 들여써서 위 "다른 결제수단" 텍스트와 x축을 맞춘다(사용자 직접 요청).
+          <div className="flex flex-col gap-2 pr-4 pb-6 pl-12">
             {/* Figma 666-22997: 버튼 그리드는 행간 gap/s(12px) · 열간 gap/xs(8px) 로 서로
                 다르다 — 한 `gap` 값으로 합치면 행간이 실측보다 좁아진다. */}
             <div className="flex flex-wrap gap-x-2 gap-y-3">
@@ -243,6 +245,9 @@ export function PaymentMethodAccordion({
             {otherMethod === 'card' ? (
               <>
                 <hr className="border-border" />
+                {/* `Dropdown` block 기본 세로 패딩(py-1,4px)이 Figma 실측(gap/2xs)과 같은
+                    값인데도 실제로는 좁아 보여 — `min-h-12` 로 자체 padding(py-1) 을 건드리지
+                    않고 높이만 보정(사용자 직접 요청). */}
                 <Dropdown
                   label="카드사"
                   variant="box"
@@ -251,6 +256,7 @@ export function PaymentMethodAccordion({
                   options={CARD_ISSUER_OPTIONS}
                   value={cardIssuer}
                   onChange={onCardIssuerChange}
+                  className="min-h-12"
                 />
               </>
             ) : null}
@@ -261,7 +267,7 @@ export function PaymentMethodAccordion({
 
         {/* Figma node 666-23367: 바깥은 gap/s(12px)+px-4 만 있고 자체 세로 여백은 없다 —
             앞 구분선이 여백을 대신한다. 안쪽은 제목↔안내 사이 gap/xs(8px). */}
-        <div className="flex flex-col gap-3 px-4">
+        <div className="flex flex-col gap-3 px-4 pt-3">
           <div className="flex flex-col gap-2">
             <p className="text-label-m text-fg-secondary">무이자 혜택</p>
             <PaymentBenefitNotice
