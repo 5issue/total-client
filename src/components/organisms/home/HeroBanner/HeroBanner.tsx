@@ -83,7 +83,7 @@ export function HeroBanner({
         <p className="text-body-s mt-2">{description}</p>
       </div>
 
-      <div className="absolute right-3 bottom-3 left-3 flex items-end justify-between">
+      <div className="absolute right-3 bottom-3 flex flex-col items-end gap-3">
         <StatusLabel type="adLabelS">광고</StatusLabel>
 
         <div className="flex items-center gap-1">
