@@ -56,7 +56,10 @@ export function AddressSearchPanel({
   );
 
   const panelRef = useRef<HTMLDivElement>(null);
-  useFocusTrap(panelRef);
+  // picked 가 null↔값 으로 바뀌면(위젯↔폼 전환) 포커스를 새 단계의 첫 요소로 다시 옮긴다 —
+  // 이전 단계에서 포커스돼 있던 요소(우편번호 iframe 등)가 unmount 되며 포커스가 패널 밖으로
+  // 빠져나가는 걸 막는다(코드래빗 리뷰).
+  useFocusTrap(panelRef, true, picked === null);
 
   // 폼 단계에서 뒤로: 추가는 위젯으로, 수정은 목록으로(닫기).
   const backToWidget = !isEdit && picked !== null;

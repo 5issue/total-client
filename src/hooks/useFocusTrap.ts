@@ -10,6 +10,10 @@ import { useEffect, type RefObject } from 'react';
  * 꺼질 때 직전에 포커스돼 있던 요소로 복원. 컨테이너 자신이 포커스를 받을 수 있어야 하므로
  * 대상 요소에 `tabIndex={-1}` 을 준다.
  *
+ * `resetKey` 가 바뀌면(예: 다단계 패널이 위젯→폼으로 전환) 포커스 이동을 다시 한다 — 안 그러면
+ * 이전 단계에서 포커스돼 있던 요소가 DOM 에서 사라졌을 때 포커스가 컨테이너 밖(body)으로
+ * 빠져나가 Tab 트랩이 깨진다(코드래빗 리뷰).
+ *
  * `Modal` 은 포털·스크롤 잠금·중첩 카운트까지 얽혀 자체 구현을 유지한다(추후 통합 여지).
  * 이 훅은 포커스 이동/순환/복원만 담당한다.
  */
@@ -23,7 +27,11 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(', ');
 
-export function useFocusTrap(ref: RefObject<HTMLElement | null>, active = true) {
+export function useFocusTrap(
+  ref: RefObject<HTMLElement | null>,
+  active = true,
+  resetKey?: unknown,
+) {
   useEffect(() => {
     if (!active) return;
     const container = ref.current;
@@ -61,5 +69,5 @@ export function useFocusTrap(ref: RefObject<HTMLElement | null>, active = true) 
       container.removeEventListener('keydown', handleKeyDown);
       previouslyFocused?.focus?.();
     };
-  }, [ref, active]);
+  }, [ref, active, resetKey]);
 }
