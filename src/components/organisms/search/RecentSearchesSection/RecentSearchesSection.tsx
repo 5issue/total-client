@@ -103,7 +103,12 @@ export function RecentSearchesSection({ className }: RecentSearchesSectionProps)
     <div
       className={['relative flex flex-col gap-3 px-4 py-4', className].filter(Boolean).join(' ')}
     >
-      <HomeSectionHeader title="최근 검색어" />
+      <HomeSectionHeader
+        title="최근 검색어"
+        titleSize="h2"
+        titleClassName="font-bold!"
+        className="pl-0!"
+      />
 
       {/* 측정 전용 사본 — 실제 콘텐츠 폭 그대로, 화면엔 안 보인다. */}
       <div

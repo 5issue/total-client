@@ -25,6 +25,8 @@ export function TrendingSearchesSection() {
       <HomeSectionHeader
         title="급상승 검색어"
         subtitle="최근 1시간 동안 검색 횟수가 급상승했어요"
+        titleClassName="font-bold!"
+        className="pl-0!"
       />
       <div className="grid grid-cols-2 gap-x-3">
         {TRENDING_KEYWORDS.map((keyword, i) => (
