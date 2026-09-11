@@ -17,24 +17,36 @@ export type SwipeTab = { href: string };
  *
  * 반환값을 `touch-pan-y`(가로 드래그를 브라우저 자체 제스처가 가로채지 못하게)와 함께
  * 화면 전체를 감싸는 컨테이너에 스프레드한다.
+ *
+ * ⚠️ deltaY 도 같이 봐야 한다 — X 값만 보면 세로로 길게 스크롤하는 손가락이 살짝만
+ * 옆으로 틀어져도(실제 터치에서 흔함) 40px 를 넘어 탭이 전환돼버린다(#69 검색
+ * 화면에서 목록을 위아래로 스크롤하다 다른 탭으로 튕기는 버그로 재현). 가로 이동량이
+ * 세로 이동량보다 클 때만 스와이프로 인정한다.
  */
 export function useSwipeTabNavigation(tabs: SwipeTab[]) {
   const pathname = usePathname();
   const router = useRouter();
   const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
 
   function handleTouchStart(event: ReactTouchEvent<HTMLElement>) {
     touchStartX.current = event.touches[0]?.clientX ?? null;
+    touchStartY.current = event.touches[0]?.clientY ?? null;
   }
 
   function handleTouchEnd(event: ReactTouchEvent<HTMLElement>) {
     const startX = touchStartX.current;
+    const startY = touchStartY.current;
     touchStartX.current = null;
-    if (startX === null) return;
+    touchStartY.current = null;
+    if (startX === null || startY === null) return;
 
     const endX = event.changedTouches[0]?.clientX ?? startX;
+    const endY = event.changedTouches[0]?.clientY ?? startY;
     const deltaX = endX - startX;
+    const deltaY = endY - startY;
     if (Math.abs(deltaX) < SWIPE_THRESHOLD_PX) return;
+    if (Math.abs(deltaX) <= Math.abs(deltaY)) return;
 
     const currentIndex = tabs.findIndex((tab) => isTabActive(pathname, tab.href));
     if (currentIndex === -1) return;
@@ -47,6 +59,7 @@ export function useSwipeTabNavigation(tabs: SwipeTab[]) {
 
   function handleTouchCancel() {
     touchStartX.current = null;
+    touchStartY.current = null;
   }
 
   return {
