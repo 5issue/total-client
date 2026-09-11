@@ -84,7 +84,7 @@ export function QuickMenuSection({ className }: QuickMenuSectionProps) {
         onScroll={handleScroll}
         onTouchStart={(event) => event.stopPropagation()}
         onTouchEnd={(event) => event.stopPropagation()}
-        className="flex w-full flex-col gap-0.5 overflow-x-auto"
+        className="flex w-full flex-col gap-1 overflow-x-auto"
       >
         <div className="flex items-center gap-2 px-4">
           {ROW_1.map((item) => (
@@ -93,7 +93,7 @@ export function QuickMenuSection({ className }: QuickMenuSectionProps) {
         </div>
         <div className="flex items-center gap-2 px-4">
           <QuickMenuItem icon={ROW_2[0]!.icon} label={ROW_2[0]!.label} isNew={ROW_2[0]!.isNew} />
-          <div className="relative flex w-13.75 flex-col items-center justify-center gap-1 py-1">
+          <div className="relative flex w-13.75 shrink-0 flex-col items-center justify-center gap-1 py-1">
             <GraphicIcon name="showcase" size={44} aria-hidden />
             <span className="text-caption-m text-fg-secondary text-center whitespace-nowrap">
               8월신상품
