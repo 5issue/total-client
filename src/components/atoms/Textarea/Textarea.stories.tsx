@@ -40,7 +40,8 @@ export const WithCounter: Story = {
   args: { maxLength: 250, defaultValue: '가나다라마바사' },
 };
 
-export const Disabled: Story = {
+/** Figma "Finished" — 작성이 끝나 수정 불가한 상태. `disabled` 로 렌더한다. */
+export const Finished: Story = {
   args: {
     disabled: true,
     maxLength: 250,
