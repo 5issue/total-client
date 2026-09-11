@@ -21,6 +21,17 @@ import { StatusLabel } from '@/components/molecules/shared/StatusLabel';
  * 초안 작성 시의 가정을 역질문 없이 수정 — 실제 스펙 확인 후 정정).
  *
  * `imageSrc` 미지정 시 회색 박스로 대체한다(퍼블리싱 단계 관례, `CartLineItem` 참고).
+ *
+ * 카드 전체를 `h-[428px]` 로 고정한다 — Figma 실측 그대로다. 처음엔 상품명 줄바꿈에
+ * 맞춰 자연스러운 높이로 뒀었는데, 그러면 1줄/2줄 이름이 섞인 가로 스크롤 행에서
+ * `items-center`(DisplaySectionList) 때문에 카드마다 이미지 시작 높이가 달라져
+ * "사진 높낮이가 다 다르다"는 문제가 생겼다(실기기 확인) — 고정 높이로 이미지·담기
+ * 버튼 위치를 카드마다 동일하게 맞춘다.
+ *
+ * 루트에 `items-start` 필수 — Figma 원본(node 577:20684 등)도 컨테이너에 `items-start`
+ * 가 명시돼 있다. 이게 없으면 flex-col 기본값(`align-items: stretch`)이 적용돼, 폭을
+ * 명시하지 않은 "Kurly Only" 뱃지(`StatusLabel`)만 카드 전체 폭(150px)으로 늘어나
+ * 버린다 — 이미지/버튼/메타블록은 다들 자체 `w-full` 이 있어 티가 안 났을 뿐이다.
  */
 export type ProductCardProps = {
   imageSrc?: string;
@@ -58,7 +69,11 @@ export function ProductCard({
   className,
 }: ProductCardProps) {
   return (
-    <div className={['flex w-37.5 shrink-0 flex-col gap-1', className].filter(Boolean).join(' ')}>
+    <div
+      className={['flex h-[428px] w-37.5 shrink-0 flex-col items-start gap-1', className]
+        .filter(Boolean)
+        .join(' ')}
+    >
       <div className="relative h-60 w-full overflow-hidden rounded-sm">
         {imageSrc ? (
           <Image src={imageSrc} alt={imageAlt} fill sizes="150px" className="object-cover" />
