@@ -83,9 +83,12 @@ export function AddressManageView() {
   }
 
   function deleteAddress(id: string) {
-    // 삭제는 비-기본 배송지에서만 가능하므로 기본배송지 승격 로직이 필요 없다.
+    // 삭제는 비-기본 배송지에서만 가능하다(기본배송지 승격 로직은 필요 없음). 다만 삭제 대상이
+    // 지금 선택돼 있었다면 null 로 비우지 않고 남은 기본 배송지로 되돌린다 — 그래야 목록엔
+    // 유효한 배송지가 남아있는데 장바구니만 "미선택"으로 보이는 어색한 상태를 피한다.
+    const fallbackId = addresses.find((a) => a.id !== id && a.isDefault)?.id ?? null;
     setAddresses((prev) => prev.filter((a) => a.id !== id));
-    setSelectedId((cur) => (cur === id ? null : cur));
+    setSelectedId((cur) => (cur === id ? fallbackId : cur));
     setDeleteTargetId(null);
   }
 
