@@ -320,7 +320,7 @@ export function CheckoutView() {
             </ul>
           </div>
 
-          <div className="flex flex-col px-4 py-3">
+          <div className="flex flex-col gap-1 px-4 py-3">
             <div className="flex items-center justify-between">
               <p className="text-label-m text-fg">개인정보 수집·이용 및 처리 동의</p>
               <button

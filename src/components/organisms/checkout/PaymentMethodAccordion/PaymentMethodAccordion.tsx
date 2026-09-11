@@ -162,11 +162,15 @@ export function PaymentMethodAccordion({
           checked={method === 'kurlypay'}
           onSelect={() => onMethodChange('kurlypay')}
         >
+          {/* Figma(666-23018): "혜택" 뱃지가 justify-between 의 두번째 축이 아니라 로고·
+              라벨과 한 그룹(gap/xs,5px)으로 묶여 왼쪽에 붙어있다 — 뒤에 남는 공간은 그
+              그룹과 무관한 빈 flex-1 스페이서다. OptionRow 자식을 하나(그룹 전체)로
+              합쳐야 space-between 이 이 그룹을 오른쪽으로 밀지 않는다. */}
           <span className="flex items-center gap-1.5">
             <Logo name="kurly-pay" height={20} aria-hidden />
             <span className="text-caption-m text-fg-tertiary">계좌카드</span>
+            <RewardsTag />
           </span>
-          <RewardsTag />
         </OptionRow>
 
         <hr className="border-border" />
@@ -178,8 +182,10 @@ export function PaymentMethodAccordion({
           onSelect={() => onMethodChange('naverpay')}
           disabled
         >
-          <Logo name="naver-pay" height={20} aria-hidden />
-          <RewardsTag />
+          <span className="flex items-center gap-1.5">
+            <Logo name="naver-pay" height={20} aria-hidden />
+            <RewardsTag />
+          </span>
         </OptionRow>
 
         <hr className="border-border" />
@@ -193,8 +199,8 @@ export function PaymentMethodAccordion({
           <span className="flex items-center gap-1">
             <span className="text-heading-4 text-fg">다른 결제수단</span>
             <span className="text-caption-m text-fg-tertiary">신용카드 간편결제 휴대폰</span>
+            <RewardsTag />
           </span>
-          <RewardsTag />
         </OptionRow>
 
         {method === 'other' ? (
@@ -281,7 +287,7 @@ export function PaymentMethodAccordion({
 
         {/* Figma node 666-23367: 바깥은 gap/s(12px)+px-4 만 있고 자체 세로 여백은 없다 —
             앞 구분선이 여백을 대신한다. 안쪽은 제목↔안내 사이 gap/xs(8px). */}
-        <div className="flex flex-col gap-3 px-4">
+        <div className="flex flex-col gap-3 px-4 pt-3">
           <div className="flex flex-col gap-2">
             <p className="text-label-m text-fg-secondary">무이자 혜택</p>
             <PaymentBenefitNotice
