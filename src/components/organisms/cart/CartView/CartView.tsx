@@ -19,13 +19,17 @@ import { CartRecommendSheet } from '@/components/organisms/cart/CartRecommendShe
 import { CartSummary } from '@/components/organisms/cart/CartSummary';
 import type { CartAmounts, CartDeliveryGroup } from '@/components/organisms/cart/model';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
+import { useDeliveryAddressStore } from '@/hooks/useDeliveryAddressStore';
 
 import { MOCK_CART_GROUPS, MOCK_RECOMMEND } from './mock';
 
 /**
- * 장바구니 화면 컨테이너 (organism). 상태(탭·선택·모달·시트·배송지)를 소유하고
+ * 장바구니 화면 컨테이너 (organism). 상태(탭·선택·모달·시트)를 소유하고
  * 표현 organism/molecule 을 조립한다. 데이터는 퍼블리싱 단계라 목 데이터(`mock.ts`).
  * page.tsx 는 이 컴포넌트만 렌더한다(RSC 유지).
+ *
+ * 배송지는 로컬 state 가 아니라 `deliveryAddressStore` 공유 상태를 읽는다 — "추가"/"변경" 은
+ * `/mypage/addresses` 로 실제 이동하고, 거기서 고른 배송지가 돌아왔을 때 그대로 보인다.
  */
 type DeleteTarget = { kind: 'item'; id: string } | { kind: 'selected' } | null;
 
@@ -41,7 +45,7 @@ export function CartView() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(
     () => new Set(allItemIds(MOCK_CART_GROUPS)),
   );
-  const [address, setAddress] = useState<string | undefined>(undefined);
+  const selectedAddress = useDeliveryAddressStore((s) => s.selected);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
 
@@ -158,11 +162,9 @@ export function CartView() {
       <div className="bg-surface-secondary flex flex-1 flex-col pb-4">
         <div className="bg-surface">
           <CartDeliveryAddress
-            address={address}
-            deliveryBadge={address ? selectedDeliveryBadge : undefined}
-            onEdit={() =>
-              setAddress('서울특별시 강남구 테헤란로 152, 10층 1502호 (역삼동, 강남파이낸스센터)')
-            }
+            address={selectedAddress?.addressLine}
+            deliveryBadge={selectedAddress ? selectedDeliveryBadge : undefined}
+            onEdit={() => router.push('/mypage/addresses')}
           />
           <TabBar
             fitted
@@ -221,7 +223,7 @@ export function CartView() {
           비활성 "상품을 담아주세요"(Figma node 188-9295). */}
       <CartOrderBar
         className="border-border sticky bottom-0 border-t"
-        state={tab === 'frequent' || isEmpty ? 'empty' : address ? 'order' : 'no-address'}
+        state={tab === 'frequent' || isEmpty ? 'empty' : selectedAddress ? 'order' : 'no-address'}
         totalPrice={amounts.total}
         onOrder={() => setSheetOpen(true)}
       />
