@@ -79,19 +79,24 @@ export function QuickMenuSection({ className }: QuickMenuSectionProps) {
     <section
       className={['flex flex-col items-center gap-3 py-3', className].filter(Boolean).join(' ')}
     >
-      {/* SwipeTabShell 의 전역 좌우 스와이프(하단 탭 전환)와 충돌하지 않도록 터치 버블링을 끊는다 — TabBar 참고 */}
+      {/* SwipeTabShell 의 전역 좌우 스와이프(하단 탭 전환)와 충돌하지 않도록 터치 버블링을 끊는다 — TabBar 참고.
+          각 Row 는 w-fit 필수 — 없으면 부모 flex-col 의 align-items:stretch 기본값 때문에
+          Row 자신의 박스가 스크롤 컨테이너 폭(뷰포트)까지로 눌려서, 내용이 그 박스를 넘쳐도
+          Row 의 px-4 오른쪽 패딩이 실제 마지막 아이템 뒤가 아니라 눌린 박스 오른쪽에 붙어버려
+          마지막 아이템 뒤 여백이 사라진다(실기기 확인). w-fit 으로 Row 를 내용 폭만큼 키우면
+          패딩이 진짜 마지막 아이템 뒤에 온다. */}
       <div
         onScroll={handleScroll}
         onTouchStart={(event) => event.stopPropagation()}
         onTouchEnd={(event) => event.stopPropagation()}
-        className="flex w-full flex-col gap-1 overflow-x-auto"
+        className="scrollbar-hide flex w-full flex-col gap-1 overflow-x-auto"
       >
-        <div className="flex items-center gap-2 px-4">
+        <div className="flex w-fit items-center gap-2 px-4">
           {ROW_1.map((item) => (
             <QuickMenuItem key={item.id} icon={item.icon} label={item.label} isNew={item.isNew} />
           ))}
         </div>
-        <div className="flex items-center gap-2 px-4">
+        <div className="flex w-fit items-center gap-2 px-4">
           <QuickMenuItem icon={ROW_2[0]!.icon} label={ROW_2[0]!.label} isNew={ROW_2[0]!.isNew} />
           <div className="relative flex w-13.75 shrink-0 flex-col items-center justify-center gap-1 py-1">
             <GraphicIcon name="showcase" size={44} aria-hidden />
