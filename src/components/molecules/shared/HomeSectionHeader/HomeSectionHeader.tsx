@@ -16,6 +16,9 @@ import { Icon } from '@/components/atoms/Icon';
  * 토큰(`get_variable_defs`):
  * - 제목: 부제가 있으면 `Heading/H2_Medium`(node 2429-2288) → `text-heading-2`,
  *   없으면 `Heading/H4_SemiBold`(node 2757-2678) → `text-heading-4`. 색 `Text/Primary` → `text-fg`.
+ *   홈 진열 섹션(node 577:13064 등)은 바인딩된 스타일명(H2_Medium=500)과 달리 레이어에서
+ *   Bold(700)로 수동 오버라이드돼 있다 — `titleWeight="bold"` 로 그 인스턴스만 켠다
+ *   (기본은 기존 소비자와 동일하게 medium 유지, 하위 호환).
  * - 부제: `Label/XL_Bold` + `Text/Tertiary` → `text-label-xl text-fg-tertiary`.
  * - 링크: `Label/L_SemiBold` + `Brand/Primary` + arrow 20 → `text-label-l text-primary`.
  *   hover/active/focus 는 `Button` atom 의 `variant="text" size="s"` 클래스와 동일하게 맞춘다
@@ -35,6 +38,8 @@ export interface HomeSectionHeaderProps {
   linkLabel?: string;
   /** 제목 heading 레벨. 페이지 문맥에 맞춘다. 기본 2. */
   headingLevel?: 2 | 3 | 4;
+  /** 제목 폰트 굵기. 기본 medium(바인딩된 스타일 그대로). bold 는 수동 오버라이드된 인스턴스용. */
+  titleWeight?: 'medium' | 'bold';
   className?: string;
 }
 
@@ -45,6 +50,7 @@ export function HomeSectionHeader({
   href,
   linkLabel = '전체보기',
   headingLevel = 2,
+  titleWeight = 'medium',
   className,
 }: HomeSectionHeaderProps) {
   const Heading = `h${headingLevel}` as 'h2' | 'h3' | 'h4';
@@ -52,7 +58,7 @@ export function HomeSectionHeader({
   return (
     <div
       className={[
-        'flex justify-between gap-3 pl-4',
+        'flex justify-between gap-3 px-4',
         subtitle ? 'items-start' : 'items-center',
         className,
       ]
@@ -61,7 +67,9 @@ export function HomeSectionHeader({
     >
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex items-center gap-2">
-          <Heading className={`${subtitle ? 'text-heading-2' : 'text-heading-4'} text-fg`}>
+          <Heading
+            className={`${subtitle ? 'text-heading-2' : 'text-heading-4'} text-fg ${titleWeight === 'bold' ? 'font-bold' : ''}`}
+          >
             {title}
           </Heading>
           {ad ? (
