@@ -25,9 +25,14 @@ import { useUIStoreShallow } from '@/hooks/useUIStore';
  * 이 래퍼가 좌측에 붙고 나머지는 Figma 그대로 빈 여백으로 남는다.
  *
  * 키패드 ON 관련 디자인팀 협의 결론(2026-09-10, #69):
- * - `autoFocus` 로 포커스 시도 → 실제 키보드는 사용자가 입력창을 한 번 탭해야 뜨는
- *   것으로 확정(모바일 브라우저는 사용자 제스처 없이 키보드를 강제로 못 띄움 —
- *   네이티브 앱과 달리 웹은 이 권한이 없다, 플랫폼 제약이라 우회 불가).
+ * - `autoFocus` 는 쓰지 않는다. 실제 키보드는 사용자가 입력창을 한 번 탭해야 뜨는
+ *   것으로 이미 확정됐었고(모바일 브라우저는 사용자 제스처 없이 키보드를 강제로
+ *   못 띄움), 게다가 실기기 디버깅으로 새로 밝혀진 부작용까지 있다 — `autoFocus`
+ *   로 마운트 시점에 DOM 포커스가 이미 잡혀버리면, 사용자의 그다음 첫 탭은 "이미
+ *   포커스된 요소를 다시 클릭"하는 셈이라 브라우저가 새 focus 이벤트를 안 쏘고,
+ *   그러면 아래 `onFocus` 가 평생 안 불려 `isSearchInputFocused` 가 계속 false 로
+ *   남는다(하단 탭바가 키패드 ON 상태에서도 안 사라지는 버그로 재현·확인 완료).
+ *   얻는 게 없는데 이 버그만 만들어서 완전히 제거했다.
  * - 키보드를 닫는 커스텀 "닫기" 버튼은 만들지 않는다 — iOS 자체 키보드 위 "완료(✓)"
  *   버튼으로 대체하기로 함. 그 버튼은 OS/브라우저가 자동으로 그려주고 탭하면 알아서
  *   포커스가 풀리므로(우리 `onBlur` 가 그대로 받는다) 별도 구현이 필요 없다.
@@ -79,7 +84,6 @@ export function SearchPageHeader({ value, onQueryChange }: SearchPageHeaderProps
         <div className="w-73">
           <SearchBar
             label="검색어 입력"
-            autoFocus
             value={value}
             onChange={(e) => onQueryChange(e.target.value)}
             onClear={() => onQueryChange('')}
