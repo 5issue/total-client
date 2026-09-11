@@ -204,51 +204,64 @@ export function PaymentMethodAccordion({
           // 영역(size-11,44px) + gap-1(4px) 을 전부 더한 값이라야 위 "다른 결제수단" 텍스트와
           // x축이 맞는다 — 지난 수정(pl-12,48px)은 컨테이너 자체 px-4 를 빼먹은 계산 실수였다.
           <div className="flex flex-col gap-2 pr-4 pb-6 pl-16">
-            {/* Figma 666-22997: 버튼 그리드는 행간 gap/s(12px) · 열간 gap/xs(8px) 로 서로
-                다르다 — 한 `gap` 값으로 합치면 행간이 실측보다 좁아진다. */}
-            <div className="flex flex-wrap gap-x-2 gap-y-3">
-              <PaymentMethodButton
-                type="text"
-                label="신용카드"
-                selected={otherMethod === 'card'}
-                onClick={() => onOtherMethodChange('card')}
-              />
-              <PaymentMethodButton
-                type="text"
-                label="휴대폰"
-                selected={otherMethod === 'phone'}
-                onClick={() => onOtherMethodChange('phone')}
-              />
-              <PaymentMethodButton
-                type="logo-image"
-                logo="toss-pay"
-                label="토스페이"
-                showBenefitBadge
-                selected={otherMethod === 'tosspay'}
-                onClick={() => onOtherMethodChange('tosspay')}
-              />
-              <PaymentMethodButton
-                type="logo"
-                logo="kakao-pay"
-                label="카카오페이"
-                selected={otherMethod === 'kakaopay'}
-                onClick={() => onOtherMethodChange('kakaopay')}
-              />
-              <PaymentMethodButton
-                type="logo"
-                logo="payco"
-                label="페이코"
-                selected={otherMethod === 'payco'}
-                onClick={() => onOtherMethodChange('payco')}
-              />
+            {/* Figma 666-22997/666-23355: 2열×3행 고정(row1=신용카드+휴대폰, row2=토스페이+
+                카카오페이, row3=PAYCO 혼자) — Figma 원본도 이 3행을 각각 별도 프레임으로
+                명시한다(666-23356/23359/23362), 자동 줄바꿈에 맡기지 않는다.
+                `grid grid-cols-2`(1fr 트랙)는 컨테이너가 328px(버튼 160×2+gap8) 보다 좁으면
+                버튼이 트랙 폭에 안 맞춰지고(줄지 않고) 다음 칸과 겹쳐버렸다 — 실측 확인.
+                `flex flex-wrap` 은 반대로 폭이 부족하면 1열로 무너졌다. 행마다 명시적
+                `flex` 로 고정하면 폭이 부족해도(기본 flex-shrink) 겹치거나 무너지지 않고
+                버튼만 살짝 줄어든다. */}
+            <div className="flex flex-col gap-y-3">
+              <div className="flex gap-x-2">
+                <PaymentMethodButton
+                  type="text"
+                  label="신용카드"
+                  selected={otherMethod === 'card'}
+                  onClick={() => onOtherMethodChange('card')}
+                />
+                <PaymentMethodButton
+                  type="text"
+                  label="휴대폰"
+                  selected={otherMethod === 'phone'}
+                  onClick={() => onOtherMethodChange('phone')}
+                />
+              </div>
+              <div className="flex gap-x-2">
+                <PaymentMethodButton
+                  type="logo-image"
+                  logo="toss-pay"
+                  label="토스페이"
+                  showBenefitBadge
+                  selected={otherMethod === 'tosspay'}
+                  onClick={() => onOtherMethodChange('tosspay')}
+                />
+                <PaymentMethodButton
+                  type="logo"
+                  logo="kakao-pay"
+                  label="카카오페이"
+                  selected={otherMethod === 'kakaopay'}
+                  onClick={() => onOtherMethodChange('kakaopay')}
+                />
+              </div>
+              <div className="flex gap-x-2">
+                <PaymentMethodButton
+                  type="logo"
+                  logo="payco"
+                  label="페이코"
+                  selected={otherMethod === 'payco'}
+                  onClick={() => onOtherMethodChange('payco')}
+                />
+              </div>
             </div>
 
             {otherMethod === 'card' ? (
               <>
                 <hr className="border-border" />
-                {/* `Dropdown` block 기본 세로 패딩(py-1,4px)이 Figma 실측(gap/2xs)과 같은
-                    값인데도 실제로는 좁아 보여 — `min-h-12` 로 자체 padding(py-1) 을 건드리지
-                    않고 높이만 보정(사용자 직접 요청). */}
+                {/* `Dropdown` variant="box" 는 rounded-sm(4px) 이 자체 클래스에 박혀있는데
+                    Figma 실측(node 666-23365)은 radius/l(12px) — `rounded-lg!` 로 확실히
+                    덮어쓴다(className 병합 순서에 기대지 않는 안전한 방법). `min-h-12` 는
+                    이전 라운드에 요청받은 높이 보정, 그대로 유지. */}
                 <Dropdown
                   label="카드사"
                   variant="box"
@@ -257,7 +270,7 @@ export function PaymentMethodAccordion({
                   options={CARD_ISSUER_OPTIONS}
                   value={cardIssuer}
                   onChange={onCardIssuerChange}
-                  className="min-h-12"
+                  className="min-h-12 rounded-lg!"
                 />
               </>
             ) : null}
@@ -268,7 +281,7 @@ export function PaymentMethodAccordion({
 
         {/* Figma node 666-23367: 바깥은 gap/s(12px)+px-4 만 있고 자체 세로 여백은 없다 —
             앞 구분선이 여백을 대신한다. 안쪽은 제목↔안내 사이 gap/xs(8px). */}
-        <div className="flex flex-col gap-3 px-4 pt-3">
+        <div className="flex flex-col gap-3 px-4">
           <div className="flex flex-col gap-2">
             <p className="text-label-m text-fg-secondary">무이자 혜택</p>
             <PaymentBenefitNotice

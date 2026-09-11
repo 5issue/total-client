@@ -211,9 +211,12 @@ export function CheckoutView() {
               >
                 0
               </div>
-              {/* Figma node 666-23248: h-48·w-92·px-12·py-8(gap/s·gap/xs) — Button "s" 는
-                  높이가 고정이 아니라(패딩+콘텐츠로 자연 높이) 48px 에 못 미쳐 h-12 로 보정. */}
-              <Button size="s" variant="outlineBlack" disabled className="h-12 w-23">
+              {/* Figma node 666-23248/23273: h-48·w-92·radius/s(4px) — Button "s" 는 높이가
+                  고정이 아니고(패딩+콘텐츠로 자연 높이 48px 미달) 모서리도 자체 클래스에
+                  rounded-m(8px) 이 박혀있어 실측(4px)과 다르다. h-12/w-23 로 크기, `rounded-sm!`
+                  로 Button 의 고정 rounded-m 을 확실히 덮어쓴다(className 병합 순서에 기대지
+                  않는 안전한 방법 — Tailwind v4 important 접미사). */}
+              <Button size="s" variant="outlineBlack" disabled className="h-12 w-23 rounded-sm!">
                 모두사용
               </Button>
             </div>
