@@ -41,7 +41,7 @@ export function DisplaySectionList({
       <div
         onTouchStart={(event) => event.stopPropagation()}
         onTouchEnd={(event) => event.stopPropagation()}
-        className="flex items-center gap-2 overflow-x-auto px-4"
+        className="scrollbar-hide flex items-center gap-2 overflow-x-auto px-4"
       >
         {products.map((product) => (
           <ProductCard

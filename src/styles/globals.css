@@ -70,6 +70,17 @@
   }
 }
 
+/* 가로 스크롤 영역(퀵메뉴/카테고리 탭/상품 진열 리스트 등) 공용 — 네이티브 스크롤바를
+ * 숨긴다. Figma 어디에도 스크롤바가 그려져 있지 않고(퀵메뉴는 자체 ScrollIndicator 점으로
+ * 대체), 스크롤 동작 자체는 그대로 유지한다(overflow 값은 건드리지 않음). */
+@utility scrollbar-hide {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* 레거시 Edge */
+  &::-webkit-scrollbar {
+    display: none; /* Chrome/Safari/최신 Edge */
+  }
+}
+
 /* @layer base 에 둬야 Tailwind 유틸리티(@layer utilities)가 이 기본값을 오버라이드할 수 있다.
  * (unlayered 규칙은 레이어 규칙을 무조건 이김 — 예: focus-within:border-border-active) */
 @layer base {
