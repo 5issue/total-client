@@ -177,6 +177,7 @@ src/
 │   └── useFocusTrap.ts          # (범용) 전체화면 패널·다이얼로그 포커스 트랩 (§5)
 ├── stores/                      # Zustand — 순수 클라이언트 UI 상태만 (서버 상태 금지)
 │   ├── uiStore.ts               # 마운트당 생성 팩토리 + Provider + 훅까지 배선된 참조 구현
+│   ├── deliveryAddressStore.ts  # 선택된 배송지 요약 — /cart ↔ /mypage/addresses 공유(팩토리+Provider+훅 배선 완료)
 │   ├── useFilterUIStore.ts      # 필터 바텀시트 임시 선택값 (팩토리 존재, Provider/훅은 FilterSheet 구현 시)
 │   └── useAuthTokenStore.ts     # Access Token 메모리 보관 (팩토리 + Provider/훅 배선 완료 ✅)
 ├── types/                       # Zod 스키마 + 추론 타입 (도메인별 1파일)
@@ -185,7 +186,8 @@ src/
 ├── providers/                   # Provider 구현 ("use client")
 │   ├── QueryProvider.tsx
 │   ├── UIStoreProvider.tsx
-│   └── AuthTokenStoreProvider.tsx  # ✅ Access Token store + authTokenRef 배선
+│   ├── AuthTokenStoreProvider.tsx  # ✅ Access Token store + authTokenRef 배선
+│   └── DeliveryAddressStoreProvider.tsx
 ├── lib/
 │   ├── env.ts                   # Zod 런타임 env 검증
 │   ├── queryClient.ts           # QueryClient 팩토리 (서버/브라우저 분기)

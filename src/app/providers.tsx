@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 
 import { AuthTokenStoreProvider } from '@/providers/AuthTokenStoreProvider';
+import { DeliveryAddressStoreProvider } from '@/providers/DeliveryAddressStoreProvider';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { SessionBootstrap } from '@/providers/SessionBootstrap';
 import { UIStoreProvider } from '@/providers/UIStoreProvider';
@@ -19,7 +20,7 @@ export function Providers({ children }: { children: ReactNode }) {
       <UIStoreProvider>
         <AuthTokenStoreProvider>
           <SessionBootstrap />
-          {children}
+          <DeliveryAddressStoreProvider>{children}</DeliveryAddressStoreProvider>
         </AuthTokenStoreProvider>
       </UIStoreProvider>
     </QueryProvider>
