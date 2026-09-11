@@ -159,6 +159,7 @@ export function AddressForm({
             <Input
               label="배송지 이름"
               placeholder="배송지 이름을 입력해주세요"
+              error={errors.customAlias?.message}
               {...register('customAlias')}
             />
           ) : null}

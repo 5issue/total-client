@@ -14,23 +14,29 @@ export const PHONE_DIGITS_REGEX = /^01[016789]\d{7,8}$/;
 
 const toDigits = (value: string) => value.replace(/[^0-9]/g, '');
 
-export const AddressFormSchema = z.object({
-  /** 카카오 우편번호 위젯 결과 — 사용자가 직접 편집하지 않는다. */
-  zonecode: z.string().min(1),
-  roadAddress: z.string().min(1),
-  /** 상세주소(동/호 등). 선택. */
-  detailAddress: z.string(),
-  /** 유형칩 선택값. 미선택 가능. */
-  aliasType: z.enum(['home', 'company', 'custom']).optional(),
-  /** `직접입력` 일 때의 배송지 이름. 그 외 상태에선 무시. */
-  customAlias: z.string(),
-  recipient: z.string().trim().min(1, '받으실 분을 입력해주세요'),
-  phone: z
-    .string()
-    .refine((v) => PHONE_DIGITS_REGEX.test(toDigits(v)), '올바른 휴대폰 번호를 입력해주세요'),
-  /** 수정 화면에서 "기본 배송지로 저장" 토글. */
-  saveAsDefault: z.boolean(),
-});
+export const AddressFormSchema = z
+  .object({
+    /** 카카오 우편번호 위젯 결과 — 사용자가 직접 편집하지 않는다. */
+    zonecode: z.string().min(1),
+    roadAddress: z.string().min(1),
+    /** 상세주소(동/호 등). 선택. */
+    detailAddress: z.string(),
+    /** 유형칩 선택값. 미선택 가능. */
+    aliasType: z.enum(['home', 'company', 'custom']).optional(),
+    /** `직접입력` 일 때의 배송지 이름. `aliasType==='custom'` 이면 아래 refine 으로 필수화된다. */
+    customAlias: z.string(),
+    recipient: z.string().trim().min(1, '받으실 분을 입력해주세요'),
+    phone: z
+      .string()
+      .refine((v) => PHONE_DIGITS_REGEX.test(toDigits(v)), '올바른 휴대폰 번호를 입력해주세요'),
+    /** 수정 화면에서 "기본 배송지로 저장" 토글. */
+    saveAsDefault: z.boolean(),
+  })
+  // custom 유형은 이름이 없으면 의미가 없다 — 공백만 있는 값도 거부.
+  .refine((data) => data.aliasType !== 'custom' || data.customAlias.trim() !== '', {
+    message: '배송지 이름을 입력해주세요',
+    path: ['customAlias'],
+  });
 
 export type AddressFormFields = z.infer<typeof AddressFormSchema>;
 
