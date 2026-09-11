@@ -12,7 +12,7 @@ import {
 } from '@/components/molecules/shared/ServiceSwitch';
 
 /**
- * 홈 상단 헤더 — 로고 + 마켓컬리/뷰티컬리 서비스 토글 + 마이컬리/장바구니 (organism).
+ * 홈 상단 헤더 — 로고 + 마켓컬리/뷰티컬리 서비스 토글 + 알림/장바구니 (organism).
  * Figma "HomeScreen" > "Header" (node 577:20626).
  *
  * 배경 `Brand/Primary`(#690085) 위 흰 잉크 로고(`Logo` name="kurly", 흰 잉크 variant,
@@ -60,13 +60,10 @@ export function HomeHeader({ cartCount, className }: HomeHeaderProps) {
         />
 
         <div className="flex shrink-0 items-center">
-          <Link
-            href="/mypage"
-            aria-label="마이컬리"
-            className="flex size-11 items-center justify-center"
-          >
-            <Icon name="my" size={28} className="text-fg-inverse" aria-hidden />
-          </Link>
+          {/* 알림 목적지 화면이 아직 없어 KurlyHeader 와 동일하게 pending(표시만, 비상호작용) 처리 */}
+          <span aria-hidden className="flex size-11 items-center justify-center">
+            <Icon name="bell" size={28} className="text-fg-inverse" aria-hidden />
+          </span>
           <Link
             href="/cart"
             aria-label={cartCount ? `장바구니, 담긴 상품 ${cartCount}개` : '장바구니'}

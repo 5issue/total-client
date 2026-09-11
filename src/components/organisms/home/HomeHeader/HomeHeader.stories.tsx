@@ -38,15 +38,17 @@ export const ServiceToggleInteraction: Story = {
   },
 };
 
-/** 마이컬리/장바구니는 목적지를 서술하는 링크다(code-style §5). */
-export const AccountAndCartLinks: Story = {
+/** 장바구니는 목적지를 서술하는 링크다(code-style §5). 알림은 목적지 화면이 아직
+ * 없어 KurlyHeader와 동일하게 pending(표시만, 비상호작용) — 링크/버튼으로 노출되지 않는다. */
+export const CartLinkAndPendingBell: Story = {
   tags: ['!autodocs'],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByRole('link', { name: '마이컬리' })).toHaveAttribute('href', '/mypage');
     await expect(canvas.getByRole('link', { name: '장바구니, 담긴 상품 4개' })).toHaveAttribute(
       'href',
       '/cart',
     );
+    await expect(canvas.queryByRole('link', { name: /알림/ })).not.toBeInTheDocument();
+    await expect(canvas.queryByRole('button', { name: /알림/ })).not.toBeInTheDocument();
   },
 };
