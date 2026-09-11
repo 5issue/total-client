@@ -7,16 +7,17 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/atoms/Button';
 import { Icon } from '@/components/atoms/Icon';
 import { InfoBox } from '@/components/atoms/InfoBox';
-import { Textarea } from '@/components/atoms/Textarea';
+import { Input } from '@/components/atoms/Input';
 import { CartAmountRow } from '@/components/molecules/cart/CartAmountRow';
-import { OrderLineItem } from '@/components/molecules/checkout/OrderLineItem';
+import { Accordion } from '@/components/molecules/shared/Accordion';
 import { Modal } from '@/components/molecules/shared/Modal';
 import { StatusLabel } from '@/components/molecules/shared/StatusLabel';
 import type { OtherPaymentMethodId, PaymentMethodId } from '@/components/organisms/checkout/model';
+import { OrderItemsSection } from '@/components/organisms/checkout/OrderItemsSection';
 import { PaymentMethodAccordion } from '@/components/organisms/checkout/PaymentMethodAccordion';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 
-import { MOCK_AMOUNTS, MOCK_CUSTOMER, MOCK_DEFAULT_ADDRESS, MOCK_ORDER_ITEM } from './mock';
+import { MOCK_AMOUNTS, MOCK_CUSTOMER, MOCK_DEFAULT_ADDRESS, MOCK_ORDER_ITEMS } from './mock';
 
 /**
  * 주문서(체크아웃) 화면 컨테이너 (organism). Figma "5팀 UI 공유용" —
@@ -30,11 +31,19 @@ import { MOCK_AMOUNTS, MOCK_CUSTOMER, MOCK_DEFAULT_ADDRESS, MOCK_ORDER_ITEM } fr
  * 배송지는 `feat/#72`(배송지 관리 화면) 의 공유 스토어(`deliveryAddressStore`)가 develop 에
  * 머지되기 전이라 이 화면만의 로컬 목데이터를 쓴다 — 머지 후 그 스토어로 교체 예정(이슈 #82).
  *
- * "주문상품"은 Figma 상 아코디언이 아니라(단일 상품이라 접을 이유가 없음) 평범한 목록이다 —
- * `AccordionOrder`(장바구니용, 항상 헤더 chevron 노출)를 그대로 쓰면 없는 토글을 만드는
- * 셈이라 재사용하지 않았다.
+ * "주문상품"은 상품 개수에 따라 모양이 바뀐다(node 666-23208 1건 / 666-23446·666-25396
+ * 2건 이상) — 그 분기와 두 상태의 마크업은 `OrderItemsSection` 에 위임한다.
+ *
+ * "주문자 정보"는 node 666-25643 기준 펼치면 받는 분/휴대폰/이메일 + 변경 방법 안내가
+ * 나온다 — 공용 `Accordion` 셸을 쓰되, 헤더 오른쪽 요약("이름, 전화번호")은 펼쳤을 때
+ * 사라지므로(Figma 원본 확인) `open` 값에 따라 이 컴포넌트가 직접 헤더를 갈아끼운다.
  */
 type DeliveryDetailModal = 'edit' | null;
+/** 배송 상세정보 — node 666-24922: "{위치} | 공동현관 비밀번호({코드})" + "{받는분}, {전화번호}". */
+interface DeliveryDetail {
+  location: string;
+  passcode: string;
+}
 type TermsModal = 'privacy' | 'payment' | null;
 
 const won = (n: number) => `${n.toLocaleString('ko-KR')}원`;
@@ -47,20 +56,25 @@ export function CheckoutView() {
   const [otherPaymentMethod, setOtherPaymentMethod] = useState<OtherPaymentMethodId>('card');
   const [cardIssuer, setCardIssuer] = useState<string | null>(null);
 
-  const [deliveryDetail, setDeliveryDetail] = useState<string | null>(null);
-  const [deliveryDetailDraft, setDeliveryDetailDraft] = useState('');
+  const [deliveryDetail, setDeliveryDetail] = useState<DeliveryDetail | null>(null);
+  const [locationDraft, setLocationDraft] = useState('');
+  const [passcodeDraft, setPasscodeDraft] = useState('');
   const [deliveryModal, setDeliveryModal] = useState<DeliveryDetailModal>(null);
   const [termsModal, setTermsModal] = useState<TermsModal>(null);
+  const [ordererOpen, setOrdererOpen] = useState(false);
 
-  const canPay = deliveryDetail != null && deliveryDetail.trim() !== '' && paymentMethod != null;
+  const canPay = deliveryDetail != null && deliveryDetail.location !== '' && paymentMethod != null;
 
   function openDeliveryModal() {
-    setDeliveryDetailDraft(deliveryDetail ?? '');
+    setLocationDraft(deliveryDetail?.location ?? '');
+    setPasscodeDraft(deliveryDetail?.passcode ?? '');
     setDeliveryModal('edit');
   }
 
   function saveDeliveryDetail() {
-    setDeliveryDetail(deliveryDetailDraft.trim());
+    const location = locationDraft.trim();
+    const passcode = passcodeDraft.trim();
+    setDeliveryDetail(location ? { location, passcode } : null);
     setDeliveryModal(null);
   }
 
@@ -69,19 +83,39 @@ export function CheckoutView() {
       <SectionHeader leading="back" onLeadingClick={() => router.back()} title="주문서" />
 
       <div className="bg-surface-secondary flex flex-1 flex-col gap-2">
-        {/* 주문자 정보 — Figma "Accordion_Orderinfo"(property1=off) 는 펼침 콘텐츠가 없어
-            토글 없는 정적 헤더로 둔다. 수정은 마이컬리 프로필로 이동. */}
-        <div className="bg-surface flex items-center justify-between px-4 py-3">
-          <p className="text-heading-4 text-fg">주문자 정보</p>
-          <button
-            type="button"
-            onClick={() => router.push('/mypage/profile')}
-            className="text-heading-6 text-fg flex items-center gap-2"
-          >
-            {MOCK_CUSTOMER.name}, {MOCK_CUSTOMER.phone}
-            <Icon name="arrow-down" size={24} aria-hidden />
-          </button>
-        </div>
+        {/* 주문자 정보 — Figma "Accordion_Orderinfo"(node 666-25643, property1=on). 접힘일
+            땐 헤더 오른쪽에 "이름, 전화번호" 요약이 붙지만 펼치면 그 요약이 사라지고
+            패널에 받는 분/휴대폰/이메일 + 변경 방법 안내가 나온다(원본 확인) — 그래서
+            헤더를 `open` 값으로 직접 분기해 넣는다. */}
+        <Accordion
+          className="bg-surface"
+          headerClassName="px-4 py-3"
+          open={ordererOpen}
+          onToggle={setOrdererOpen}
+          header={
+            ordererOpen ? (
+              '주문자 정보'
+            ) : (
+              <span className="flex items-center justify-between gap-2">
+                주문자 정보
+                <span className="text-heading-6 text-fg">
+                  {MOCK_CUSTOMER.name}, {MOCK_CUSTOMER.phone}
+                </span>
+              </span>
+            )
+          }
+        >
+          <div className="flex flex-col gap-3 px-4 pb-4">
+            <dl className="flex flex-col gap-2">
+              <OrdererInfoRow label="받는 분" value={MOCK_CUSTOMER.name} />
+              <OrdererInfoRow label="휴대폰" value={MOCK_CUSTOMER.phone} />
+              <OrdererInfoRow label="이메일" value={MOCK_CUSTOMER.email} />
+            </dl>
+            <p className="text-label-m text-fg-tertiary">
+              주문자 정보 변경 방법: 마이컬리 &gt; 개인정보 수정
+            </p>
+          </div>
+        </Accordion>
 
         {/* 배송정보 */}
         <div className="bg-surface flex flex-col gap-6 p-4">
@@ -119,7 +153,26 @@ export function CheckoutView() {
             </p>
             <div className="flex items-center justify-between gap-2">
               {deliveryDetail ? (
-                <p className="text-heading-4 text-fg min-w-0 flex-1 truncate">{deliveryDetail}</p>
+                // node 666-24922: "{위치} | 공동현관 비밀번호({코드})" 한 줄 + "{받는분}, {전화번호}"
+                // 한 줄. 위치↔안내문 사이 세로선은 실측(문 앞 끝 32px→선 40px→안내문 시작
+                // 48px, 즉 선 좌우 8px씩)대로 h-3 보더 스팬으로 그린다(텍스트 "|" 아님).
+                <div className="min-w-0 flex-1">
+                  <p className="text-heading-4 text-fg flex items-center gap-2 truncate">
+                    <span className="shrink-0">{deliveryDetail.location}</span>
+                    {deliveryDetail.passcode ? (
+                      <>
+                        <span aria-hidden className="border-border h-3 shrink-0 border-l" />
+                        <span className="truncate">
+                          공동현관 비밀번호(
+                          <span className="text-primary">{deliveryDetail.passcode}</span>)
+                        </span>
+                      </>
+                    ) : null}
+                  </p>
+                  <p className="text-heading-4 text-fg truncate">
+                    {MOCK_DEFAULT_ADDRESS.recipient}, {MOCK_DEFAULT_ADDRESS.phone}
+                  </p>
+                </div>
               ) : (
                 <span className="text-primary flex items-center gap-1">
                   <span className="text-heading-4">배송 상세 정보를 입력해주세요</span>
@@ -138,20 +191,8 @@ export function CheckoutView() {
           </div>
         </div>
 
-        {/* 주문상품 (바로구매 1건) */}
-        <div className="bg-surface flex flex-col gap-4 p-4">
-          <p className="text-heading-4 text-fg">주문상품</p>
-          <div className="flex flex-col gap-2">
-            <p className="text-label-m text-fg-secondary">샛별배송</p>
-            <OrderLineItem
-              name={MOCK_ORDER_ITEM.name}
-              imageSrc={MOCK_ORDER_ITEM.imageSrc}
-              price={MOCK_ORDER_ITEM.price}
-              originalPrice={MOCK_ORDER_ITEM.originalPrice}
-              quantity={MOCK_ORDER_ITEM.quantity}
-            />
-          </div>
-        </div>
+        {/* 주문상품 — 1건/2건 이상 분기는 OrderItemsSection 이 담당(node 666-23208 · 666-23446 · 666-25396). */}
+        <OrderItemsSection items={MOCK_ORDER_ITEMS} />
 
         {/* 쿠폰 */}
         <div className="bg-surface flex flex-col gap-4 p-4">
@@ -380,19 +421,33 @@ export function CheckoutView() {
             <Button variant="outlineBlack" onClick={() => setDeliveryModal(null)}>
               취소
             </Button>
-            <Button variant="black" onClick={saveDeliveryDetail}>
+            <Button variant="black" disabled={!locationDraft.trim()} onClick={saveDeliveryDetail}>
               저장
             </Button>
           </>
         }
       >
-        <Textarea
-          label="배송 상세정보"
-          value={deliveryDetailDraft}
-          onChange={(e) => setDeliveryDetailDraft(e.target.value)}
-          maxLength={200}
-          rows={4}
-        />
+        {/* node 666-24922 표시 형식("{위치} | 공동현관 비밀번호({코드})")에 맞춰 위치·비밀번호를
+            분리 입력받는다 — 자유 서술 Textarea 한 칸이던 이전 버전은 이 구조화된 값을
+            만들 수 없어 두 개의 Input 으로 바꿨다. */}
+        <div className="flex flex-col gap-4">
+          <Input
+            label="배송 위치"
+            labelVisible
+            placeholder="예: 문 앞, 경비실"
+            value={locationDraft}
+            onChange={(e) => setLocationDraft(e.target.value)}
+            maxLength={20}
+          />
+          <Input
+            label="공동현관 비밀번호"
+            labelVisible
+            placeholder="공동현관 비밀번호(선택)"
+            value={passcodeDraft}
+            onChange={(e) => setPasscodeDraft(e.target.value)}
+            maxLength={20}
+          />
+        </div>
       </Modal>
 
       <Modal
@@ -423,6 +478,16 @@ function AmountDetailRow({ label, value }: { label: string; value: string }) {
         {label}
       </span>
       <span className="text-label-m text-fg-quaternary">{value}</span>
+    </div>
+  );
+}
+
+/** 주문자 정보 펼침 패널의 한 줄(받는 분/휴대폰/이메일) — 라벨 열 너비 고정, 값은 그 옆. */
+function OrdererInfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-4">
+      <dt className="text-body-m text-fg-tertiary w-16 shrink-0">{label}</dt>
+      <dd className="text-body-m text-fg">{value}</dd>
     </div>
   );
 }
