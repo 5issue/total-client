@@ -26,6 +26,12 @@ import { Icon } from '@/components/atoms/Icon';
  * - "광고" 라벨: `Ad_Label_M`(node 2838-2230) — `Bg/secondary` `Radius/Full` `Caption/L` `Text/disabled`
  *   → `bg-surface-secondary rounded-full text-caption-l text-fg-disabled`. Figma 에선 Badge 의 변형이지만
  *   코드 `Badge` atom(purple/cyan 전용)에 이 회색 형태가 없어 인라인으로 둔다(링크와 동일 판단).
+ *
+ * 바깥 행(제목/부제 열 ↔ "전체보기" 링크) 사이에 추가 `gap` 을 주지 않는다 — Figma
+ * 원본(예: node 577:20696)도 이 둘 사이에 gap 클래스가 없다. 제목/부제 열이
+ * `flex-1` 이라 남는 공간을 전부 가져가므로 gap 을 더하면 그만큼 부제 폭이 줄어
+ * 긴 부제("최대 혜택으로 선물하세요! 쿠폰+최대 77% OFF" 등)의 마지막 단어가
+ * 다음 줄로 밀려났다(실기기 확인) — gap 제거로 Figma 폭 그대로 복구.
  */
 export interface HomeSectionHeaderProps {
   title: string;
@@ -57,11 +63,7 @@ export function HomeSectionHeader({
 
   return (
     <div
-      className={[
-        'flex justify-between gap-3 px-4',
-        subtitle ? 'items-start' : 'items-center',
-        className,
-      ]
+      className={['flex justify-between px-4', subtitle ? 'items-start' : 'items-center', className]
         .filter(Boolean)
         .join(' ')}
     >
