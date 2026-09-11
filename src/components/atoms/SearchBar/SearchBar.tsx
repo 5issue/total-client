@@ -21,10 +21,9 @@ import { Icon } from '@/components/atoms/Icon';
  *   좁게 렌더된다. block 부모에서는 원래도 기본 동작이라 시각 차이 없다.
  * - `<input>` 만 `text-[16px]!` 로 `text-body-l`(15px)의 font-size 를 덮어쓴다 —
  *   iOS Safari 는 포커스되는 입력의 font-size 가 16px 미만이면 자동으로 확대하고
- *   원상 복구를 안 해서(#69 PWA 실기기에서 확대된 채로 안 줄어드는 버그로 재현),
- *   `viewport` 의 `user-scalable` 을 막는 건 접근성 위반(security FE 컨벤션)이라 못 쓴다 —
- *   대신 이 입력만 16px 로 올려 애초에 확대가 안 걸리게 한다. line-height/letter-spacing/
- *   font-weight 는 `text-body-l` 나머지 값을 그대로 쓴다.
+ *   원상 복구를 안 한다. `viewport` 의 `user-scalable` 을 막는 건 접근성 위반
+ *   (security FE 컨벤션)이라 못 쓰므로, 이 입력만 16px 로 올려 확대 자체를 막는다.
+ *   line-height/letter-spacing/font-weight 는 `text-body-l` 나머지 값을 그대로 쓴다.
  */
 export interface SearchBarProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
   /** `<label htmlFor>` 로 연결되는 접근성 라벨. */

@@ -24,11 +24,8 @@ export const viewport: Viewport = {
   // 기본값(resizes-visual)은 키보드가 떠도 레이아웃 뷰포트(dvh, window.innerHeight)가
   // 줄어들지 않고 시각 뷰포트만 줄어든다 — 그러면 "스크롤을 끝까지 올리면 키보드와
   // 40px 간격" 같은 레이아웃 기반 계산이 실제 화면과 안 맞는다(#69 검색 화면 하단
-  // 여백 버그). resizes-content 로 레이아웃 뷰포트 자체를 키보드만큼 줄여 dvh/스크롤
+  // 여백). resizes-content 로 레이아웃 뷰포트 자체를 키보드만큼 줄여 dvh/스크롤
   // 계산이 실제 보이는 영역과 일치하게 만든다.
-  // ⚠️ 한 번 되돌렸었다 — 당시 이 옵션을 켠 직후 하단 탭바 숨김이 깨지는 걸 보고
-  // 이게 원인인 줄 알았는데, 진짜 원인은 `SearchPageHeader` 의 `autoFocus`(제거함,
-  // 그 커밋 주석 참고)였다. autoFocus 제거 후 재적용해 정상 확인했다.
   interactiveWidget: 'resizes-content',
 };
 
