@@ -10,8 +10,10 @@
   },
   "scripts": {
     "dev": "next dev",
+    "prebuild": "rm -rf .next/dev",
     "build": "next build",
     "start": "next start",
+    "pretypecheck": "rm -rf .next/dev",
     "typecheck": "next typegen && tsc -p tsconfig.json --noEmit && tsc -p tsconfig.sw.json --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
