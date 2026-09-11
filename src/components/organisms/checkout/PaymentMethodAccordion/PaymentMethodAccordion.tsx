@@ -200,9 +200,10 @@ export function PaymentMethodAccordion({
         {method === 'other' ? (
           // Figma node 666-23344(666-23354): 버튼그리드↔구분선↔드롭다운 사이는 gap/xs(8px) —
           // 버튼 "행"간 gap/s(12px, 아래 gap-y-3)와는 다른 레벨이라 헷갈리기 쉽다.
-          // 왼쪽은 px-4(16px)가 아니라 pl-12(48px) — 라디오 터치 영역(size-11,44px)+gap-1(4px)
-          // 만큼 들여써서 위 "다른 결제수단" 텍스트와 x축을 맞춘다(사용자 직접 요청).
-          <div className="flex flex-col gap-2 pr-4 pb-6 pl-12">
+          // 왼쪽은 px-4(16px)가 아니라 pl-16(64px) — OptionRow 의 px-4(16px) + Radio 터치
+          // 영역(size-11,44px) + gap-1(4px) 을 전부 더한 값이라야 위 "다른 결제수단" 텍스트와
+          // x축이 맞는다 — 지난 수정(pl-12,48px)은 컨테이너 자체 px-4 를 빼먹은 계산 실수였다.
+          <div className="flex flex-col gap-2 pr-4 pb-6 pl-16">
             {/* Figma 666-22997: 버튼 그리드는 행간 gap/s(12px) · 열간 gap/xs(8px) 로 서로
                 다르다 — 한 `gap` 값으로 합치면 행간이 실측보다 좁아진다. */}
             <div className="flex flex-wrap gap-x-2 gap-y-3">

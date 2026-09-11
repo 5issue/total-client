@@ -169,7 +169,9 @@ export function CheckoutView() {
             <span className="text-heading-6 text-fg-tertiary">
               컬리멤버스 월 100원으로 무료배송
             </span>
-            <Icon name="arrow-right" size={20} aria-hidden />
+            {/* Figma 실측 색(#7E8F9B)이 text-fg-tertiary — Icon 은 색 지정 없으면 상속(검정)
+                이라 옆 안내문과 안 어울렸다. */}
+            <Icon name="arrow-right" size={20} className="text-fg-tertiary" aria-hidden />
           </p>
         </div>
 
