@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
@@ -22,14 +22,15 @@ import type { AddressView } from '../model';
 /**
  * 배송지 관리 화면 컨테이너 (organism). Figma "5팀 UI 공유용" — node 359-15270(빈) / 359-15286·15669(목록).
  *
- * 장바구니 상단 `CartDeliveryAddress` "추가"/"변경" 진입점. **퍼블리싱 단계** — 배송지 목록은
- * 이 컴포넌트의 로컬 state 에만 산다(백엔드 없음). "새 배송지 추가"·항목 "수정"/"삭제"는
- * 아래에서 올라오는 전체화면 `AddressSearchPanel` / 인라인으로 반영되며, 새로고침하면 사라진다.
- * CRUD 영속화는 데이터 연결 시.
+ * 장바구니 상단 `CartDeliveryAddress` "추가"/"변경" 진입점. **퍼블리싱 단계** — 배송지 목록·선택은
+ * 이 화면과 장바구니가 공유하는 `deliveryAddressStore`(클라 상태)에만 산다(백엔드 없음).
+ * "새 배송지 추가"·항목 "수정"/"삭제"는 아래에서 올라오는 전체화면 `AddressSearchPanel` /
+ * 인라인으로 반영되며, 새로고침하면 사라진다. CRUD 영속화는 데이터 연결 시.
  *
+ * - 목록·선택을 이 컴포넌트 로컬 state 로 두면 라우트를 오갈 때마다(재마운트) 빈 목록으로
+ *   되돌아가며 장바구니가 보던 기존 선택까지 지워버린다(코드래빗 리뷰) — 그래서 공유
+ *   스토어가 소스 오브 트루스이고, 이 컴포넌트는 그 selector/액션만 쓴다.
  * - 라디오 선택(`selectedId`)은 **사용자만 바꾼다** — 기본배송지 설정/추가가 선택을 옮기지 않는다.
- * - 선택이 바뀔 때마다(추가·수정·삭제로 바뀐 값도 포함) `deliveryAddressStore` 에 요약을 반영해
- *   `CartView` 로 돌아갔을 때 실제로 그 배송지가 보이게 한다(화면 간 공유 클라 상태, code-style §3).
  * - `우리집`·`회사` 유형칩은 배송지당 유일 — 재지정하면 이전 배송지에서 제거.
  * - `isDefault` 도 유일 — 새 기본배송지 저장 시 이전 기본 해제.
  * - `삭제` 는 배송지가 2개 이상이고 **기본배송지가 아닐 때만** 노출(node 359-15460). 삭제 전 확인 모달(node 359-15494).
@@ -55,33 +56,19 @@ function normalizeUnique(
 
 export function AddressManageView() {
   const router = useRouter();
-  const seqRef = useRef(0);
 
-  const [addresses, setAddresses] = useState<AddressView[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // 목록·선택의 소스 오브 트루스는 장바구니와 공유하는 스토어다(이 컴포넌트 로컬에 두면
+  // 재마운트마다 빈 목록으로 리셋되며 장바구니의 기존 선택까지 지워버린다).
+  const addresses = useDeliveryAddressStore((s) => s.addresses);
+  const setAddresses = useDeliveryAddressStore((s) => s.setAddresses);
+  const selectedId = useDeliveryAddressStore((s) => s.selectedId);
+  const setSelectedId = useDeliveryAddressStore((s) => s.setSelectedId);
+
   const [panel, setPanel] = useState<{ mode: 'add' } | { mode: 'edit'; id: string } | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
-  // 선택된 배송지가 바뀔 때마다(선택 자체·수정·삭제) 장바구니가 보는 공유 스토어에 반영한다.
-  const setSelectedDeliveryAddress = useDeliveryAddressStore((s) => s.setSelected);
-  useEffect(() => {
-    const selected = addresses.find((a) => a.id === selectedId);
-    setSelectedDeliveryAddress(
-      selected
-        ? {
-            id: selected.id,
-            addressLine: selected.detailAddress
-              ? `${selected.roadAddress} ${selected.detailAddress}`
-              : selected.roadAddress,
-            deliveryType: selected.deliveryType,
-          }
-        : null,
-    );
-  }, [addresses, selectedId, setSelectedDeliveryAddress]);
-
   function addAddress(values: AddressFormValues) {
-    seqRef.current += 1;
-    const id = `addr-${seqRef.current}`;
+    const id = crypto.randomUUID();
     setAddresses((prev) => [...normalizeUnique(prev, id, values), { ...values, id }]);
     // 첫 배송지일 때만 라디오를 잡아준다 — 그 외에는 사용자가 직접 선택(기본배송지 설정 무관).
     setSelectedId((cur) => cur ?? id);

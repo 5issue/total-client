@@ -30,3 +30,10 @@ export interface AddressView {
 
 /** `AddressSearchPanel` 이 저장(추가/수정)할 때 상위로 올리는 값 — `id` 는 컨테이너가 매긴다. */
 export type AddressFormValues = Omit<AddressView, 'id'>;
+
+/** 도로명 + 상세주소 한 줄 요약(장바구니 배송지 표시 등에서 공용으로 쓴다). */
+export function addressLineOf(address: Pick<AddressView, 'roadAddress' | 'detailAddress'>): string {
+  return address.detailAddress
+    ? `${address.roadAddress} ${address.detailAddress}`
+    : address.roadAddress;
+}

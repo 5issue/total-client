@@ -20,7 +20,7 @@ function useDeliveryAddressStoreApi() {
 
 /**
  * 단일 원시값/참조 selector 전용.
- * 예: const selected = useDeliveryAddressStore((s) => s.selected);
+ * 예: const selectedId = useDeliveryAddressStore((s) => s.selectedId);
  */
 export function useDeliveryAddressStore<T>(selector: (state: DeliveryAddressStore) => T): T {
   return useStore(useDeliveryAddressStoreApi(), selector);

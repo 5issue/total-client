@@ -18,6 +18,7 @@ import { CartRecommendCarousel } from '@/components/organisms/cart/CartRecommend
 import { CartRecommendSheet } from '@/components/organisms/cart/CartRecommendSheet';
 import { CartSummary } from '@/components/organisms/cart/CartSummary';
 import type { CartAmounts, CartDeliveryGroup } from '@/components/organisms/cart/model';
+import { addressLineOf } from '@/components/organisms/mypage/model';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 import { useDeliveryAddressStore } from '@/hooks/useDeliveryAddressStore';
 
@@ -45,7 +46,9 @@ export function CartView() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(
     () => new Set(allItemIds(MOCK_CART_GROUPS)),
   );
-  const selectedAddress = useDeliveryAddressStore((s) => s.selected);
+  const addresses = useDeliveryAddressStore((s) => s.addresses);
+  const selectedAddressId = useDeliveryAddressStore((s) => s.selectedId);
+  const selectedAddress = addresses.find((a) => a.id === selectedAddressId);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
 
@@ -162,7 +165,7 @@ export function CartView() {
       <div className="bg-surface-secondary flex flex-1 flex-col pb-4">
         <div className="bg-surface">
           <CartDeliveryAddress
-            address={selectedAddress?.addressLine}
+            address={selectedAddress ? addressLineOf(selectedAddress) : undefined}
             deliveryBadge={selectedAddress ? selectedDeliveryBadge : undefined}
             onEdit={() => router.push('/mypage/addresses')}
           />
