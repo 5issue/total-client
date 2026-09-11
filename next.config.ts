@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
   // 자동 주입)에서만 끈다. Docker/K8s 빌드는 그대로 standalone 을 쓴다.
   output: process.env.VERCEL ? undefined : 'standalone',
   reactStrictMode: true,
+  // 실기기(폰) LAN 접속 시 필요 — Next 16은 기본적으로 localhost 가 아닌 origin의
+  // /_next/* dev 리소스 요청을 차단한다(화면은 뜨지만 JS 번들이 안 실려 하이드레이션
+  // 실패, 모든 상호작용 무반응). 맥 IP 가 바뀌면(`ipconfig getifaddr en0`) 같이 갱신.
+  allowedDevOrigins: ['192.168.0.121'],
   // Next 16 이 매 빌드/개발마다 루트 AGENTS.md / CLAUDE.md 를 자동 생성/덮어쓴다.
   // 이 저장소는 CLAUDE.md 를 "문서 인덱스"로 직접 관리하므로 비활성화한다.
   agentRules: false,
