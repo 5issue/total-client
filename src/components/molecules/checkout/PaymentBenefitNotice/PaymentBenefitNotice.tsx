@@ -16,6 +16,9 @@ export function PaymentBenefitNotice({ title, bullets, className }: PaymentBenef
   return (
     <div className={['flex flex-col', className].filter(Boolean).join(' ')}>
       <p className="text-label-m text-fg-secondary">{title}</p>
+      <ul className="text-caption-m text-fg-tertiary list-disc">
+        토스페이 1만원 이상 결제 시, 1만원 토스포인트 추첨 적립
+      </ul>
       <ul className="text-caption-m text-fg-tertiary list-disc pl-4.5">
         {bullets.map((line) => (
           <li key={line}>{line}</li>

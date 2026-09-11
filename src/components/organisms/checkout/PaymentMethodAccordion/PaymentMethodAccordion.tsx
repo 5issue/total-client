@@ -292,11 +292,7 @@ export function PaymentMethodAccordion({
             <p className="text-label-m text-fg-secondary">무이자 혜택</p>
             <PaymentBenefitNotice
               title="토스페이"
-              bullets={[
-                '토스페이 1만원 이상 결제 시, 1만원 토스포인트 추첨 적립',
-                '컬리 회원 중 300명 추첨 제공',
-                '토스ID 당 1회 혜택 적용 - 9/1 ~ 9/30',
-              ]}
+              bullets={['컬리 회원 중 300명 추첨 제공', '토스ID 당 1회 혜택 적용 - 9/1 ~ 9/30']}
             />
           </div>
         </div>
