@@ -16,16 +16,12 @@ import { Icon } from '@/components/atoms/Icon';
  * 토큰(`get_variable_defs`):
  * - 제목: 기본은 부제 유무로 자동 결정 — 있으면 `Heading/H2_Medium`(node 2429-2288)
  *   → `text-heading-2`, 없으면 `Heading/H4_SemiBold`(node 2757-2678) → `text-heading-4`.
- *   ⚠️ 이건 디자인 시스템 파일의 일반 규칙일 뿐, 화면마다 항상 맞는 건 아니다 —
- *   검색 화면(577-13977 "최근 검색어", 577-14028 "추천 검색어")은 부제가 없어도
- *   `Heading/H2_Medium`(18px)을 쓴다(Figma CSS 실측으로 확인). 그런 화면은
- *   `titleSize="h2"` 로 자동 판정을 override 한다. 색 `Text/Primary` → `text-fg`.
- *   ⚠️ 검색 화면 실측 CSS 의 font-weight 는 700(`Font_Weight-Medium, 700`)인데
- *   기존 `text-heading-2` 토큰은 이름은 "Medium"이지만 실제 weight 500 이라 그대로
- *   쓰면 더 얇게 나온다(사용자가 "원피스/디카페인"(TrendingKeywordItem, weight 700)
- *   과 같은 굵기여야 한다고 재확인). 토큰 자체를 바꾸면 이 컴포넌트를 쓰는 다른 곳
- *   (Calendar/Modal/CloseButton/TabItem)에 영향이 가서, `titleClassName="font-bold!"`
- *   로 이 화면에서만 weight 만 override 한다.
+ *   ⚠️ 화면마다 항상 맞는 규칙은 아니다 — 검색 화면(577-13977/14028)은 부제가 없어도
+ *   18px/weight 700 을 쓴다(Figma CSS 실측). `text-heading-2` 토큰은 이름이 "Medium"
+ *   이지만 실제 weight 는 500 이라 그대로 쓰면 더 얇게 나온다. 토큰 자체를 바꾸면
+ *   이 컴포넌트를 쓰는 다른 곳(Calendar/Modal/CloseButton/TabItem)에 영향이 가므로,
+ *   그런 화면은 `titleSize="h2"` + `titleClassName="font-bold!"` 로 override 한다.
+ *   색 `Text/Primary` → `text-fg`.
  * - 부제: `Label/XL_Bold` + `Text/Tertiary` → `text-label-xl text-fg-tertiary`.
  * - 링크: `Label/L_SemiBold` + `Brand/Primary` + arrow 20 → `text-label-l text-primary`.
  *   hover/active/focus 는 `Button` atom 의 `variant="text" size="s"` 클래스와 동일하게 맞춘다
