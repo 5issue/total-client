@@ -70,12 +70,31 @@ const SIZE_ICON_PX: Record<ButtonSize, number> = {
   xl: 28,
 };
 
+// Figma Type_State_Matrix(outline_b)·Button 실측: 가로 패딩은 4px 이지만 고정폭 안에서
+// 중앙정렬돼 실효 여백이 ~12px 다. 유동 폭이라 그 실효값을 px 로 준다.
+const SIZE_PADDING_X_CLASSNAME: Record<ButtonSize, string> = {
+  xs: 'px-3',
+  s: 'px-3',
+  m: 'px-4',
+  l: 'px-5',
+  xl: 'px-6',
+};
+
 const SIZE_PADDING_Y_CLASSNAME: Record<ButtonSize, string> = {
-  xs: 'py-1.5',
+  xs: '', // 높이는 h-8(=Figma h-32) 로 고정하고 세로 중앙정렬
   s: 'py-2',
   m: 'py-2',
   l: 'py-2',
   xl: 'py-2',
+};
+
+// xs 만 고정 높이(Figma Type_State_Matrix h-32). 나머지는 패딩+콘텐츠로 결정(s=38px 등).
+const SIZE_HEIGHT_CLASSNAME: Record<ButtonSize, string> = {
+  xs: 'h-8',
+  s: '',
+  m: '',
+  l: '',
+  xl: '',
 };
 
 export function Button({
@@ -99,7 +118,9 @@ export function Button({
       type={type}
       disabled={disabled}
       className={[
-        'rounded-m focus-visible:outline-border-active inline-flex items-center justify-center gap-1 px-1 whitespace-nowrap outline-offset-2 transition-colors focus-visible:outline-2 disabled:pointer-events-none motion-reduce:transition-none',
+        'rounded-m focus-visible:outline-border-active inline-flex items-center justify-center gap-1 whitespace-nowrap outline-offset-2 transition-colors focus-visible:outline-2 disabled:pointer-events-none motion-reduce:transition-none',
+        SIZE_HEIGHT_CLASSNAME[size],
+        SIZE_PADDING_X_CLASSNAME[size],
         SIZE_PADDING_Y_CLASSNAME[size],
         VARIANT_CLASSNAME[variant],
         textClassName,

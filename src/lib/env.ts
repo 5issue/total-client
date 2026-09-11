@@ -37,10 +37,20 @@ if (!clientParsed.success) {
   );
 }
 
-const isServer = typeof window === 'undefined';
-
+/**
+ * 서버 전용 값은 런타임에 주입된다(K8s ConfigMap/Secret) — 빌드 타임엔 없다.
+ * 그래서 모듈 로드가 아니라 "첫 접근" 시점에 lazy 검증한다: `next build` 의 page-data
+ * 수집은 이 게터를 호출하지 않으므로 빌드에 서버 env 가 필요 없고, 실제 요청 처리 때
+ * 값이 빠져 있으면 그때 명확히 throw 한다.
+ */
 let serverEnv: z.infer<typeof serverSchema> | null = null;
-if (isServer) {
+
+function readServerEnv(): z.infer<typeof serverSchema> {
+  if (typeof window !== 'undefined') {
+    throw new Error('[env] API_INTERNAL_URL 은 서버에서만 접근할 수 있습니다.');
+  }
+  if (serverEnv) return serverEnv;
+
   const serverParsed = serverSchema.safeParse({
     API_INTERNAL_URL: process.env.API_INTERNAL_URL,
   });
@@ -52,16 +62,14 @@ if (isServer) {
     );
   }
   serverEnv = serverParsed.data;
+  return serverEnv;
 }
 
 export const env = {
   ...clientParsed.data,
-  /** 서버 전용. 브라우저에서 접근하면 throw. */
+  /** 서버 전용. 첫 접근 시 검증하고 메모이즈한다. 브라우저에서 접근하면 throw. */
   get API_INTERNAL_URL(): string {
-    if (!serverEnv) {
-      throw new Error('[env] API_INTERNAL_URL 은 서버에서만 접근할 수 있습니다.');
-    }
-    return serverEnv.API_INTERNAL_URL;
+    return readServerEnv().API_INTERNAL_URL;
   },
 } as const;
 

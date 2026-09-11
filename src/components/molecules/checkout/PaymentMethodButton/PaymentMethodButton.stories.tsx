@@ -37,6 +37,12 @@ export const TextType: Story = {
   args: { type: 'text', label: '신용카드', showBenefitBadge: false },
 };
 
+/** type="logo-image"(issue #67) — 토스페이는 Figma에 벡터가 없는 raster 전용 로고. */
+export const LogoImageType: Story = {
+  name: '로고형 — raster 전용(토스페이)',
+  args: { type: 'logo-image', logo: 'toss-pay', label: '토스페이' },
+};
+
 export const AllPaymentMethods: Story = {
   name: '결제수단 라디오그룹 예시',
   render: () => {
@@ -67,11 +73,31 @@ export const AllPaymentMethods: Story = {
             selected={selected === 'samsung-pay'}
             onClick={() => setSelected('samsung-pay')}
           />
+          <PaymentMethodButton
+            type="logo-image"
+            logo="toss-pay"
+            label="토스페이"
+            selected={selected === 'toss-pay'}
+            onClick={() => setSelected('toss-pay')}
+          />
           <PaymentMethodButton type="text" label="신용카드" disabled />
         </div>
       );
     }
     return <Group />;
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const kakaoRadio = canvas.getByRole('radio', { name: '카카오페이' });
+    const tossRadio = canvas.getByRole('radio', { name: '토스페이' });
+
+    await expect(kakaoRadio).toHaveAttribute('aria-checked', 'true');
+    await expect(tossRadio).toHaveAttribute('aria-checked', 'false');
+
+    await userEvent.click(tossRadio);
+
+    await expect(tossRadio).toHaveAttribute('aria-checked', 'true');
+    await expect(kakaoRadio).toHaveAttribute('aria-checked', 'false');
   },
 };
 

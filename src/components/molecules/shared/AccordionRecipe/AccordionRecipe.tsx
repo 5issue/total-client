@@ -87,7 +87,7 @@ export function AccordionRecipe({
               key={`${item.name}-${i}`}
               className="border-border bg-surface rounded-m flex items-center gap-2 border px-3 py-2"
             >
-              <div className="bg-fg-disabled relative size-15 shrink-0 overflow-hidden rounded-s">
+              <div className="bg-fg-disabled relative size-15 shrink-0 overflow-hidden rounded-sm">
                 {item.thumbnailUrl?.startsWith('/') ? (
                   <Image
                     src={item.thumbnailUrl}
@@ -112,7 +112,7 @@ export function AccordionRecipe({
 
         <section className="flex flex-col gap-1">
           <p className="text-heading-6 text-fg-tertiary">사용 재료</p>
-          <div className="bg-surface flex gap-3 rounded-l px-3 py-2.5">
+          <div className="bg-surface flex gap-3 rounded-lg px-3 py-2.5">
             <IngredientColumn rows={left} />
             {right.length > 0 ? <div className="bg-border w-px shrink-0 self-stretch" /> : null}
             {right.length > 0 ? <IngredientColumn rows={right} /> : null}

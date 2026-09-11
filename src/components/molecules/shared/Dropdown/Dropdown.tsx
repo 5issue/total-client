@@ -160,7 +160,7 @@ export function Dropdown({
   const boxClass =
     variant === 'box'
       ? [
-          'rounded-s border border-border',
+          'rounded-sm border border-border',
           disabled ? 'bg-surface-secondary' : 'bg-surface',
           block ? 'py-1 pr-3 pl-4' : 'h-10 px-3 py-2',
         ].join(' ')
@@ -229,7 +229,7 @@ export function Dropdown({
                     : isSelected
                       ? 'text-label-l text-primary cursor-pointer'
                       : 'text-label-m text-fg cursor-pointer',
-                  isActive ? 'bg-surface-secondary rounded-s' : '',
+                  isActive ? 'bg-surface-secondary rounded-sm' : '',
                 ]
                   .filter(Boolean)
                   .join(' ')}

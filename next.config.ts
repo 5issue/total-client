@@ -3,7 +3,10 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   // EKS 배포용: .next/standalone 에 server.js + 최소 node_modules 를 추려 담는다.
-  output: 'standalone',
+  // Vercel 은 자체 서버리스 패키징(Node File Trace)을 쓰는데 standalone 출력과 충돌해
+  // "ENOENT .next/next-server.js.nft.json" 로 빌드가 깨진다 — Vercel 빌드(`VERCEL` 환경변수
+  // 자동 주입)에서만 끈다. Docker/K8s 빌드는 그대로 standalone 을 쓴다.
+  output: process.env.VERCEL ? undefined : 'standalone',
   reactStrictMode: true,
   // 실기기(폰)에서 같은 네트워크의 맥 IP로 접속해 dev 서버를 테스트할 때 필요 —
   // 없으면 Next 16 이 보안상 localhost 가 아닌 origin 의 dev 리소스(JS 청크 등)

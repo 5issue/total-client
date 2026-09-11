@@ -32,10 +32,11 @@ export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement
   label: string;
 }
 
-// 24px 는 Figma 실측 고정값(2426:1195, 벡터 18px + 여백 3px) — 시각 크기는 그대로 두고,
-// 44px 터치 타깃은 감싸는 label 쪽에서 확보한다(code-style §5).
+// 18px 는 Figma 실측 고정값 — 박스(fill/border) 자체 크기이고, 그 위에 여백 3px 를 더한
+// 24px 프레임이 감싼다(2426:1195 / node 188-8927 Group 26: radius 3.727 ≈ radius/s).
+// 이전엔 24px 프레임을 박스로 그려 실제보다 컸다. 44px 터치 타깃은 감싸는 label(size-11)이 확보한다(code-style §5).
 const BASE_CLASSNAME =
-  'peer size-6 shrink-0 appearance-none rounded-s transition-colors ' +
+  'peer size-4.5 shrink-0 appearance-none rounded-sm transition-colors ' +
   'disabled:pointer-events-none ' +
   'focus-visible:outline-border-active outline-offset-2 focus-visible:outline-2 ' +
   'motion-reduce:transition-none';

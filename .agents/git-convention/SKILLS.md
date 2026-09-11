@@ -31,6 +31,15 @@
 - 한 브랜치 = 한 목적. 관련 없는 변경 섞지 않는다.
 - 신규 PR 은 GitHub 기본 브랜치 설정에 따라 `develop` 을 기본 타깃으로 잡는다. `main` 을 대상으로 하는 PR 은 릴리스(`develop`→`main`)와 `hotfix` 뿐이다.
 
+### 1-1. 배포 경로 (실배포 vs 스테이징)
+
+| 경로       | 트리거              | 용도                                   | 비고                                                                                                           |
+| ---------- | ------------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **EKS**    | `main` (릴리스)     | **실배포** — 인프라팀 관리             | `output: 'standalone'` + 3-stage Dockerfile(`Node 24.19.0-slim`) + `k8s/*.example.yaml`. 변경 시 인프라팀 협의 |
+| **Vercel** | `develop`/브랜치·PR | 스테이징 — Vercel 자체 서버리스 패키징 | `next.config.ts` 가 `process.env.VERCEL` 로 분기해 `output: 'standalone'` 을 끈다(EKS 경로엔 영향 없음)        |
+
+같은 `next.config.ts`·`package.json` 을 두 경로가 함께 쓴다 — `output: 'standalone'` 은 `VERCEL` 환경변수가 없을 때(EKS/로컬 Docker)만 적용되고, Vercel 빌드에서는 Vercel 이 자체적으로 서버리스 패키징한다(issue #78).
+
 ## 2. Conventional Commits
 
 형식:
