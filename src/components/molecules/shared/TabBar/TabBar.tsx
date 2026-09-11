@@ -14,6 +14,11 @@ import { TabItem, type TabItemSize, type TabItemTone } from '@/components/atoms/
  * 컨테이너는 Figma dev-mode 실측 기준 `padding: 0 8px` 만 갖고 아이템끼리는 gap 없이
  * 바로 붙는다 — Gap/XS(8px)는 프레임 사이 간격이 아니라 각 TabItem 자신의 내부
  * 패딩(프레임↔텍스트)이다. 탭 사이 여백은 각 아이템의 내부 패딩만으로 만들어진다.
+ *
+ * `(shop)` 화면은 `SwipeTabShell` 이 화면 전체 터치를 감시해 좌우 스와이프로 하단 탭을
+ * 전환한다(`useSwipeTabNavigation`). 이 가로 스크롤 컨테이너 안에서 탭을 스크롤하면 그
+ * 터치가 그대로 버블링돼 하단 탭 전환과 충돌한다(예: 상품 상세 정보 탭을 넘기려다 다른
+ * 라우트로 튕김) — 터치 시작/종료를 여기서 끊어 상위로 못 가게 막는다.
  */
 export type TabBarItem = {
   id: string;
@@ -81,6 +86,8 @@ export function TabBar({
   return (
     <div
       role="tablist"
+      onTouchStart={(event) => event.stopPropagation()}
+      onTouchEnd={(event) => event.stopPropagation()}
       className={`border-border flex border-b px-2 ${fitted ? '' : 'overflow-x-auto'} ${className ?? ''}`.trim()}
     >
       {items.map((item) => (
