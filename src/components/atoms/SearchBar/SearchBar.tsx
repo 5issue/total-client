@@ -21,11 +21,11 @@ import { Icon } from '@/components/atoms/Icon';
  * - 루트에 `w-full` 필수 — flex 부모(예: `SectionHeader` 의 center 슬롯) 안에서는
  *   grow 없는 flex 아이템이 콘텐츠 너비로만 줄어들어(#69 에서 실측 발견) 검색창이
  *   좁게 렌더된다. block 부모에서는 원래도 기본 동작이라 시각 차이 없다.
- * - `<input>` 만 `text-[16px]!` 로 `text-body-l`(15px)의 font-size 를 덮어쓴다 —
- *   iOS Safari 는 포커스되는 입력의 font-size 가 16px 미만이면 자동으로 확대하고
- *   원상 복구를 안 한다. `viewport` 의 `user-scalable` 을 막는 건 접근성 위반
- *   (security FE 컨벤션)이라 못 쓰므로, 이 입력만 16px 로 올려 확대 자체를 막는다.
- *   line-height/letter-spacing/font-weight 는 `text-body-l` 나머지 값을 그대로 쓴다.
+ * - `<input>` 은 `text-body-l` 이 아니라 `text-input`(16px, 나머지 값은 body-l 과
+ *   동일) 을 쓴다 — iOS Safari 는 포커스되는 입력의 font-size 가 16px 미만이면
+ *   자동으로 확대하고 원상 복구를 안 한다. `viewport` 의 `user-scalable` 을 막는 건
+ *   접근성 위반(security FE 컨벤션)이라 못 쓰므로, 토큰 자체를 16px 로 둔다
+ *   (`styles/tokens/typography.css` 참고).
  */
 export interface SearchBarProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
   /** `<label htmlFor>` 로 연결되는 접근성 라벨. */
@@ -99,7 +99,7 @@ export function SearchBar({
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           aria-describedby={describedBy}
-          className="text-body-l text-fg placeholder:text-fg-quaternary min-w-0 flex-1 bg-transparent text-[16px]! placeholder:font-medium focus:outline-none [&::-webkit-search-cancel-button]:appearance-none"
+          className="text-input text-fg placeholder:text-fg-quaternary min-w-0 flex-1 bg-transparent placeholder:font-medium focus:outline-none [&::-webkit-search-cancel-button]:appearance-none"
           {...props}
         />
         {showClear ? (

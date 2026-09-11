@@ -89,6 +89,14 @@
   --text-body-s--letter-spacing: 0;
   --text-body-s--font-weight: 400;
 
+  /* body-l 과 line-height/letter-spacing/font-weight 는 동일하고 font-size 만 16px.
+     iOS Safari 는 포커스되는 입력의 font-size 가 16px 미만이면 자동으로 확대하고
+     원상 복구를 안 한다 — `<input>` 전용 최소 크기(body-l 처럼 보이되 확대 방지). */
+  --text-input: 16px;
+  --text-input--line-height: 20px;
+  --text-input--letter-spacing: 0.01em;
+  --text-input--font-weight: 700;
+
   /* ── Label (Pretendard) ── */
   --text-label-xl: 14px;
   --text-label-xl--line-height: 20px;
