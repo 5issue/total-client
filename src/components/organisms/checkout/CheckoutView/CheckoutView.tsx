@@ -5,7 +5,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/atoms/Button';
-import { Checkbox } from '@/components/atoms/Checkbox';
 import { Icon } from '@/components/atoms/Icon';
 import { InfoBox } from '@/components/atoms/InfoBox';
 import { Textarea } from '@/components/atoms/Textarea';
@@ -51,9 +50,8 @@ export function CheckoutView() {
   const [deliveryDetailDraft, setDeliveryDetailDraft] = useState('');
   const [deliveryModal, setDeliveryModal] = useState<DeliveryDetailModal>(null);
   const [termsModal, setTermsModal] = useState<TermsModal>(null);
-  const [agreed, setAgreed] = useState(false);
 
-  const canPay = deliveryDetail != null && deliveryDetail.trim() !== '' && agreed;
+  const canPay = deliveryDetail != null && deliveryDetail.trim() !== '';
 
   function openDeliveryModal() {
     setDeliveryDetailDraft(deliveryDetail ?? '');
@@ -80,7 +78,7 @@ export function CheckoutView() {
             className="text-heading-6 text-fg flex items-center gap-2"
           >
             {MOCK_CUSTOMER.name}, {MOCK_CUSTOMER.phone}
-            <Icon name="arrow-right" size={20} aria-hidden />
+            <Icon name="arrow-down" size={24} aria-hidden />
           </button>
         </div>
 
@@ -124,7 +122,7 @@ export function CheckoutView() {
               ) : (
                 <span className="text-primary flex items-center gap-1">
                   <span className="text-heading-4">배송 상세 정보를 입력해주세요</span>
-                  <Icon name="alert" size={20} aria-hidden />
+                  <Icon name="arrow-right" size={20} aria-hidden />
                 </span>
               )}
               <Button
@@ -185,14 +183,14 @@ export function CheckoutView() {
               </div>
               <div className="text-body-m text-fg-disabled flex w-full items-center justify-between">
                 <span className="flex items-center gap-1">
-                  <Icon name="coupon" size={20} aria-hidden />
+                  <Icon name="corner-bottom-left" size={20} aria-hidden />
                   적립금
                 </span>
                 <span>0 원</span>
               </div>
               <div className="text-body-m text-fg-disabled flex w-full items-center justify-between">
                 <span className="flex items-center gap-1">
-                  <Icon name="coupon" size={20} aria-hidden />
+                  <Icon name="corner-bottom-left" size={20} aria-hidden />
                   컬리캐시
                 </span>
                 <span>0 원</span>
@@ -202,7 +200,7 @@ export function CheckoutView() {
             <div className="flex items-center justify-between gap-2">
               <div
                 aria-hidden
-                className="bg-surface-secondary border-border text-body-m text-fg-disabled rounded-sm border px-4 py-3.25"
+                className="bg-surface-secondary border-border text-body-m text-fg-disabled flex-1 rounded-sm border px-4 py-3.25"
               >
                 0
               </div>
@@ -212,12 +210,12 @@ export function CheckoutView() {
             </div>
 
             <ul className="flex flex-col gap-1">
-              <li className="text-label-m text-fg-tertiary flex items-center gap-1">
-                <Icon name="info-line" size={16} aria-hidden />
+              <li className="text-label-m text-fg-tertiary flex items-center gap-1.5">
+                <NoticeDot />
                 적립금이 컬리캐시보다 먼저 사용돼요.
               </li>
-              <li className="text-label-m text-fg-tertiary flex items-center gap-1">
-                <Icon name="info-line" size={16} aria-hidden />
+              <li className="text-label-m text-fg-tertiary flex items-center gap-1.5">
+                <NoticeDot />
                 컬리캐시는 컬리페이 가입 후 사용할 수 있어요.
               </li>
             </ul>
@@ -284,7 +282,7 @@ export function CheckoutView() {
 
         {/* 약관동의 */}
         <div className="bg-surface flex flex-col">
-          <ul className="text-label-m text-fg-quaternary list-disc px-6 py-5">
+          <ul className="text-label-m text-fg-quaternary list-disc px-3 py-5">
             <li>
               [주문완료], [배송준비중] 상태일 경우에만 주문 취소가 가능하며, 상품 미배송 시 결제하신
               수단으로 환불 됩니다.
@@ -318,15 +316,11 @@ export function CheckoutView() {
             </div>
           </div>
 
-          <label className="flex items-center gap-2 px-4 py-3">
-            <Checkbox
-              variant="filled"
-              label="위 내용을 확인하였으며 결제에 동의합니다."
-              checked={agreed}
-              onChange={(e) => setAgreed(e.target.checked)}
-            />
-            <span className="text-body-m text-fg">위 내용을 확인하였으며 결제에 동의합니다.</span>
-          </label>
+          {/* Figma 원본엔 체크박스가 없다(node 666-23404, 텍스트 한 줄만) — 결제 동의는
+              하단 "결제하기" 버튼 누르는 행위 자체가 갈음한다. */}
+          <p className="text-body-m text-fg px-4 pt-3 pb-8">
+            위 내용을 확인하였으며 결제에 동의합니다.
+          </p>
         </div>
       </div>
 
@@ -383,6 +377,18 @@ export function CheckoutView() {
         }
       />
     </>
+  );
+}
+
+/**
+ * 적립금·컬리캐시 안내 문구 앞 작은 점(Figma node 666-23277/23281, 16px 프레임 안 지름 2px
+ * 점) — 우리 `dot` 아이콘(20px 안 지름 10px)은 너무 커서 재사용하지 않고 그대로 옮겼다.
+ */
+function NoticeDot() {
+  return (
+    <span aria-hidden className="inline-flex size-4 shrink-0 items-center justify-center">
+      <span className="bg-fg-tertiary size-1 rounded-full" />
+    </span>
   );
 }
 

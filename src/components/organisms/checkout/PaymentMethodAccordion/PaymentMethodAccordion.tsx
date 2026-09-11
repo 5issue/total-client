@@ -27,6 +27,9 @@ import type { OtherPaymentMethodId, PaymentMethodId } from '@/components/organis
  *
  * 컬리캐시 충전결제의 케이뱅크 그라디언트 뱃지·리스트 각 행의 "혜택" 태그·배송지의
  * "기본배송지" 필은 전부 `StatusLabel`(kbank/rewards/defaultAddress) 재사용 — 새로 안 만든다.
+ *
+ * N Pay 는 아직 이용 불가 수단이라 `disabled`(2026-09-11 확인) — 선택·라디오 포커스 모두 막고
+ * 흐리게(`opacity-40`) 표시한다.
  */
 export interface PaymentMethodAccordionProps {
   method: PaymentMethodId;
@@ -54,6 +57,7 @@ function OptionRow({
   label,
   checked,
   onSelect,
+  disabled = false,
   children,
 }: {
   value: PaymentMethodId;
@@ -61,22 +65,30 @@ function OptionRow({
   label: string;
   checked: boolean;
   onSelect: () => void;
+  /** 아직 미제공 수단(예: 네이버페이) — 선택 불가, `CartLineItem` 품절과 같은 흐림 처리. */
+  disabled?: boolean;
   children: ReactNode;
 }) {
   return (
-    <div className="flex w-full items-center gap-1 px-4 py-2">
+    <div
+      className={['flex w-full items-center gap-1 px-4 py-2', disabled && 'opacity-40']
+        .filter(Boolean)
+        .join(' ')}
+    >
       <Radio
         name="payment-method"
         value={value}
         label={label}
         tone="black"
         checked={checked}
+        disabled={disabled}
         onChange={onSelect}
       />
       <button
         type="button"
         onClick={onSelect}
-        className="flex min-w-0 flex-1 items-center justify-between gap-1 text-left"
+        disabled={disabled}
+        className="flex min-w-0 flex-1 items-center justify-between gap-1 text-left disabled:pointer-events-none"
       >
         {children}
       </button>
@@ -139,9 +151,10 @@ export function PaymentMethodAccordion({
 
         <OptionRow
           value="naverpay"
-          label="네이버페이"
+          label="네이버페이 — 이용 불가"
           checked={method === 'naverpay'}
           onSelect={() => onMethodChange('naverpay')}
+          disabled
         >
           <Logo name="naver-pay" height={20} aria-hidden />
           <RewardsTag />
