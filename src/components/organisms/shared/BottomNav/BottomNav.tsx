@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 
 import type { TabName } from '@/components/atoms/TabIcon';
 import { BottomNavItem } from '@/components/molecules/shared/BottomNavItem';
+import { useUIStore } from '@/hooks/useUIStore';
 
 import { isNavItemActive, NAV_ITEMS } from './nav-items';
 
@@ -15,6 +16,10 @@ import { isNavItemActive, NAV_ITEMS } from './nav-items';
  * 스와이프로 탭 전환은 이 컴포넌트가 아니라 SwipeTabShell(organisms/shared/SwipeTabShell)
  * 이 (shop) 레이아웃 전체를 감싸 처리한다 — "바 위에서만"이 아니라 화면 어디서든 스와이프가
  * 되어야 한다는 요구(디자인팀, PR #58 리뷰)라 이 컴포넌트 범위를 벗어난다.
+ *
+ * 검색 화면 SearchBar 가 포커스(키패드 ON) 상태면 스스로 숨는다 — Figma "화면"
+ * node 577-13645(키패드 ON) 목업엔 하단 탭바가 없다(키보드가 그 자리를 차지).
+ * `uiStore.isSearchInputFocused` 는 `organisms/search/SearchPageHeader` 가 설정.
  */
 export type BottomNavProps = {
   /** 탭별 알림 배지. 알림 도메인 훅이 아직 없어 상위 컨테이너가 주입하는 형태로 시작
@@ -25,11 +30,14 @@ export type BottomNavProps = {
 
 export function BottomNav({ badges, className }: BottomNavProps) {
   const pathname = usePathname();
+  const isSearchInputFocused = useUIStore((s) => s.isSearchInputFocused);
+
+  if (isSearchInputFocused) return null;
 
   return (
     <nav
       aria-label="주요 메뉴"
-      className={`fixed inset-x-0 bottom-0 z-50 flex justify-center px-6 pt-4 pb-7 ${className ?? ''}`.trim()}
+      className={`pb-nav-pb-safe fixed inset-x-0 bottom-0 z-50 flex justify-center px-6 pt-4 ${className ?? ''}`.trim()}
     >
       {/* 흰 pill(BG)은 콘텐츠 행(352px)보다 사방 4px 더 큰 inset(-4px) 레이어다(node 2368-429
           "BG") — 실제 pill 은 360×62. 콘텐츠 행을 정확히 352px(w-88)로 고정하고 p-1(4px)

@@ -15,6 +15,12 @@ export interface ChipProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   selected?: boolean;
   /** 제공하면 outline 스타일 + trailing 삭제 버튼으로 렌더한다. */
   onRemove?: () => void;
+  /**
+   * `onRemove` 버전 전용 — 배경 채움 여부. 기본 `'tag'`(회색 배경, 기존 스펙 그대로).
+   * `'none'` 은 배경 없이 테두리만(Figma 노드에 background 속성 자체가 없는 케이스,
+   * 예: "최근 검색어" 칩 — Border/Strong 테두리만 있고 채움이 없다).
+   */
+  fill?: 'tag' | 'none';
   /** 장식용(aria-hidden)으로 렌더한다 — 접근 가능한 이름은 항상 `children` 텍스트가 담당. */
   leadingIcon?: IconName;
   /** 아이콘 전용 사용은 미지원이라 항상 필수 — 텍스트 없는 칩이 accessible name 을 잃는 것을 막는다. */
@@ -39,6 +45,7 @@ const OUTLINE_FILL_CLASSNAME = 'bg-surface-tag active:bg-surface-tag-active';
 export function Chip({
   selected = false,
   onRemove,
+  fill = 'tag',
   leadingIcon,
   disabled,
   className,
@@ -54,7 +61,7 @@ export function Chip({
         className={[
           BASE_CLASSNAME,
           'border-border text-label-l text-fg rounded-full border px-4 py-2',
-          OUTLINE_FILL_CLASSNAME,
+          fill === 'tag' ? OUTLINE_FILL_CLASSNAME : '',
           disabled ? 'pointer-events-none opacity-50' : '',
           className,
         ]

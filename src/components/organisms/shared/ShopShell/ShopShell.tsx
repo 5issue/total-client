@@ -34,8 +34,10 @@ export function ShopShell({ children }: { children: ReactNode }) {
 
   return (
     <>
-      {/* pb-24: BottomNav 가 fixed 라 문서 흐름을 안 차지하는 만큼(실측 ~98px) 콘텐츠 하단 예약. */}
-      <main className="flex flex-1 flex-col pb-24">
+      {/* BottomNav 가 fixed 라 문서 흐름을 안 차지하는 만큼 콘텐츠 하단을 예약한다 —
+          디자인팀 핸드오프 기준값(BottomNav만 있는 화면 112px, globals.css
+          `--spacing-bottom-nav-safe` 참고)과 정확히 일치시킨 값이라 근사치가 아니다. */}
+      <main className="pb-bottom-nav-safe flex flex-1 flex-col">
         <SwipeTabShell className="flex-1">{children}</SwipeTabShell>
       </main>
       <BottomNav />

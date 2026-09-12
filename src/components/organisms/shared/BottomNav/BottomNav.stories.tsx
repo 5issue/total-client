@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { expect, within } from 'storybook/test';
 
+import { UIStoreProvider } from '@/providers/UIStoreProvider';
+
 import { BottomNav } from './BottomNav';
 
 /**
@@ -34,6 +36,13 @@ const meta = {
       <div className="w-mobile-frame relative mx-auto h-40 overflow-hidden contain-layout">
         <Story />
       </div>
+    ),
+    // BottomNav 가 isSearchInputFocused(uiStore)를 읽는다 — 실제 앱은 app/providers.tsx
+    // 가 항상 감싸지만 Storybook 은 그 트리 바깥이라 이 스토리에서 직접 제공해야 한다.
+    (Story) => (
+      <UIStoreProvider>
+        <Story />
+      </UIStoreProvider>
     ),
   ],
 } satisfies Meta<typeof BottomNav>;
