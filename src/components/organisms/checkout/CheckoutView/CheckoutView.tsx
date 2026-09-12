@@ -118,16 +118,19 @@ export function CheckoutView() {
       <SectionHeader leading="back" onLeadingClick={() => router.back()} title="주문서" />
 
       {/* node 666-23688: [주문하기] 눌렀는데 필수값이 비어있을 때 상단에 뜨는 에러 토스트.
-          화면 스크롤과 무관하게 계속 보이도록 fixed, 화면 상단과의 간격은 실측 84px(top-[84px]).
+          화면 스크롤과 무관하게 계속 보이도록 fixed, 화면 상단과의 간격은 실측 84px(top-21,
+          Tailwind 스케일 21*4px=84px — 코드리뷰 지적대로 임의값 대신 스케일 값 사용).
           피드백: 위에서 아래로 슬라이드해 내려오고 5초 뒤 다시 위로 슬라이드해 사라진다 —
           `{cond ? <Toast/> : null}` 로 마운트/언마운트하면 사라질 때 트랜지션이 안 걸리므로,
-          항상 마운트해두고 translate-y 만 토글한다(OrderItemsSection 과 같은 원칙). */}
+          항상 마운트해두고 translate-y 만 토글한다(OrderItemsSection 과 같은 원칙).
+          -translate-y-50(50*4px=200px, 토스트 자체 높이보다 넉넉히 큰 값)도 같은 이유로
+          스케일 값. */}
       <div
         aria-hidden={!showValidationToast}
         className={[
-          'pointer-events-none fixed inset-x-0 top-[84px] z-50 flex justify-center px-4',
+          'pointer-events-none fixed inset-x-0 top-21 z-50 flex justify-center px-4',
           'transition-transform duration-300 ease-out motion-reduce:transition-none',
-          showValidationToast ? 'translate-y-0' : '-translate-y-[200px]',
+          showValidationToast ? 'translate-y-0' : '-translate-y-50',
         ].join(' ')}
       >
         <Toast variant="error">배송 상세정보를 입력해주세요.</Toast>
@@ -362,8 +365,14 @@ export function CheckoutView() {
           <p className="text-heading-4 text-fg">결제금액</p>
 
           <div className="flex flex-col gap-4">
+            {/* 코드리뷰 지적: "주문 금액"(상단, 굵게)은 상품금액 자체가 아니라 상품금액-상품할인금액
+                (순액) — Figma 실측(주문 금액 30,800원 ≠ 상품금액 35,240원, 30,800 = 35,240-4,440)
+                확인 후 수정. 이전엔 상품금액을 그대로 재사용해 상단 숫자가 실측보다 컸다. */}
             <div className="flex flex-col gap-2">
-              <CartAmountRow label="주문 금액" value={won(MOCK_AMOUNTS.productPrice)} />
+              <CartAmountRow
+                label="주문 금액"
+                value={won(MOCK_AMOUNTS.productPrice - MOCK_AMOUNTS.productDiscount)}
+              />
               <AmountDetailRow label="상품금액" value={won(MOCK_AMOUNTS.productPrice)} />
               <AmountDetailRow
                 label="상품할인금액"
@@ -556,6 +565,7 @@ export function CheckoutView() {
         open={orderExpired}
         onClose={() => setOrderExpired(false)}
         closeOnBackdrop={false}
+        closeOnEscape={false}
         title="주문시간이 초과되었어요"
         description="주문시간이 초과되어 장바구니로 이동합니다. 주문을 다시 시도해주세요."
         footer={

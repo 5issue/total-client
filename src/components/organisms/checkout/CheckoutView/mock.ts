@@ -34,7 +34,9 @@ export const MOCK_ORDER_ITEMS: OrderLineItemView[] = [
     id: 'item-4',
     name: '[풀무원] 동물복지 치킨 너겟 오리지널',
     price: 7979,
-    originalPrice: 7360,
+    // 코드리뷰 지적: 정가가 판매가보다 낮아(7360<7979) 할인율이 음수가 되는 오타였다 —
+    // Figma 실측(node 666-25427, 전용목장우유 외 3건 펼침 상태) 확인 후 8,980으로 정정.
+    originalPrice: 8980,
     quantity: 1,
   },
 ];
@@ -54,9 +56,13 @@ export const MOCK_DEFAULT_ADDRESS = {
   phone: '010-1234-1234',
 };
 
+// item-4 정가 수정에 맞춰 재계산: productPrice(정가 합) = 3400+10580+13900+8980 = 36860,
+// productDiscount((정가-판매가) 합) = 620+529+3910+1001 = 6060. total 은 판매가 합
+// (2780+10051+9990+7979=30800) 그대로라 안 바뀜 — Figma 실측(주문 금액/최종 결제금액
+// 둘 다 30,800원)과도 일치.
 export const MOCK_AMOUNTS: OrderAmounts = {
-  productPrice: 35240,
-  productDiscount: 4440,
+  productPrice: 36860,
+  productDiscount: 6060,
   shippingFee: 0,
   couponDiscount: 0,
   productCouponDiscount: 0,

@@ -21,7 +21,8 @@ export interface OrderLineItemView {
  * "결제예정금액"이 아니라 "최종 결제금액"이라 별도 타입으로 둔다(구조만 유사, 도메인 분리).
  */
 export interface OrderAmounts {
-  /** 주문 금액 — 상품금액 합계(= productPrice, 상단 헤더 값과 동일). */
+  /** 상품금액 — 정가(originalPrice) 합계. "주문 금액"(상단 헤더)은 이 값 그대로가 아니라
+   * `productPrice - productDiscount`(순액) — Figma 실측 확인(코드리뷰). */
   productPrice: number;
   /** 상품할인 금액 — (정가 − 판매가) 합계. */
   productDiscount: number;
