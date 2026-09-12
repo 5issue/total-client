@@ -7,7 +7,8 @@ import type { ChangeEvent, TextareaHTMLAttributes } from 'react';
  * 여러 줄 텍스트 입력 (atom).
  * Figma "5팀 디자인 시스템" — node 2409-4568 "Input_contents".
  *
- * - 상태: Default / Focused(자동) / Typing / Disabled.
+ * - 상태: Default / Focused(자동) / Typing / Finished.
+ *   `Finished` 는 작성이 끝나 더 못 고치는 상태 — `disabled` prop 으로 렌더한다(디자인 시스템 상태명 정정).
  * - 박스 우측 하단에 `hint`("최소 10자") 또는 `maxLength` 글자수 카운터를 표시한다.
  * - Figma 에는 error 상태가 없지만, 폼 규칙(§4)상 error 는 박스 아래 `role="alert"` 로 노출한다.
  * - `label` 은 접근성상 필수이며 기본은 시각적으로 숨긴다.

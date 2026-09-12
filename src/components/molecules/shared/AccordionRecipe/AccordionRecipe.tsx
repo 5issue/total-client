@@ -4,10 +4,12 @@ import { Accordion } from '@/components/molecules/shared/Accordion';
 
 /**
  * 보유 재료 기반 레시피 추천 아코디언 (molecule).
- * Figma "5팀 디자인 시스템" — node 2415-5383 "Accordion_Recipe".
+ * Figma "5팀 디자인 시스템" — node 2461-8440 "Accordion_Recipe".
  *
  * `Accordion` 셸을 쓰되 컨테이너가 컬러 카드(`surface-secondary`)이고, 펼치면
  * "보유 중" 상품 블록 + "사용 재료" 2열 표를 보여준다. 데이터는 props.
+ *
+ * 헤더 텍스트는 배치 화면에서 과하지 않도록 축소: 타이틀 `Heading/H4`(16), 요약 `Body/S`(15).
  */
 export interface AccordionRecipeIngredient {
   name: string;
@@ -68,8 +70,8 @@ export function AccordionRecipe({
       headerClassName="items-start gap-3"
       header={
         <span className="flex flex-col">
-          <span className="text-heading-1 text-fg">{title}</span>
-          <span className="text-heading-6 flex items-center gap-1">
+          <span className="text-heading-4 text-fg">{title}</span>
+          <span className="text-body-s flex items-center gap-1">
             <span className="text-fg-tertiary">보유 중</span>
             <span className="text-fg-secondary">{ownedCount}개</span>
             <span className="text-fg-quaternary mx-0.5">|</span>

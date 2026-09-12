@@ -55,9 +55,18 @@ const ITEMS = [
 const meta = {
   title: 'molecules/shared/AccordionOrder',
   component: AccordionOrder,
-  args: { title: '주문상품', deliveryLabel: '샛별배송', children: null, defaultOpen: true },
+  args: {
+    title: '주문상품',
+    deliveryLabel: '샛별배송',
+    summary: '[풀무원] 고소한 유기농 순두부 (2개입) 외 1건',
+    thumbnailUrls: ['', '', '', ''],
+    children: null,
+    defaultOpen: true,
+  },
   argTypes: {
     defaultOpen: { control: 'boolean' },
+    summary: { control: 'text' },
+    thumbnailUrls: { control: false },
     children: { control: false },
   },
   parameters: { layout: 'padded' },
@@ -84,6 +93,7 @@ export const Default: Story = {
   ),
 };
 
+/** Off 상태 — 헤더(60px) 아래에 요약 문구 + 썸네일 4개 미리보기(node 2461-8555). */
 export const Collapsed: Story = {
   args: { defaultOpen: false },
   render: (args) => (
@@ -93,6 +103,11 @@ export const Collapsed: Story = {
       ))}
     </AccordionOrder>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText('[풀무원] 고소한 유기농 순두부 (2개입) 외 1건')).toBeVisible();
+    await expect(canvas.queryByText('[풀무원] 국산 콩 무농약 두부 (300g)')).not.toBeVisible();
+  },
 };
 
 // --- 인터랙션 테스트 전용 (autodocs 에서 숨김) ---
