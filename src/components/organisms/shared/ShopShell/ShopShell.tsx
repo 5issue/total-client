@@ -10,8 +10,10 @@ import { SwipeTabShell } from '@/components/organisms/shared/SwipeTabShell';
 /**
  * (shop) 셸 크롬(BottomNav + 전역 스와이프 탭 + BottomNav 높이만큼의 하단 여백)을 두르지 않는
  * 경로. 자체 하단 CTA 를 가진 "밀어서 띄운" 전체화면 뷰 — 크롬을 켜면 CTA 와 겹친다.
+ * `/checkout`(주문서, 결제하기 CTA)도 같은 이유로 크롬리스(이슈 #82). `/mypage/addresses`
+ * (배송지 관리, 이슈 #72)도 동일.
  */
-const CHROMELESS_PREFIXES = ['/cart', '/mypage/addresses'];
+const CHROMELESS_PREFIXES = ['/cart', '/checkout', '/mypage/addresses'];
 
 function isChromeless(pathname: string): boolean {
   return CHROMELESS_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));

@@ -10,7 +10,8 @@ import { createPortal } from 'react-dom';
  * Figma "5팀 디자인 시스템" — node 2415-5998 "Modal".
  *
  * - `document.body` 에 포털. `role="dialog"` `aria-modal` + 포커스 트랩(Tab 순환) +
- *   열릴 때 포커스 이동·닫힐 때 트리거로 복귀 + `body` 스크롤 잠금 + Esc·백드롭으로 닫기.
+ *   열릴 때 포커스 이동·닫힐 때 트리거로 복귀 + `body` 스크롤 잠금 + Esc·백드롭으로 닫기
+ *   (각각 `closeOnEscape`/`closeOnBackdrop` 로 개별 차단 가능 — 기본은 둘 다 true).
  * - 상태를 갖지 않는 컨트롤드 — `open` / `onClose` 는 부모 소유.
  * - 액션 버튼은 `footer` 슬롯으로 받는다(Button atom 도입 후 그걸로 채운다).
  *   `footerLayout` 이 Figma Button_Align(가로/세로)에 대응.
@@ -29,6 +30,8 @@ export interface ModalProps {
   footerLayout?: 'row' | 'column';
   /** 백드롭 클릭으로 닫기. 기본 true. */
   closeOnBackdrop?: boolean;
+  /** Esc 키로 닫기. 기본 true. 주문시간 초과처럼 확인 버튼으로만 닫혀야 하는 모달은 false. */
+  closeOnEscape?: boolean;
   /** 카드에 적용할 클래스(폭 조정 등). */
   className?: string;
 }
@@ -48,6 +51,7 @@ export function Modal({
   footer,
   footerLayout = 'row',
   closeOnBackdrop = true,
+  closeOnEscape = true,
   className,
 }: ModalProps) {
   const uid = useId();
@@ -79,7 +83,7 @@ export function Modal({
   function handleKeyDown(e: KeyboardEvent<HTMLDivElement>) {
     if (e.key === 'Escape') {
       e.preventDefault();
-      onClose();
+      if (closeOnEscape) onClose();
       return;
     }
     if (e.key !== 'Tab' || !cardRef.current) return;
