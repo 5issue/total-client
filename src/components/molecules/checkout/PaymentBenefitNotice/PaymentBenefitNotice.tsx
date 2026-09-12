@@ -15,7 +15,8 @@ export interface PaymentBenefitNoticeProps {
 export function PaymentBenefitNotice({ title, bullets, className }: PaymentBenefitNoticeProps) {
   return (
     <div className={['flex flex-col', className].filter(Boolean).join(' ')}>
-      <p className="text-label-m text-fg-secondary">{title}</p>
+      {/* 피드백 감사 중 발견: Figma 실측은 SemiBold(600) — text-label-m(500) 아니라 text-label-l. */}
+      <p className="text-label-l text-fg-secondary">{title}</p>
       <ul className="text-caption-m text-fg-tertiary list-disc">
         토스페이 1만원 이상 결제 시, 1만원 토스포인트 추첨 적립
       </ul>

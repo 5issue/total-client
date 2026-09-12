@@ -362,7 +362,9 @@ export function PaymentMethodAccordion({
             앞 구분선이 여백을 대신한다. 안쪽은 제목↔안내 사이 gap/xs(8px). */}
         <div className="flex flex-col gap-3 px-4 pt-3">
           <div className="flex flex-col gap-2">
-            <p className="text-label-m text-fg-secondary">무이자 혜택</p>
+            {/* 피드백 감사 중 발견: Figma 실측은 Regular/12px(text-caption-m) — text-label-m
+                (500/14px) 은 굵기·크기 둘 다 달랐다. */}
+            <p className="text-caption-m text-fg-secondary">무이자 혜택</p>
             <PaymentBenefitNotice
               title="토스페이"
               bullets={['컬리 회원 중 300명 추첨 제공', '토스ID 당 1회 혜택 적용 - 9/1 ~ 9/30']}

@@ -8,7 +8,6 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/atoms/Button';
 import { Icon } from '@/components/atoms/Icon';
 import { InfoBox } from '@/components/atoms/InfoBox';
-import { Input } from '@/components/atoms/Input';
 import { Toast } from '@/components/atoms/Toast';
 import { CartAmountRow } from '@/components/molecules/cart/CartAmountRow';
 import { Accordion } from '@/components/molecules/shared/Accordion';
@@ -49,8 +48,9 @@ import { MOCK_AMOUNTS, MOCK_CUSTOMER, MOCK_DEFAULT_ADDRESS, MOCK_ORDER_ITEMS } f
  * 미연동) 클라이언트 타이머로 흉내만 낸다 — `ORDER_TIME_LIMIT_MS` 는 실제 정책값이 아니라
  * 임시 추정치, 서버 세션 만료 API 나오면 그걸로 교체.
  */
-type DeliveryDetailModal = 'edit' | null;
-/** 배송 상세정보 — node 666-24922: "{위치} | 공동현관 비밀번호({코드})" + "{받는분}, {전화번호}". */
+/** 배송 상세정보 — node 666-24922: "{위치} | 공동현관 비밀번호({코드})" + "{받는분}, {전화번호}".
+ * 편집 UI(모달)는 피드백으로 제거됐다 — 지금은 `deliveryDetail` 을 채울 방법이 없어
+ * 항상 미입력 상태로 남는다(canPay 도 항상 false). 다음 편집 UI가 정해지면 다시 연결할 것. */
 interface DeliveryDetail {
   location: string;
   passcode: string;
@@ -72,10 +72,8 @@ export function CheckoutView() {
   const [otherPaymentMethod, setOtherPaymentMethod] = useState<OtherPaymentMethodId>('card');
   const [cardIssuer, setCardIssuer] = useState<string | null>(null);
 
-  const [deliveryDetail, setDeliveryDetail] = useState<DeliveryDetail | null>(null);
-  const [locationDraft, setLocationDraft] = useState('');
-  const [passcodeDraft, setPasscodeDraft] = useState('');
-  const [deliveryModal, setDeliveryModal] = useState<DeliveryDetailModal>(null);
+  // 편집 UI 제거로 세터가 없다 — 항상 null(미입력), 다음 편집 UI가 정해지면 setter 복원.
+  const [deliveryDetail] = useState<DeliveryDetail | null>(null);
   const [termsModal, setTermsModal] = useState<TermsModal>(null);
   const [ordererOpen, setOrdererOpen] = useState(false);
 
@@ -98,19 +96,6 @@ export function CheckoutView() {
       if (validationToastTimer.current) clearTimeout(validationToastTimer.current);
     };
   }, []);
-
-  function openDeliveryModal() {
-    setLocationDraft(deliveryDetail?.location ?? '');
-    setPasscodeDraft(deliveryDetail?.passcode ?? '');
-    setDeliveryModal('edit');
-  }
-
-  function saveDeliveryDetail() {
-    const location = locationDraft.trim();
-    const passcode = passcodeDraft.trim();
-    setDeliveryDetail(location ? { location, passcode } : null);
-    setDeliveryModal(null);
-  }
 
   function handleSubmitOrder() {
     if (!canPay) {
@@ -257,12 +242,9 @@ export function CheckoutView() {
                   <Icon name="arrow-right" size={20} aria-hidden />
                 </span>
               )}
-              <Button
-                size="s"
-                variant="outlineBlack"
-                className="shrink-0"
-                onClick={openDeliveryModal}
-              >
+              {/* 피드백: 이 버튼에 연결돼 있던 배송 상세정보 편집 모달 UI 삭제 — 인터렉션
+                  미정(컬리멤버스 행과 같은 상태), 다음에 확정될 UI로 다시 연결할 것. */}
+              <Button size="s" variant="outlineBlack" className="shrink-0">
                 수정
               </Button>
             </div>
@@ -350,11 +332,13 @@ export function CheckoutView() {
               </Button>
             </div>
 
+            {/* 피드백 감사 중 발견: 폰트 굵기 400(Regular) — text-label-m(500) 아니라
+                text-label-xs(400, Figma 실측 확인). */}
             <ul className="flex flex-col gap-1">
-              <li className="text-label-m text-fg-tertiary">
+              <li className="text-label-xs text-fg-tertiary">
                 · 적립금이 컬리캐시보다 먼저 사용돼요.
               </li>
-              <li className="text-label-m text-fg-tertiary">
+              <li className="text-label-xs text-fg-tertiary">
                 · 컬리캐시는 컬리페이 가입 후 사용할 수 있어요.
               </li>
             </ul>
@@ -423,7 +407,9 @@ export function CheckoutView() {
 
         {/* 샛별배송 안내 */}
         <div className="bg-surface flex flex-col px-4 py-5">
-          <p className="text-label-m text-fg-secondary">샛별배송</p>
+          {/* 피드백 감사 중 발견: 이 라벨은 SemiBold(600, Figma 실측) — text-label-m(500)
+              아니라 text-label-l. */}
+          <p className="text-label-l text-fg-secondary">샛별배송</p>
           <p className="text-body-m text-fg">
             지금 결제하면
             <br />
@@ -437,7 +423,9 @@ export function CheckoutView() {
               없고 각 `<li>` 가 ms-5(≈21px) 를 진다 — 브라우저 기본 list-disc 들여쓰기(40px)에
               기대면 실측보다 훨씬 오른쪽으로 밀린다. */}
           <div className="px-3 py-5">
-            <ul className="text-label-m text-fg-quaternary list-disc">
+            {/* 피드백: 폰트 굵기 400(Regular) — Figma 실측(letter-spacing -1%까지 일치)은
+                text-label-m(500) 이 아니라 text-label-xs(400). */}
+            <ul className="text-label-xs text-fg-quaternary list-disc">
               <li className="ms-5">
                 [주문완료], [배송준비중] 상태일 경우에만 주문 취소가 가능하며, 상품 미배송 시
                 결제하신 수단으로 환불 됩니다.
@@ -492,45 +480,6 @@ export function CheckoutView() {
           결제 전 <span className="underline">이용약관 및 정보제공</span> 동의를 확인해 주세요
         </p>
       </div>
-
-      <Modal
-        open={deliveryModal === 'edit'}
-        onClose={() => setDeliveryModal(null)}
-        title="배송 상세정보"
-        description="공동현관 비밀번호, 부재 시 요청사항 등을 입력해주세요."
-        footer={
-          <>
-            <Button variant="outlineBlack" onClick={() => setDeliveryModal(null)}>
-              취소
-            </Button>
-            <Button variant="black" disabled={!locationDraft.trim()} onClick={saveDeliveryDetail}>
-              저장
-            </Button>
-          </>
-        }
-      >
-        {/* node 666-24922 표시 형식("{위치} | 공동현관 비밀번호({코드})")에 맞춰 위치·비밀번호를
-            분리 입력받는다 — 자유 서술 Textarea 한 칸이던 이전 버전은 이 구조화된 값을
-            만들 수 없어 두 개의 Input 으로 바꿨다. */}
-        <div className="flex flex-col gap-4">
-          <Input
-            label="배송 위치"
-            labelVisible
-            placeholder="예: 문 앞, 경비실"
-            value={locationDraft}
-            onChange={(e) => setLocationDraft(e.target.value)}
-            maxLength={20}
-          />
-          <Input
-            label="공동현관 비밀번호"
-            labelVisible
-            placeholder="공동현관 비밀번호(선택)"
-            value={passcodeDraft}
-            onChange={(e) => setPasscodeDraft(e.target.value)}
-            maxLength={20}
-          />
-        </div>
-      </Modal>
 
       <Modal
         open={termsModal !== null}
@@ -619,15 +568,18 @@ export function CheckoutView() {
   );
 }
 
-/** 결제금액 세부 항목(상품금액/상품할인금액 등) — `corner-bottom-left` 들여쓰기 아이콘 + 라벨 + 값. */
+/** 결제금액 세부 항목(상품금액/상품할인금액 등) — `corner-bottom-left` 들여쓰기 아이콘 + 라벨 + 값.
+ * 피드백 + Figma 실측: 라벨은 Regular(400, text-label-xs) · 값은 SemiBold(600, text-label-l) —
+ * 둘 다 text-label-m(500)으로 같이 두면 라벨이 400 이어야 할 게 500 으로 굵고, 값은 600 이어야
+ * 할 게 500 으로 얇아지는 이중 오류였다. */
 function AmountDetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-fg-quaternary text-label-m flex items-center">
+      <span className="text-fg-quaternary text-label-xs flex items-center">
         <Icon name="corner-bottom-left" size={20} aria-hidden />
         {label}
       </span>
-      <span className="text-label-m text-fg-quaternary">{value}</span>
+      <span className="text-label-l text-fg-quaternary">{value}</span>
     </div>
   );
 }
