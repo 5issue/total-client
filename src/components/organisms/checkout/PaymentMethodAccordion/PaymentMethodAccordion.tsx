@@ -175,7 +175,28 @@ export function PaymentMethodAccordion({
             <StatusLabel type="kbank">케이뱅크 충전결제 3% 추가적립</StatusLabel>
           </span>
         </OptionRow>
+        {/* node 666-22918("컬리페이_open" 프레임에 비선택 상태로 같이 찍힘) 확인 결과, 이
+            안내 박스는 충전결제 "선택 시"가 아니라 "미선택 시" 항상 떠 있는 상시 유인문구다
+            — 선택하면(node 666-23086 "컬리캐시 충전결제_open") 계좌 등록 유도 카드로
+            아예 바뀐다. 이전엔 반대로(선택 시에만 노출) 만들어서 열림/닫힘이 뒤바뀌어
+            있었다(피드백). */}
         {method === 'charge' ? (
+          <div className="px-4 pb-6">
+            <div className="bg-brand-50 border-brand-200 flex flex-col items-center justify-center gap-3 rounded-lg border py-4">
+              <Icon name="plus" size={48} aria-hidden />
+              {/* 두 줄은 문단 안 줄바꿈이라 바깥 gap-3(아이콘↔텍스트 간격)을 물려받으면 안
+                  된다 — gap 이 안 걸리는 일반 블록 흐름으로 묶는다. */}
+              <div className="text-label-l text-fg text-center">
+                <p>
+                  <span className="text-brand-300">계좌 등록 한 번</span>이면
+                </p>
+                <p>
+                  쓸 때마다 <span className="text-brand-300">컬리캐시가 쌓여요</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
           <div className="px-4 pb-6">
             <div className="bg-brand-50 border-brand-200 rounded-m flex items-center justify-center border px-4 py-2">
               <p className="text-label-m text-fg">
@@ -183,7 +204,7 @@ export function PaymentMethodAccordion({
               </p>
             </div>
           </div>
-        ) : null}
+        )}
 
         <hr className="border-border" />
 
@@ -203,6 +224,27 @@ export function PaymentMethodAccordion({
             <RewardsTag />
           </span>
         </OptionRow>
+
+        {/* node 666-22918: Kurly Pay 선택 시 계좌/카드 등록 유도 카드(충전결제와 달리
+            미선택 상태엔 아무것도 없다가 선택할 때만 나타난다 — 원래 이 화면엔 없던
+            상태였다). */}
+        {method === 'kurlypay' ? (
+          <div className="px-4 pb-6">
+            <div className="border-border flex flex-col items-center justify-center gap-3 rounded-lg border px-6 py-4">
+              <p className="text-label-l text-fg text-center">
+                결제수단 등록하고, <span className="text-brand-300">3초만에 결제</span>하세요
+              </p>
+              <div className="flex w-full items-center gap-3">
+                <Button variant="secondary" size="s" className="flex-1">
+                  계좌 등록
+                </Button>
+                <Button variant="secondary" size="s" className="flex-1">
+                  카드 등록
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         <hr className="border-border" />
 

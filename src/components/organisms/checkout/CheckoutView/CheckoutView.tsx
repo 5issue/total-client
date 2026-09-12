@@ -62,7 +62,7 @@ const won = (n: number) => `${n.toLocaleString('ko-KR')}원`;
 /** 주문서 진입 후 결제를 완료해야 하는 유효시간 — 서버 세션 만료 정책 확정 전 임시값(node 666-24671). */
 const ORDER_TIME_LIMIT_MS = 15 * 60 * 1000;
 /** [주문하기] 오류 토스트 노출 시간(node 666-23688, Toast atom 은 자동 소멸을 책임지지 않음). */
-const VALIDATION_TOAST_DURATION_MS = 2500;
+const VALIDATION_TOAST_DURATION_MS = 5000;
 
 export function CheckoutView() {
   const router = useRouter();
@@ -114,6 +114,9 @@ export function CheckoutView() {
 
   function handleSubmitOrder() {
     if (!canPay) {
+      // 피드백: 토스트가 뜰 때 화면이 자동으로 맨 위로 스크롤된다 — 놓친 필드(배송
+      // 상세정보)가 화면 위쪽에 있어서다.
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       setShowValidationToast(true);
       if (validationToastTimer.current) clearTimeout(validationToastTimer.current);
       validationToastTimer.current = setTimeout(
@@ -130,12 +133,20 @@ export function CheckoutView() {
       <SectionHeader leading="back" onLeadingClick={() => router.back()} title="주문서" />
 
       {/* node 666-23688: [주문하기] 눌렀는데 필수값이 비어있을 때 상단에 뜨는 에러 토스트.
-          화면 스크롤과 무관하게 계속 보이도록 fixed — 헤더(SectionHeader) 바로 아래 위치. */}
-      {showValidationToast ? (
-        <div className="pointer-events-none fixed inset-x-0 top-16 z-50 flex justify-center px-4">
-          <Toast variant="error">배송 상세정보를 입력해주세요.</Toast>
-        </div>
-      ) : null}
+          화면 스크롤과 무관하게 계속 보이도록 fixed, 화면 상단과의 간격은 실측 84px(top-[84px]).
+          피드백: 위에서 아래로 슬라이드해 내려오고 5초 뒤 다시 위로 슬라이드해 사라진다 —
+          `{cond ? <Toast/> : null}` 로 마운트/언마운트하면 사라질 때 트랜지션이 안 걸리므로,
+          항상 마운트해두고 translate-y 만 토글한다(OrderItemsSection 과 같은 원칙). */}
+      <div
+        aria-hidden={!showValidationToast}
+        className={[
+          'pointer-events-none fixed inset-x-0 top-[84px] z-50 flex justify-center px-4',
+          'transition-transform duration-300 ease-out motion-reduce:transition-none',
+          showValidationToast ? 'translate-y-0' : '-translate-y-[200px]',
+        ].join(' ')}
+      >
+        <Toast variant="error">배송 상세정보를 입력해주세요.</Toast>
+      </div>
 
       <div className="bg-surface-secondary flex flex-1 flex-col gap-2">
         {/* 주문자 정보 — Figma "Accordion_Orderinfo"(node 666-25643, property1=on). 접힘일
@@ -166,7 +177,7 @@ export function CheckoutView() {
               <OrdererInfoRow label="휴대폰" value={MOCK_CUSTOMER.phone} />
               <OrdererInfoRow label="이메일" value={MOCK_CUSTOMER.email} />
             </dl>
-            <p className="text-label-m text-fg-tertiary">
+            <p className="text-label-xs text-fg-tertiary">
               주문자 정보 변경 방법: 마이컬리 &gt; 개인정보 수정
             </p>
           </div>
@@ -195,7 +206,9 @@ export function CheckoutView() {
                 {MOCK_DEFAULT_ADDRESS.isDefault ? (
                   <StatusLabel type="defaultAddress">기본배송지</StatusLabel>
                 ) : null}
-                <p className="text-heading-4 text-fg">{MOCK_DEFAULT_ADDRESS.addressLine}</p>
+                {/* 피드백: 이 주소 텍스트는 폰트 굵기 400(Regular) — text-heading-4(600)
+                    가 아니라 text-heading-6(같은 16px, 400)이 맞다. */}
+                <p className="text-heading-6 text-fg">{MOCK_DEFAULT_ADDRESS.addressLine}</p>
               </div>
               <Button
                 size="s"
@@ -218,6 +231,9 @@ export function CheckoutView() {
                 // 한 줄. 위치↔안내문 사이 세로선은 실측(문 앞 끝 32px→선 40px→안내문 시작
                 // 48px, 즉 선 좌우 8px씩)대로 h-3 보더 스팬으로 그린다(텍스트 "|" 아님).
                 <div className="min-w-0 flex-1">
+                  {/* "문 앞"/"공동현관 비밀번호"/"(코드)"는 SemiBold(text-heading-4) 그대로 —
+                      Figma 확인. 아래 받는분·전화번호 줄만 Regular(text-heading-6) +
+                      text-fg-secondary. */}
                   <p className="text-heading-4 text-fg flex items-center gap-2 truncate">
                     <span className="shrink-0">{deliveryDetail.location}</span>
                     {deliveryDetail.passcode ? (
@@ -230,13 +246,14 @@ export function CheckoutView() {
                       </>
                     ) : null}
                   </p>
-                  <p className="text-heading-4 text-fg truncate">
+                  <p className="text-heading-6 text-fg-secondary truncate">
                     {MOCK_DEFAULT_ADDRESS.recipient}, {MOCK_DEFAULT_ADDRESS.phone}
                   </p>
                 </div>
               ) : (
                 <span className="text-primary flex items-center gap-1">
-                  <span className="text-heading-4">배송 상세 정보를 입력해주세요</span>
+                  {/* 피드백: 폰트 굵기 400(Regular) — text-heading-6. */}
+                  <span className="text-heading-6">배송 상세 정보를 입력해주세요</span>
                   <Icon name="arrow-right" size={20} aria-hidden />
                 </span>
               )}
