@@ -20,7 +20,7 @@ App Router 라우트 그룹으로 **레이아웃 경계**를 나눈다. URL 에�
 - 그룹별 `layout.tsx` 는 그 그룹의 공통 셸만 담당한다. 공유 UI 는 `components/` 로 올린다.
 - `(shop)` 크롬(BottomNav + 전역 스와이프 탭 + 하단 여백)은 **경로마다 다르다**. `layout.tsx` 는
   서버로 두고, `usePathname` 이 필요한 `<ShopShell>`(클라) 이 크롬을 켠다. 자체 하단 CTA 를 가진
-  전체화면 뷰(`/cart` 등)는 크롬을 끈다 — `ShopShell.CHROMELESS_PREFIXES` (PR #58 리뷰).
+  전체화면 뷰(`/cart`, `/mypage/addresses` 등)는 크롬을 끈다 — `ShopShell.CHROMELESS_PREFIXES` (PR #58 리뷰).
 
 ---
 
@@ -60,7 +60,7 @@ src/
         │   └── complete/page.tsx        # 주문 완료 (결제 영수증 조회 API)
         └── mypage/
             ├── page.tsx                 # 마이컬리 홈 (US-MY-001) — 로그아웃 시 미들웨어가 /login 으로
-            ├── addresses/page.tsx       # 배송지 관리 (US-ADDR 001~002)
+            ├── addresses/page.tsx       # 배송지 관리 (US-ADDR 001~002) — 장바구니 "추가" 진입, 화면 퍼블 완료(로컬 state, API 대기)
             └── profile/page.tsx         # 회원 프로필 (US-PROF-001, US-AUTH-005)
 ```
 
@@ -131,7 +131,7 @@ src/components/
     ├── product/               # ProductGrid, ProductDetailPanel, ProductOptionSheet
     ├── cart/                  # CartView(컨테이너), CartList(배송그룹)→CartCard(온도별), CartSummary, CartOrderBar, CartRecommendCarousel/Sheet
     ├── checkout/              # CheckoutStepper, DeliveryRequestForm, PaymentMethodList
-    ├── mypage/                # AddressManageList, ProfileForm
+    ├── mypage/                # AddressManageView(배송지 관리 컨테이너)+AddressSearchPanel/AddressForm(RHF+Zod), MyKurlyHomeSummary, ProfileForm
     ├── ai/                    # AIRecipePanel (백엔드 명세 대기, 뼈대만)
     └── auth/                  # LoginView(/login 화면), SocialLoginPanel, ReauthSheet
 ```
@@ -172,9 +172,12 @@ src/
 │   ├── address/                 # useAddresses, useSetDefaultAddress
 │   ├── user/                    # useProfile
 │   ├── auth/                    # useSocialLogin(✅), useAuthToken(✅ 토큰 store selector), useReauthPassword(⏳)
-│   └── useUIStore.ts            # (범용) Zustand UI 스토어 selector 훅
+│   ├── useUIStore.ts            # (범용) Zustand UI 스토어 selector 훅
+│   ├── useSwipeTabNavigation.ts # (범용) 좌우 스와이프로 탭 라우트 전환
+│   └── useFocusTrap.ts          # (범용) 전체화면 패널·다이얼로그 포커스 트랩 (§5)
 ├── stores/                      # Zustand — 순수 클라이언트 UI 상태만 (서버 상태 금지)
 │   ├── uiStore.ts               # 마운트당 생성 팩토리 + Provider + 훅까지 배선된 참조 구현
+│   ├── deliveryAddressStore.ts  # 선택된 배송지 요약 — /cart ↔ /mypage/addresses 공유(팩토리+Provider+훅 배선 완료)
 │   ├── useFilterUIStore.ts      # 필터 바텀시트 임시 선택값 (팩토리 존재, Provider/훅은 FilterSheet 구현 시)
 │   └── useAuthTokenStore.ts     # Access Token 메모리 보관 (팩토리 + Provider/훅 배선 완료 ✅)
 ├── types/                       # Zod 스키마 + 추론 타입 (도메인별 1파일)
@@ -183,7 +186,8 @@ src/
 ├── providers/                   # Provider 구현 ("use client")
 │   ├── QueryProvider.tsx
 │   ├── UIStoreProvider.tsx
-│   └── AuthTokenStoreProvider.tsx  # ✅ Access Token store + authTokenRef 배선
+│   ├── AuthTokenStoreProvider.tsx  # ✅ Access Token store + authTokenRef 배선
+│   └── DeliveryAddressStoreProvider.tsx
 ├── lib/
 │   ├── env.ts                   # Zod 런타임 env 검증
 │   ├── queryClient.ts           # QueryClient 팩토리 (서버/브라우저 분기)
