@@ -17,16 +17,13 @@ import { StatusLabel } from '@/components/molecules/shared/StatusLabel';
  *
  * 재생/일시정지 버튼: 디자인 시스템에 Pause 아이콘만 있고 Play 아이콘이 없다
  * (`search_design_system` 확인, 0건) — 아이콘 글리프는 고정하고 `aria-pressed`/
- * `aria-label` 로만 상태를 알린다(역질문으로 확인, 아이콘 추가는 후속).
+ * `aria-label` 로만 상태를 알린다(아이콘 추가는 후속). "광고" 뱃지는
+ * `molecules/shared/StatusLabel`(`type="adLabelS"`)을 그대로 재사용한다.
  *
- * "광고" 뱃지는 `molecules/shared/StatusLabel`(`type="adLabelS"`) 재사용 — 이 화면
- * 전용으로 새로 만들지 않는다.
+ * 배너가 1장(mock)이라 `playing` 은 실제 자동재생 타이머 없이 버튼 상태 표시용
+ * 로컬 UI 상태일 뿐이다(Zustand 로 옮길 이유 없음).
  *
- * 이번 단계는 배너가 1장(mock)이라 자동재생 타이머로 실제 슬라이드를 넘기지 않는다.
- * `playing` 은 버튼 상태 표시용 로컬 UI 상태일 뿐이라 Zustand 로 옮기지 않는다.
- *
- * `imageSrc` 미지정 시 회색 박스로 대체한다 — `molecules/cart/CartLineItem` 과 동일한
- * 퍼블리싱 단계 관례(실제 상품/배너 이미지는 API 연동 시 교체, 이슈 #61 Image_Frame_Container).
+ * `imageSrc` 미지정 시 회색 박스로 대체한다(퍼블리싱 단계 관례, `CartLineItem` 참고).
  */
 export type HeroBannerProps = {
   imageSrc?: string;

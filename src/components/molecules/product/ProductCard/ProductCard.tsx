@@ -8,30 +8,20 @@ import { StatusLabel } from '@/components/molecules/shared/StatusLabel';
 
 /**
  * 홈 진열 섹션 상품 카드 (molecule). Figma "HomeScreen" > "Product Item"
- * (node 577:20684, 150~249px 유동폭 × 428px).
+ * (node 577:20684, 150~249px 유동폭 × 428px). 찜(하트) 아이콘은 없다(Figma 실측).
  *
  * `molecules/product/ProductMiniCard`(AI 챗용, node 2456-5629)와는 스펙이 달라
  * 재사용하지 않는다 — 이 카드만 쿠폰 배지·리뷰 수·"Kurly Only" 태그를 갖는다.
  * 쿠폰 배지는 `atoms/Badge`(color="cyan" size="medium" — 실측 padding 4px 전방향과
  * 일치), "Kurly Only" 태그는 `molecules/shared/StatusLabel`(type="kurlyOnly")을
- * 그대로 재사용한다.
+ * 그대로 재사용한다. `imageSrc` 미지정 시 회색 박스로 대체한다(`CartLineItem` 참고).
  *
- * 이 카드에는 찜(하트) 아이콘이 없다 — get_design_context 로 이 노드를 직접
- * 확인한 결과, 쿠폰 배지 자리 외에 위시리스트 토글은 존재하지 않는다(초기 이슈
- * 초안 작성 시의 가정을 역질문 없이 수정 — 실제 스펙 확인 후 정정).
+ * `h-[428px]` 고정 필수 — 자연스러운 높이로 두면 1줄/2줄 이름이 섞인 가로 스크롤 행에서
+ * (`DisplaySectionList` 의 `items-center`) 카드마다 이미지 시작 높이가 달라진다.
  *
- * `imageSrc` 미지정 시 회색 박스로 대체한다(퍼블리싱 단계 관례, `CartLineItem` 참고).
- *
- * 카드 전체를 `h-[428px]` 로 고정한다 — Figma 실측 그대로다. 처음엔 상품명 줄바꿈에
- * 맞춰 자연스러운 높이로 뒀었는데, 그러면 1줄/2줄 이름이 섞인 가로 스크롤 행에서
- * `items-center`(DisplaySectionList) 때문에 카드마다 이미지 시작 높이가 달라져
- * "사진 높낮이가 다 다르다"는 문제가 생겼다(실기기 확인) — 고정 높이로 이미지·담기
- * 버튼 위치를 카드마다 동일하게 맞춘다.
- *
- * 루트에 `items-start` 필수 — Figma 원본(node 577:20684 등)도 컨테이너에 `items-start`
- * 가 명시돼 있다. 이게 없으면 flex-col 기본값(`align-items: stretch`)이 적용돼, 폭을
- * 명시하지 않은 "Kurly Only" 뱃지(`StatusLabel`)만 카드 전체 폭(150px)으로 늘어나
- * 버린다 — 이미지/버튼/메타블록은 다들 자체 `w-full` 이 있어 티가 안 났을 뿐이다.
+ * 루트 `items-start` 필수 — 없으면 flex-col 기본값(`align-items: stretch`) 때문에
+ * 폭을 명시하지 않은 "Kurly Only" 뱃지만 카드 전체 폭으로 늘어난다(이미지/버튼/
+ * 메타블록은 각자 `w-full` 이 있어 티가 안 났을 뿐). Figma 원본도 `items-start` 명시.
  */
 export type ProductCardProps = {
   imageSrc?: string;

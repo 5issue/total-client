@@ -1,7 +1,5 @@
 'use client';
 
-import type { CSSProperties } from 'react';
-
 import { Button } from '@/components/atoms/Button';
 import { IconButton } from '@/components/atoms/IconButton';
 import { PromotionBar } from '@/components/molecules/shared/PromotionBar';
@@ -15,14 +13,11 @@ import { PromotionBar } from '@/components/molecules/shared/PromotionBar';
  * 재사용 — 하트 채움 프리뷰(`activeIcon`)도 이미 이 용도로 설계돼 있다.
  *
  * 찜 상태(`liked`) 색은 `Brand/Medium`(#c16edd = brand-300, Figma 인스펙터로 직접
- * 확인). `heart` 아이콘(빈 하트)은 `fill="currentColor"`라 `text-*`/`color` 로 바뀌지만,
- * `heart-filled`(채운 하트)는 `themable: false` — SVG 안에 `fill="var(--color-brand-500)"`
- * 로 브랜드 프라이머리가 하드코딩돼 있어 버튼의 `color`/`text-*` 를 아무리 바꿔도 안 먹는다
- * (한 번 `style={{ color: ... }}` 로 시도했다가 실제로는 안 바뀌는 걸 실기기에서 확인).
- * 대신 이 SVG 가 참조하는 CSS 커스텀 프로퍼티 `--color-brand-500` 자체를 버튼 DOM
- * 서브트리 안에서만 지역적으로 재정의한다 — CSS 커스텀 프로퍼티는 캐스케이드를 타므로
- * 가장 가까운 조상의 재정의가 이긴다. 아이콘 asset 을 새로 만들거나 icons.generated.tsx
- * 를 고치지 않고 이 지점에서만 안전하게 색을 바꾸는 방법이다.
+ * 확인). `heart-filled`(채운 하트)는 `themable: false` — SVG 안에 이미
+ * `fill="var(--color-brand-500)"` 가 박혀 있어 버튼의 `color`/`text-*` 로는 안 바뀐다.
+ * `[--color-brand-500:var(--color-brand-300)]` 로 그 커스텀 프로퍼티 자체를 버튼
+ * 서브트리 안에서만 지역 재정의한다(캐스케이드로 가장 가까운 조상이 이김) — 아이콘
+ * asset 이나 icons.generated.tsx 를 안 건드리고 이 지점에서만 안전하게 색을 바꾼다.
  *
  * 신선구독/장바구니담기 버튼은 `atoms/Button`(size="l") 재사용 — `size="l"` 은
  * 텍스트(`text-heading-1`=18px/600)가 이 노드 실측과 정확히 일치하고 높이는
@@ -70,11 +65,7 @@ export function AddToCartActions({
             onClick={onToggleLike}
             aria-label={liked ? '찜 해제' : '찜하기'}
             aria-pressed={liked}
-            style={
-              liked
-                ? ({ '--color-brand-500': 'var(--color-brand-300)' } as CSSProperties)
-                : undefined
-            }
+            className={liked ? '[--color-brand-500:var(--color-brand-300)]' : undefined}
           />
           {showSubscribeButton ? (
             <Button variant="tertiary" size="l" onClick={onSubscribe} className="h-14 flex-1">
