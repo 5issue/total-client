@@ -43,10 +43,17 @@ const TONE_CHECK_CLASSNAME: Record<RadioTone, string> = {
   black: 'peer-checked:text-fg',
 };
 
-// 28px 는 Figma 실측 고정값(2426:1195) — 시각 크기는 그대로 두고, 44px 터치 타깃은
-// 감싸는 label 쪽에서 확보한다(code-style §5).
+// ring: 28px 는 Figma 실측 고정값(2426:1195) 그대로. check: 피드백(2026-09-14) — 체크
+// 마크 자체는 원본 크기(size-3.5, 14px)를 유지하고 그 대신 이 바깥 원 지름을 줄여달라는
+// 요청 — size-7(28px) → size-6(24px). 44px 터치 타깃은 두 variant 모두 감싸는 label
+// 쪽에서 확보하므로(code-style §5) 원 크기와 무관하게 그대로다.
+const SIZE_CLASSNAME: Record<'ring' | 'check', string> = {
+  ring: 'size-7',
+  check: 'size-6',
+};
+
 const INPUT_BASE =
-  'peer size-7 shrink-0 appearance-none rounded-full bg-transparent border-2 border-neutral-400 transition-colors ' +
+  'peer shrink-0 appearance-none rounded-full bg-transparent border-2 border-neutral-400 transition-colors ' +
   'disabled:pointer-events-none disabled:bg-surface-secondary ' +
   'focus-visible:outline-border-active outline-offset-2 focus-visible:outline-2 ' +
   'motion-reduce:transition-none';
@@ -81,6 +88,7 @@ export function Radio({
           id={inputId}
           className={[
             INPUT_BASE,
+            SIZE_CLASSNAME[variant],
             TONE_BORDER_CLASSNAME[tone],
             variant === 'ring' ? RING_VARIANT_CLASSNAME : '',
           ]
@@ -89,14 +97,14 @@ export function Radio({
           {...props}
         />
         {variant === 'check' ? (
-          // size-3.5(14px) → size-3(12px) → size-2.5(10px, 2026-09-14 재피드백으로 한 단계
-          // 더 축소). 바깥 원(size-7, 28px)은 Figma 실측 고정값이라 그대로.
+          // 체크마크 자체는 원본 크기(size-3.5, 14px) 그대로 — 줄어든 건 바깥 원(위
+          // SIZE_CLASSNAME.check) 쪽이다.
           <svg
             viewBox="0 0 13.5 10"
             fill="none"
             aria-hidden
             className={[
-              'pointer-events-none absolute inset-0 m-auto size-2.5 text-neutral-400',
+              'pointer-events-none absolute inset-0 m-auto size-3.5 text-neutral-400',
               TONE_CHECK_CLASSNAME[tone],
             ].join(' ')}
           >
