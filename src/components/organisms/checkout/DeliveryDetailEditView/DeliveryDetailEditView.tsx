@@ -1,5 +1,8 @@
 'use client';
 
+import { useRef, useState } from 'react';
+import type { FormEvent } from 'react';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { useForm, useWatch } from 'react-hook-form';
@@ -10,6 +13,7 @@ import { InfoBox } from '@/components/atoms/InfoBox';
 import { Input } from '@/components/atoms/Input';
 import { Radio, type RadioProps } from '@/components/atoms/Radio';
 import { Textarea } from '@/components/atoms/Textarea';
+import { Modal } from '@/components/molecules/shared/Modal';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 import { DeliveryDetailFormSchema, type DeliveryDetailFormFields } from '@/types/deliveryDetail';
 
@@ -40,6 +44,11 @@ import { DeliveryDetailFormSchema, type DeliveryDetailFormFields } from '@/types
  *   "동의하고 저장"이라 그 클릭이 곧 동의다(Figma 문구 그대로). "더보기"는 전문을 펼치는
  *   토글이지만, 이 노드엔 펼친 상태의 실제 약관 전문이 없어 자리표시자로만 둔다(실제
  *   법무 문구는 별도 확정 필요 — 지어내지 않음).
+ * - 필수값 미입력 시 인라인 에러가 아니라 알림 모달로 안내한다(node 761-106060 휴대폰,
+ *   761-106130 기타장소, 761-106200 택배 수령실 — `Modal` `variant="alert"`). 모달
+ *   "확인"을 누르면 해당 섹션으로 스크롤 이동 + 포커스한다(사용자 확인, 2026-09-14).
+ *   "받으실 분"과 휴대폰의 "형식 오류"(예: 자릿수 부족)는 기존처럼 `Input` 하단 인라인
+ *   에러 그대로 — 이 모달은 오직 "완전히 비어 있음" 케이스만 가로챈다.
  */
 const RECEIVER_NAME_DEFAULT = '이준호';
 
@@ -61,6 +70,19 @@ const OTHER_LOCATION_DETAIL_PLACEHOLDER: Partial<
   etc: '원하시는 장소를 자세히 입력해주세요.\n예 : 계단 밑, 주택단지 앞 경비초소를 지나 A동 출입구',
   locker: '원하시는 장소를 자세히 입력해주세요.\n예 : 1층 출입구 오른쪽 택배수령실에 배송해주세요.',
 };
+
+/** 필수값 미입력 알림 모달 문구 — node 761-106060(휴대폰), 761-106130(기타), 761-106200
+ * (택배 수령실). '기타장소 세부사항' 은 어떤 옵션이 선택돼 있었는지에 따라 문구가
+ * 갈린다(같은 `otherLocationDetail` 필드, 예시만 다름 — 위 placeholder 맵과 동일한 축). */
+const OTHER_LOCATION_DETAIL_REQUIRED_MESSAGE: Partial<
+  Record<DeliveryDetailFormFields['otherLocationType'] & string, string>
+> = {
+  etc: '기타 장소 세부 사항 내용을 입력해주세요.',
+  locker: '택배 수령실 위치를 자세히 입력해주세요.',
+};
+const PHONE_REQUIRED_MESSAGE = '휴대폰 번호를 입력해주세요.';
+
+type ValidationModalKind = 'phone' | 'otherLocationDetail';
 
 /** 필드 라벨 한 줄 — 라벨 + 필수 표시(*). Figma "label"(node 666-26221 등) 그대로:
  * text-label-m(14px/500), * 는 brand/primary(#690085, 이 프로젝트 text-primary). */
@@ -101,6 +123,7 @@ export function DeliveryDetailEditView() {
   const {
     register,
     handleSubmit,
+    getValues,
     control,
     setValue,
     formState: { errors },
@@ -121,13 +144,67 @@ export function DeliveryDetailEditView() {
   const otherLocationType = useWatch({ control, name: 'otherLocationType' });
   const messageTiming = useWatch({ control, name: 'messageTiming' });
 
+  // register() 의 ref 와 스크롤+포커스용 ref 를 합친다(모달 "확인" 클릭 시 사용).
+  const phoneInputRef = useRef<HTMLInputElement | null>(null);
+  const phoneField = register('phone');
+  const otherLocationDetailRef = useRef<HTMLTextAreaElement | null>(null);
+  const otherLocationDetailField = register('otherLocationDetail');
+
+  const [validationModal, setValidationModal] = useState<ValidationModalKind | null>(null);
+  const validationModalMessage =
+    validationModal === 'phone'
+      ? PHONE_REQUIRED_MESSAGE
+      : validationModal === 'otherLocationDetail'
+        ? ((otherLocationType
+            ? OTHER_LOCATION_DETAIL_REQUIRED_MESSAGE[otherLocationType]
+            : undefined) ?? '')
+        : '';
+
   function onValid() {
     // 백엔드/상위 상태 없음(#92 범위: 화면만) — 값 확정 후 원래 화면(체크아웃)으로 복귀.
     router.back();
   }
 
+  // 휴대폰/기타장소 세부사항은 "완전히 비어 있음"만 여기서 가로채 모달로 안내한다
+  // (그 외 형식 오류는 기존 zod+인라인 에러 그대로 handleSubmit(onValid) 로 위임).
+  function handleFormSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    const values = getValues();
+    if (!values.phone.trim()) {
+      setValidationModal('phone');
+      return;
+    }
+
+    const needsOtherLocationDetail =
+      values.location === 'other' &&
+      (values.otherLocationType === 'etc' || values.otherLocationType === 'locker');
+    if (needsOtherLocationDetail && !values.otherLocationDetail.trim()) {
+      setValidationModal('otherLocationDetail');
+      return;
+    }
+
+    void handleSubmit(onValid)(e);
+  }
+
+  // Modal 자체 클린업이 닫힐 때 트리거(제출 버튼)로 포커스를 되돌리므로, 그 이후 틱에서
+  // 실행해야 이 포커스 이동이 되돌아가지 않는다(setTimeout 으로 한 틱 미룸).
+  function handleValidationModalConfirm() {
+    const target =
+      validationModal === 'phone' ? phoneInputRef.current : otherLocationDetailRef.current;
+    setValidationModal(null);
+    setTimeout(() => {
+      target?.focus({ preventScroll: true });
+      target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 0);
+  }
+
   return (
-    <form onSubmit={handleSubmit(onValid)} className="flex min-h-0 flex-1 flex-col">
+    // noValidate: Input 의 `required` 는 시각적 "*" 용 마킹일 뿐이지만 네이티브 <input required>
+    // 로도 그대로 흘러들어가(...props 스프레드), 없으면 브라우저 자체 검증이 submit 이벤트
+    // 자체를 가로채 handleFormSubmit 이 아예 호출되지 않는다(알림 모달이 절대 뜨지 않는
+    // 실제 버그로 확인됨) — 모든 검증을 zod+커스텀 모달로 직접 처리하므로 꺼둔다.
+    <form onSubmit={handleFormSubmit} noValidate className="flex min-h-0 flex-1 flex-col">
       <SectionHeader leading="close" onLeadingClick={() => router.back()} title="배송 상세 정보" />
 
       <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-4 pt-6 pb-4">
@@ -151,7 +228,11 @@ export function DeliveryDetailEditView() {
             inputMode="tel"
             placeholder="숫자만 입력해주세요"
             error={errors.phone?.message}
-            {...register('phone')}
+            {...phoneField}
+            ref={(node) => {
+              phoneField.ref(node);
+              phoneInputRef.current = node;
+            }}
           />
         </div>
 
@@ -205,7 +286,11 @@ export function DeliveryDetailEditView() {
                   label="기타장소 세부사항 자세히"
                   placeholder={OTHER_LOCATION_DETAIL_PLACEHOLDER.etc}
                   rows={3}
-                  {...register('otherLocationDetail')}
+                  {...otherLocationDetailField}
+                  ref={(node) => {
+                    otherLocationDetailField.ref(node);
+                    otherLocationDetailRef.current = node;
+                  }}
                 />
               ) : null}
 
@@ -221,7 +306,11 @@ export function DeliveryDetailEditView() {
                   label="기타장소 세부사항 자세히"
                   placeholder={OTHER_LOCATION_DETAIL_PLACEHOLDER.locker}
                   rows={3}
-                  {...register('otherLocationDetail')}
+                  {...otherLocationDetailField}
+                  ref={(node) => {
+                    otherLocationDetailField.ref(node);
+                    otherLocationDetailRef.current = node;
+                  }}
                 />
               ) : null}
 
@@ -284,6 +373,18 @@ export function DeliveryDetailEditView() {
           동의하고 저장
         </Button>
       </div>
+
+      <Modal
+        open={validationModal !== null}
+        onClose={() => setValidationModal(null)}
+        variant="alert"
+        title={validationModalMessage}
+        footer={
+          <Button variant="text" size="m" onClick={handleValidationModalConfirm}>
+            확인
+          </Button>
+        }
+      />
     </form>
   );
 }

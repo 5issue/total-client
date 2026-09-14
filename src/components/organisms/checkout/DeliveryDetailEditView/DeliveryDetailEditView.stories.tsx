@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { getRouter } from '@storybook/nextjs-vite/navigation.mock';
-import { expect, userEvent, within } from 'storybook/test';
+import { expect, screen, userEvent, waitFor, within } from 'storybook/test';
 
 import { DeliveryDetailEditView } from './DeliveryDetailEditView';
 
@@ -91,5 +91,59 @@ export const CloseButtonGoesBack: Story = {
     await userEvent.click(canvas.getByRole('button', { name: '닫기' }));
 
     await expect(getRouter().back).toHaveBeenCalledTimes(1);
+  },
+};
+
+// --- 필수값 미입력 알림 모달(node 761-106060/106130/106200) ---
+// `Modal` 은 `document.body` 에 포털되므로 `canvasElement` 스코프가 아니라 전역 `screen` 으로 찾는다.
+
+export const EmptyPhoneShowsAlertModalAndFocusesOnConfirm: Story = {
+  tags: ['!autodocs'],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // 휴대폰을 비운 채(기본값) 바로 제출 — '받으실 분'은 기본값이 채워져 있어 통과한다.
+    await userEvent.click(canvas.getByRole('button', { name: '동의하고 저장' }));
+
+    const dialog = await screen.findByRole('dialog', { name: '휴대폰 번호를 입력해주세요.' });
+    await userEvent.click(within(dialog).getByRole('button', { name: '확인' }));
+
+    await expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await expect(getRouter().back).not.toHaveBeenCalled();
+    await waitFor(() => expect(canvas.getByPlaceholderText('숫자만 입력해주세요')).toHaveFocus());
+  },
+};
+
+export const EmptyOtherLocationDetailShowsAlertModalForEtc: Story = {
+  tags: ['!autodocs'],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.type(canvas.getByPlaceholderText('숫자만 입력해주세요'), '01012341234');
+    await userEvent.click(canvas.getByRole('radio', { name: '기타 장소' }));
+    // '기타'가 기본 선택 — 세부 내용을 채우지 않고 제출.
+    await userEvent.click(canvas.getByRole('button', { name: '동의하고 저장' }));
+
+    const dialog = await screen.findByRole('dialog', {
+      name: '기타 장소 세부 사항 내용을 입력해주세요.',
+    });
+    await userEvent.click(within(dialog).getByRole('button', { name: '확인' }));
+
+    await expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await waitFor(() => expect(canvas.getByPlaceholderText(/계단 밑/)).toHaveFocus());
+  },
+};
+
+export const EmptyOtherLocationDetailShowsAlertModalForLocker: Story = {
+  tags: ['!autodocs'],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.type(canvas.getByPlaceholderText('숫자만 입력해주세요'), '01012341234');
+    await userEvent.click(canvas.getByRole('radio', { name: '기타 장소' }));
+    await userEvent.click(canvas.getByRole('radio', { name: '택배 수령실' }));
+    await userEvent.click(canvas.getByRole('button', { name: '동의하고 저장' }));
+
+    const dialog = await screen.findByRole('dialog', {
+      name: '택배 수령실 위치를 자세히 입력해주세요.',
+    });
+    await expect(dialog).toBeInTheDocument();
   },
 };
