@@ -11,7 +11,8 @@ import { QuantityStepper } from '@/components/molecules/shared/QuantityStepper';
  * 로 대체해도 시각 결과가 동일하고 더 견고하다.
  *
  * `QuantityStepper`(84px pill, node 2429-3870)를 그대로 재사용 — 이 노드의 스테퍼와
- * 동일 컴포넌트다.
+ * 동일 컴포넌트다. 담기 시트 맥락이라 `min={1}` — 0개를 담을 순 없다(기본 min=0인
+ * 범용 스테퍼와 다르게, 삭제는 별도 동작이지 감소로 0까지 가는 게 아니다).
  */
 export type CartQuantityRowProps = {
   /** 있으면 상품명 위에 뱃지를 렌더한다(예: "멤버스"). */
@@ -55,7 +56,12 @@ export function CartQuantityRow({
             </span>
           ) : null}
         </div>
-        <QuantityStepper value={quantity} onChange={onQuantityChange} label={`${name} 수량`} />
+        <QuantityStepper
+          value={quantity}
+          onChange={onQuantityChange}
+          min={1}
+          label={`${name} 수량`}
+        />
       </div>
       <p className="text-caption-m font-numeric text-fg-secondary">{unitPriceLabel}</p>
     </div>

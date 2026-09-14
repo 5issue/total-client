@@ -28,6 +28,10 @@ const meta = {
     open: false,
     onClose: () => undefined,
   },
+  argTypes: {
+    open: { control: false },
+    onClose: { control: false },
+  },
   render: () => <Harness />,
   tags: ['autodocs'],
 } satisfies Meta<typeof ProductOptionSheet>;

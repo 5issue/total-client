@@ -59,6 +59,14 @@
   --spacing-kbank-pointer-height: 7.794px; /* StatusLabel(kbank) 말풍선 꼬리, node 2825-2141 → h-kbank-pointer-height */
   --spacing-kbank-pointer-width: 5.25px; /* StatusLabel(kbank) 말풍선 꼬리, node 2825-2141 → w-kbank-pointer-width */
 
+  /* 홈 화면 전용 사이즈 — 4px 스케일에 안 맞는 Figma 실측값(code-style §6-1, 대괄호 임의값 대신 토큰화). */
+  --spacing-home-header: 54px; /* HomeHeader 콘텐츠 행 높이, node 577:20626 → h-home-header */
+  --spacing-product-card: 428px; /* ProductCard 전체 높이, node 577:20684 → h-product-card */
+  --spacing-product-card-meta-gap: 3px; /* ProductCard 리뷰 아이콘·수 사이 간격, node 577:20684 → gap-product-card-meta-gap */
+
+  /* 히어로 배너 종횡비 — Figma 고정 402×298 (node 577:20652) → aspect-hero-banner */
+  --aspect-hero-banner: 402 / 298;
+
   /* 전체화면 패널이 아래에서 올라오는 진입 애니메이션 (배송지 주소검색 등, 컬리 앱 패턴).
    * 트랜지션 대신 마운트 애니메이션 — 요소는 항상 제자리(translate 0)에 렌더되고 애니메이션만
    * 화면 밖에서 올라온다. 트랜지션이 안 터져 요소가 화면 밖에 멈추는 경우가 없다. */

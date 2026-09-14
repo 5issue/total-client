@@ -7,6 +7,9 @@ const meta = {
   title: 'organisms/home/CategoryTabs',
   component: CategoryTabs,
   tags: ['autodocs'],
+  argTypes: {
+    className: { control: false },
+  },
   parameters: { layout: 'fullscreen' },
 } satisfies Meta<typeof CategoryTabs>;
 

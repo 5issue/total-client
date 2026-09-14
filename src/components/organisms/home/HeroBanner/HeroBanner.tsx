@@ -24,6 +24,10 @@ import { StatusLabel } from '@/components/molecules/shared/StatusLabel';
  * 로컬 UI 상태일 뿐이다(Zustand 로 옮길 이유 없음).
  *
  * `imageSrc` 미지정 시 회색 박스로 대체한다(퍼블리싱 단계 관례, `CartLineItem` 참고).
+ *
+ * 재생/일시정지 버튼과 전체보기 링크는 Figma 실측 그대로 28px(size-7/h-7)를 유지하되,
+ * `QuantityStepper`(node 2429-3870)와 같은 `::before` 확장 영역으로 터치 타깃만 44px로
+ * 넓힌다 — 시각 크기는 그대로, 히트 영역만 넓히는 프로젝트 공통 패턴.
  */
 export type HeroBannerProps = {
   imageSrc?: string;
@@ -57,7 +61,7 @@ export function HeroBanner({
 
   return (
     <div
-      className={['relative aspect-[402/298] w-full overflow-hidden', className]
+      className={['aspect-hero-banner relative w-full overflow-hidden', className]
         .filter(Boolean)
         .join(' ')}
     >
@@ -66,7 +70,7 @@ export function HeroBanner({
           src={imageSrc}
           alt={imageAlt}
           fill
-          priority
+          preload
           sizes="(max-width: 480px) 100vw, 402px"
           className="object-cover"
         />
@@ -89,7 +93,7 @@ export function HeroBanner({
             onClick={() => setPlaying((prev) => !prev)}
             aria-pressed={playing}
             aria-label={playing ? '배너 자동 재생 일시정지' : '배너 자동 재생 시작'}
-            className="bg-overlay flex size-7 shrink-0 items-center justify-center rounded-full"
+            className="bg-overlay relative flex size-7 shrink-0 items-center justify-center rounded-full before:absolute before:-inset-2 before:content-['']"
           >
             <Icon name="pause" size={20} aria-hidden />
           </button>
@@ -97,7 +101,7 @@ export function HeroBanner({
           <Link
             href={href}
             aria-label={`전체보기, 현재 ${current} / 전체 ${total}`}
-            className="bg-overlay text-fg-inverse text-caption-m inline-flex h-7 items-center gap-1 rounded-full px-2 whitespace-nowrap"
+            className="bg-overlay text-fg-inverse text-caption-m relative inline-flex h-7 items-center gap-1 rounded-full px-2 whitespace-nowrap before:absolute before:inset-x-0 before:-inset-y-2 before:content-['']"
           >
             <span className="flex items-center gap-0.5">
               <span>{String(current).padStart(2, '0')}</span>

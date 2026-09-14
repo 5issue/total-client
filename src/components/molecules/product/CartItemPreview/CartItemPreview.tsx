@@ -1,10 +1,11 @@
-'use client';
-
 import Image from 'next/image';
 
 /**
  * 장바구니 담기 바텀시트 상단 — 지금 담으려는 상품 미리보기 (molecule).
  * Figma "5팀 디자인 시스템" > `Item_H_Order`(node 2888:2661), h-60px.
+ *
+ * props만 그리는 순수 표현 컴포넌트라 `"use client"` 불필요 — 소비자
+ * `ProductOptionSheet` 가 이미 클라이언트 경계다(RSC 우선 원칙).
  *
  * `imageSrc` 미지정 시 회색 박스로 대체한다(퍼블리싱 단계 관례, `CartLineItem` 참고).
  */

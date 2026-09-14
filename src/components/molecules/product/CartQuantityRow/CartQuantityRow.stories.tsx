@@ -18,6 +18,10 @@ const meta = {
     quantity: 0,
     onQuantityChange: () => {},
   },
+  argTypes: {
+    onQuantityChange: { control: false },
+    className: { control: false },
+  },
   parameters: { layout: 'padded' },
 } satisfies Meta<typeof CartQuantityRow>;
 

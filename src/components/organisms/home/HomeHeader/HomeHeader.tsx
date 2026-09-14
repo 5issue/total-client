@@ -31,6 +31,8 @@ import {
  * 상태바가 투명해지고 콘텐츠가 그 아래까지 그려진다. 이 퍼플 배경을 상태바
  * 영역까지 밀어 올려야 Figma 목업(node 2438:1393)처럼 상태바~헤더가 한 덩어리
  * 퍼플로 보인다 — 실제 로고/아이콘 행은 안전영역만큼 아래로 밀려 노치를 피한다.
+ * `env()` 는 Figma 실측 픽셀이 아니라 기기별 노치 높이를 런타임에 알려주는 CSS
+ * 플랫폼 API라 `@theme` 토큰화 대상이 아니다(고정값으로 박으면 기기마다 틀어진다).
  */
 const SERVICE_OPTIONS: [ServiceSwitchOption, ServiceSwitchOption] = [
   { id: 'market', label: '마켓컬리' },
@@ -45,12 +47,13 @@ export type HomeHeaderProps = {
 
 export function HomeHeader({ cartCount, className }: HomeHeaderProps) {
   const [activeService, setActiveService] = useState('market');
+  const hasCartItems = (cartCount ?? 0) > 0;
 
   return (
     <header
       className={['bg-primary pt-[env(safe-area-inset-top)]', className].filter(Boolean).join(' ')}
     >
-      <div className="flex h-[54px] items-center justify-between px-4">
+      <div className="h-home-header flex items-center justify-between px-4">
         <Logo name="kurly" height={44} aria-label="Kurly" />
 
         <ServiceSwitch
@@ -66,14 +69,14 @@ export function HomeHeader({ cartCount, className }: HomeHeaderProps) {
           </span>
           <Link
             href="/cart"
-            aria-label={cartCount ? `장바구니, 담긴 상품 ${cartCount}개` : '장바구니'}
+            aria-label={hasCartItems ? `장바구니, 담긴 상품 ${cartCount}개` : '장바구니'}
             className="relative flex size-11 items-center justify-center"
           >
             <Icon name="cart" size={28} className="text-fg-inverse" aria-hidden />
-            {cartCount ? (
+            {hasCartItems ? (
               <span
                 aria-hidden
-                className="bg-fg text-fg-inverse absolute top-0 right-0 flex size-5 items-center justify-center rounded-full text-[12px] leading-none font-black"
+                className="bg-fg text-fg-inverse text-caption-m absolute top-0 right-0 flex size-5 items-center justify-center rounded-full leading-none font-black"
               >
                 {cartCount}
               </span>

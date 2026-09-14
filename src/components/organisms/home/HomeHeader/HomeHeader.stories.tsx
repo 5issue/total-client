@@ -10,6 +10,10 @@ const meta = {
   args: {
     cartCount: 4,
   },
+  argTypes: {
+    cartCount: { control: 'number' },
+    className: { control: false },
+  },
   parameters: { layout: 'fullscreen' },
 } satisfies Meta<typeof HomeHeader>;
 

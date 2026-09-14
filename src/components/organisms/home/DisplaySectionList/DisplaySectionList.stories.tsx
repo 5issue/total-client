@@ -12,6 +12,11 @@ const meta = {
     ...MOCK_DISPLAY_SECTIONS[0],
     onAddToCart: fn(),
   },
+  argTypes: {
+    onAddToCart: { control: false },
+    products: { control: false },
+    className: { control: false },
+  },
   parameters: { layout: 'fullscreen' },
   decorators: [
     (Story) => (

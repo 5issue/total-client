@@ -13,6 +13,12 @@ const meta = {
     onSubscribe: fn(),
     onAddToCart: fn(),
   },
+  argTypes: {
+    onToggleLike: { control: false },
+    onSubscribe: { control: false },
+    onAddToCart: { control: false },
+    className: { control: false },
+  },
   parameters: { layout: 'padded' },
 } satisfies Meta<typeof AddToCartActions>;
 

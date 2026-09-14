@@ -17,6 +17,11 @@ const meta = {
     current: 4,
     total: 30,
   },
+  argTypes: {
+    current: { control: 'number' },
+    total: { control: 'number' },
+    className: { control: false },
+  },
   parameters: { layout: 'fullscreen' },
   decorators: [
     (Story) => (

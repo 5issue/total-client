@@ -10,6 +10,9 @@ const meta = {
     text: '첫 구매니까, 하나만 사도 ',
     emphasisText: '무료배송',
   },
+  argTypes: {
+    className: { control: false },
+  },
   parameters: { layout: 'padded' },
 } satisfies Meta<typeof PromotionBar>;
 

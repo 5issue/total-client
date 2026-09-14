@@ -19,6 +19,10 @@ const meta = {
     kurlyOnly: true,
     onAddToCart: fn(),
   },
+  argTypes: {
+    onAddToCart: { control: false },
+    className: { control: false },
+  },
   parameters: { layout: 'padded' },
 } satisfies Meta<typeof ProductCard>;
 

@@ -16,12 +16,17 @@ import { StatusLabel } from '@/components/molecules/shared/StatusLabel';
  * 일치), "Kurly Only" 태그는 `molecules/shared/StatusLabel`(type="kurlyOnly")을
  * 그대로 재사용한다. `imageSrc` 미지정 시 회색 박스로 대체한다(`CartLineItem` 참고).
  *
- * `h-[428px]` 고정 필수 — 자연스러운 높이로 두면 1줄/2줄 이름이 섞인 가로 스크롤 행에서
- * (`DisplaySectionList` 의 `items-center`) 카드마다 이미지 시작 높이가 달라진다.
+ * `h-product-card`(428px) 고정 필수 — 자연스러운 높이로 두면 1줄/2줄 이름이 섞인 가로
+ * 스크롤 행에서(`DisplaySectionList` 의 `items-center`) 카드마다 이미지 시작 높이가
+ * 달라진다.
  *
  * 루트 `items-start` 필수 — 없으면 flex-col 기본값(`align-items: stretch`) 때문에
  * 폭을 명시하지 않은 "Kurly Only" 뱃지만 카드 전체 폭으로 늘어난다(이미지/버튼/
  * 메타블록은 각자 `w-full` 이 있어 티가 안 났을 뿐). Figma 원본도 `items-start` 명시.
+ *
+ * 담기 버튼은 Figma 실측 그대로 32px 높이를 유지하되, `QuantityStepper`(node 2429-3870)와
+ * 같은 방식으로 보이지 않는 `::before` 확장 영역을 얹어 터치 타깃만 44px로 넓힌다 —
+ * 시각 레이아웃은 그대로 두고 히트 영역만 넓히는 패턴.
  */
 export type ProductCardProps = {
   imageSrc?: string;
@@ -60,7 +65,7 @@ export function ProductCard({
 }: ProductCardProps) {
   return (
     <div
-      className={['flex h-[428px] w-37.5 shrink-0 flex-col items-start gap-1', className]
+      className={['h-product-card flex w-37.5 shrink-0 flex-col items-start gap-1', className]
         .filter(Boolean)
         .join(' ')}
     >
@@ -81,7 +86,7 @@ export function ProductCard({
         type="button"
         onClick={onAddToCart}
         aria-label={`${name} 장바구니 담기`}
-        className="text-label-l text-fg active:bg-surface-secondary flex h-8 w-full items-center justify-center gap-1 rounded-sm border border-neutral-400"
+        className="text-label-l text-fg active:bg-surface-secondary relative flex h-8 w-full items-center justify-center gap-1 rounded-sm border border-neutral-400 before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-['']"
       >
         <Icon name="cart" size={20} aria-hidden />
         담기
@@ -99,7 +104,7 @@ export function ProductCard({
           {discountLabel ? <span className="text-orange">{discountLabel}</span> : null}
           <span className="text-fg">{priceLabel}</span>
         </div>
-        <div className="flex items-center gap-[3px]">
+        <div className="gap-product-card-meta-gap flex items-center">
           <Icon name="review" size={16} aria-hidden />
           <span className="text-label-l text-fg-tertiary">{reviewCountLabel}</span>
         </div>
