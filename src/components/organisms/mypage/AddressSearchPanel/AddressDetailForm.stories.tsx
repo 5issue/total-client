@@ -34,13 +34,22 @@ export const Default: Story = {};
 
 // --- 인터랙션 테스트 전용 (autodocs 에서 숨김) ---
 
-export const SavesWithoutDetailAddress: Story = {
+export const EmptyDetailAddressAsksConfirmBeforeSaving: Story = {
   tags: ['!autodocs'],
   play: async ({ canvasElement, args }) => {
-    // 피드백 원문: "나머지 주소를 작성하지 않아도 저장이 됩니다" — 아무것도 입력하지 않아도
-    // 저장 버튼이 막히지 않아야 한다.
+    // 피드백 원문: "나머지 주소를 작성하지 않아도 저장이 됩니다" — 저장 자체는 막히지
+    // 않지만, 비운 채 누르면 확인 모달(node 666-25967)을 한 번 거친다.
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole('button', { name: '저장' }));
+
+    const body = within(canvasElement.ownerDocument.body);
+    await expect(body.getByText('상세주소 입력')).toBeInTheDocument();
+    await expect(
+      body.getByText('나머지 주소를 입력하지 않으셨습니다. 이대로 저장하시겠습니까?'),
+    ).toBeInTheDocument();
+    await expect(args.onSubmit).not.toHaveBeenCalled();
+
+    await userEvent.click(body.getByRole('button', { name: '확인' }));
 
     await expect(args.onSubmit).toHaveBeenCalledTimes(1);
     const values = lastSubmittedValues(args.onSubmit);
@@ -49,6 +58,20 @@ export const SavesWithoutDetailAddress: Story = {
     expect(values.recipient).toBe('이준호');
     expect(values.phone).toBe('01012341234');
     expect(values.isDefault).toBe(true);
+  },
+};
+
+export const CancelingEmptyDetailAddressConfirmDoesNotSave: Story = {
+  tags: ['!autodocs'],
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: '저장' }));
+
+    const body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(body.getByRole('button', { name: '취소' }));
+
+    await expect(args.onSubmit).not.toHaveBeenCalled();
+    await expect(body.queryByText('상세주소 입력')).not.toBeInTheDocument();
   },
 };
 
@@ -96,6 +119,9 @@ export const AliasConflictShowsConfirmModal: Story = {
     await userEvent.click(body.getByRole('button', { name: '확인' }));
     await userEvent.click(canvas.getByRole('button', { name: '저장' }));
 
+    // 나머지 주소를 안 적었으니 이번엔 "상세주소 입력" 확인 모달을 한 번 더 거친다.
+    await userEvent.click(body.getByRole('button', { name: '확인' }));
+
     await expect(args.onSubmit).toHaveBeenCalledTimes(1);
     const values = lastSubmittedValues(args.onSubmit);
     expect(values.aliasType).toBe('home');
@@ -112,6 +138,10 @@ export const UnchecksSaveAsDefaultWhenNotFirstAddress: Story = {
     // 모호하다 — 실제 라디오 요소를 역할로 짚는다.)
     await userEvent.click(canvas.getByRole('radio', { name: '기본 배송지로 저장' }));
     await userEvent.click(canvas.getByRole('button', { name: '저장' }));
+
+    // 나머지 주소를 안 적었으니 "상세주소 입력" 확인 모달을 거친다.
+    const body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(body.getByRole('button', { name: '확인' }));
 
     await expect(args.onSubmit).toHaveBeenCalledTimes(1);
     const values = lastSubmittedValues(args.onSubmit);

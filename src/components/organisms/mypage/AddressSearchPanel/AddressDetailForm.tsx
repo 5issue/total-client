@@ -30,8 +30,9 @@ import type { AddressFormValues } from '../model';
  * - "기본 배송지로 저장" 토글이 추가 흐름에서도 노출된다(기존 `AddressForm` 은 수정 시에만
  *   노출) — 기본값 체크(Figma 스크린샷)이며, 첫 배송지(`willBeDefault`)면 토글과 무관하게
  *   기본배송지로 저장된다(그 외엔 없어질 기본배송지가 생기는 걸 막기 위함).
- * - "나머지 주소"는 선택 입력이다 — 비워도 저장 버튼이 막히지 않는다(피드백 원문: "나머지
- *   주소를 작성하지 않아도 저장이 됩니다").
+ * - "나머지 주소"는 선택 입력이다 — 비워도 저장 자체는 막히지 않는다(피드백 원문: "나머지
+ *   주소를 작성하지 않아도 저장이 됩니다"). 다만 비운 채 "저장"을 누르면 확인 모달
+ *   (node 666-25967 "상세주소 입력")을 한 번 거친다 — "확인"을 눌러야 실제로 저장된다.
  *
  * `우리집`·`회사` 유형칩 유일성 규칙과 변경 확인 모달(node 359-15631)은 `AddressForm` 과
  * 동일하게 유지한다 — 배송지당 유일해야 하는 도메인 규칙 자체는 추가/수정 흐름이 다르지 않다.
@@ -87,6 +88,9 @@ export function AddressDetailForm({
   /** 변경 확인 모달 대상(우리집/회사). null 이면 닫힘. */
   const [aliasConflict, setAliasConflict] = useState<'home' | 'company' | null>(null);
 
+  /** "나머지 주소" 빈 채로 저장 시도한 값 — null 이면 확인 모달 닫힘(node 666-25967). */
+  const [pendingFields, setPendingFields] = useState<AddressDetailFormFields | null>(null);
+
   function pickAlias(type: AddressType) {
     if (
       (type === 'home' || type === 'company') &&
@@ -99,7 +103,7 @@ export function AddressDetailForm({
     setValue('aliasType', type, { shouldDirty: true, shouldValidate: true });
   }
 
-  function onValid(fields: AddressDetailFormFields) {
+  function submitFields(fields: AddressDetailFormFields) {
     const name =
       fields.aliasType === 'custom'
         ? fields.customAlias.trim() || undefined
@@ -118,6 +122,16 @@ export function AddressDetailForm({
       deliveryType: '샛별배송',
       isDefault: willBeDefault || fields.saveAsDefault,
     });
+  }
+
+  // "나머지 주소"가 비어 있으면 바로 저장하지 않고 확인 모달부터 띄운다 — "확인"을
+  // 눌러야 submitFields 가 불린다(node 666-25967).
+  function onValid(fields: AddressDetailFormFields) {
+    if (!fields.detailAddress.trim()) {
+      setPendingFields(fields);
+      return;
+    }
+    submitFields(fields);
   }
 
   return (
@@ -232,6 +246,30 @@ export function AddressDetailForm({
           }
         />
       ) : null}
+
+      {/* node 666-25967 — "나머지 주소" 비운 채 저장 시도했을 때만 뜬다. */}
+      <Modal
+        open={pendingFields !== null}
+        onClose={() => setPendingFields(null)}
+        title="상세주소 입력"
+        description="나머지 주소를 입력하지 않으셨습니다. 이대로 저장하시겠습니까?"
+        footer={
+          <>
+            <Button variant="outlineBlack" onClick={() => setPendingFields(null)}>
+              취소
+            </Button>
+            <Button
+              variant="black"
+              onClick={() => {
+                if (pendingFields) submitFields(pendingFields);
+                setPendingFields(null);
+              }}
+            >
+              확인
+            </Button>
+          </>
+        }
+      />
     </form>
   );
 }
