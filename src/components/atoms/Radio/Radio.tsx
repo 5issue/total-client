@@ -98,14 +98,14 @@ export function Radio({
           {...props}
         />
         {variant === 'check' ? (
-          // 체크마크 자체는 원본 크기(size-3.5, 14px) 그대로 — 줄어든 건 바깥 원(위
-          // SIZE_CLASSNAME.check) 쪽이다.
+          // 체크마크 자체도 아주 조금만 축소(size-3.5=14px → 13px, 2026-09-14 피드백) —
+          // 스케일에 없는 값이라 임의값. 대부분은 바깥 원(위 SIZE_CLASSNAME.check) 쪽에서 줄였다.
           <svg
             viewBox="0 0 13.5 10"
             fill="none"
             aria-hidden
             className={[
-              'pointer-events-none absolute inset-0 m-auto size-3.5 text-neutral-400',
+              'pointer-events-none absolute inset-0 m-auto size-[13px] text-neutral-400',
               TONE_CHECK_CLASSNAME[tone],
             ].join(' ')}
           >

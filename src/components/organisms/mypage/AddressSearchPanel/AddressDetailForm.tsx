@@ -184,7 +184,7 @@ export function AddressDetailForm({
             ) : null}
 
             {/* node 666-25901/25903 — 인디케이터는 AddressForm 과 동일하게 Radio check variant. */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center">
               <Radio
                 variant="check"
                 tone="purple"
@@ -201,8 +201,13 @@ export function AddressDetailForm({
 
           {/* node 666-25905 — 서비스 제한 안내. InfoBox 공용 atom 자체 자간(0)은 다른 곳에도
               쓰이니 그대로 두고, 이 문구만 tracking-[0.01em](text-label-s 자간)으로 감싼다 —
-              그래야 Figma 그대로 정확히 2줄로 줄바꿈된다(자간 0인 채로는 줄바꿈 지점이 달라짐). */}
-          <InfoBox variant="inline" icon={<Icon name="info-line" size={20} aria-hidden />}>
+              그래야 Figma 그대로 정확히 2줄로 줄바꿈된다(자간 0인 채로는 줄바꿈 지점이 달라짐).
+              아이콘 색도 실측(#7e8f9b = fg-tertiary) — InfoBox 가 아이콘 슬롯에 색을 안 입혀서
+              text-fg(#222, 진한 색)로 새고 있었다. */}
+          <InfoBox
+            variant="inline"
+            icon={<Icon name="info-line" size={20} className="text-fg-tertiary" aria-hidden />}
+          >
             <span className="tracking-[0.01em]">
               일부 관공서, 학교, 병원, 시장, 공단지역, 산간지역, 백화점 등은 현장 상황에 따라
               샛별배송이 불가능할 수 있습니다.
