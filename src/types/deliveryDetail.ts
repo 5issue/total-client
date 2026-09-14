@@ -19,9 +19,12 @@ export const DeliveryDetailFormSchema = z.object({
   location: z.enum(['front-door', 'other']),
   /** '기타 장소' 선택 시에만 의미 있음(그 외엔 아래 refine 이 검사하지 않는다). */
   otherLocationType: z.enum(['etc', 'locker', 'entrance']).optional(),
-  /** '기타' 선택 시 나오는 자유 서술 — 선택 입력(피드백 컨벤션: 자유 서술 필드는 비워도
-   * 저장 가능하게 두는 게 이 프로젝트의 최근 결정과 일관된다). */
-  otherLocationDetail: z.string(),
+  /** '기타' 선택 시 나오는 자유 서술. '택배 수령실' 과 별개 필드 — 라디오를 오갈 때 서로의
+   * 입력값이 섞이면 안 된다(사용자 확인, 2026-09-14). 선택 입력(피드백 컨벤션: 자유 서술
+   * 필드는 비워도 저장 가능하게 두는 게 이 프로젝트의 최근 결정과 일관된다). */
+  etcLocationDetail: z.string(),
+  /** '택배 수령실' 선택 시 나오는 자유 서술. `etcLocationDetail` 참고. */
+  lockerLocationDetail: z.string(),
   /** 배송 완료 후 메시지 전송 시점. 기본값 '배송 직후'(node 666-26255, 선택 상태). */
   messageTiming: z.enum(['immediately', 'seven-am']),
 });
