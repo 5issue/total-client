@@ -14,7 +14,8 @@ import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 import { DeliveryDetailFormSchema, type DeliveryDetailFormFields } from '@/types/deliveryDetail';
 
 /**
- * 체크아웃 '배송 상세정보'의 "수정" 버튼으로 이동하는 화면(organism) — Figma node 666-26216.
+ * 체크아웃 '배송 상세정보'의 "수정" 버튼으로 이동하는 화면(organism) — Figma node 666-26216
+ * (기본 상태), 666-26389("택배 수령실" 선택 상태), 666-26457("공동현관(대문) 앞" 선택 상태).
  *
  * 체크아웃(#82/#84)이 아직 develop 에 머지되지 않아, 이번 작업은 이 화면 자체(라우트 +
  * 컴포넌트)만 우선 구현한다 — 체크아웃 '수정' 버튼 → 이 라우트 연결은 #84 머지 후 별도 진행
@@ -25,8 +26,10 @@ import { DeliveryDetailFormSchema, type DeliveryDetailFormFields } from '@/types
  *   '문 앞', 기타장소 세부사항 '기타', 메시지 전송 '배송 직후'.
  * - "기타장소 세부사항" 섹션은 '받으실 장소'에서 '기타 장소'를 골랐을 때만 노출된다
  *   (사용자 확인 — Figma 캡처는 개발자 참고용으로 두 섹션을 한 화면에 다 보여줄 뿐,
- *   '문 앞' 선택 시 이 섹션은 보류/숨김이 맞다). '기타'를 고르면 그 안에서 다시
- *   Textarea 가 나온다 — 같은 "선택하면 세부 입력 열림" 패턴이 두 단계로 중첩된 구조.
+ *   '문 앞' 선택 시 이 섹션은 보류/숨김이 맞다). 그 안에서 '기타' 또는 '택배 수령실'을
+ *   고르면 선택한 옵션 바로 아래에 Textarea 가 열린다(예시 문구만 다름, node 666-26389
+ *   확인) — 같은 "선택하면 세부 입력 열림" 패턴이 두 단계로 중첩된 구조. '공동현관(대문)
+ *   앞'은 세부 입력이 없다(node 666-26457 확인).
  * - "받으실 분"은 로그인 사용자 이름으로 채워진 채 시작하지만 "휴대폰"은 비워진 채
  *   시작한다(Figma 그대로 — 비대칭이지만 원본 확인됨).
  * - 필드 라벨(받으실 분 등)은 `Input`/`Textarea` 자체의 `labelVisible`(text-heading-l,
@@ -46,6 +49,18 @@ const OTHER_LOCATION_INFO_ITEMS = [
   '요청하신 장소로 배송이 어려운 경우, 부득이하게 1층 공동현관 앞에 배송될 수 있습니다.',
   '배송 받으실 시간은 별도로 지정할 수 없습니다.',
 ] as const;
+
+/** "기타장소 세부사항"에서 세부 입력 Textarea 를 보여주는 옵션과 그 placeholder(node
+ * 666-26389 "택배 수령실" 선택 상태 확인) — '기타'뿐 아니라 '택배 수령실'도 선택 시
+ * 같은 자리에 Textarea 가 열리며, 예시 문구만 다르다. '공동현관(대문) 앞'은 세부 입력이
+ * 없다(node 666-26457 확인 — 선택해도 아무 것도 열리지 않는다). 두 옵션 모두 같은
+ * `otherLocationDetail` 필드를 공유한다(항상 하나만 노출되므로 값 충돌 없음). */
+const OTHER_LOCATION_DETAIL_PLACEHOLDER: Partial<
+  Record<DeliveryDetailFormFields['otherLocationType'] & string, string>
+> = {
+  etc: '원하시는 장소를 자세히 입력해주세요.\n예 : 계단 밑, 주택단지 앞 경비초소를 지나 A동 출입구',
+  locker: '원하시는 장소를 자세히 입력해주세요.\n예 : 1층 출입구 오른쪽 택배수령실에 배송해주세요.',
+};
 
 /** 필드 라벨 한 줄 — 라벨 + 필수 표시(*). Figma "label"(node 666-26221 등) 그대로:
  * text-label-m(14px/500), * 는 brand/primary(#690085, 이 프로젝트 text-primary). */
@@ -188,9 +203,7 @@ export function DeliveryDetailEditView() {
               {otherLocationType === 'etc' ? (
                 <Textarea
                   label="기타장소 세부사항 자세히"
-                  placeholder={
-                    '원하시는 장소를 자세히 입력해주세요.\n예 : 계단 밑, 주택단지 앞 경비초소를 지나 A동 출입구'
-                  }
+                  placeholder={OTHER_LOCATION_DETAIL_PLACEHOLDER.etc}
                   rows={3}
                   {...register('otherLocationDetail')}
                 />
@@ -203,6 +216,15 @@ export function DeliveryDetailEditView() {
                 onChange={() => setValue('otherLocationType', 'locker', { shouldDirty: true })}
                 label="택배 수령실"
               />
+              {otherLocationType === 'locker' ? (
+                <Textarea
+                  label="기타장소 세부사항 자세히"
+                  placeholder={OTHER_LOCATION_DETAIL_PLACEHOLDER.locker}
+                  rows={3}
+                  {...register('otherLocationDetail')}
+                />
+              ) : null}
+
               <RadioOption
                 name="otherLocationType"
                 value="entrance"
