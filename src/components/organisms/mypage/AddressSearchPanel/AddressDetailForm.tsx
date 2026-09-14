@@ -123,22 +123,29 @@ export function AddressDetailForm({
   return (
     <form onSubmit={handleSubmit(onValid)} className="flex min-h-0 flex-1 flex-col">
       <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-4 pt-3 pb-4">
-        {/* 샛별배송 안내 — node 666-25889/25890/25891. */}
-        <div className="flex flex-col items-center gap-1 pt-6 text-center">
+        {/* 샛별배송 안내 — node 666-25889/25890/25891. gap-[7px] 는 Figma 실측(디자인 토큰
+            스케일에 없는 값이라 임의값 유지). "샛별배송" 색상은 #690085 = Brand/500 =
+            text-primary(이 프로젝트의 시맨틱 별칭) — 재검증 전엔 text-brand-300(#c16edd,
+            더 옅은 톤)으로 잘못 적어놨었다. */}
+        <div className="flex flex-col items-center gap-[7px] text-center">
           <p className="text-display-xs text-fg">
-            <span className="text-brand-300">샛별배송</span> 지역입니다.
+            <span className="text-primary">샛별배송</span> 지역입니다.
           </p>
           <p className="text-label-m text-fg-tertiary">매일 새벽, 문 앞까지 신선함을 전해드려요.</p>
         </div>
 
-        <div className="flex flex-col gap-3">
-          <p className="text-heading-4 text-fg-secondary">{address.roadAddress}</p>
+        {/* node 666-25893 — gap-[9px] 도 Figma 실측 임의값. 안쪽 "주소+Input" 묶음(gap/s,
+            12px)과는 다른 레벨이라 재검증 전엔 하나로 뭉뚱그려(gap-3) 셋 다 12px이 돼버렸었다. */}
+        <div className="flex flex-col gap-[9px]">
+          <div className="flex flex-col gap-3">
+            <p className="text-heading-4 text-fg-secondary">{address.roadAddress}</p>
 
-          <Input
-            label="나머지 주소"
-            placeholder="나머지 주소를 입력해주세요"
-            {...register('detailAddress')}
-          />
+            <Input
+              label="나머지 주소"
+              placeholder="나머지 주소를 입력해주세요"
+              {...register('detailAddress')}
+            />
+          </div>
 
           <div className="flex items-center justify-between">
             {(['home', 'company', 'custom'] as const).map((type) => (
