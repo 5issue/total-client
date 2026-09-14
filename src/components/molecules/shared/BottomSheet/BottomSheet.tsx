@@ -16,6 +16,10 @@ import { createPortal } from 'react-dom';
  * - 상단 핸들을 아래로 끌어내리면(임계값 초과) 닫힌다 — 그 미만이면 제자리로 스냅백.
  *   내부 콘텐츠는 `overflow-y-auto` 로 자체 스크롤한다.
  * - 상태 없는 컨트롤드 — `open` / `onClose` 는 부모 소유.
+ * - 상단 모서리는 Figma 실측 Radius/L(12px) → `rounded-t-lg`. 이 프로젝트는 `-l`/`-s`
+ *   방향 접미사가 Tailwind 코어 유틸리티(`rounded-l`=좌측 두 모서리)와 충돌해 L 을
+ *   `lg` 로 토큰화했다(globals.css 주석) — `rounded-tl-l`/`rounded-tr-l` 로 쓰면 매칭되는
+ *   유틸리티가 없어 조용히 no-op 되고 위쪽이 각지게 보인다(실기기 확인, 이전 버그).
  */
 export interface BottomSheetProps {
   open: boolean;
@@ -153,7 +157,7 @@ export function BottomSheet({
           transform: open && dragging ? `translateY(${dragY}px)` : undefined,
         }}
         className={[
-          'bg-surface rounded-tl-l rounded-tr-l flex w-full max-w-screen-sm flex-col ease-out focus:outline-none',
+          'bg-surface flex w-full max-w-screen-sm flex-col rounded-t-lg ease-out focus:outline-none',
           open ? 'translate-y-0' : 'translate-y-full',
           dragging
             ? 'transition-none'
