@@ -44,12 +44,13 @@ const TONE_CHECK_CLASSNAME: Record<RadioTone, string> = {
 };
 
 // ring: 28px 는 Figma 실측 고정값(2426:1195) 그대로. check: 피드백(2026-09-14) — 체크
-// 마크 자체는 원본 크기(size-3.5, 14px)를 유지하고 그 대신 이 바깥 원 지름을 줄여달라는
-// 요청 — size-7(28px) → size-6(24px). 44px 터치 타깃은 두 variant 모두 감싸는 label
-// 쪽에서 확보하므로(code-style §5) 원 크기와 무관하게 그대로다.
+// 마크 자체는 원본 크기(size-3.5, 14px)를 유지하고 그 대신 이 바깥 원 지름만 줄여달라는
+// 요청 — size-7(28px) → size-6(24px) → size-5(20px, 추가 피드백으로 한 단계 더 축소).
+// 44px 터치 타깃은 두 variant 모두 감싸는 label 쪽에서 확보하므로(code-style §5) 원
+// 크기와 무관하게 그대로다.
 const SIZE_CLASSNAME: Record<'ring' | 'check', string> = {
   ring: 'size-7',
-  check: 'size-6',
+  check: 'size-5',
 };
 
 const INPUT_BASE =

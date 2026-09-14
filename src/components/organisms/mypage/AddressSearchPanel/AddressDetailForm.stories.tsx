@@ -91,18 +91,23 @@ export const SelectsHomeAliasAndSaves: Story = {
   },
 };
 
-export const CustomAliasWithoutNameNeverSaves: Story = {
+export const CustomAliasWithoutNameStillSaves: Story = {
   tags: ['!autodocs'],
   play: async ({ canvasElement, args }) => {
-    // 주의(2026-09-14): '배송지 이름' Input 이 register/error 없이 연결만 안 된 상태로
-    // 수정됨 — customAlias 가 항상 빈 값으로 남아 검증을 통과 못 해 '직접입력' 선택 시
-    // 저장이 계속 막힌다(에러 문구도 안 뜬다). 이 테스트는 지금 그 상태를 그대로
-    // 기록한다 — Input 을 다시 연결하면 이 테스트도 같이 갱신해야 한다.
+    // 피드백(2026-09-14): "직접입력" 이름도 "나머지 주소"처럼 선택 입력 — 안 적어도
+    // 저장된다(AddressDetailFormSchema 에 customAlias 필수화 refine 없음).
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole('button', { name: '직접입력' }));
     await userEvent.click(canvas.getByRole('button', { name: '저장' }));
 
-    await expect(args.onSubmit).not.toHaveBeenCalled();
+    // 나머지 주소도 안 적었으니 "상세주소 입력" 확인 모달을 한 번 거친다.
+    const body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(body.getByRole('button', { name: '확인' }));
+
+    await expect(args.onSubmit).toHaveBeenCalledTimes(1);
+    const values = lastSubmittedValues(args.onSubmit);
+    expect(values.aliasType).toBe('custom');
+    expect(values.name).toBeUndefined();
   },
 };
 

@@ -179,7 +179,9 @@ export function AddressDetailForm({
               ))}
             </div>
 
-            {aliasType === 'custom' ? <Input label="배송지 이름" /> : null}
+            {aliasType === 'custom' ? (
+              <Input label="배송지 이름" {...register('customAlias')} />
+            ) : null}
 
             {/* node 666-25901/25903 — 인디케이터는 AddressForm 과 동일하게 Radio check variant. */}
             <div className="flex items-center gap-1">
