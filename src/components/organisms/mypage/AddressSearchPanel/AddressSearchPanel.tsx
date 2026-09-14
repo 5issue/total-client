@@ -98,7 +98,7 @@ export function AddressSearchPanel({
           aria-label={atWidgetStep ? '닫기' : '뒤로 가기'}
           className="inline-flex size-11 shrink-0 items-center justify-center"
         >
-          <Icon name={atWidgetStep ? 'close' : 'arrow-left'} size={32} aria-hidden />
+          <Icon name={atWidgetStep ? 'close' : 'arrow-left'} size={28} aria-hidden />
         </button>
         <h1 className="text-heading-0 text-fg flex-1 px-2">
           {picked === null ? '주소 검색' : '배송지'}
