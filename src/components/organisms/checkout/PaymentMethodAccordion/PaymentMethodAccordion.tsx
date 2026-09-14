@@ -331,6 +331,15 @@ export function PaymentMethodAccordion({
                   selected={otherMethod === 'payco'}
                   onClick={() => onOtherMethodChange('payco')}
                 />
+                {/* 페이코는 Figma 상 단독 행(node 666-23362)이지만 버튼 자체 폭(160px, w-40)은
+                    위 두 행과 동일하다(node 666-23344 스크린샷 실측 — 세 행 모두 같은 크기).
+                    문제는 좁은 화면(컨테이너 < 328px)에서 위 두 행은 짝이 있어 flex-shrink 로
+                    균등하게 줄어드는데, 페이코는 행에 혼자라 shrink 계산에 참여할 상대가 없어
+                    줄지 않고 원래 크기(160px)를 유지해버려 다른 버튼보다 더 커 보였다(실측:
+                    150px 안팎 vs 160px). 위 행과 동일한 w-40 spacer 를 짝으로 두면 같은
+                    flex-basis/gap 조건이 되어 동일한 비율로 줄어든다 — 시각적으로는 보이지
+                    않아야 하므로 aria-hidden. */}
+                <div className="h-10 w-40" aria-hidden="true" />
               </div>
             </div>
 
