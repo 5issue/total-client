@@ -61,6 +61,23 @@ export const SelectingLockerRevealsItsOwnDetailTextarea: Story = {
   },
 };
 
+export const EtcAndLockerDetailFieldsDoNotShareTheirValue: Story = {
+  tags: ['!autodocs'],
+  play: async ({ canvasElement }) => {
+    // 처음엔 '기타'/'택배 수령실'이 같은 필드를 공유해 값이 새는 실버그였다 — 회귀 방지.
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('radio', { name: '기타 장소' }));
+
+    await userEvent.type(canvas.getByPlaceholderText(/계단 밑/), '기타 입력값');
+    await userEvent.click(canvas.getByRole('radio', { name: '택배 수령실' }));
+    await expect(canvas.getByPlaceholderText(/1층 출입구/)).toHaveValue('');
+
+    await userEvent.type(canvas.getByPlaceholderText(/1층 출입구/), '택배함 입력값');
+    await userEvent.click(canvas.getByRole('radio', { name: '기타' }));
+    await expect(canvas.getByPlaceholderText(/계단 밑/)).toHaveValue('기타 입력값');
+  },
+};
+
 export const InvalidPhoneBlocksSubmit: Story = {
   tags: ['!autodocs'],
   play: async ({ canvasElement }) => {

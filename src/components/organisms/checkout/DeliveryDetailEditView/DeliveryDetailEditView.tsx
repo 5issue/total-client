@@ -33,7 +33,9 @@ import { DeliveryDetailFormSchema, type DeliveryDetailFormFields } from '@/types
  *   '문 앞' 선택 시 이 섹션은 보류/숨김이 맞다). 그 안에서 '기타' 또는 '택배 수령실'을
  *   고르면 선택한 옵션 바로 아래에 Textarea 가 열린다(예시 문구만 다름, node 666-26389
  *   확인) — 같은 "선택하면 세부 입력 열림" 패턴이 두 단계로 중첩된 구조. '공동현관(대문)
- *   앞'은 세부 입력이 없다(node 666-26457 확인).
+ *   앞'은 세부 입력이 없다(node 666-26457 확인). 두 Textarea 는 서로 다른 필드
+ *   (`etcLocationDetail`/`lockerLocationDetail`)라 라디오를 오가도 값이 섞이지 않는다
+ *   (사용자 확인 — 처음엔 하나의 필드를 공유해 값이 새는 실버그였다, 2026-09-14).
  * - "받으실 분"은 로그인 사용자 이름으로 채워진 채 시작하지만 "휴대폰"은 비워진 채
  *   시작한다(Figma 그대로 — 비대칭이지만 원본 확인됨).
  * - 필드 라벨(받으실 분 등)은 `Input`/`Textarea` 자체의 `labelVisible`(text-heading-l,
@@ -59,21 +61,16 @@ const OTHER_LOCATION_INFO_ITEMS = [
   '배송 받으실 시간은 별도로 지정할 수 없습니다.',
 ] as const;
 
-/** "기타장소 세부사항"에서 세부 입력 Textarea 를 보여주는 옵션과 그 placeholder(node
- * 666-26389 "택배 수령실" 선택 상태 확인) — '기타'뿐 아니라 '택배 수령실'도 선택 시
- * 같은 자리에 Textarea 가 열리며, 예시 문구만 다르다. '공동현관(대문) 앞'은 세부 입력이
- * 없다(node 666-26457 확인 — 선택해도 아무 것도 열리지 않는다). 두 옵션 모두 같은
- * `otherLocationDetail` 필드를 공유한다(항상 하나만 노출되므로 값 충돌 없음). */
-const OTHER_LOCATION_DETAIL_PLACEHOLDER: Partial<
-  Record<DeliveryDetailFormFields['otherLocationType'] & string, string>
-> = {
-  etc: '원하시는 장소를 자세히 입력해주세요.\n예 : 계단 밑, 주택단지 앞 경비초소를 지나 A동 출입구',
-  locker: '원하시는 장소를 자세히 입력해주세요.\n예 : 1층 출입구 오른쪽 택배수령실에 배송해주세요.',
-};
+/** "기타장소 세부사항"에서 '기타'/'택배 수령실' 선택 시 여는 Textarea 의 placeholder
+ * (node 666-26389 "택배 수령실" 선택 상태 확인) — 예시 문구만 다르다. '공동현관(대문)
+ * 앞'은 세부 입력이 없다(node 666-26457 확인 — 선택해도 아무 것도 열리지 않는다). */
+const ETC_LOCATION_DETAIL_PLACEHOLDER =
+  '원하시는 장소를 자세히 입력해주세요.\n예 : 계단 밑, 주택단지 앞 경비초소를 지나 A동 출입구';
+const LOCKER_LOCATION_DETAIL_PLACEHOLDER =
+  '원하시는 장소를 자세히 입력해주세요.\n예 : 1층 출입구 오른쪽 택배수령실에 배송해주세요.';
 
 /** 필수값 미입력 알림 모달 문구 — node 761-106060(휴대폰), 761-106130(기타), 761-106200
- * (택배 수령실). '기타장소 세부사항' 은 어떤 옵션이 선택돼 있었는지에 따라 문구가
- * 갈린다(같은 `otherLocationDetail` 필드, 예시만 다름 — 위 placeholder 맵과 동일한 축). */
+ * (택배 수령실). '기타장소 세부사항' 은 어떤 옵션이 선택돼 있었는지에 따라 문구가 갈린다. */
 const OTHER_LOCATION_DETAIL_REQUIRED_MESSAGE: Partial<
   Record<DeliveryDetailFormFields['otherLocationType'] & string, string>
 > = {
@@ -135,7 +132,8 @@ export function DeliveryDetailEditView() {
       phone: '',
       location: 'front-door',
       otherLocationType: 'etc',
-      otherLocationDetail: '',
+      etcLocationDetail: '',
+      lockerLocationDetail: '',
       messageTiming: 'immediately',
     },
   });
@@ -147,8 +145,10 @@ export function DeliveryDetailEditView() {
   // register() 의 ref 와 스크롤+포커스용 ref 를 합친다(모달 "확인" 클릭 시 사용).
   const phoneInputRef = useRef<HTMLInputElement | null>(null);
   const phoneField = register('phone');
-  const otherLocationDetailRef = useRef<HTMLTextAreaElement | null>(null);
-  const otherLocationDetailField = register('otherLocationDetail');
+  const etcLocationDetailRef = useRef<HTMLTextAreaElement | null>(null);
+  const etcLocationDetailField = register('etcLocationDetail');
+  const lockerLocationDetailRef = useRef<HTMLTextAreaElement | null>(null);
+  const lockerLocationDetailField = register('lockerLocationDetail');
 
   const [validationModal, setValidationModal] = useState<ValidationModalKind | null>(null);
   const validationModalMessage =
@@ -176,12 +176,15 @@ export function DeliveryDetailEditView() {
       return;
     }
 
-    const needsOtherLocationDetail =
-      values.location === 'other' &&
-      (values.otherLocationType === 'etc' || values.otherLocationType === 'locker');
-    if (needsOtherLocationDetail && !values.otherLocationDetail.trim()) {
-      setValidationModal('otherLocationDetail');
-      return;
+    if (values.location === 'other') {
+      if (values.otherLocationType === 'etc' && !values.etcLocationDetail.trim()) {
+        setValidationModal('otherLocationDetail');
+        return;
+      }
+      if (values.otherLocationType === 'locker' && !values.lockerLocationDetail.trim()) {
+        setValidationModal('otherLocationDetail');
+        return;
+      }
     }
 
     void handleSubmit(onValid)(e);
@@ -191,7 +194,11 @@ export function DeliveryDetailEditView() {
   // 실행해야 이 포커스 이동이 되돌아가지 않는다(setTimeout 으로 한 틱 미룸).
   function handleValidationModalConfirm() {
     const target =
-      validationModal === 'phone' ? phoneInputRef.current : otherLocationDetailRef.current;
+      validationModal === 'phone'
+        ? phoneInputRef.current
+        : otherLocationType === 'locker'
+          ? lockerLocationDetailRef.current
+          : etcLocationDetailRef.current;
     setValidationModal(null);
     setTimeout(() => {
       target?.focus({ preventScroll: true });
@@ -284,12 +291,12 @@ export function DeliveryDetailEditView() {
               {otherLocationType === 'etc' ? (
                 <Textarea
                   label="기타장소 세부사항 자세히"
-                  placeholder={OTHER_LOCATION_DETAIL_PLACEHOLDER.etc}
+                  placeholder={ETC_LOCATION_DETAIL_PLACEHOLDER}
                   rows={3}
-                  {...otherLocationDetailField}
+                  {...etcLocationDetailField}
                   ref={(node) => {
-                    otherLocationDetailField.ref(node);
-                    otherLocationDetailRef.current = node;
+                    etcLocationDetailField.ref(node);
+                    etcLocationDetailRef.current = node;
                   }}
                 />
               ) : null}
@@ -304,12 +311,12 @@ export function DeliveryDetailEditView() {
               {otherLocationType === 'locker' ? (
                 <Textarea
                   label="기타장소 세부사항 자세히"
-                  placeholder={OTHER_LOCATION_DETAIL_PLACEHOLDER.locker}
+                  placeholder={LOCKER_LOCATION_DETAIL_PLACEHOLDER}
                   rows={3}
-                  {...otherLocationDetailField}
+                  {...lockerLocationDetailField}
                   ref={(node) => {
-                    otherLocationDetailField.ref(node);
-                    otherLocationDetailRef.current = node;
+                    lockerLocationDetailField.ref(node);
+                    lockerLocationDetailRef.current = node;
                   }}
                 />
               ) : null}
