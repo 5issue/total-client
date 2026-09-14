@@ -40,11 +40,24 @@ export const SelectingOtherLocationRevealsDetailSection: Story = {
     await expect(canvas.getByText('기타장소 세부사항')).toBeInTheDocument();
     // '기타'가 기본 선택 — Textarea 도 같이 나온다.
     await expect(canvas.getByRole('radio', { name: '기타' })).toBeChecked();
-    await expect(canvas.getByPlaceholderText(/원하시는 장소를 자세히/)).toBeInTheDocument();
+    await expect(canvas.getByPlaceholderText(/계단 밑/)).toBeInTheDocument();
 
-    // 다른 옵션(택배 수령실)을 고르면 Textarea 는 사라진다.
-    await userEvent.click(canvas.getByRole('radio', { name: '택배 수령실' }));
+    // 공동현관(대문) 앞을 고르면 Textarea 는 사라진다(node 666-26457 — 세부 입력 없음).
+    await userEvent.click(canvas.getByRole('radio', { name: '공동현관(대문) 앞' }));
     await expect(canvas.queryByPlaceholderText(/원하시는 장소를 자세히/)).not.toBeInTheDocument();
+  },
+};
+
+export const SelectingLockerRevealsItsOwnDetailTextarea: Story = {
+  tags: ['!autodocs'],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('radio', { name: '기타 장소' }));
+    await userEvent.click(canvas.getByRole('radio', { name: '택배 수령실' }));
+
+    // '기타'의 예시 문구는 사라지고, '택배 수령실' 전용 예시 문구로 바뀐다(node 666-26389).
+    await expect(canvas.queryByPlaceholderText(/계단 밑/)).not.toBeInTheDocument();
+    await expect(canvas.getByPlaceholderText(/1층 출입구 오른쪽 택배수령실/)).toBeInTheDocument();
   },
 };
 
