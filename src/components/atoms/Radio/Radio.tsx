@@ -89,12 +89,14 @@ export function Radio({
           {...props}
         />
         {variant === 'check' ? (
+          // size-3.5(14px)가 체크마크치고 커 보인다는 피드백(2026-09-14) — 한 단계
+          // 아래(size-3, 12px)로 줄였다. 바깥 원(size-7, 28px)은 Figma 실측 고정값이라 그대로.
           <svg
             viewBox="0 0 13.5 10"
             fill="none"
             aria-hidden
             className={[
-              'pointer-events-none absolute inset-0 m-auto size-3.5 text-neutral-400',
+              'pointer-events-none absolute inset-0 m-auto size-3 text-neutral-400',
               TONE_CHECK_CLASSNAME[tone],
             ].join(' ')}
           >

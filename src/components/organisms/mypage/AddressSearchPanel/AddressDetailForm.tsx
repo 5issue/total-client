@@ -122,73 +122,80 @@ export function AddressDetailForm({
 
   return (
     <form onSubmit={handleSubmit(onValid)} className="flex min-h-0 flex-1 flex-col">
-      <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-4 pt-3 pb-4">
+      {/* pt-14(56px) — '배송지' 헤더(AddressSearchPanel)와 이 배너 사이 거리 실측값을
+          하드코딩 대신 Tailwind 숫자 스케일로(56÷4=14). */}
+      <div className="flex flex-1 flex-col overflow-y-auto px-4 pt-14 pb-4">
         {/* 샛별배송 안내 — node 666-25889/25890/25891. gap-[7px] 는 Figma 실측(디자인 토큰
             스케일에 없는 값이라 임의값 유지). "샛별배송" 색상은 #690085 = Brand/500 =
-            text-primary(이 프로젝트의 시맨틱 별칭) — 재검증 전엔 text-brand-300(#c16edd,
-            더 옅은 톤)으로 잘못 적어놨었다. */}
+            text-primary(이 프로젝트의 시맨틱 별칭). 부제는 Figma "Label/Label_L_SemiBold"
+            (14px/600) — text-label-m(14px/500)이 아니다(재검증 전엔 굵기를 잘못 적었다). */}
         <div className="flex flex-col items-center gap-[7px] text-center">
           <p className="text-display-xs text-fg">
             <span className="text-primary">샛별배송</span> 지역입니다.
           </p>
-          <p className="text-label-m text-fg-tertiary">매일 새벽, 문 앞까지 신선함을 전해드려요.</p>
+          <p className="text-label-l text-fg-tertiary">매일 새벽, 문 앞까지 신선함을 전해드려요.</p>
         </div>
 
-        {/* node 666-25893 — gap-[9px] 도 Figma 실측 임의값. 안쪽 "주소+Input" 묶음(gap/s,
-            12px)과는 다른 레벨이라 재검증 전엔 하나로 뭉뚱그려(gap-3) 셋 다 12px이 돼버렸었다. */}
-        <div className="flex flex-col gap-[9px]">
-          <div className="flex flex-col gap-3">
-            <p className="text-heading-4 text-fg-secondary">{address.roadAddress}</p>
+        {/* mt-15(60px) — 배너 부제와 아래 도로명 주소 사이 거리 실측값(하드코딩 대신
+            60÷4=15). 안쪽 gap-5(20px)는 Figma node 666-25892("주소+Input+칩+토글" 묶음 ↔
+            안내박스) 그대로. */}
+        <div className="mt-15 flex flex-col gap-5">
+          {/* node 666-25893 — gap-[9px] 는 Figma 실측 임의값. 안쪽 "주소+Input" 묶음(gap/s,
+              12px)과는 다른 레벨이라 재검증 전엔 하나로 뭉뚱그려(gap-3) 셋 다 12px이 돼버렸었다. */}
+          <div className="flex flex-col gap-[9px]">
+            <div className="flex flex-col gap-3">
+              <p className="text-heading-4 text-fg-secondary">{address.roadAddress}</p>
 
-            <Input
-              label="나머지 주소"
-              placeholder="나머지 주소를 입력해주세요"
-              {...register('detailAddress')}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            {(['home', 'company', 'custom'] as const).map((type) => (
-              <AddressChip
-                key={type}
-                type={type}
-                label={ALIAS_LABEL[type]}
-                selected={aliasType === type}
-                onClick={() => pickAlias(type)}
+              <Input
+                label="나머지 주소"
+                placeholder="나머지 주소를 입력해주세요"
+                {...register('detailAddress')}
               />
-            ))}
+            </div>
+
+            <div className="flex items-center justify-between">
+              {(['home', 'company', 'custom'] as const).map((type) => (
+                <AddressChip
+                  key={type}
+                  type={type}
+                  label={ALIAS_LABEL[type]}
+                  selected={aliasType === type}
+                  onClick={() => pickAlias(type)}
+                />
+              ))}
+            </div>
+
+            {aliasType === 'custom' ? (
+              <Input
+                label="배송지 이름"
+                placeholder="배송지 이름을 입력해주세요"
+                error={errors.customAlias?.message}
+                {...register('customAlias')}
+              />
+            ) : null}
+
+            {/* node 666-25901/25903 — 인디케이터는 AddressForm 과 동일하게 Radio check variant. */}
+            <div className="flex items-center gap-1">
+              <Radio
+                variant="check"
+                tone="purple"
+                label="기본 배송지로 저장"
+                checked={saveAsDefault}
+                readOnly
+                onClick={() => setValue('saveAsDefault', !saveAsDefault, { shouldDirty: true })}
+              />
+              <span aria-hidden className="text-heading-5 text-fg">
+                기본 배송지로 저장
+              </span>
+            </div>
           </div>
 
-          {aliasType === 'custom' ? (
-            <Input
-              label="배송지 이름"
-              placeholder="배송지 이름을 입력해주세요"
-              error={errors.customAlias?.message}
-              {...register('customAlias')}
-            />
-          ) : null}
-
-          {/* node 666-25901/25903 — 인디케이터는 AddressForm 과 동일하게 Radio check variant. */}
-          <div className="flex items-center gap-1">
-            <Radio
-              variant="check"
-              tone="purple"
-              label="기본 배송지로 저장"
-              checked={saveAsDefault}
-              readOnly
-              onClick={() => setValue('saveAsDefault', !saveAsDefault, { shouldDirty: true })}
-            />
-            <span aria-hidden className="text-heading-5 text-fg">
-              기본 배송지로 저장
-            </span>
-          </div>
+          {/* node 666-25905 — 서비스 제한 안내. */}
+          <InfoBox variant="inline" icon={<Icon name="info-line" size={20} aria-hidden />}>
+            일부 관공서, 학교, 병원, 시장, 공단지역, 산간지역, 백화점 등은 현장 상황에 따라
+            샛별배송이 불가능할 수 있습니다.
+          </InfoBox>
         </div>
-
-        {/* node 666-25905 — 서비스 제한 안내. */}
-        <InfoBox variant="inline" icon={<Icon name="info-line" size={20} aria-hidden />}>
-          일부 관공서, 학교, 병원, 시장, 공단지역, 산간지역, 백화점 등은 현장 상황에 따라 샛별배송이
-          불가능할 수 있습니다.
-        </InfoBox>
       </div>
 
       {/* CTA_Horizontal (node 666-25919) — 상단 보더 없음. */}
