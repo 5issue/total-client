@@ -3,6 +3,8 @@ import type { ReactNode } from 'react';
 import { SerwistProvider } from '@serwist/turbopack/react';
 import type { Metadata, Viewport } from 'next';
 
+import { pretendard } from '@/lib/fonts';
+
 import { Providers } from './providers';
 import '@/styles/globals.css';
 
@@ -25,7 +27,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="ko" dir="ltr">
+    <html lang="ko" dir="ltr" className={pretendard.variable}>
       <body>
         {/* swUrl 은 반드시 src/app/serwist/[path]/route.ts 의 경로와 일치해야 한다. */}
         <SerwistProvider swUrl="/serwist/sw.js">
