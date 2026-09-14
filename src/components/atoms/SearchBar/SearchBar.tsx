@@ -11,11 +11,21 @@ import { Icon } from '@/components/atoms/Icon';
  *
  * - 상태(Default / Focused / Typing / Filled)는 값·포커스에 따라 자연히 갈린다.
  *   컨테이너 스타일은 모든 상태가 동일하다(Figma 확인).
+ * - 박스 높이 44px(h-11), 클리어 버튼도 44px(size-11)로 박스 전체 높이를 채운다 —
+ *   디자인팀 스펙 갱신(#69, 검색 화면 헤더 실측 40→44px).
  * - 값이 있을 때만 우측 클리어(X) 버튼을 노출한다.
  * - Enter 로 `onSearch`. 제어/비제어 모두 지원(Textarea 와 동일한 방식).
  * - 좌측 돋보기 / 우측 X 는 Icon atom(`search` · `close`, #19).
  * - Figma 에는 포커스 스타일이 없지만, 키보드 포커스 가시성(WCAG 2.4.7)을 위해
  *   `focus-within` 시 활성 보더를 준다. (code-style §5 접근성)
+ * - 루트에 `w-full` 필수 — flex 부모(예: `SectionHeader` 의 center 슬롯) 안에서는
+ *   grow 없는 flex 아이템이 콘텐츠 너비로만 줄어들어(#69 에서 실측 발견) 검색창이
+ *   좁게 렌더된다. block 부모에서는 원래도 기본 동작이라 시각 차이 없다.
+ * - `<input>` 은 `text-body-l` 이 아니라 `text-input`(16px, 나머지 값은 body-l 과
+ *   동일) 을 쓴다 — iOS Safari 는 포커스되는 입력의 font-size 가 16px 미만이면
+ *   자동으로 확대하고 원상 복구를 안 한다. `viewport` 의 `user-scalable` 을 막는 건
+ *   접근성 위반(security FE 컨벤션)이라 못 쓰므로, 토큰 자체를 16px 로 둔다
+ *   (`styles/tokens/typography.css` 참고).
  */
 export interface SearchBarProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
   /** `<label htmlFor>` 로 연결되는 접근성 라벨. */
@@ -29,7 +39,7 @@ export interface SearchBarProps extends Omit<InputHTMLAttributes<HTMLInputElemen
 }
 
 const BOX_BASE =
-  'flex h-10 items-center gap-2 rounded-m border border-transparent bg-surface-secondary pl-2 transition-colors';
+  'flex h-11 items-center gap-2 rounded-m border border-transparent bg-surface-secondary pl-2 transition-colors';
 
 export function SearchBar({
   label,
@@ -72,7 +82,7 @@ export function SearchBar({
   };
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex w-full flex-col gap-2">
       <label htmlFor={inputId} className={labelVisible ? 'text-label-l text-fg' : 'sr-only'}>
         {label}
       </label>
@@ -89,7 +99,7 @@ export function SearchBar({
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           aria-describedby={describedBy}
-          className="text-body-l text-fg placeholder:text-fg-quaternary min-w-0 flex-1 bg-transparent placeholder:font-medium focus:outline-none [&::-webkit-search-cancel-button]:appearance-none"
+          className="text-input text-fg placeholder:text-fg-quaternary min-w-0 flex-1 bg-transparent placeholder:font-medium focus:outline-none [&::-webkit-search-cancel-button]:appearance-none"
           {...props}
         />
         {showClear ? (
@@ -97,7 +107,7 @@ export function SearchBar({
             type="button"
             onClick={handleClear}
             aria-label="검색어 지우기"
-            className="text-fg-quaternary flex size-10 shrink-0 items-center justify-center"
+            className="text-fg-quaternary flex size-11 shrink-0 items-center justify-center"
           >
             <Icon name="close" size={24} aria-hidden />
           </button>

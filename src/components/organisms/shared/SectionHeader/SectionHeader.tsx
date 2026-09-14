@@ -132,6 +132,9 @@ export function SectionHeader({
         />
       ) : null}
 
+      {/* px-2 는 원본 Figma "Indicator/Header Row"(node 2438-1743, Hl4W114...
+          디자인 시스템 파일) 의 "Logo Container" 자체 패딩 — 행의 gap 이 아니라
+          center 슬롯 고유 스펙이라 leading/actions 유무와 무관하게 항상 유지한다. */}
       <div className="flex min-w-0 flex-1 items-center px-2">{centerNode}</div>
 
       {actions && actions.length > 0 ? (
