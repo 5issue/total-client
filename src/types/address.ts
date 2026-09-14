@@ -40,5 +40,26 @@ export const AddressFormSchema = z
 
 export type AddressFormFields = z.infer<typeof AddressFormSchema>;
 
+/**
+ * 새 배송지 "추가" 폼(`AddressDetailForm`, node 666-25887) 전용 스키마 — 위 `AddressFormSchema`
+ * 와 달리 recipient/phone 이 없다(2026-09-14 확인: 받으실 분/휴대폰 입력 자체가 없는 화면 —
+ * 로그인한 사용자 기본정보로 자동 채운다). detailAddress 는 여기서도 선택(빈 값 허용).
+ */
+export const AddressDetailFormSchema = z
+  .object({
+    zonecode: z.string().min(1),
+    roadAddress: z.string().min(1),
+    detailAddress: z.string(),
+    aliasType: z.enum(['home', 'company', 'custom']).optional(),
+    customAlias: z.string(),
+    saveAsDefault: z.boolean(),
+  })
+  .refine((data) => data.aliasType !== 'custom' || data.customAlias.trim() !== '', {
+    message: '배송지 이름을 입력해주세요',
+    path: ['customAlias'],
+  });
+
+export type AddressDetailFormFields = z.infer<typeof AddressDetailFormSchema>;
+
 /** 폼이 검증을 통과한 값에서 저장용 값을 뽑을 때 쓰는 정규화 헬퍼. */
 export const normalizePhone = toDigits;

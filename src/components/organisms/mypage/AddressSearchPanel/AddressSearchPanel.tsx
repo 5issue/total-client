@@ -8,6 +8,7 @@ import { PostcodeSearch, type PostcodeResult } from '@/components/molecules/addr
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 import type { AddressFormValues, AddressView } from '../model';
+import { AddressDetailForm } from './AddressDetailForm';
 import { AddressForm } from './AddressForm';
 
 /**
@@ -18,9 +19,10 @@ import { AddressForm } from './AddressForm';
  * **마운트 애니메이션**(`animate-slide-up`, globals.css) — 요소는 항상 제자리에 렌더되고
  * 애니메이션만 화면 밖에서 올라온다. 트랜지션이 안 터져 화면 밖에 멈추는 문제가 없다.
  *
- * - **추가**: `✕ 주소 검색`(카카오 위젯) → `← 배송지`(정보 폼, node 359-15314) → "저장"
- * - **수정**(`editing` 전달): 위젯 단계 건너뛰고 바로 폼(node 359-15527), 값 프리필, CTA "수정".
- *   기본배송지가 아니면 "기본 배송지로 저장" 토글 노출(node 359-15559).
+ * - **추가**: `✕ 주소 검색`(카카오 위젯) → `← 배송지`(나머지 주소 폼, `AddressDetailForm`,
+ *   node 666-25887) → "저장". 받으실 분/휴대폰 입력이 없다(2026-09-14 확인).
+ * - **수정**(`editing` 전달): 위젯 단계 건너뛰고 바로 폼(`AddressForm`, node 359-15527),
+ *   값 프리필, CTA "수정". 기본배송지가 아니면 "기본 배송지로 저장" 토글 노출(node 359-15559).
  *
  * 접근성: `role="dialog"` + `useFocusTrap`(포커스 이동·Tab 순환·복원) + Esc 닫기 —
  * code-style §5. 폼 검증은 `AddressForm` 이 RHF + Zod 로 담당한다.
@@ -105,13 +107,20 @@ export function AddressSearchPanel({
 
       {picked === null ? (
         <PostcodeSearch className="min-h-0 flex-1" onComplete={setPicked} />
-      ) : (
+      ) : isEdit ? (
         <AddressForm
           address={picked}
           editing={editing}
           usedAliases={usedAliases}
           showBadge={showBadge}
           showSaveDefault={showSaveDefault}
+          willBeDefault={willBeDefault}
+          onSubmit={onSubmit}
+        />
+      ) : (
+        <AddressDetailForm
+          address={picked}
+          usedAliases={usedAliases}
           willBeDefault={willBeDefault}
           onSubmit={onSubmit}
         />
