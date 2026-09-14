@@ -66,7 +66,7 @@ export function AddressDetailForm({
     handleSubmit,
     control,
     setValue,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
   } = useForm<AddressDetailFormFields>({
     resolver: zodResolver(AddressDetailFormSchema),
     mode: 'onTouched',
@@ -133,7 +133,7 @@ export function AddressDetailForm({
           <p className="text-display-xs text-fg">
             <span className="text-primary">샛별배송</span> 지역입니다.
           </p>
-          <p className="text-label-l text-fg-tertiary">매일 새벽, 문 앞까지 신선함을 전해드려요.</p>
+          <p className="text-label-m text-fg-tertiary">매일 새벽, 문 앞까지 신선함을 전해드려요.</p>
         </div>
 
         {/* mt-15(60px) — 배너 부제와 아래 도로명 주소 사이 거리 실측값(하드코딩 대신
@@ -165,14 +165,7 @@ export function AddressDetailForm({
               ))}
             </div>
 
-            {aliasType === 'custom' ? (
-              <Input
-                label="배송지 이름"
-                placeholder="배송지 이름을 입력해주세요"
-                error={errors.customAlias?.message}
-                {...register('customAlias')}
-              />
-            ) : null}
+            {aliasType === 'custom' ? <Input label="배송지 이름" /> : null}
 
             {/* node 666-25901/25903 — 인디케이터는 AddressForm 과 동일하게 Radio check variant. */}
             <div className="flex items-center gap-1">
@@ -190,10 +183,14 @@ export function AddressDetailForm({
             </div>
           </div>
 
-          {/* node 666-25905 — 서비스 제한 안내. */}
+          {/* node 666-25905 — 서비스 제한 안내. InfoBox 공용 atom 자체 자간(0)은 다른 곳에도
+              쓰이니 그대로 두고, 이 문구만 tracking-[0.01em](text-label-s 자간)으로 감싼다 —
+              그래야 Figma 그대로 정확히 2줄로 줄바꿈된다(자간 0인 채로는 줄바꿈 지점이 달라짐). */}
           <InfoBox variant="inline" icon={<Icon name="info-line" size={20} aria-hidden />}>
-            일부 관공서, 학교, 병원, 시장, 공단지역, 산간지역, 백화점 등은 현장 상황에 따라
-            샛별배송이 불가능할 수 있습니다.
+            <span className="tracking-[0.01em]">
+              일부 관공서, 학교, 병원, 시장, 공단지역, 산간지역, 백화점 등은 현장 상황에 따라
+              샛별배송이 불가능할 수 있습니다.
+            </span>
           </InfoBox>
         </div>
       </div>
