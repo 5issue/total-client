@@ -157,12 +157,15 @@ export function CheckoutView() {
         {/* 주문자 정보 — Figma "Accordion_Orderinfo"(node 666-25643, property1=on). 접힘일
             땐 헤더 오른쪽에 "이름, 전화번호" 요약이 붙지만 펼치면 그 요약이 사라지고
             패널에 받는 분/휴대폰/이메일 + 변경 방법 안내가 나온다(원본 확인) — 그래서
-            헤더를 `open` 값으로 직접 분기해 넣는다. */}
+            헤더를 `open` 값으로 직접 분기해 넣는다.
+            피드백(2026-09-14): "주문상품"처럼 타이틀 제외하고 부드럽게 펼쳐지도록 —
+            공용 Accordion 의 `animated` 옵트인으로 처리(다른 소비자 기본 동작은 그대로). */}
         <Accordion
           className="bg-surface"
           headerClassName="px-4 py-3"
           open={ordererOpen}
           onToggle={setOrdererOpen}
+          animated
           header={
             ordererOpen ? (
               '주문자 정보'
