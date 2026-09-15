@@ -104,9 +104,9 @@ export function RefundReasonView({
 
   // 사진 업로드(node 666-29897/666-29851) — 백엔드 미연동이라 업로드 API 없이 로컬
   // blob URL 미리보기만 관리한다(체크아웃 화면들과 같은 목데이터 단계 원칙). 입력창은
-  // 항목 수와 무관하게 하나를 공유하고, 버튼을 누른 항목의 id 를 기억했다가 파일이
-  // 선택되면 그 항목의 draft 에만 반영한다.
-  const [activeUploadItemId, setActiveUploadItemId] = useState<string | null>(null);
+  // 항목 수와 무관하게 하나를 공유하고, 버튼을 누른 항목 id 는 input `data-item-id` 에
+  // 동기적으로 붙인다. state 로 두면 파일 선택 change 가 같은 틱에 올 때 빈 id 로
+  // 업로드가 버려진다.
   const fileInputRef = useRef<HTMLInputElement>(null);
   // 언마운트 시에만 남은 blob URL을 정리한다 — `drafts` 를 직접 이펙트 의존성으로 두면
   // 바뀔 때마다(사진 추가 포함) 클린업이 먼저 돌아 방금 만든 URL까지 해제해버린다.
@@ -142,8 +142,8 @@ export function RefundReasonView({
 
   function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
+    const itemId = e.currentTarget.dataset.itemId;
     e.target.value = ''; // 같은 파일을 연속으로 선택해도 change 가 다시 발생하도록
-    const itemId = activeUploadItemId;
     if (!file || !itemId) return;
     setDrafts((prev) => {
       const current = prev[itemId] ?? createDraft();
@@ -263,8 +263,10 @@ export function RefundReasonView({
                           aria-label="사진 추가 (최대 3장)"
                           disabled={(draft?.photos.length ?? 0) >= MAX_PHOTOS}
                           onClick={() => {
-                            setActiveUploadItemId(item.id);
-                            fileInputRef.current?.click();
+                            const input = fileInputRef.current;
+                            if (!input) return;
+                            input.dataset.itemId = item.id;
+                            input.click();
                           }}
                           className="border-border rounded-m flex size-18 shrink-0 items-center justify-center border disabled:cursor-not-allowed disabled:opacity-40"
                         >
@@ -310,7 +312,7 @@ export function RefundReasonView({
 
         {/* capture="environment": 모바일에서 탭하면 갤러리가 아니라 카메라 앱(후면)이
             바로 뜬다. 데스크톱은 지원 브라우저면 웹캠, 아니면 일반 파일 선택으로 폴백.
-            모든 항목의 "사진 추가" 버튼이 이 입력창 하나를 공유한다(activeUploadItemId). */}
+            모든 항목의 "사진 추가" 버튼이 이 입력창 하나를 공유한다(data-item-id). */}
         <input
           ref={fileInputRef}
           type="file"

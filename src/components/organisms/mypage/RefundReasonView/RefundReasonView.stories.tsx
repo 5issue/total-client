@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { expect, screen, userEvent, within } from 'storybook/test';
+import { expect, screen, userEvent, waitFor, within } from 'storybook/test';
 
+import { MOCK_REFUND_REASON_ITEMS } from './mock';
 import { RefundReasonView } from './RefundReasonView';
 
 const meta = {
@@ -51,7 +52,8 @@ export const OpensSheetUnselected: Story = {
     await expect(next).toBeDisabled();
     await userEvent.click(canvas.getByRole('button', { name: '반품 사유를 선택해주세요' }));
     const dialog = await screen.findByRole('dialog', { name: '반품 사유를 선택해주세요' });
-    await expect(dialog).toBeVisible();
+    // BottomSheet 백드롭은 opacity 전환이라 직후 toBeVisible 이 실패한다.
+    await waitFor(() => expect(dialog).toBeVisible());
     const radios = within(dialog).getAllByRole('radio');
     for (const radio of radios) {
       await expect(radio).not.toBeChecked();
@@ -103,8 +105,12 @@ export const CompletesReason: Story = {
     const file = new File(['photo'], 'refund.png', { type: 'image/png' });
     const photoInput = canvasElement.querySelector<HTMLInputElement>('input[type="file"]');
     if (!photoInput) throw new Error('사진 업로드 input을 찾을 수 없습니다');
+    // 카메라 버튼을 누르면 네이티브 파일 선택창이 열려 Playwright 가 멈춘다.
+    // 버튼과 같이 공유 input 의 data-item-id 만 맞춘 뒤 파일을 넣는다.
+    photoInput.dataset.itemId = MOCK_REFUND_REASON_ITEMS[0]!.id;
     await userEvent.upload(photoInput, file);
 
+    await waitFor(() => expect(canvas.getByAltText('첨부한 반품 사진')).toBeVisible());
     await expect(next).toBeEnabled();
   },
 };
