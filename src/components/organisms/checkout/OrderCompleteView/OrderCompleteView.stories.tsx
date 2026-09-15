@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import { getRouter } from '@storybook/nextjs-vite/navigation.mock';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
 import { OrderCompleteView } from './OrderCompleteView';
@@ -58,13 +59,15 @@ export const RecommendCarouselTurnsPages: Story = {
   },
 };
 
-export const ShowsBottomCtaBar: Story = {
+export const BottomCtaNavigates: Story = {
   tags: ['!autodocs'],
   play: async ({ canvasElement }) => {
-    // node 666-26336 하단 CTA 바. 둘 다 아직 갈 곳이 없어 무동작이지만 노출은 돼야 한다.
     const canvas = within(canvasElement);
-    await expect(canvas.getByRole('button', { name: '주문 상세보기' })).toBeInTheDocument();
-    await expect(canvas.getByRole('button', { name: '쇼핑 계속하기' })).toBeInTheDocument();
+    await userEvent.click(canvas.getByRole('button', { name: '주문 상세보기' }));
+    await expect(getRouter().push).toHaveBeenCalledWith('/mypage/orders/24242424224422');
+
+    await userEvent.click(canvas.getByRole('button', { name: '쇼핑 계속하기' }));
+    await expect(getRouter().push).toHaveBeenCalledWith('/');
   },
 };
 

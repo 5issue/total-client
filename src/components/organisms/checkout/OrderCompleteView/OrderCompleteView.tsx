@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 
+import { useRouter } from 'next/navigation';
+
 import { Button } from '@/components/atoms/Button';
 import { Icon } from '@/components/atoms/Icon';
 import { InfoBox } from '@/components/atoms/InfoBox';
@@ -16,16 +18,14 @@ import { MOCK_ORDER_NUMBER, MOCK_ORDER_RECOMMEND, MOCK_ORDER_TOTAL } from './moc
  * 1315-107613(복사 토스트).
  *
  * 결제 후 도착하는 종착 화면. 주문번호 복사 + 토스트 때문에 상태가 필요해 클라 경계다
- * (`CheckoutView`·`DeliveryDetailEditView` 와 같은 화면 단위 organism 패턴).
+ * (`CheckoutView` 와 같은 화면 단위 organism 패턴).
  *
  * 이번 작업 범위는 **퍼블리싱만**이다(사용자 확정, 2026-09-15). 결제 연동(토스페이먼츠)은
- * 체크아웃 PR #84 가 머지된 뒤 별도로 진행하고, 지금은 체크아웃의 "결제하기"가 이 경로로
- * 넘어오는 더미 흐름만 있다. 그래서 주문번호·금액·추천 상품은 전부 `mock.ts` 스텁이다.
+ * 별도 진행하고, 지금은 체크아웃의 "결제하기"가 이 경로로 넘어오는 더미 흐름만 있다.
+ * 주문번호·금액·추천 상품은 전부 `mock.ts` 스텁이다.
  *
- * 의도적으로 비워 둔 동작(연동 시 배선):
- * - 하단 CTA "주문 상세보기" / "쇼핑 계속하기" — 각각 갈 곳이 있지만 그 화면들이 아직
- *   없어 무동작(사용자 지정, 2026-09-15).
- * - 추천 상품 "담기" / "전체보기" — 무동작(`OrderRecommendCarousel` 주석 참고).
+ * 하단 CTA: "주문 상세보기" → `/mypage/orders/{주문번호}` (#94), "쇼핑 계속하기" → `/`.
+ * 추천 상품 "담기" / "전체보기" 는 무동작(`OrderRecommendCarousel` 주석 참고).
  *
  * 토큰(실측): 배경 `Bg/secondary`(#f0f5f8) → `bg-surface-secondary`, 카드 `Surface/Base`
  * `Radius/XL`16, 타이틀 `Display/Display_S`(28/600) + `Brand/Primary` → `text-display-s
@@ -42,6 +42,7 @@ const NOTICE_ITEMS = [
 const TOAST_DURATION_MS = 3000;
 
 export function OrderCompleteView() {
+  const router = useRouter();
   // 0 이면 숨김. 복사할 때마다 증가시켜, 토스트가 떠 있는 중에 다시 복사해도
   // 아래 타이머가 새로 걸리도록(= 노출 시간이 리셋되도록) 한다.
   const [copiedSeq, setCopiedSeq] = useState(0);
@@ -120,11 +121,20 @@ export function OrderCompleteView() {
         ) : null}
 
         <div className="flex gap-2">
-          {/* 둘 다 갈 곳이 아직 없어 무동작(사용자 지정). 라우팅이 생기면 여기에 배선한다. */}
-          <Button variant="tertiary" size="l" className="h-14 flex-1">
+          <Button
+            variant="tertiary"
+            size="l"
+            className="h-14 flex-1"
+            onClick={() => router.push(`/mypage/orders/${MOCK_ORDER_NUMBER}`)}
+          >
             주문 상세보기
           </Button>
-          <Button variant="primary" size="l" className="h-14 flex-1">
+          <Button
+            variant="primary"
+            size="l"
+            className="h-14 flex-1"
+            onClick={() => router.push('/')}
+          >
             쇼핑 계속하기
           </Button>
         </div>
