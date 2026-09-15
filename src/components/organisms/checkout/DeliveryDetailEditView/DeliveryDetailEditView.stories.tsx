@@ -7,6 +7,8 @@ import { DeliveryDetailEditView } from './DeliveryDetailEditView';
 const meta = {
   title: 'organisms/checkout/DeliveryDetailEditView',
   component: DeliveryDetailEditView,
+  args: {},
+  argTypes: {},
   tags: ['autodocs'],
   parameters: {
     layout: 'fullscreen',

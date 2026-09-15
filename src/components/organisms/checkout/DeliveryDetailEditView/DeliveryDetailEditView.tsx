@@ -50,9 +50,8 @@ import { DeliveryDetailFormSchema, type DeliveryDetailFormFields } from '@/types
  *   text-label-m)이라 `labelVisible`의 SemiBold 와 다르다. `Input`/`Textarea` 자체
  *   `label` 은 접근성용 sr-only 로만 쓴다.
  * - "[필수] 공동현관비밀번호 수집 및 이용 동의"는 별도 체크박스가 없다 — CTA 자체가
- *   "동의하고 저장"이라 그 클릭이 곧 동의다(Figma 문구 그대로). "더보기"는 전문을 펼치는
- *   토글이지만, 이 노드엔 펼친 상태의 실제 약관 전문이 없어 자리표시자로만 둔다(실제
- *   법무 문구는 별도 확정 필요 — 지어내지 않음).
+ *   "동의하고 저장"이라 그 클릭이 곧 동의다(Figma 문구 그대로). "더보기"는 약관 전문이
+ *   Figma 에 없어 동작 없는 컨트롤로 두지 않는다(법무 문구 확정 후 연결).
  * - 필수값 미입력 시 인라인 에러가 아니라 알림 모달로 안내한다(node 761-106060 휴대폰,
  *   761-106130 기타장소, 761-106200 택배 수령실 — `Modal` `variant="alert"`). 모달
  *   "확인"을 누르면 해당 섹션으로 스크롤 이동 + 포커스한다(사용자 확인, 2026-09-14).
@@ -517,8 +516,7 @@ export function DeliveryDetailEditView() {
         <hr className="border-border" />
 
         {/* [필수] 공동현관비밀번호 수집 및 이용 동의 — 별도 체크박스 없음, CTA
-            "동의하고 저장" 클릭이 곧 동의(Figma 문구 그대로). "더보기"는 전문이 아직
-            없어 자리표시자 토글만 둔다. */}
+            "동의하고 저장" 클릭이 곧 동의(Figma 문구 그대로). */}
         <ConsentRow />
       </div>
 
@@ -545,13 +543,10 @@ export function DeliveryDetailEditView() {
 
 function ConsentRow() {
   return (
-    <div className="flex items-center justify-between py-1">
+    <div className="flex items-center py-1">
+      {/* Figma 에 '더보기'가 있지만 펼친 약관 전문이 없다. 동작 없는 컨트롤은
+          키보드·클릭이 되는 것처럼 보이므로 문구가 확정될 때까지 라벨만 둔다. */}
       <p className="text-label-l text-fg">[필수] 공동현관비밀번호 수집 및 이용 동의</p>
-      {/* 펼친 상태의 실제 약관 전문이 Figma 에 없어 토글만 둔다 — 실제 문구는 법무 확정 후 연결. */}
-      <span className="text-label-xs text-fg-tertiary flex items-center gap-1 py-2">
-        더보기
-        <Icon name="arrow-down" size={20} aria-hidden />
-      </span>
     </div>
   );
 }
