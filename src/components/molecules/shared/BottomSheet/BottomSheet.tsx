@@ -16,6 +16,10 @@ import { createPortal } from 'react-dom';
  * - 상단 핸들을 아래로 끌어내리면(임계값 초과) 닫힌다 — 그 미만이면 제자리로 스냅백.
  *   내부 콘텐츠는 `overflow-y-auto` 로 자체 스크롤한다.
  * - 상태 없는 컨트롤드 — `open` / `onClose` 는 부모 소유.
+ * - 상단 모서리는 Figma 실측 Radius/L(12px) → `rounded-t-lg`. 이 프로젝트는 `-l`/`-s`
+ *   방향 접미사가 Tailwind 코어 유틸리티(`rounded-l`=좌측 두 모서리)와 충돌해 L 을
+ *   `lg` 로 토큰화했다(globals.css 주석) — `rounded-tl-l`/`rounded-tr-l` 로 쓰면 매칭되는
+ *   유틸리티가 없어 조용히 no-op 되고 위쪽이 각지게 보인다(실기기 확인, 이전 버그).
  */
 export interface BottomSheetProps {
   open: boolean;
@@ -26,8 +30,14 @@ export interface BottomSheetProps {
   children: ReactNode;
   /** 스크롤 영역 밖에 고정되는 하단 영역(주문 CTA 등). */
   footer?: ReactNode;
-  /** 시트 최대 높이. 기본 `85dvh`. */
+  /** 시트 최대 높이. 기본 `85dvh`. 콘텐츠가 이보다 짧으면 시트도 그만큼 줄어든다. */
   maxHeight?: string;
+  /**
+   * 시트 고정 높이. 주면 콘텐츠 양과 무관하게 항상 이 높이다 — 시트 안에서 탭을
+   * 오갈 때(필터 시트의 카테고리 19개 ↔ 가격 4개처럼) 시트가 들썩이는 걸 막는다.
+   * 남는 공간은 본문 스크롤 영역이 차지하고 footer 는 바닥에 붙는다.
+   */
+  height?: string;
   /** 백드롭 클릭으로 닫기. 기본 true. */
   closeOnBackdrop?: boolean;
   className?: string;
@@ -48,6 +58,7 @@ export function BottomSheet({
   children,
   footer,
   maxHeight = '85dvh',
+  height,
   closeOnBackdrop = true,
   className,
 }: BottomSheetProps) {
@@ -149,11 +160,12 @@ export function BottomSheet({
         tabIndex={-1}
         onKeyDown={handleKeyDown}
         style={{
+          height,
           maxHeight,
           transform: open && dragging ? `translateY(${dragY}px)` : undefined,
         }}
         className={[
-          'bg-surface rounded-tl-l rounded-tr-l flex w-full max-w-screen-sm flex-col ease-out focus:outline-none',
+          'bg-surface flex w-full max-w-screen-sm flex-col rounded-t-lg ease-out focus:outline-none',
           open ? 'translate-y-0' : 'translate-y-full',
           dragging
             ? 'transition-none'
@@ -170,7 +182,7 @@ export function BottomSheet({
           onPointerCancel={handleDragEnd}
           className="flex shrink-0 cursor-grab touch-none justify-center pt-3 pb-2 active:cursor-grabbing"
         >
-          <span aria-hidden className="bg-overlay-blue h-1 w-[34px] rounded-full" />
+          <span aria-hidden className="bg-overlay-blue h-1 w-8.5 rounded-full" />
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{children}</div>
         {footer ? <div className="shrink-0">{footer}</div> : null}
