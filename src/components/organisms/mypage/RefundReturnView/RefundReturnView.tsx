@@ -33,6 +33,7 @@ export function RefundReturnView({ defaultSelectedIds }: RefundReturnViewProps) 
   const totalCount = items.length;
   const canNext = selectedCount > 0;
 
+  /** 선택한 상품 id를 쿼리로 넘겨 반품 사유 화면으로 이동한다. */
   function goToReasonStep() {
     // 체크한 상품 id 를 다음 화면(반품 사유)에 전달한다 — 항목이 여럿이면
     // 그만큼 사유 입력 그룹이 반복돼야 하기 때문(RefundReasonView 참고).
@@ -41,6 +42,7 @@ export function RefundReturnView({ defaultSelectedIds }: RefundReturnViewProps) 
     router.push(`/mypage/orders/return/reason?${query}`);
   }
 
+  /** 개별 상품 선택 상태를 갱신한다. */
   function setItemChecked(id: string, checked: boolean) {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -50,6 +52,7 @@ export function RefundReturnView({ defaultSelectedIds }: RefundReturnViewProps) 
     });
   }
 
+  /** 목록 전체를 선택하거나 해제한다. */
   function setAllChecked(checked: boolean) {
     setSelectedIds(checked ? new Set(items.map((i) => i.id)) : new Set());
   }
