@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 
 import { Badge } from '@/components/atoms/Badge';
 import { Icon } from '@/components/atoms/Icon';
@@ -29,6 +30,8 @@ import { StatusLabel } from '@/components/molecules/shared/StatusLabel';
  * 시각 레이아웃은 그대로 두고 히트 영역만 넓히는 패턴.
  */
 export type ProductCardProps = {
+  /** 상품 상세로 이동할 경로(예: `/products/{id}`). 없으면 카드가 링크 없이 렌더된다. */
+  href?: string;
   imageSrc?: string;
   imageAlt: string;
   /** 배송 타입 라벨(예: "샛별배송"). */
@@ -50,6 +53,7 @@ export type ProductCardProps = {
 };
 
 export function ProductCard({
+  href,
   imageSrc,
   imageAlt,
   deliveryLabel,
@@ -63,6 +67,26 @@ export function ProductCard({
   onAddToCart,
   className,
 }: ProductCardProps) {
+  const meta = (
+    <>
+      <p className="text-caption-m text-fg-tertiary">{deliveryLabel}</p>
+      <p className="text-body-m text-fg line-clamp-2 w-full">{name}</p>
+      {originalPriceLabel ? (
+        <p className="text-caption-m text-fg-tertiary font-bold">
+          <span className="line-through">{originalPriceLabel}</span>원
+        </p>
+      ) : null}
+      <div className="text-numeric-l font-numeric flex items-center gap-1">
+        {discountLabel ? <span className="text-orange">{discountLabel}</span> : null}
+        <span className="text-fg">{priceLabel}</span>
+      </div>
+      <div className="gap-product-card-meta-gap flex items-center">
+        <Icon name="review" size={16} aria-hidden />
+        <span className="text-label-l text-fg-tertiary">{reviewCountLabel}</span>
+      </div>
+    </>
+  );
+
   return (
     <div
       className={['h-product-card flex w-37.5 shrink-0 flex-col items-start gap-1', className]
@@ -70,6 +94,14 @@ export function ProductCard({
         .join(' ')}
     >
       <div className="relative h-60 w-full overflow-hidden rounded-sm">
+        {/* 이미지 링크는 아래 이름/메타 링크와 목적지가 같은 중복 링크라 포커스에서
+            빼고(tabIndex=-1) 스크린리더에도 숨긴다(aria-hidden) — 접근 가능한 이름은
+            메타 블록 링크(§5 "상품 상세 보기: {상품명}")가 담당한다. */}
+        {href ? (
+          <Link href={href} tabIndex={-1} aria-hidden className="absolute inset-0 z-10">
+            {''}
+          </Link>
+        ) : null}
         {imageSrc ? (
           <Image src={imageSrc} alt={imageAlt} fill sizes="150px" className="object-cover" />
         ) : (
@@ -92,23 +124,13 @@ export function ProductCard({
         담기
       </button>
 
-      <div className="flex w-full flex-col">
-        <p className="text-caption-m text-fg-tertiary">{deliveryLabel}</p>
-        <p className="text-body-m text-fg line-clamp-2 w-full">{name}</p>
-        {originalPriceLabel ? (
-          <p className="text-caption-m text-fg-tertiary font-bold">
-            <span className="line-through">{originalPriceLabel}</span>원
-          </p>
-        ) : null}
-        <div className="text-numeric-l font-numeric flex items-center gap-1">
-          {discountLabel ? <span className="text-orange">{discountLabel}</span> : null}
-          <span className="text-fg">{priceLabel}</span>
-        </div>
-        <div className="gap-product-card-meta-gap flex items-center">
-          <Icon name="review" size={16} aria-hidden />
-          <span className="text-label-l text-fg-tertiary">{reviewCountLabel}</span>
-        </div>
-      </div>
+      {href ? (
+        <Link href={href} aria-label={`상품 상세 보기: ${name}`} className="contents">
+          <div className="flex w-full flex-col">{meta}</div>
+        </Link>
+      ) : (
+        <div className="flex w-full flex-col">{meta}</div>
+      )}
 
       {kurlyOnly ? <StatusLabel type="kurlyOnly">Kurly Only</StatusLabel> : null}
     </div>

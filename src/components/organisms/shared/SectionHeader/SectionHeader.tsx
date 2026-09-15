@@ -51,6 +51,12 @@ export interface SectionHeaderProps {
 
   /** 가운데 제목 — `<h1>` 로 렌더. `center` 가 있으면 무시. */
   title?: string;
+  /** 제목 타이포+색 클래스 override(기본 `text-heading-0 text-fg` 전체를 대체 — 부분
+   *  병합이 아니다. `text-heading-*` 는 폰트사이즈/줄높이/자간/굵기를 한 클래스에
+   *  묶어 내므로 둘을 같이 주면 캐스케이드 순서에 따라 뒤엉킨다). 화면마다 실제
+   *  바인딩된 타입 스타일이 다르다 — 예: 상품 상세 TopNavigationBar(node 665:43034)는
+   *  `Heading/H2_Medium`(`text-heading-2`)이라 기본값(H0_SemiBold)과 다르다. */
+  titleClassName?: string;
   /** 가운데 커스텀 노드(예: `<SearchBar/>`). `title` 보다 우선. */
   center?: ReactNode;
 
@@ -107,6 +113,7 @@ export function SectionHeader({
   leadingHref,
   leadingLabel,
   title,
+  titleClassName,
   center,
   actions,
   className,
@@ -115,7 +122,10 @@ export function SectionHeader({
   const showLeading = preset && (leadingHref || onLeadingClick);
 
   const centerNode =
-    center ?? (title ? <h1 className="text-heading-0 text-fg truncate">{title}</h1> : null);
+    center ??
+    (title ? (
+      <h1 className={`${titleClassName ?? 'text-heading-0 text-fg'} truncate`}>{title}</h1>
+    ) : null);
 
   return (
     <header

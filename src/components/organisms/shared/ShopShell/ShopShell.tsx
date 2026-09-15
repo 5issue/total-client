@@ -15,8 +15,18 @@ import { SwipeTabShell } from '@/components/organisms/shared/SwipeTabShell';
  */
 const CHROMELESS_PREFIXES = ['/cart', '/checkout', '/mypage/addresses'];
 
+/**
+ * `startsWith` 만으로 매칭하는 접두사 — 목록 화면(`/products`)은 BottomNav 를 유지해야
+ * 해서 위 CHROMELESS_PREFIXES 처럼 정확히 일치하는 경로까지 잡으면 안 된다. 상세
+ * (`/products/[productId]`)만 자체 하단 CTA(HorizontalCtaBar)를 가져 크롬리스다(이슈 #101).
+ */
+const CHROMELESS_NESTED_PREFIXES = ['/products/'];
+
 function isChromeless(pathname: string): boolean {
-  return CHROMELESS_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  return (
+    CHROMELESS_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`)) ||
+    CHROMELESS_NESTED_PREFIXES.some((p) => pathname.startsWith(p))
+  );
 }
 
 /**
