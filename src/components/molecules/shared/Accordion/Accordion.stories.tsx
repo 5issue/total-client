@@ -97,3 +97,29 @@ export const Disabled: Story = {
     await expect(btn).toHaveAttribute('aria-expanded', 'false');
   },
 };
+
+export const AnimatedTogglesSmoothly: Story = {
+  tags: ['!autodocs'],
+  args: { animated: true, defaultOpen: false },
+  render: (args) => (
+    <Accordion {...args} header="부드럽게 펼침">
+      <p className="px-4 pb-3">내용</p>
+    </Accordion>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const btn = canvas.getByRole('button', { name: '부드럽게 펼침' });
+    // `hidden` 대신 grid-rows 트랜지션 — 패널은 aria-hidden 으로만 감추고 항상 DOM 에 있다
+    // (체크아웃 "주문상품" 아코디언과 같은 기법, 2026-09-14 피드백).
+    const panel = canvas.getByText('내용').closest('[aria-hidden]');
+    if (!panel) throw new Error('패널을 찾지 못했습니다.');
+    await expect(panel).toHaveAttribute('aria-hidden', 'true');
+    await expect(panel.className).toContain('grid-rows-[0fr]');
+    await expect(panel.className).toContain('transition-[grid-template-rows]');
+
+    await userEvent.click(btn);
+
+    await expect(panel).toHaveAttribute('aria-hidden', 'false');
+    await expect(panel.className).toContain('grid-rows-[1fr]');
+  },
+};

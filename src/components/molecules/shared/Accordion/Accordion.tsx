@@ -15,6 +15,11 @@ import { Icon } from '@/components/atoms/Icon';
  *
  * - `<button aria-expanded aria-controls>` + `<div id hidden>`. 키보드는 네이티브 `<button>`.
  * - 제어(`open`) / 비제어(`defaultOpen`) 모두 지원.
+ * - `animated`(기본 false, 기존 소비자 동작 그대로): true 면 `hidden` 대신
+ *   `grid-template-rows: 0fr↔1fr` 트랜지션(체크아웃 "주문상품" 아코디언, node 666-23446 에
+ *   쓴 것과 같은 auto-height 트랜지션 기법)으로 패널을 부드럽게 접었다 편다. 콘텐츠가
+ *   열림/닫힘에서 동일(이 컴포넌트는 children 을 그대로 보였다 숨겼다만 함)이라 두 블록을
+ *   따로 둘 필요 없이 패널 하나만 이 기법을 쓰면 된다.
  */
 export interface AccordionProps {
   /** 헤더 내용. 문자열이면 heading 스타일. */
@@ -28,6 +33,8 @@ export interface AccordionProps {
   className?: string;
   /** 헤더 `<button>` 의 레이아웃 클래스(기본 `min-h-12 px-4` 를 대체). */
   headerClassName?: string;
+  /** 패널을 `hidden` 대신 grid-rows 트랜지션으로 부드럽게 여닫는다. 기본 false. */
+  animated?: boolean;
 }
 
 const HEADER_BASE =
@@ -42,6 +49,7 @@ export function Accordion({
   disabled = false,
   className,
   headerClassName,
+  animated = false,
 }: AccordionProps) {
   const uid = useId();
   const btnId = `${uid}-btn`;
@@ -76,9 +84,22 @@ export function Accordion({
           aria-hidden
         />
       </button>
-      <div id={panelId} hidden={!open}>
-        {children}
-      </div>
+      {animated ? (
+        <div
+          id={panelId}
+          aria-hidden={!open}
+          className={[
+            'grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none',
+            open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+          ].join(' ')}
+        >
+          <div className="overflow-hidden">{children}</div>
+        </div>
+      ) : (
+        <div id={panelId} hidden={!open}>
+          {children}
+        </div>
+      )}
     </div>
   );
 }

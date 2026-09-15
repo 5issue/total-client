@@ -70,6 +70,8 @@ function Demo({ open: initial = true, onClose, ...rest }: Partial<ModalProps>) {
         title={rest.title ?? '주문을 취소할까요?'}
         description={rest.description}
         footerLayout={rest.footerLayout}
+        closeOnBackdrop={rest.closeOnBackdrop}
+        closeOnEscape={rest.closeOnEscape}
         footer={
           rest.footer ?? (
             <>
@@ -97,9 +99,13 @@ const meta = {
     title: '주문을 취소할까요?',
     description: '취소한 주문은 되돌릴 수 없어요.',
     footerLayout: 'row',
+    closeOnBackdrop: true,
+    closeOnEscape: true,
   },
   argTypes: {
     footerLayout: { control: 'inline-radio', options: ['row', 'column'] },
+    closeOnBackdrop: { control: 'boolean' },
+    closeOnEscape: { control: 'boolean' },
     open: { control: false },
     onClose: { control: false },
     footer: { control: false },
@@ -142,6 +148,18 @@ export const ClosesOnEscape: Story = {
     await expect(await screen.findByRole('dialog')).toBeInTheDocument();
     await userEvent.keyboard('{Escape}');
     await expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  },
+};
+
+/** `closeOnEscape={false}`(주문시간 초과처럼 확인 버튼으로만 닫혀야 하는 모달) — Esc 무시.
+ * 코드리뷰 지적: 전엔 이 prop이 없어 `closeOnBackdrop={false}` 만으로는 Esc 를 못 막았다. */
+export const IgnoresEscapeWhenDisabled: Story = {
+  tags: ['!autodocs'],
+  args: { closeOnEscape: false },
+  play: async () => {
+    await expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    await userEvent.keyboard('{Escape}');
+    await expect(screen.getByRole('dialog')).toBeInTheDocument();
   },
 };
 
