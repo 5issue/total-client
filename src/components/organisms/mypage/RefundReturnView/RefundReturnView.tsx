@@ -15,7 +15,7 @@ import { MOCK_REFUND_ITEMS } from './mock';
  * 반품 접수 화면 컨테이너 (organism). Figma "5팀 UI 공유용" —
  * 미선택 848-82641 / 일부 선택 848-82701 / 전체 선택 848-82764.
  *
- * 퍼블리싱 단계: 선택만 로컬 state. API·다음 단계(사유 입력)는 없음.
+ * 퍼블리싱 단계: 선택만 로컬 state. `다음` 은 `/mypage/orders/return/reason` 으로 이동.
  * page.tsx 는 이 컴포넌트만 렌더한다(RSC 유지).
  *
  * 헤더 타이틀은 "반품 접수". 하단 CTA 는 `Button` black `size="l"` 풀폭 "다음" —
@@ -83,7 +83,13 @@ export function RefundReturnView({ defaultSelectedIds }: RefundReturnViewProps) 
         </div>
 
         <div className="bg-surface px-4 pt-2 pb-2">
-          <Button variant="black" size="l" disabled={!canNext} className="h-14 w-full">
+          <Button
+            variant="black"
+            size="l"
+            disabled={!canNext}
+            className="h-14 w-full"
+            onClick={() => router.push('/mypage/orders/return/reason')}
+          >
             다음
           </Button>
         </div>
