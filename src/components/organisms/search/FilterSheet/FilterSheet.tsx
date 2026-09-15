@@ -102,8 +102,10 @@ function toggleInList(list: string[], value: string): string[] {
  * gap-8, px-20). 개수는 행 오른쪽 끝이 아니라 라벨 바로 옆(gap-4)에 붙고, 라벨·개수
  * 모두 Heading/H5_Medium 이다.
  *
- * `Checkbox` 아톰이 자체적으로 `<label htmlFor sr-only>` 를 렌더하므로, 화면에 보이는
- * 라벨은 같은 `id` 를 공유하는 형제 `<label>` 로 둔다 — 둘을 함께 감싸면 label 이 중첩된다.
+ * 화면에 보이는 라벨은 아톰을 감싸지 않고 같은 `id` 를 공유하는 형제 `<label>` 로 둔다 —
+ * 둘을 함께 감싸면 label 이 중첩된다. 그래서 아톰에는 `label=""` 을 넘긴다: 아톰이 자체
+ * 렌더하는 `sr-only` 라벨까지 남기면 같은 input 에 label 이 둘 붙어 접근 가능한 이름이
+ * "가보팜스 가보팜스" 처럼 중복된다(#99 리뷰). 이름은 보이는 형제 라벨이 담당한다.
  * `!size-7` 은 아톰의 44px 터치 래퍼를 Figma 프레임(28px)으로 줄이고, `shrink-0` 이
  * 없으면 긴 라벨에서 체크박스가 눌려 찌그러진다.
  */
@@ -128,7 +130,7 @@ function CheckboxRow({
         tone="black"
         size={28}
         id={id}
-        label={label}
+        label=""
         checked={checked}
         onChange={onChange}
         className="!size-7 shrink-0"
@@ -144,6 +146,7 @@ function CheckboxRow({
 /**
  * 가격 탭 전용 행 — `Radio` 아톰 `tone="black"`(Figma "Radio_Black"). 라벨은
  * Heading/H5_Medium(Figma "FilterRadioGroup" node 1233-115856), 라디오와 Gap/XS(8px).
+ * `label=""` 인 이유는 `CheckboxRow` 주석과 같다(중복 accessible name 방지).
  */
 function PriceRadioRow({
   label,
@@ -160,7 +163,7 @@ function PriceRadioRow({
       <Radio
         id={id}
         tone="black"
-        label={label}
+        label=""
         name="price-range"
         checked={checked}
         onChange={onChange}

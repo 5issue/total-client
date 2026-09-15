@@ -32,7 +32,8 @@ export interface SearchPageContentProps {
  * `/search` 그대로라 결과 화면에서 단말기/브라우저 뒤로가기를 누를 때 `/search` 자체를
  * 떠나 홈으로 나가버린다 — 헤더 버튼만 특별 처리해도 시스템 제스처는 그대로 샌다.
  * 제출 시 `router.push` 로 히스토리 항목을 쌓으면 어느 쪽이든 그 항목만 pop 돼 검색 탭
- * 기본 화면으로 돌아오고, 결과 화면이 공유 가능한 URL 도 갖는다.
+ * 기본 화면으로 돌아오고, 결과 화면이 공유 가능한 URL 도 갖는다. 단 항목은 하나만
+ * 유지한다 — 결과 화면에서의 재검색은 `replace` 다(`handleSubmit` 주석 참고).
  *
  * 화면 상태는 두 개의 로컬 state 로 가른다:
  * - `barValue` — 검색창에 떠 있는 글자. 타이핑마다 갱신된다.
@@ -66,7 +67,15 @@ export function SearchPageContent({ defaultContent, urlQuery }: SearchPageConten
   const handleSubmit = (value: string) => {
     setBarValue(value);
     setViewQuery(value);
-    router.push(`/search?q=${encodeURIComponent(value)}`, { scroll: false });
+    const href = `/search?q=${encodeURIComponent(value)}`;
+    // 첫 검색만 push 한다. 결과 화면에서 다시 검색할 때도 push 하면 히스토리가
+    // `/search → ?q=A → ?q=B` 로 쌓여, 뒤로가기가 검색 탭이 아니라 이전 결과(A)로
+    // 간다 — 이 화면의 요구사항은 "결과에서 뒤로가기 = 검색 탭"이라 replace 로 덮는다.
+    if (urlQuery.trim()) {
+      router.replace(href, { scroll: false });
+    } else {
+      router.push(href, { scroll: false });
+    }
   };
 
   return (
