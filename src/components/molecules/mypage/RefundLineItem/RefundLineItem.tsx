@@ -51,13 +51,9 @@ export function RefundLineItem({
         <p className="text-heading-4 text-fg">{name}</p>
         <div className="flex items-start gap-5">
           {imageSrc ? (
-            <Image
-              src={imageSrc}
-              alt=""
-              width={71}
-              height={95}
-              className="h-23.75 w-17.75 shrink-0 rounded-sm object-cover"
-            />
+            <div className="relative h-23.75 w-17.75 shrink-0 overflow-hidden rounded-sm">
+              <Image src={imageSrc} alt="" fill className="object-cover" />
+            </div>
           ) : (
             <div aria-hidden className="bg-surface-secondary h-23.75 w-17.75 shrink-0 rounded-sm" />
           )}
