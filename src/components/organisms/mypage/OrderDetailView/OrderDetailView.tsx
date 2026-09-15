@@ -259,12 +259,15 @@ export function OrderDetailView() {
 
       {/* 복사 토스트 — 화면 하단 고정, 항상 마운트해두고 opacity/translate 만 토글한다
           (`CheckoutView` 상단 에러 토스트와 같은 원칙: 마운트/언마운트로 트랜지션을 걸면
-          사라질 때 안 걸린다). */}
+          사라질 때 안 걸린다). Tailwind v4 의 `translate-y-*` 는 `transform` 이 아니라
+          별도 `translate` 속성이라 `transition-[opacity,transform]` 로는 이동이 트랜지션
+          안 걸린다 — opacity 만 실제로 애니메이션되고 있었다("다시 담기" 토스트 피드백으로
+          발견한 것과 같은 문제). `translate` 로 바꿔 이동도 같이 걸리게 한다. */}
       <div
         aria-hidden={!copyToastVisible}
         className={[
           'pointer-events-none fixed inset-x-4 bottom-4 z-50 flex justify-center',
-          'transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none',
+          'transition-[opacity,translate] duration-300 ease-out motion-reduce:transition-none',
           copyToastVisible ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0',
         ].join(' ')}
       >
@@ -277,6 +280,10 @@ export function OrderDetailView() {
           올라왔다 2초 뒤 아래로 내려간다. opacity 를 같이 트랜지션하면 이동이 fade 에
           묻혀 "서서히 나타나는" 것처럼 보인다(사용자 피드백) — transform 단독으로
           두어 스와이프가 분명히 보이게 한다. 복사 토스트는 별개(옅은 fade 유지).
+          `translate-y-*` 는 Tailwind v4 에서 `transform` 이 아니라 별도 `translate`
+          속성을 쓴다 — `transition-transform`(= `transition-property: transform`) 은
+          이 속성 변화를 트랜지션 대상에 안 잡아 실제로는 순간 이동이었다(피드백으로
+          발견). `transition-[translate]` 로 명시해야 애니메이션이 실제로 걸린다.
           `translate-y-full` 은 자기 높이만큼만 내려가 컨테이너의 `bottom-4`(16px) 만큼은
           여전히 화면 안에 남는다(둥근 위쪽 모서리가 하단에 계속 비쳐 보임) — 그 여백까지
           더해 완전히 화면 밖으로 내린다. */}
@@ -284,7 +291,7 @@ export function OrderDetailView() {
         aria-hidden={!refillToastVisible}
         className={[
           'pointer-events-none fixed inset-x-4 bottom-4 z-50 flex justify-center',
-          'transition-transform duration-300 ease-out motion-reduce:transition-none',
+          'transition-[translate] duration-300 ease-out motion-reduce:transition-none',
           refillToastVisible ? 'translate-y-0' : 'translate-y-[calc(100%+1rem)]',
         ].join(' ')}
       >
