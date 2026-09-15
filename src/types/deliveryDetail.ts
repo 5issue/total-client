@@ -17,6 +17,17 @@ export const DeliveryDetailFormSchema = z.object({
     .refine((v) => PHONE_DIGITS_REGEX.test(toDigits(v)), '올바른 휴대폰 번호를 입력해주세요'),
   /** 받으실 장소. 기본값 '문 앞'(node 666-26236, 선택 상태). */
   location: z.enum(['front-door', 'other']),
+  /**
+   * '문 앞' 선택 시 공동현관 출입방법. 기본값 '공동현관 비밀번호'(node 1315-107775).
+   * 라디오를 오갈 때 입력값이 섞이면 안 되어 비밀번호/경비실/기타는 별 필드.
+   */
+  frontDoorAccessType: z.enum(['password', 'free', 'security', 'etc']),
+  /** '공동현관 비밀번호' 선택 시. placeholder node 1315-107775. */
+  frontDoorPassword: z.string(),
+  /** '경비실 호출' 선택 시. placeholder node 1331-53415. */
+  frontDoorSecurityDetail: z.string(),
+  /** '문 앞' > '기타' 선택 시. placeholder node 1331-53560. */
+  frontDoorEtcDetail: z.string(),
   /** '기타 장소' 선택 시에만 의미 있음(그 외엔 아래 refine 이 검사하지 않는다). */
   otherLocationType: z.enum(['etc', 'locker', 'entrance']).optional(),
   /** '기타' 선택 시 나오는 자유 서술. '택배 수령실' 과 별개 필드 — 라디오를 오갈 때 서로의

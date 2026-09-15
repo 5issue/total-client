@@ -15,11 +15,14 @@ import { Radio, type RadioProps } from '@/components/atoms/Radio';
 import { Textarea } from '@/components/atoms/Textarea';
 import { Modal } from '@/components/molecules/shared/Modal';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
+import { PHONE_DIGITS_REGEX } from '@/types/address';
 import { DeliveryDetailFormSchema, type DeliveryDetailFormFields } from '@/types/deliveryDetail';
 
 /**
  * 체크아웃 '배송 상세정보'의 "수정" 버튼으로 이동하는 화면(organism) — Figma node 666-26216
- * (기본 상태), 666-26389("택배 수령실" 선택 상태), 666-26457("공동현관(대문) 앞" 선택 상태).
+ * (기본 상태), 666-26389("택배 수령실" 선택 상태), 666-26457("공동현관(대문) 앞" 선택 상태),
+ * '문 앞' 공동현관 출입방법(1315-107775 비밀번호 / 1331-53140 자유출입 / 1331-53415 경비실
+ * 호출 / 1331-53560 기타).
  *
  * 체크아웃(#82/#84)이 아직 develop 에 머지되지 않아, 이번 작업은 이 화면 자체(라우트 +
  * 컴포넌트)만 우선 구현한다 — 체크아웃 '수정' 버튼 → 이 라우트 연결은 #84 머지 후 별도 진행
@@ -28,6 +31,10 @@ import { DeliveryDetailFormSchema, type DeliveryDetailFormFields } from '@/types
  *
  * - 라디오 그룹은 전부 첫 번째 옵션이 기본 선택(사용자 확인, 2026-09-14): 받으실 장소
  *   '문 앞', 기타장소 세부사항 '기타', 메시지 전송 '배송 직후'.
+ * - "공동현관 출입방법" 섹션은 '문 앞'일 때만 노출된다(node 1315-107775). 기본 선택은
+ *   '공동현관 비밀번호'이고, 그 아래 한 줄 Input 이 열린다. '자유출입 가능'은 추가 입력
+ *   없음(node 1331-53140). '경비실 호출'/'기타'는 옵션 아래 Textarea 가 열린다(예시만
+ *   다름). 비밀번호·경비실·기타 입력은 별 필드라 라디오를 오가도 값이 섞이지 않는다.
  * - "기타장소 세부사항" 섹션은 '받으실 장소'에서 '기타 장소'를 골랐을 때만 노출된다
  *   (사용자 확인 — Figma 캡처는 개발자 참고용으로 두 섹션을 한 화면에 다 보여줄 뿐,
  *   '문 앞' 선택 시 이 섹션은 보류/숨김이 맞다). 그 안에서 '기타' 또는 '택배 수령실'을
@@ -69,6 +76,14 @@ const ETC_LOCATION_DETAIL_PLACEHOLDER =
 const LOCKER_LOCATION_DETAIL_PLACEHOLDER =
   '원하시는 장소를 자세히 입력해주세요.\n예 : 1층 출입구 오른쪽 택배수령실에 배송해주세요.';
 
+/** '문 앞' > 공동현관 출입방법 — node 1315-107775 / 1331-53415 / 1331-53560. */
+const FRONT_DOOR_PASSWORD_PLACEHOLDER = '출입에 필요한 버튼을 모두 입력해주세요.';
+const FRONT_DOOR_SECURITY_PLACEHOLDER =
+  '경비실 호출 방법을 자세히 입력해주세요.\n예: 공동현관에서 경비실 모양 버튼';
+const FRONT_DOOR_ETC_PLACEHOLDER = '출입 방법을 상세히 기재해주세요.';
+const FRONT_DOOR_ACCESS_INFO =
+  '비밀번호가 정확하지 않을 경우, 부득이하게 1층 공동현관 앞에 배송될 수 있습니다.';
+
 /** 필수값 미입력 알림 모달 문구 — node 761-106060(휴대폰), 761-106130(기타), 761-106200
  * (택배 수령실). '기타장소 세부사항' 은 어떤 옵션이 선택돼 있었는지에 따라 문구가 갈린다. */
 const OTHER_LOCATION_DETAIL_REQUIRED_MESSAGE: Partial<
@@ -78,8 +93,16 @@ const OTHER_LOCATION_DETAIL_REQUIRED_MESSAGE: Partial<
   locker: '택배 수령실 위치를 자세히 입력해주세요.',
 };
 const PHONE_REQUIRED_MESSAGE = '휴대폰 번호를 입력해주세요.';
+const FRONT_DOOR_ACCESS_REQUIRED_MESSAGE: Record<
+  Exclude<DeliveryDetailFormFields['frontDoorAccessType'], 'free'>,
+  string
+> = {
+  password: '공동현관 비밀번호를 입력해주세요.',
+  security: '경비실 호출 방법을 입력해주세요.',
+  etc: '출입 방법을 입력해주세요.',
+};
 
-type ValidationModalKind = 'phone' | 'otherLocationDetail';
+type ValidationModalKind = 'phone' | 'otherLocationDetail' | 'frontDoorAccess';
 
 /** 필드 라벨 한 줄 — 라벨 + 필수 표시(*). Figma "label"(node 666-26221 등) 그대로:
  * text-label-m(14px/500), * 는 brand/primary(#690085, 이 프로젝트 text-primary). */
@@ -134,12 +157,17 @@ export function DeliveryDetailEditView() {
       otherLocationType: 'etc',
       etcLocationDetail: '',
       lockerLocationDetail: '',
+      frontDoorAccessType: 'password',
+      frontDoorPassword: '',
+      frontDoorSecurityDetail: '',
+      frontDoorEtcDetail: '',
       messageTiming: 'immediately',
     },
   });
 
   const location = useWatch({ control, name: 'location' });
   const otherLocationType = useWatch({ control, name: 'otherLocationType' });
+  const frontDoorAccessType = useWatch({ control, name: 'frontDoorAccessType' });
   const messageTiming = useWatch({ control, name: 'messageTiming' });
 
   // register() 의 ref 와 스크롤+포커스용 ref 를 합친다(모달 "확인" 클릭 시 사용).
@@ -149,6 +177,12 @@ export function DeliveryDetailEditView() {
   const etcLocationDetailField = register('etcLocationDetail');
   const lockerLocationDetailRef = useRef<HTMLTextAreaElement | null>(null);
   const lockerLocationDetailField = register('lockerLocationDetail');
+  const frontDoorPasswordRef = useRef<HTMLInputElement | null>(null);
+  const frontDoorPasswordField = register('frontDoorPassword');
+  const frontDoorSecurityDetailRef = useRef<HTMLTextAreaElement | null>(null);
+  const frontDoorSecurityDetailField = register('frontDoorSecurityDetail');
+  const frontDoorEtcDetailRef = useRef<HTMLTextAreaElement | null>(null);
+  const frontDoorEtcDetailField = register('frontDoorEtcDetail');
 
   const [validationModal, setValidationModal] = useState<ValidationModalKind | null>(null);
   const validationModalMessage =
@@ -158,7 +192,11 @@ export function DeliveryDetailEditView() {
         ? ((otherLocationType
             ? OTHER_LOCATION_DETAIL_REQUIRED_MESSAGE[otherLocationType]
             : undefined) ?? '')
-        : '';
+        : validationModal === 'frontDoorAccess' &&
+            frontDoorAccessType &&
+            frontDoorAccessType !== 'free'
+          ? FRONT_DOOR_ACCESS_REQUIRED_MESSAGE[frontDoorAccessType]
+          : '';
 
   function onValid() {
     // 백엔드/상위 상태 없음(#92 범위: 화면만) — 값 확정 후 원래 화면(체크아웃)으로 복귀.
@@ -176,14 +214,33 @@ export function DeliveryDetailEditView() {
       return;
     }
 
-    if (values.location === 'other') {
-      if (values.otherLocationType === 'etc' && !values.etcLocationDetail.trim()) {
-        setValidationModal('otherLocationDetail');
-        return;
+    // 휴대폰 형식이 틀리면 공동현관/기타장소 빈 값 모달보다 인라인 에러를 먼저 보여 준다.
+    const phoneDigits = values.phone.replace(/[^0-9]/g, '');
+    if (PHONE_DIGITS_REGEX.test(phoneDigits)) {
+      if (values.location === 'front-door') {
+        if (values.frontDoorAccessType === 'password' && !values.frontDoorPassword.trim()) {
+          setValidationModal('frontDoorAccess');
+          return;
+        }
+        if (values.frontDoorAccessType === 'security' && !values.frontDoorSecurityDetail.trim()) {
+          setValidationModal('frontDoorAccess');
+          return;
+        }
+        if (values.frontDoorAccessType === 'etc' && !values.frontDoorEtcDetail.trim()) {
+          setValidationModal('frontDoorAccess');
+          return;
+        }
       }
-      if (values.otherLocationType === 'locker' && !values.lockerLocationDetail.trim()) {
-        setValidationModal('otherLocationDetail');
-        return;
+
+      if (values.location === 'other') {
+        if (values.otherLocationType === 'etc' && !values.etcLocationDetail.trim()) {
+          setValidationModal('otherLocationDetail');
+          return;
+        }
+        if (values.otherLocationType === 'locker' && !values.lockerLocationDetail.trim()) {
+          setValidationModal('otherLocationDetail');
+          return;
+        }
       }
     }
 
@@ -196,9 +253,15 @@ export function DeliveryDetailEditView() {
     const target =
       validationModal === 'phone'
         ? phoneInputRef.current
-        : otherLocationType === 'locker'
-          ? lockerLocationDetailRef.current
-          : etcLocationDetailRef.current;
+        : validationModal === 'frontDoorAccess'
+          ? frontDoorAccessType === 'security'
+            ? frontDoorSecurityDetailRef.current
+            : frontDoorAccessType === 'etc'
+              ? frontDoorEtcDetailRef.current
+              : frontDoorPasswordRef.current
+          : otherLocationType === 'locker'
+            ? lockerLocationDetailRef.current
+            : etcLocationDetailRef.current;
     setValidationModal(null);
     setTimeout(() => {
       target?.focus({ preventScroll: true });
@@ -274,6 +337,90 @@ export function DeliveryDetailEditView() {
             경비실과 무인택배함 배송이 종료되었어요.
           </InfoBox>
         </div>
+
+        {/* 공동현관 출입방법 — '문 앞' 선택 시에만. node 1315-107775. */}
+        {location === 'front-door' ? (
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <FieldLabel>공동현관 출입방법</FieldLabel>
+
+              <RadioOption
+                name="frontDoorAccessType"
+                value="password"
+                checked={frontDoorAccessType === 'password'}
+                onChange={() => setValue('frontDoorAccessType', 'password', { shouldDirty: true })}
+                label="공동현관 비밀번호"
+              />
+              {frontDoorAccessType === 'password' ? (
+                <Input
+                  label="공동현관 비밀번호"
+                  placeholder={FRONT_DOOR_PASSWORD_PLACEHOLDER}
+                  {...frontDoorPasswordField}
+                  ref={(node) => {
+                    frontDoorPasswordField.ref(node);
+                    frontDoorPasswordRef.current = node;
+                  }}
+                />
+              ) : null}
+
+              <RadioOption
+                name="frontDoorAccessType"
+                value="free"
+                checked={frontDoorAccessType === 'free'}
+                onChange={() => setValue('frontDoorAccessType', 'free', { shouldDirty: true })}
+                label="자유출입 가능"
+              />
+
+              <RadioOption
+                name="frontDoorAccessType"
+                value="security"
+                checked={frontDoorAccessType === 'security'}
+                onChange={() => setValue('frontDoorAccessType', 'security', { shouldDirty: true })}
+                label="경비실 호출"
+              />
+              {frontDoorAccessType === 'security' ? (
+                <Textarea
+                  label="경비실 호출 방법"
+                  placeholder={FRONT_DOOR_SECURITY_PLACEHOLDER}
+                  rows={3}
+                  {...frontDoorSecurityDetailField}
+                  ref={(node) => {
+                    frontDoorSecurityDetailField.ref(node);
+                    frontDoorSecurityDetailRef.current = node;
+                  }}
+                />
+              ) : null}
+
+              <RadioOption
+                name="frontDoorAccessType"
+                value="etc"
+                checked={frontDoorAccessType === 'etc'}
+                onChange={() => setValue('frontDoorAccessType', 'etc', { shouldDirty: true })}
+                label="기타"
+              />
+              {frontDoorAccessType === 'etc' ? (
+                <Textarea
+                  label="기타 출입 방법"
+                  placeholder={FRONT_DOOR_ETC_PLACEHOLDER}
+                  rows={3}
+                  {...frontDoorEtcDetailField}
+                  ref={(node) => {
+                    frontDoorEtcDetailField.ref(node);
+                    frontDoorEtcDetailRef.current = node;
+                  }}
+                />
+              ) : null}
+            </div>
+
+            <InfoBox
+              variant="callout"
+              icon={<Icon name="info-line" size={20} className="text-fg-tertiary" aria-hidden />}
+              title="확인해주세요"
+            >
+              {FRONT_DOOR_ACCESS_INFO}
+            </InfoBox>
+          </div>
+        ) : null}
 
         {/* 기타장소 세부사항 — '기타 장소' 선택 시에만. */}
         {location === 'other' ? (
