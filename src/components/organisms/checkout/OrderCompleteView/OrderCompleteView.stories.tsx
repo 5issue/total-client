@@ -67,7 +67,7 @@ export const BottomCtaNavigates: Story = {
     await expect(getRouter().push).toHaveBeenCalledWith('/mypage/orders/24242424224422');
 
     await userEvent.click(canvas.getByRole('button', { name: '쇼핑 계속하기' }));
-    await expect(getRouter().push).toHaveBeenCalledWith('/');
+    await expect(getRouter().push).toHaveBeenCalledWith('/search');
   },
 };
 
