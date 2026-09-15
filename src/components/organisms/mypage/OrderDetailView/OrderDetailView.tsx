@@ -274,14 +274,18 @@ export function OrderDetailView() {
       </div>
 
       {/* "다시 담기" 토스트(node 666-27349) — 사용자 지정 애니메이션: 아래에서 위로
-          올라왔다 2초 뒤 아래로 내려간다. 복사 토스트(옅은 fade)와 달리 이동폭을 크게
-          줘 "슬라이드" 를 분명히 드러낸다. */}
+          올라왔다 2초 뒤 아래로 내려간다. opacity 를 같이 트랜지션하면 이동이 fade 에
+          묻혀 "서서히 나타나는" 것처럼 보인다(사용자 피드백) — transform 단독으로
+          두어 스와이프가 분명히 보이게 한다. 복사 토스트는 별개(옅은 fade 유지).
+          `translate-y-full` 은 자기 높이만큼만 내려가 컨테이너의 `bottom-4`(16px) 만큼은
+          여전히 화면 안에 남는다(둥근 위쪽 모서리가 하단에 계속 비쳐 보임) — 그 여백까지
+          더해 완전히 화면 밖으로 내린다. */}
       <div
         aria-hidden={!refillToastVisible}
         className={[
           'pointer-events-none fixed inset-x-4 bottom-4 z-50 flex justify-center',
-          'transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none',
-          refillToastVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0',
+          'transition-transform duration-300 ease-out motion-reduce:transition-none',
+          refillToastVisible ? 'translate-y-0' : 'translate-y-[calc(100%+1rem)]',
         ].join(' ')}
       >
         <Toast variant="action" className="w-full">
