@@ -1,0 +1,249 @@
+'use client';
+
+import { useState } from 'react';
+import type { ReactNode } from 'react';
+
+import { useRouter } from 'next/navigation';
+
+import { Button } from '@/components/atoms/Button';
+import { OrderBreakdownRow } from '@/components/molecules/order/OrderBreakdownRow';
+import { OrderProductItem } from '@/components/molecules/order/OrderProductItem';
+import { Modal } from '@/components/molecules/shared/Modal';
+import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
+
+import {
+  MOCK_CANCEL_NOTICE,
+  MOCK_DELIVERY_INFO_ROWS,
+  MOCK_DELIVERY_REQUEST_ROWS,
+  MOCK_ORDER_DETAIL,
+  MOCK_ORDER_INFO_ROWS,
+  MOCK_ORDER_PRODUCTS,
+  MOCK_PAYMENT_ROWS,
+  MOCK_PAYMENT_TOTAL,
+} from './mock';
+
+/**
+ * 주문 내역 상세 화면 (organism) — Figma node 666-28077(화면 + 주문 취소 모달).
+ *
+ * 주문 완료 화면의 "주문 상세보기" 로 진입한다. 주문 취소 모달 상태 때문에 클라 경계다.
+ *
+ * 이번 작업 범위는 **퍼블리싱만**이다 — 값은 전부 `mock.ts` 스텁이고(BE 주문 API 연동 전),
+ * 아래 동작은 의도적으로 비워 뒀다:
+ * - 주문 취소 실제 처리 — 모달까지만 뜨고 "주문 취소" 를 눌러도 닫히기만 한다.
+ * - 상품 "담기", "전체 상품 다시 담기" — 무동작(장바구니 연동 전).
+ *
+ * Figma 는 결제 정보 아래 카드 3개의 제목이 모두 `주문 정보` 지만 내용이 서로 달라
+ * 복붙 아티팩트다 — `주문 정보`/`배송 정보`/`배송 요청사항` 으로 확정했다(사용자 확인,
+ * 2026-09-15).
+ *
+ * 토큰(실측): 배경 `Bg/secondary`(#f0f5f8) → `bg-surface-secondary`, 카드 `Surface/Base`
+ * `Radius/XL`16 + `px-4 pt-4 pb-5`, 섹션 제목 `Heading/H0_SemiBold`20/600 → `text-heading-0`,
+ * 섹션 간격 `Gap/XL`24 → `gap-6`, 제목↔카드 `Gap/M`16 → `gap-4`, 헤더 아래 28px → `pt-7`.
+ */
+function SectionCard({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <div className={['bg-surface rounded-xl px-4 pt-4 pb-5', className].filter(Boolean).join(' ')}>
+      {children}
+    </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="flex flex-col gap-4">
+      <h2 className="text-heading-0 text-fg">{title}</h2>
+      <SectionCard>{children}</SectionCard>
+    </section>
+  );
+}
+
+/** 카드 안 구분선 — Figma 는 카드 좌우 패딩(16)을 넘어 340px 로 그어진다(카드 370 − 좌우 15). */
+function CardDivider() {
+  return <hr className="border-border -mx-px" />;
+}
+
+export function OrderDetailView() {
+  const router = useRouter();
+  const [cancelOpen, setCancelOpen] = useState(false);
+
+  return (
+    <div className="bg-surface-secondary flex flex-1 flex-col">
+      <SectionHeader leading="back" onLeadingClick={() => router.back()} title="주문 내역 상세" />
+
+      <div className="flex flex-1 flex-col gap-6 px-4 pt-7 pb-10">
+        {/* 주문 요약 */}
+        <SectionCard>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 flex-col gap-1">
+                <p className="text-heading-6 text-fg-tertiary">{MOCK_ORDER_DETAIL.paidAt}</p>
+                <p className="text-heading-0 text-fg">주문번호 {MOCK_ORDER_DETAIL.orderNumber}</p>
+              </div>
+              {/* 복사 동작은 주문 완료 화면(#93)에만 있다 — 이 화면 몫은 다음 작업에서 배선. */}
+              <Button size="s" variant="outlineBlack" className="h-[38px] w-13 shrink-0">
+                복사
+              </Button>
+            </div>
+            <CardDivider />
+            <p className="text-heading-3 text-fg-tertiary">{MOCK_ORDER_DETAIL.address}</p>
+          </div>
+        </SectionCard>
+
+        {/* 주문 상품 */}
+        <Section title="주문 상품">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-heading-2 text-primary">{MOCK_ORDER_DETAIL.status}</p>
+              <p className="text-body-s text-brand-300">{MOCK_ORDER_DETAIL.arrival}</p>
+            </div>
+            <CardDivider />
+
+            <ul className="flex flex-col gap-4">
+              {MOCK_ORDER_PRODUCTS.map((product) => (
+                <li key={product.id}>
+                  <OrderProductItem
+                    deliveryType={product.deliveryType}
+                    name={product.name}
+                    price={product.price}
+                    originalPrice={product.originalPrice}
+                    quantity={product.quantity}
+                  />
+                </li>
+              ))}
+            </ul>
+
+            <Button
+              variant="tertiary"
+              size="l"
+              className="h-14 w-full"
+              onClick={() => setCancelOpen(true)}
+            >
+              주문 취소
+            </Button>
+            <CardDivider />
+            {/* 장바구니 연동 전이라 무동작. */}
+            <Button variant="outlineBlack" size="l" className="h-14 w-full">
+              전체 상품 다시 담기
+            </Button>
+          </div>
+        </Section>
+
+        {/* 결제 정보 */}
+        <Section title="결제 정보">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-heading-2 text-fg">상품 금액</p>
+              <p className="text-heading-2 text-fg">{MOCK_PAYMENT_TOTAL}</p>
+            </div>
+            <div className="flex flex-col gap-3">
+              {MOCK_PAYMENT_ROWS.map((row) => (
+                <OrderBreakdownRow
+                  key={row.label}
+                  label={row.label}
+                  value={row.value}
+                  valueTone={row.valueTone}
+                  details={row.details}
+                />
+              ))}
+            </div>
+          </div>
+        </Section>
+
+        {/* 주문 정보 */}
+        <Section title="주문 정보">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-heading-2 text-fg">주문 번호</p>
+              <p className="text-heading-2 text-fg">{MOCK_ORDER_DETAIL.orderNumber}</p>
+            </div>
+            <div className="flex flex-col gap-3">
+              {MOCK_ORDER_INFO_ROWS.map((row) => (
+                <OrderBreakdownRow key={row.label} label={row.label} value={row.value} />
+              ))}
+            </div>
+          </div>
+        </Section>
+
+        {/* 배송 정보 */}
+        <Section title="배송 정보">
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-1">
+              <p className="text-heading-2 text-fg">{MOCK_ORDER_DETAIL.receiver}</p>
+              <p className="text-heading-5 text-fg-quaternary">{MOCK_ORDER_DETAIL.phone}</p>
+              <p className="text-heading-3 text-fg-tertiary">{MOCK_ORDER_DETAIL.address}</p>
+            </div>
+            <div className="flex flex-col gap-3">
+              {MOCK_DELIVERY_INFO_ROWS.map((row) => (
+                <OrderBreakdownRow
+                  key={row.label}
+                  label={row.label}
+                  value={row.value}
+                  valueTone="secondary"
+                />
+              ))}
+            </div>
+          </div>
+        </Section>
+
+        {/* 배송 요청사항 */}
+        <Section title="배송 요청사항">
+          <div className="flex flex-col gap-3">
+            {MOCK_DELIVERY_REQUEST_ROWS.map((row) => (
+              <OrderBreakdownRow
+                key={row.label}
+                label={row.label}
+                value={row.value}
+                valueTone="secondary"
+              />
+            ))}
+          </div>
+        </Section>
+
+        {/* 취소 안내 + 전체 취소 */}
+        <SectionCard>
+          <div className="flex flex-col gap-3">
+            <ul className="text-label-m text-fg-tertiary list-disc pl-5">
+              {MOCK_CANCEL_NOTICE.map((notice) => (
+                <li key={notice}>{notice}</li>
+              ))}
+            </ul>
+            <Button
+              variant="outlineBlack"
+              size="l"
+              className="h-14 w-full"
+              onClick={() => setCancelOpen(true)}
+            >
+              전체 상품 주문 취소
+            </Button>
+          </div>
+        </SectionCard>
+      </div>
+
+      {/* 주문 취소 모달(node 666-28213). 실제 취소 처리는 BE 연동 후 — 지금은 닫히기만 한다.
+          Figma 폭 302px 은 Modal 기본 max-w-xs(320)와 달라 `widthClassName` 으로 교체하고,
+          버튼 높이 44px 도 Button `s`(콘텐츠 높이)와 달라 실측값으로 덮어쓴다. */}
+      <Modal
+        open={cancelOpen}
+        onClose={() => setCancelOpen(false)}
+        widthClassName="w-full max-w-[302px]"
+        title="주문을 취소하시겠어요?"
+        description="상품이 품절되면 다시 구매할 수 없어요."
+        footer={
+          <>
+            <Button
+              variant="tertiary"
+              size="s"
+              className="h-11"
+              onClick={() => setCancelOpen(false)}
+            >
+              닫기
+            </Button>
+            <Button variant="black" size="s" className="h-11" onClick={() => setCancelOpen(false)}>
+              주문 취소
+            </Button>
+          </>
+        }
+      />
+    </div>
+  );
+}
