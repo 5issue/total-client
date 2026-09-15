@@ -12,6 +12,7 @@ import { OrderProductItem } from '@/components/molecules/order/OrderProductItem'
 import { Modal } from '@/components/molecules/shared/Modal';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 import { useCopyToast } from '@/hooks/useCopyToast';
+import { useTimedToast } from '@/hooks/useTimedToast';
 
 import {
   MOCK_CANCEL_NOTICE,
@@ -31,13 +32,22 @@ import {
  *
  * 이번 작업 범위는 **퍼블리싱만**이다 — 값은 전부 `mock.ts` 스텁이고(BE 주문 API 연동 전),
  * 아래 동작은 의도적으로 비워 뒀다:
- * - 주문 취소 실제 처리 — 모달까지만 뜨고 "주문 취소" 를 눌러도 닫히기만 한다.
- * - 상품 "담기", "전체 상품 다시 담기" — 무동작(장바구니 연동 전).
+ * - 주문 취소 실제 처리(BE 호출) — 모달에서 "주문 취소" 를 확정하면 화면은 즉시 취소 상태로
+ *   바뀌지만(클라 상태만), 실제 취소 API 연동은 없다.
+ * - 상품 "담기", "전체 상품 다시 담기" — 무동작(장바구니 연동 전). "다시 담기" 는 결과
+ *   토스트만 보여준다(node 666-27349).
  *
  * 주문번호 복사는 `OrderCompleteView` 와 같은 `useCopyToast` 를 쓴다(같은 문구 "주문 번호를
- * 복사했어요"). 이 화면은 하단 고정 CTA 바가 없어 토스트를 그 위에 얹는 방식을 못 써서,
- * 화면 최하단에 고정한다 — `CheckoutView` 의 상단 고정 에러 토스트와 같은 원리(항상
- * 마운트, opacity/translate 만 토글)를 뒤집은 형태.
+ * 복사했어요", 3초). "다시 담기" 토스트는 노출 시간이 2초로 달라(사용자 지정) 범용
+ * `useTimedToast` 를 쓴다. 이 화면은 하단 고정 CTA 바가 없어 토스트를 그 위에 얹는 방식을
+ * 못 써서, 두 토스트 모두 화면 최하단에 고정한다 — `CheckoutView` 의 상단 고정 에러
+ * 토스트와 같은 원리(항상 마운트, opacity/translate 만 토글)를 뒤집은 형태.
+ *
+ * 취소 상태(node 666-27472, "주문 취소" 확정 후 화면)는 같은 화면의 파생 상태다 — 별도
+ * 라우트가 아니라 `cancelled` 불리언으로 분기한다: 상태 라벨이 "주문완료"+도착 예정에서
+ * "주문취소" 단독으로 바뀌고, 카드 안 "주문 취소" 버튼이 사라지며, 맨 아래 "전체 상품
+ * 주문 취소" 버튼이 비활성 "…완료" 라벨로 바뀐다(테두리는 그대로, 글자색만
+ * `disabled:text-fg-disabled` = Figma `text/disabled_button` #b5c4cf 와 일치).
  *
  * Figma 는 결제 정보 아래 카드 3개의 제목이 모두 `주문 정보` 지만 내용이 서로 달라
  * 복붙 아티팩트다 — `주문 정보`/`배송 정보`/`배송 요청사항` 으로 확정했다(사용자 확인,
@@ -72,7 +82,9 @@ function CardDivider() {
 export function OrderDetailView() {
   const router = useRouter();
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelled, setCancelled] = useState(false);
   const { visible: copyToastVisible, copy: copyOrderNumber } = useCopyToast();
+  const { visible: refillToastVisible, trigger: showRefillToast } = useTimedToast(2000);
 
   return (
     <div className="bg-surface-secondary flex flex-1 flex-col">
@@ -105,8 +117,12 @@ export function OrderDetailView() {
         <Section title="주문 상품">
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-heading-2 text-primary">{MOCK_ORDER_DETAIL.status}</p>
-              <p className="text-body-s text-brand-300">{MOCK_ORDER_DETAIL.arrival}</p>
+              <p className="text-heading-2 text-primary">
+                {cancelled ? '주문취소' : MOCK_ORDER_DETAIL.status}
+              </p>
+              {cancelled ? null : (
+                <p className="text-body-s text-brand-300">{MOCK_ORDER_DETAIL.arrival}</p>
+              )}
             </div>
             <CardDivider />
 
@@ -124,17 +140,26 @@ export function OrderDetailView() {
               ))}
             </ul>
 
+            {cancelled ? null : (
+              <>
+                <Button
+                  variant="tertiary"
+                  size="l"
+                  className="h-14 w-full"
+                  onClick={() => setCancelOpen(true)}
+                >
+                  주문 취소
+                </Button>
+                <CardDivider />
+              </>
+            )}
+            {/* 장바구니 연동 전이라 실제로 담지는 않고 결과 토스트만 보여준다. */}
             <Button
-              variant="tertiary"
+              variant="outlineBlack"
               size="l"
               className="h-14 w-full"
-              onClick={() => setCancelOpen(true)}
+              onClick={showRefillToast}
             >
-              주문 취소
-            </Button>
-            <CardDivider />
-            {/* 장바구니 연동 전이라 무동작. */}
-            <Button variant="outlineBlack" size="l" className="h-14 w-full">
               전체 상품 다시 담기
             </Button>
           </div>
@@ -223,9 +248,10 @@ export function OrderDetailView() {
               variant="outlineBlack"
               size="l"
               className="h-14 w-full"
+              disabled={cancelled}
               onClick={() => setCancelOpen(true)}
             >
-              전체 상품 주문 취소
+              {cancelled ? '전체 상품 주문 취소 완료' : '전체 상품 주문 취소'}
             </Button>
           </div>
         </SectionCard>
@@ -247,7 +273,24 @@ export function OrderDetailView() {
         </Toast>
       </div>
 
-      {/* 주문 취소 모달(node 666-28213). 실제 취소 처리는 BE 연동 후 — 지금은 닫히기만 한다.
+      {/* "다시 담기" 토스트(node 666-27349) — 사용자 지정 애니메이션: 아래에서 위로
+          올라왔다 2초 뒤 아래로 내려간다. 복사 토스트(옅은 fade)와 달리 이동폭을 크게
+          줘 "슬라이드" 를 분명히 드러낸다. */}
+      <div
+        aria-hidden={!refillToastVisible}
+        className={[
+          'pointer-events-none fixed inset-x-4 bottom-4 z-50 flex justify-center',
+          'transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none',
+          refillToastVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0',
+        ].join(' ')}
+      >
+        <Toast variant="action" className="w-full">
+          장바구니에 전체 상품을 다시 담았어요
+        </Toast>
+      </div>
+
+      {/* 주문 취소 모달(node 666-28213). "주문 취소" 확정 시 `cancelled` 클라 상태만 켠다 —
+          실제 취소 API 연동은 BE 완료 후.
           Figma 폭 302px 은 Modal 기본 max-w-xs(320)와 달라 `widthClassName` 으로 교체하고,
           버튼 높이 44px 도 Button `s`(콘텐츠 높이)와 달라 실측값으로 덮어쓴다. */}
       <Modal
@@ -266,7 +309,15 @@ export function OrderDetailView() {
             >
               닫기
             </Button>
-            <Button variant="black" size="s" className="h-11" onClick={() => setCancelOpen(false)}>
+            <Button
+              variant="black"
+              size="s"
+              className="h-11"
+              onClick={() => {
+                setCancelOpen(false);
+                setCancelled(true);
+              }}
+            >
               주문 취소
             </Button>
           </>

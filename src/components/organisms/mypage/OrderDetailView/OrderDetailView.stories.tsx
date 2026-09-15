@@ -89,6 +89,44 @@ export const FullCancelButtonOpensSameModal: Story = {
   },
 };
 
+export const ConfirmingCancelShowsCancelledState: Story = {
+  tags: ['!autodocs'],
+  play: async ({ canvasElement }) => {
+    // 취소 확정 후 화면(node 666-27472): "주문완료"+도착 예정 → "주문취소" 단독,
+    // 카드 안 "주문 취소" 버튼 소멸, 하단 CTA 는 비활성 "…완료" 라벨로 바뀐다.
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText('주문완료')).toBeInTheDocument();
+    await expect(canvas.getByText('내일 (수) 아침 도착')).toBeInTheDocument();
+
+    await userEvent.click(canvas.getByRole('button', { name: '전체 상품 주문 취소' }));
+    const dialog = await screen.findByRole('dialog', { name: '주문을 취소하시겠어요?' });
+    await userEvent.click(within(dialog).getByRole('button', { name: '주문 취소' }));
+
+    await expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await expect(canvas.getByText('주문취소')).toBeInTheDocument();
+    await expect(canvas.queryByText('주문완료')).not.toBeInTheDocument();
+    await expect(canvas.queryByText('내일 (수) 아침 도착')).not.toBeInTheDocument();
+    await expect(canvas.queryByRole('button', { name: '주문 취소' })).not.toBeInTheDocument();
+
+    const doneButton = canvas.getByRole('button', { name: '전체 상품 주문 취소 완료' });
+    await expect(doneButton).toBeDisabled();
+  },
+};
+
+export const RefillingAllShowsToast: Story = {
+  tags: ['!autodocs'],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.queryByRole('status')).not.toBeInTheDocument();
+
+    await userEvent.click(canvas.getByRole('button', { name: '전체 상품 다시 담기' }));
+
+    await expect(await canvas.findByRole('status')).toHaveTextContent(
+      '장바구니에 전체 상품을 다시 담았어요',
+    );
+  },
+};
+
 export const CopyingOrderNumberShowsToast: Story = {
   tags: ['!autodocs'],
   play: async ({ canvasElement }) => {

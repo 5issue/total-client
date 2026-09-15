@@ -24,7 +24,8 @@ import { MOCK_ORDER_NUMBER, MOCK_ORDER_RECOMMEND, MOCK_ORDER_TOTAL } from './moc
  * 별도 진행하고, 지금은 체크아웃의 "결제하기"가 이 경로로 넘어오는 더미 흐름만 있다.
  * 주문번호·금액·추천 상품은 전부 `mock.ts` 스텁이다.
  *
- * 하단 CTA: "주문 상세보기" → `/mypage/orders/{주문번호}` (#94), "쇼핑 계속하기" → `/`.
+ * 하단 CTA: "주문 상세보기" → `/mypage/orders/{주문번호}` (#94), "쇼핑 계속하기" → `/search`
+ * (피드백 반영, 2026-09-15 — 기존 `/` 에서 변경).
  * 추천 상품 "담기" / "전체보기" 는 무동작(`OrderRecommendCarousel` 주석 참고).
  *
  * 토큰(실측): 배경 `Bg/secondary`(#f0f5f8) → `bg-surface-secondary`, 카드 `Surface/Base`
@@ -112,7 +113,7 @@ export function OrderCompleteView() {
             variant="primary"
             size="l"
             className="h-14 flex-1"
-            onClick={() => router.push('/')}
+            onClick={() => router.push('/search')}
           >
             쇼핑 계속하기
           </Button>
