@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/atoms/Button';
@@ -58,6 +59,7 @@ export interface RefundReasonViewProps {
   defaultSheetOpen?: boolean;
 }
 
+/** 원 단위 금액 표시. */
 const won = (n: number) => `${n.toLocaleString('ko-KR')}원`;
 
 const MIN_DETAIL_LENGTH = 10;
@@ -73,10 +75,12 @@ interface ItemDraft {
   photoHintDismissed: boolean;
 }
 
+/** 상품별 사유 입력 초안. */
 function createDraft(reasonId: string | null = null): ItemDraft {
   return { reasonId, detail: '', photos: [], photoHintDismissed: false };
 }
 
+/** 선택 가능한 사유만 반환한다. 비활성(단순변심 등)은 제외. */
 function getSelectedReason(draft: ItemDraft | undefined) {
   return REFUND_REASON_OPTIONS.find((o) => o.id === draft?.reasonId && !o.disabled);
 }
@@ -233,19 +237,21 @@ export function RefundReasonView({
                             key={url}
                             className="relative flex size-18 shrink-0 items-start justify-end"
                           >
-                            {/* 로컬에서 방금 고른 파일의 blob 미리보기라 next/image 최적화 대상이
-                                아니다(고정 로더는 blob: URL을 다루지 못한다) — 이 경우만 <img> 예외. */}
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
+                            {/* 로컬에서 방금 고른 파일의 blob 미리보기다 — next/image 기본 로더는
+                                blob: URL 을 최적화할 수 없어 `unoptimized` 로 렌더만 위임한다. */}
+                            <Image
                               src={url}
                               alt="첨부한 반품 사진"
-                              className="absolute inset-0 size-full rounded-sm object-cover"
+                              fill
+                              unoptimized
+                              sizes="72px"
+                              className="rounded-sm object-cover"
                             />
                             <button
                               type="button"
                               aria-label="사진 삭제"
                               onClick={() => handleRemovePhoto(item.id, url)}
-                              className="relative flex size-8 items-start justify-end p-1"
+                              className="relative flex size-11 items-start justify-end p-1"
                             >
                               <Icon name="close-circle" size={20} aria-hidden />
                             </button>
@@ -269,9 +275,9 @@ export function RefundReasonView({
                           <div className="flex items-stretch">
                             <span
                               aria-hidden
-                              className="flex shrink-0 items-center self-center border-y-[5px] border-r-8 border-y-transparent border-r-black"
+                              className="border-r-fg flex shrink-0 items-center self-center border-y-[5px] border-r-8 border-y-transparent"
                             />
-                            <div className="rounded-m flex items-start gap-2 bg-black py-2 pr-2 pl-3">
+                            <div className="rounded-m bg-fg flex items-start gap-2 py-2 pr-2 pl-3">
                               <p className="text-label-xs text-fg-inverse">
                                 빠른 처리를 위해 사진을 등록해주세요
                                 <br />
@@ -281,6 +287,7 @@ export function RefundReasonView({
                                 type="button"
                                 aria-label="사진 등록 안내 닫기"
                                 onClick={() => updateDraft(item.id, { photoHintDismissed: true })}
+                                className="-my-2 -mr-2 flex size-11 shrink-0 items-center justify-center"
                               >
                                 <Icon
                                   name="close"
@@ -362,7 +369,7 @@ export function RefundReasonView({
                     aria-hidden
                     className={
                       option.disabled
-                        ? 'text-heading-2 cursor-not-allowed text-neutral-400'
+                        ? 'text-heading-2 text-fg-disabled cursor-not-allowed'
                         : 'text-heading-2 text-fg cursor-pointer'
                     }
                   >
