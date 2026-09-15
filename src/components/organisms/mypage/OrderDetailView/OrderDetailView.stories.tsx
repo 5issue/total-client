@@ -2,7 +2,17 @@ import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { getRouter } from '@storybook/nextjs-vite/navigation.mock';
 import { expect, fn, screen, userEvent, within } from 'storybook/test';
 
-import { OrderDetailView } from './OrderDetailView';
+import { OrderDetailView, type OrderStatus } from './OrderDetailView';
+
+const STATUSES: OrderStatus[] = [
+  '주문완료',
+  '배송중',
+  '배송완료',
+  '주문취소',
+  '반품접수',
+  '반품완료',
+  '일부반품완료',
+];
 
 const meta = {
   title: 'organisms/mypage/OrderDetailView',
@@ -11,6 +21,9 @@ const meta = {
   parameters: {
     layout: 'fullscreen',
     nextjs: { appDirectory: true, navigation: { pathname: '/mypage/orders/24242424224422' } },
+  },
+  argTypes: {
+    initialStatus: { control: 'select', options: STATUSES },
   },
 } satisfies Meta<typeof OrderDetailView>;
 
@@ -96,7 +109,7 @@ export const ConfirmingCancelShowsCancelledState: Story = {
     // 카드 안 "주문 취소" 버튼 소멸, 하단 CTA 는 비활성 "…완료" 라벨로 바뀐다.
     const canvas = within(canvasElement);
     await expect(canvas.getByText('주문완료')).toBeInTheDocument();
-    await expect(canvas.getByText('내일 (수) 아침 도착')).toBeInTheDocument();
+    await expect(canvas.getByText('내일 (목) 아침 도착')).toBeInTheDocument();
 
     await userEvent.click(canvas.getByRole('button', { name: '전체 상품 주문 취소' }));
     const dialog = await screen.findByRole('dialog', { name: '주문을 취소하시겠어요?' });
@@ -105,7 +118,7 @@ export const ConfirmingCancelShowsCancelledState: Story = {
     await expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     await expect(canvas.getByText('주문취소')).toBeInTheDocument();
     await expect(canvas.queryByText('주문완료')).not.toBeInTheDocument();
-    await expect(canvas.queryByText('내일 (수) 아침 도착')).not.toBeInTheDocument();
+    await expect(canvas.queryByText('내일 (목) 아침 도착')).not.toBeInTheDocument();
     await expect(canvas.queryByRole('button', { name: '주문 취소' })).not.toBeInTheDocument();
 
     const doneButton = canvas.getByRole('button', { name: '전체 상품 주문 취소 완료' });
@@ -120,7 +133,7 @@ export const ShippingStatusShowsTrackingButton: Story = {
     // 배송중(node 782-61437): 도착 예정 문구는 그대로, 액션 버튼만 "배송 조회" 로 바뀐다.
     const canvas = within(canvasElement);
     await expect(canvas.getByText('배송중')).toBeInTheDocument();
-    await expect(canvas.getByText('내일 (수) 아침 도착')).toBeInTheDocument();
+    await expect(canvas.getByText('내일 (목) 아침 도착')).toBeInTheDocument();
     await expect(canvas.getByRole('button', { name: '배송 조회' })).toBeInTheDocument();
     await expect(canvas.queryByRole('button', { name: '주문 취소' })).not.toBeInTheDocument();
 
@@ -137,8 +150,8 @@ export const DeliveredStatusShowsReturnAndReviewButtons: Story = {
     // "반품 접수"+"후기 작성" 2개로 나뉜다.
     const canvas = within(canvasElement);
     await expect(canvas.getByText('배송완료')).toBeInTheDocument();
-    await expect(canvas.getByText('08.27(수) 04:16')).toBeInTheDocument();
-    await expect(canvas.queryByText('내일 (수) 아침 도착')).not.toBeInTheDocument();
+    await expect(canvas.getByText('08.27(목) 04:16')).toBeInTheDocument();
+    await expect(canvas.queryByText('내일 (목) 아침 도착')).not.toBeInTheDocument();
     await expect(canvas.getByRole('button', { name: '후기 작성' })).toBeInTheDocument();
 
     // "반품 접수" 는 issue #97 화면으로 라우팅만 건다(그 화면 자체는 이 PR 범위 밖).
@@ -179,7 +192,7 @@ export const PartialReturnStatusSplitsProductGroups: Story = {
     // (Figma 데모는 4개 중 3개만 보여준다 — [풀무원] 치킨너겟은 두 그룹 어디에도 없다).
     const canvas = within(canvasElement);
     await expect(canvas.getByText('배송완료')).toBeInTheDocument();
-    await expect(canvas.getByText('08.27(수) 04:16')).toBeInTheDocument();
+    await expect(canvas.getByText('08.27(목) 04:16')).toBeInTheDocument();
     await expect(canvas.getByText('반품완료')).toBeInTheDocument();
     await expect(canvas.getByRole('button', { name: '후기 작성' })).toBeInTheDocument();
     await expect(canvas.queryByRole('button', { name: '반품 접수' })).not.toBeInTheDocument();
