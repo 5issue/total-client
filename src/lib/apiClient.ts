@@ -4,6 +4,7 @@ import { ApiError } from '@/errors/ApiError';
 import type { ApiEnvelope } from '@/lib/apiResponse';
 import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/authTokenRef';
 import { SpringLoginUrlDataSchema, type OAuthProvider } from '@/types/auth';
+import { ProductListResponseSchema, type ProductListParams } from '@/types/product';
 
 /**
  * HTTP 클라이언트 — publicFetch / privateFetch (api-convention §3).
@@ -95,6 +96,12 @@ async function tryRefresh(): Promise<boolean> {
 /** 소셜 로그인 URL 발급 (카카오/네이버). 로그인 전 단계라 인증 불필요. */
 export function requestSocialLoginUrl(provider: OAuthProvider) {
   return publicFetch(`/api/auth/oauth/${provider}`, SpringLoginUrlDataSchema, { method: 'POST' });
+}
+
+/** 검색 결과 상품 목록 조회. 로그인 여부와 무관하게 노출되는 공개 데이터. */
+export function searchProducts(params: ProductListParams) {
+  const query = new URLSearchParams({ query: params.query, sort: params.sort });
+  return publicFetch(`/api/products?${query}`, ProductListResponseSchema);
 }
 
 /**
