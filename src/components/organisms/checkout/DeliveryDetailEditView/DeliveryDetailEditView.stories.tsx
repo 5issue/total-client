@@ -28,6 +28,11 @@ export const OtherLocationSectionHiddenByDefault: Story = {
     const canvas = within(canvasElement);
     await expect(canvas.getByRole('radio', { name: '문 앞' })).toBeChecked();
     await expect(canvas.queryByText('기타장소 세부사항')).not.toBeInTheDocument();
+    await expect(canvas.getByText('공동현관 출입방법')).toBeInTheDocument();
+    await expect(canvas.getByRole('radio', { name: '공동현관 비밀번호' })).toBeChecked();
+    await expect(
+      canvas.getByPlaceholderText('출입에 필요한 버튼을 모두 입력해주세요.'),
+    ).toBeInTheDocument();
   },
 };
 
@@ -37,6 +42,7 @@ export const SelectingOtherLocationRevealsDetailSection: Story = {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole('radio', { name: '기타 장소' }));
 
+    await expect(canvas.queryByText('공동현관 출입방법')).not.toBeInTheDocument();
     await expect(canvas.getByText('기타장소 세부사항')).toBeInTheDocument();
     // '기타'가 기본 선택 — Textarea 도 같이 나온다.
     await expect(canvas.getByRole('radio', { name: '기타' })).toBeChecked();
@@ -95,6 +101,10 @@ export const ValidSubmitGoesBack: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await userEvent.type(canvas.getByPlaceholderText('숫자만 입력해주세요'), '01012341234');
+    await userEvent.type(
+      canvas.getByPlaceholderText('출입에 필요한 버튼을 모두 입력해주세요.'),
+      '#1234*',
+    );
     await userEvent.click(canvas.getByRole('button', { name: '동의하고 저장' }));
 
     await expect(getRouter().back).toHaveBeenCalledTimes(1);
@@ -162,5 +172,92 @@ export const EmptyOtherLocationDetailShowsAlertModalForLocker: Story = {
       name: '택배 수령실 위치를 자세히 입력해주세요.',
     });
     await expect(dialog).toBeInTheDocument();
+  },
+};
+
+export const SelectingFreeAccessHidesPasswordInput: Story = {
+  tags: ['!autodocs'],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('radio', { name: '자유출입 가능' }));
+
+    await expect(
+      canvas.queryByPlaceholderText('출입에 필요한 버튼을 모두 입력해주세요.'),
+    ).not.toBeInTheDocument();
+    await expect(canvas.queryByPlaceholderText(/경비실 호출 방법/)).not.toBeInTheDocument();
+  },
+};
+
+export const SelectingSecurityCallRevealsItsTextarea: Story = {
+  tags: ['!autodocs'],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('radio', { name: '경비실 호출' }));
+
+    await expect(
+      canvas.queryByPlaceholderText('출입에 필요한 버튼을 모두 입력해주세요.'),
+    ).not.toBeInTheDocument();
+    await expect(canvas.getByPlaceholderText(/공동현관에서 경비실 모양 버튼/)).toBeInTheDocument();
+  },
+};
+
+export const SelectingFrontDoorEtcRevealsItsTextarea: Story = {
+  tags: ['!autodocs'],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('radio', { name: '기타' }));
+
+    await expect(
+      canvas.getByPlaceholderText('출입 방법을 상세히 기재해주세요.'),
+    ).toBeInTheDocument();
+  },
+};
+
+export const FrontDoorAccessFieldsDoNotShareTheirValue: Story = {
+  tags: ['!autodocs'],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.type(
+      canvas.getByPlaceholderText('출입에 필요한 버튼을 모두 입력해주세요.'),
+      '#9999',
+    );
+    await userEvent.click(canvas.getByRole('radio', { name: '경비실 호출' }));
+    await userEvent.type(canvas.getByPlaceholderText(/경비실 모양 버튼/), '벨 누르기');
+    await userEvent.click(canvas.getByRole('radio', { name: '기타' }));
+    await expect(canvas.getByPlaceholderText('출입 방법을 상세히 기재해주세요.')).toHaveValue('');
+
+    await userEvent.click(canvas.getByRole('radio', { name: '공동현관 비밀번호' }));
+    await expect(
+      canvas.getByPlaceholderText('출입에 필요한 버튼을 모두 입력해주세요.'),
+    ).toHaveValue('#9999');
+  },
+};
+
+export const EmptyFrontDoorPasswordShowsAlertModal: Story = {
+  tags: ['!autodocs'],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.type(canvas.getByPlaceholderText('숫자만 입력해주세요'), '01012341234');
+    await userEvent.click(canvas.getByRole('button', { name: '동의하고 저장' }));
+
+    const dialog = await screen.findByRole('dialog', {
+      name: '공동현관 비밀번호를 입력해주세요.',
+    });
+    await userEvent.click(within(dialog).getByRole('button', { name: '확인' }));
+    await waitFor(() =>
+      expect(canvas.getByPlaceholderText('출입에 필요한 버튼을 모두 입력해주세요.')).toHaveFocus(),
+    );
+  },
+};
+
+export const EmptySecurityCallDetailShowsAlertModal: Story = {
+  tags: ['!autodocs'],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.type(canvas.getByPlaceholderText('숫자만 입력해주세요'), '01012341234');
+    await userEvent.click(canvas.getByRole('radio', { name: '경비실 호출' }));
+    await userEvent.click(canvas.getByRole('button', { name: '동의하고 저장' }));
+
+    await screen.findByRole('dialog', { name: '경비실 호출 방법을 입력해주세요.' });
   },
 };
