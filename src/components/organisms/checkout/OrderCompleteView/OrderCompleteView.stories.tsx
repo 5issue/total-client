@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { expect, userEvent, within } from 'storybook/test';
+import { expect, fn, userEvent, within } from 'storybook/test';
 
 import { OrderCompleteView } from './OrderCompleteView';
 
@@ -55,5 +55,32 @@ export const RecommendCarouselTurnsPages: Story = {
     ).not.toBeInTheDocument();
     await expect(canvas.getByText('[전주 베테랑] 고기만두')).toBeInTheDocument();
     await expect(canvas.getByRole('button', { name: '다음 페이지' })).toBeDisabled();
+  },
+};
+
+export const ShowsBottomCtaBar: Story = {
+  tags: ['!autodocs'],
+  play: async ({ canvasElement }) => {
+    // node 666-26336 하단 CTA 바. 둘 다 아직 갈 곳이 없어 무동작이지만 노출은 돼야 한다.
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole('button', { name: '주문 상세보기' })).toBeInTheDocument();
+    await expect(canvas.getByRole('button', { name: '쇼핑 계속하기' })).toBeInTheDocument();
+  },
+};
+
+export const CopyingOrderNumberShowsToast: Story = {
+  tags: ['!autodocs'],
+  play: async ({ canvasElement }) => {
+    // 헤드리스 브라우저는 클립보드 권한이 없을 수 있어 writeText 를 스텁으로 갈아끼운다.
+    const writeText = fn(async () => {});
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+
+    const canvas = within(canvasElement);
+    await expect(canvas.queryByRole('status')).not.toBeInTheDocument();
+
+    await userEvent.click(canvas.getByRole('button', { name: '복사' }));
+
+    await expect(writeText).toHaveBeenCalledWith('24242424224422');
+    await expect(await canvas.findByRole('status')).toHaveTextContent('주문 번호를 복사했어요');
   },
 };
