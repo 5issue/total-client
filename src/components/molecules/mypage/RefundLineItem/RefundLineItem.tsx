@@ -11,12 +11,10 @@ import { Checkbox } from '@/components/atoms/Checkbox';
  * 체크박스 + 상품명 + 썸네일 + `n개 | 판매가`. 수량 스테퍼·삭제 ✕ 는 없다
  * (`CartLineItem` 과 역할이 다름). 선택 상태는 상위(`RefundReturnView`)가 소유.
  *
- * 토큰: 상품명 Heading/H4_SemiBold 16/600 `text-heading-4 text-fg`,
- * 수량 Heading/H1_SemiBold 18/600 `text-heading-1`,
- * 판매가 Heading/H2_Medium 18/500 + Text/Tertiary `#7e8f9b` → `text-heading-2 text-fg-tertiary`,
- * 구분선 Border/200 `#dde4ed` → `bg-border`,
- * 썸네일 71×95 · radius S → `rounded-sm` (종횡비 선고정, code-style §6).
- * 체크박스 래퍼 40×40, 박스 자체 18 (filled Checkbox atom).
+ * 토큰: 상품명 `text-heading-4 text-fg`, 수량 `text-heading-1`,
+ * 판매가 `text-heading-2 text-fg-tertiary`, 구분선 `bg-border`,
+ * 썸네일 `w-17.75 h-23.75` · `rounded-sm` (종횡비 선고정, code-style §6).
+ * 체크박스 래퍼 `size-10`, 박스 자체는 filled Checkbox atom.
  */
 export interface RefundLineItemProps {
   name: string;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
@@ -19,8 +19,11 @@ import { MOCK_REFUND_ITEMS } from './mock';
  * page.tsx 는 이 컴포넌트만 렌더한다(RSC 유지).
  *
  * 헤더 타이틀은 "반품 접수". 하단 CTA 는 `Button` black 56px 풀폭 "다음" —
- * 미선택 시 disabled (`bg-neutral-700` + `text-fg-disabled`, Figma `#8aa1ab`/`#b5c4cf`).
- * 활성 fill 은 Figma `#32393f`(Neutral/950 `#323a40` 근사)가 아니라 공용 `black`(`#222222`).
+ * 미선택 시 disabled (`neutral-700` + `fg-disabled`). 활성은 공용 `black`.
+ *
+ * 헤더↔목록 섹션 28px(`mt-7`). 목록 섹션은 화면 대비 좌우 15px(`mx-3.75`) —
+ * 402 프레임 안 372 폭 카드(node 848-82669). 내부 패딩은 16/8/20(`px-4 pt-2 pb-5`).
+ * 카드 간 auto-layout gap 16(디바이더 포함) → 카드 박스끼리 32px(`gap-4` + 라인 + `gap-4`).
  */
 export interface RefundReturnViewProps {
   /** 스토리·초기 상태용. 생략 시 미선택(node 848-82641). */
@@ -56,8 +59,7 @@ export function RefundReturnView({ defaultSelectedIds }: RefundReturnViewProps) 
       <SectionHeader leading="back" onLeadingClick={() => router.back()} title="반품 접수" />
 
       <div className="bg-surface-secondary flex min-h-0 flex-1 flex-col">
-        {/* 헤더↔목록 28px 회색 밴드(화면 배경 Surface/Secondary). */}
-        <div className="bg-surface mt-7 flex min-h-0 flex-1 flex-col px-4 pt-2 pb-5">
+        <div className="bg-surface mx-3.75 mt-7 flex min-h-0 flex-1 flex-col px-4 pt-2 pb-5">
           <RefundSelectAllBar
             selectedCount={selectedCount}
             totalCount={totalCount}
@@ -65,18 +67,23 @@ export function RefundReturnView({ defaultSelectedIds }: RefundReturnViewProps) 
           />
           <div className="border-border mt-2 border-t" />
 
-          <ul className="mt-4 flex flex-col">
-            {items.map((item) => (
-              <li key={item.id} className="border-border border-b pb-4 last:border-b-0 last:pb-0">
-                <RefundLineItem
-                  name={item.name}
-                  imageSrc={item.imageSrc}
-                  price={item.price}
-                  quantity={item.quantity}
-                  checked={selectedIds.has(item.id)}
-                  onCheckedChange={(checked) => setItemChecked(item.id, checked)}
-                />
-              </li>
+          <ul className="mt-4 flex flex-col gap-4">
+            {items.map((item, index) => (
+              <Fragment key={item.id}>
+                <li>
+                  <RefundLineItem
+                    name={item.name}
+                    imageSrc={item.imageSrc}
+                    price={item.price}
+                    quantity={item.quantity}
+                    checked={selectedIds.has(item.id)}
+                    onCheckedChange={(checked) => setItemChecked(item.id, checked)}
+                  />
+                </li>
+                {index < items.length - 1 ? (
+                  <li aria-hidden className="border-border border-t" />
+                ) : null}
+              </Fragment>
             ))}
           </ul>
         </div>
