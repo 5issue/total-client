@@ -1,18 +1,41 @@
+import { CategoryTabs } from '@/components/organisms/home/CategoryTabs';
+import { MOCK_DISPLAY_SECTIONS } from '@/components/organisms/home/DisplaySectionList/mock';
+import { HeroBanner } from '@/components/organisms/home/HeroBanner';
+import { HomeHeader } from '@/components/organisms/home/HomeHeader';
+import { HomeProductSections } from '@/components/organisms/home/HomeProductSections';
+import { QuickMenuSection } from '@/components/organisms/home/QuickMenuSection';
+
+/**
+ * 홈 (`/`, SL-HOME 001~004, 006). Figma "HomeScreen" (node 577:20623).
+ * 이번 단계는 UI 퍼블리싱만 — API 미연동, 각 organism 내부 mock 데이터로 렌더한다
+ * (structure-convention §6-2, 홈 구성 API 스펙 미확정).
+ *
+ * 렌더링 전략: 구조 문서 기준 최종형은 "ISR 셸 + CSR 개인화 구획" 이지만, 현재는
+ * 데이터가 전부 정적 mock 이라 페이지 전체가 정적(prerender) 이다 — API 연동 시
+ * 개인화 구획(퀵메뉴 카운트, 진열 추천 등)만 CSR 훅으로 전환한다.
+ *
+ * 진열 섹션 + "담기" 클릭 시 뜨는 장바구니 담기 바텀시트(node 838:65977)는
+ * `HomeProductSections` 클라이언트 경계 하나로 묶었다 — 이 페이지는 서버로 남는다.
+ */
 export default function HomePage() {
   return (
-    <section className="px-4 py-16">
-      <h1 className="text-display-xs text-fg">total-client</h1>
-      <p className="text-body-s text-fg-tertiary mt-2">
-        환경·구조 세팅 스켈레톤입니다. 실제 화면 구현은 다음 단계입니다.
-      </p>
-      <div className="rounded-m border-border bg-surface-secondary mt-6 border p-4">
-        <p className="text-body-s text-fg-secondary">
-          디자인 토큰은 5팀 디자인 시스템(Figma)에서 추출했습니다. 색은
-          <code> text-fg</code>, <code>bg-surface-secondary</code>,<code> border-border</code>,
-          타이포는 <code>text-display-xs</code>,<code> text-body-s</code> 처럼 사용합니다.
-        </p>
-        <p className="text-numeric-l font-numeric text-primary mt-3">7,560원</p>
-      </div>
-    </section>
+    <div className="flex flex-col">
+      <HomeHeader cartCount={4} />
+      <CategoryTabs />
+      <HeroBanner
+        banners={[
+          {
+            imageSrc: '/banners/today-deal.webp',
+            imageAlt: '오늘만이 가격, 지금 반값세일 중',
+            eyebrow: '오늘만이 가격',
+            title: '지금 반값세일 중',
+            description: '오늘의 특가 보러 가기',
+            href: '/products?section=today-deal',
+          },
+        ]}
+      />
+      <QuickMenuSection />
+      <HomeProductSections sections={MOCK_DISPLAY_SECTIONS} />
+    </div>
   );
 }

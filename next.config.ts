@@ -23,6 +23,10 @@ const nextConfig: NextConfig = {
     // 경쟁사(마켓컬리) 실측: 메인 이미지 PNG 2.4MB, LCP ~20s, CLS 0.77.
     // → next/image 강제 + 종횡비 고정으로 대응 (structure-convention 참고).
     formats: ['image/avif', 'image/webp'],
+    // 기본 75 외에 90 도 허용 — 히어로 배너가 압축 열화를 줄이려 quality={90} 을 쓴다
+    // (PR #85 리뷰 — "이미지가 뿌옇게 보인다"). Next 16 은 안 쓰는 quality 값을 빌드
+    // 경고/차단하므로 실제로 쓰는 값만 화이트리스트에 올린다.
+    qualities: [75, 90],
   },
 };
 

@@ -20,7 +20,9 @@ import { Icon } from '@/components/atoms/Icon';
  *   18px/weight 700 을 쓴다(Figma CSS 실측). `text-heading-2` 토큰은 이름이 "Medium"
  *   이지만 실제 weight 는 500 이라 그대로 쓰면 더 얇게 나온다. 토큰 자체를 바꾸면
  *   이 컴포넌트를 쓰는 다른 곳(Calendar/Modal/CloseButton/TabItem)에 영향이 가므로,
- *   그런 화면은 `titleSize="h2"` + `titleClassName="font-bold!"` 로 override 한다.
+ *   그런 화면은 `titleSize="h2"` + `titleClassName="font-bold!"` 로 override 한다 — 홈
+ *   진열 섹션(node 577:13064 등, 바인딩된 스타일명 H2_Medium=500과 달리 레이어에서
+ *   Bold(700)로 수동 오버라이드된 인스턴스)도 같은 방식으로 켠다.
  *   색 `Text/Primary` → `text-fg`.
  * - 부제: `Label/XL_Bold` + `Text/Tertiary` → `text-label-xl text-fg-tertiary`.
  * - 링크: `Label/L_SemiBold` + `Brand/Primary` + arrow 20 → `text-label-l text-primary`.
@@ -29,6 +31,12 @@ import { Icon } from '@/components/atoms/Icon';
  * - "광고" 라벨: `Ad_Label_M`(node 2838-2230) — `Bg/secondary` `Radius/Full` `Caption/L` `Text/disabled`
  *   → `bg-surface-secondary rounded-full text-caption-l text-fg-disabled`. Figma 에선 Badge 의 변형이지만
  *   코드 `Badge` atom(purple/cyan 전용)에 이 회색 형태가 없어 인라인으로 둔다(링크와 동일 판단).
+ *
+ * 바깥 행(제목/부제 열 ↔ "전체보기" 링크) 사이에 추가 `gap` 을 주지 않는다 — Figma
+ * 원본(예: node 577:20696)도 이 둘 사이에 gap 클래스가 없다. 제목/부제 열이
+ * `flex-1` 이라 남는 공간을 전부 가져가므로 gap 을 더하면 그만큼 부제 폭이 줄어
+ * 긴 부제("최대 혜택으로 선물하세요! 쿠폰+최대 77% OFF" 등)의 마지막 단어가
+ * 다음 줄로 밀려났다(실기기 확인) — gap 제거로 Figma 폭 그대로 복구.
  */
 export interface HomeSectionHeaderProps {
   title: string;
@@ -66,11 +74,7 @@ export function HomeSectionHeader({
 
   return (
     <div
-      className={[
-        'flex justify-between gap-3 pl-4',
-        subtitle ? 'items-start' : 'items-center',
-        className,
-      ]
+      className={['flex justify-between px-4', subtitle ? 'items-start' : 'items-center', className]
         .filter(Boolean)
         .join(' ')}
     >

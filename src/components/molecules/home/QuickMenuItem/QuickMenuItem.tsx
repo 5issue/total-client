@@ -10,6 +10,10 @@ import { Icon } from '@/components/atoms/Icon/Icon';
  * 이미 구워진(baked-in) 44px 완성 그래픽이라 별도 배경/라운딩을 씌우지 않는다
  * (실측: 파일 자체가 44px 기준 3배율 export, 가장자리 알파가 이미 overlay_blue 톤).
  * 라벨 + 선택적 "N"(신규) 배지. 일반 유틸리티 퀵메뉴(쿠폰/주문내역 등)는 QuickMenu 를 쓴다.
+ *
+ * `shrink-0` 필수 — 가로 스크롤 flex row(`QuickMenuSection`) 안에서 라벨 길이가 짧은
+ * 항목("패션", "이벤트" 등)이 flex-shrink 기본값(1) 때문에 44px 아이콘 너비까지
+ * 눌려 다른 항목과 폭/간격이 들쭉날쭉해지는 문제가 있었다(실기기 확인).
  */
 export type QuickMenuItemIconName =
   | 'badge-discount'
@@ -47,7 +51,7 @@ export function QuickMenuItem({
       type="button"
       onClick={onClick}
       className={[
-        'relative flex w-13.75 flex-col items-center justify-center gap-1 py-1',
+        'relative flex w-13.75 shrink-0 flex-col items-center justify-center gap-1 py-1',
         className,
       ]
         .filter(Boolean)
