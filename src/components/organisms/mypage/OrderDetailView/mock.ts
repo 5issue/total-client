@@ -61,6 +61,31 @@ export const MOCK_ORDER_PRODUCTS: MockOrderProduct[] = [
   },
 ];
 
+/**
+ * 일부만 반품완료 상태(node 848-82482) 전용 — 상품이 배송완료/반품완료 두 그룹으로
+ * 나뉜다. Figma 데모는 4개 중 3개만 보여준다([풀무원] 치킨너겟은 두 그룹 어디에도
+ * 없다) — 그 실측 그대로 반영했다.
+ */
+export const MOCK_PARTIAL_RETURN_GROUPS: {
+  label: '배송완료' | '반품완료';
+  rightText: string | null;
+  hasReview: boolean;
+  products: MockOrderProduct[];
+}[] = [
+  {
+    label: '배송완료',
+    rightText: MOCK_ORDER_DETAIL.deliveredAt,
+    hasReview: true,
+    products: MOCK_ORDER_PRODUCTS.slice(0, 2),
+  },
+  {
+    label: '반품완료',
+    rightText: null,
+    hasReview: false,
+    products: MOCK_ORDER_PRODUCTS.slice(2, 3),
+  },
+];
+
 const COUPON_DETAILS: OrderBreakdownDetail[] = [
   { label: '상품 쿠폰', value: '0원' },
   { label: '장바구니 쿠폰', value: '0원' },

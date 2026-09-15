@@ -147,6 +147,53 @@ export const DeliveredStatusShowsReturnAndReviewButtons: Story = {
   },
 };
 
+export const ReturnRequestedStatusDisablesFullCancel: Story = {
+  tags: ['!autodocs'],
+  args: { initialStatus: '반품접수' },
+  play: async ({ canvasElement }) => {
+    // 반품접수(node 848-82244): 주문취소와 같은 레이아웃 — 액션 버튼 없음, 맨 아래는
+    // 비활성 "…완료" 라벨.
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText('반품접수')).toBeInTheDocument();
+    await expect(canvas.queryByRole('button', { name: '주문 취소' })).not.toBeInTheDocument();
+    await expect(canvas.getByRole('button', { name: '전체 상품 주문 취소 완료' })).toBeDisabled();
+  },
+};
+
+export const ReturnDoneStatusDisablesFullCancel: Story = {
+  tags: ['!autodocs'],
+  args: { initialStatus: '반품완료' },
+  play: async ({ canvasElement }) => {
+    // 반품완료(node 848-82363): 반품접수와 같은 레이아웃, 라벨만 다르다.
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText('반품완료')).toBeInTheDocument();
+    await expect(canvas.getByRole('button', { name: '전체 상품 주문 취소 완료' })).toBeDisabled();
+  },
+};
+
+export const PartialReturnStatusSplitsProductGroups: Story = {
+  tags: ['!autodocs'],
+  args: { initialStatus: '일부반품완료' },
+  play: async ({ canvasElement }) => {
+    // 일부반품완료(node 848-82482): 상품이 배송완료/반품완료 두 그룹으로 나뉜다
+    // (Figma 데모는 4개 중 3개만 보여준다 — [풀무원] 치킨너겟은 두 그룹 어디에도 없다).
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText('배송완료')).toBeInTheDocument();
+    await expect(canvas.getByText('08.27(수) 04:16')).toBeInTheDocument();
+    await expect(canvas.getByText('반품완료')).toBeInTheDocument();
+    await expect(canvas.getByRole('button', { name: '후기 작성' })).toBeInTheDocument();
+    await expect(canvas.queryByRole('button', { name: '반품 접수' })).not.toBeInTheDocument();
+
+    await expect(canvas.getByText('[연세우유 x 마켓컬리] 전용목장우유 900mL')).toBeInTheDocument();
+    await expect(canvas.getByText('바로먹는 아보카도 3입 (페루산)')).toBeInTheDocument();
+    await expect(
+      canvas.queryByText('[풀무원] 동물복지 치킨 너겟 오리지널'),
+    ).not.toBeInTheDocument();
+
+    await expect(canvas.getByRole('button', { name: '전체 상품 주문 취소 완료' })).toBeDisabled();
+  },
+};
+
 export const RefillingAllShowsToast: Story = {
   tags: ['!autodocs'],
   play: async ({ canvasElement }) => {
