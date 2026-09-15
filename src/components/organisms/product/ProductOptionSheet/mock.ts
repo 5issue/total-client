@@ -8,7 +8,7 @@ export const MOCK_ADD_TO_CART_PRODUCT = {
   tagline: '가격, 퀄리티 모두 만족스러운 1A등급 우유',
   priceLabel: '2,780원',
   originalPriceLabel: '3,400원',
-  unitPriceLabel: '100g 당 309원',
+  unitPriceLabel: '100mL 당 309원',
 };
 
 export const MOCK_ADD_TO_CART_PROMOTION = {
