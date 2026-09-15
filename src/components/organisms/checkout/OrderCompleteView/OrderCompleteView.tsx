@@ -94,11 +94,20 @@ export function OrderCompleteView() {
           `min-h-dvh`(확정 높이가 아님)라 안쪽 `overflow-y-auto` 로는 바가 고정되지 않고
           문서 아래로 밀려난다(실측 확인). */}
       <div className="bg-surface sticky bottom-0 px-4 pt-3 pb-11">
-        {copyToastVisible ? (
-          <div className="absolute inset-x-4 bottom-full mb-3">
-            <Toast variant="action">주문 번호를 복사했어요</Toast>
-          </div>
-        ) : null}
+        {/* 항상 마운트해두고 opacity/translate 만 토글한다 — 조건부 렌더링으로 트랜지션을
+            걸면 사라질 때 안 걸린다(`OrderDetailView` 하단 토스트와 같은 원칙).
+            Tailwind v4 의 `translate-y-*` 는 `transform` 이 아니라 별도 `translate`
+            속성이라 트랜지션 목록에 `translate` 를 명시해야 이동도 같이 걸린다. */}
+        <div
+          aria-hidden={!copyToastVisible}
+          className={[
+            'pointer-events-none absolute inset-x-4 bottom-full mb-3',
+            'transition-[opacity,translate] duration-300 ease-out motion-reduce:transition-none',
+            copyToastVisible ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0',
+          ].join(' ')}
+        >
+          <Toast variant="action">주문 번호를 복사했어요</Toast>
+        </div>
 
         <div className="flex gap-2">
           <Button
