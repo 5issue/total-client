@@ -8,7 +8,6 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/atoms/Button';
 import { Icon } from '@/components/atoms/Icon';
 import { InfoBox } from '@/components/atoms/InfoBox';
-import { Input } from '@/components/atoms/Input';
 import { Toast } from '@/components/atoms/Toast';
 import { CartAmountRow } from '@/components/molecules/cart/CartAmountRow';
 import { Accordion } from '@/components/molecules/shared/Accordion';
@@ -49,10 +48,10 @@ import { MOCK_AMOUNTS, MOCK_CUSTOMER, MOCK_DEFAULT_ADDRESS, MOCK_ORDER_ITEMS } f
  * 미연동) 클라이언트 타이머로 흉내만 낸다 — `ORDER_TIME_LIMIT_MS` 는 실제 정책값이 아니라
  * 임시 추정치, 서버 세션 만료 API 나오면 그걸로 교체.
  */
-type DeliveryDetailModal = 'edit' | null;
 /** 배송 상세정보 — node 666-24922: "{위치} | 공동현관 비밀번호({코드})" + "{받는분}, {전화번호}".
- * 편집 UI(위치·공동현관 비밀번호 Input 2개짜리 모달)는 한 라운드 제거됐다가 피드백으로
- * 재연결됐다 — "수정" 클릭 시 이 모달을 거쳐 이 상태(입력완료)로 이동한다. */
+ * 편집은 전용 화면 `/checkout/delivery-detail`(Figma node 666-26216, 이슈 #92)이 맡는다 —
+ * "수정" 이 그 화면으로 이동한다. 그전까지 임시로 뒀던 위치·비밀번호 Input 2개짜리 모달은
+ * 그 화면이 생기면서 제거했다(사용자 확인, 2026-09-15). */
 interface DeliveryDetail {
   location: string;
   passcode: string;
@@ -74,10 +73,10 @@ export function CheckoutView() {
   const [otherPaymentMethod, setOtherPaymentMethod] = useState<OtherPaymentMethodId>('card');
   const [cardIssuer, setCardIssuer] = useState<string | null>(null);
 
-  const [deliveryDetail, setDeliveryDetail] = useState<DeliveryDetail | null>(null);
-  const [locationDraft, setLocationDraft] = useState('');
-  const [passcodeDraft, setPasscodeDraft] = useState('');
-  const [deliveryModal, setDeliveryModal] = useState<DeliveryDetailModal>(null);
+  // 값은 이제 `/checkout/delivery-detail` 화면이 소유한다. 그 화면이 저장값을 여기로
+  // 돌려주는 배선(클라 스토어)은 아직 없어 현재는 항상 미입력 상태다 — 배선되면 이
+  // 자리를 스토어 selector 로 교체한다(이슈 #92 후속).
+  const [deliveryDetail] = useState<DeliveryDetail | null>(null);
   const [termsModal, setTermsModal] = useState<TermsModal>(null);
   const [ordererOpen, setOrdererOpen] = useState(false);
 
@@ -100,19 +99,6 @@ export function CheckoutView() {
       if (validationToastTimer.current) clearTimeout(validationToastTimer.current);
     };
   }, []);
-
-  function openDeliveryModal() {
-    setLocationDraft(deliveryDetail?.location ?? '');
-    setPasscodeDraft(deliveryDetail?.passcode ?? '');
-    setDeliveryModal('edit');
-  }
-
-  function saveDeliveryDetail() {
-    const location = locationDraft.trim();
-    const passcode = passcodeDraft.trim();
-    setDeliveryDetail(location ? { location, passcode } : null);
-    setDeliveryModal(null);
-  }
 
   function handleSubmitOrder() {
     if (!canPay) {
@@ -264,13 +250,11 @@ export function CheckoutView() {
                   <Icon name="arrow-right" size={20} aria-hidden />
                 </span>
               )}
-              {/* 피드백: 편집 모달 재연결 — "수정" 클릭 시 이 모달을 거쳐 입력완료 상태로
-                  이동한다. */}
               <Button
                 size="s"
                 variant="outlineBlack"
                 className="shrink-0"
-                onClick={openDeliveryModal}
+                onClick={() => router.push('/checkout/delivery-detail')}
               >
                 수정
               </Button>
@@ -513,44 +497,6 @@ export function CheckoutView() {
           결제 전 <span className="underline">이용약관 및 정보제공</span> 동의를 확인해 주세요
         </p>
       </div>
-
-      <Modal
-        open={deliveryModal === 'edit'}
-        onClose={() => setDeliveryModal(null)}
-        title="배송 상세정보"
-        description="공동현관 비밀번호, 부재 시 요청사항 등을 입력해주세요."
-        footer={
-          <>
-            <Button variant="outlineBlack" onClick={() => setDeliveryModal(null)}>
-              취소
-            </Button>
-            <Button variant="black" disabled={!locationDraft.trim()} onClick={saveDeliveryDetail}>
-              저장
-            </Button>
-          </>
-        }
-      >
-        {/* node 666-24922 표시 형식("{위치} | 공동현관 비밀번호({코드})")에 맞춰 위치·비밀번호를
-            분리 입력받는다. */}
-        <div className="flex flex-col gap-4">
-          <Input
-            label="배송 위치"
-            labelVisible
-            placeholder="예: 문 앞, 경비실"
-            value={locationDraft}
-            onChange={(e) => setLocationDraft(e.target.value)}
-            maxLength={20}
-          />
-          <Input
-            label="공동현관 비밀번호"
-            labelVisible
-            placeholder="공동현관 비밀번호(선택)"
-            value={passcodeDraft}
-            onChange={(e) => setPasscodeDraft(e.target.value)}
-            maxLength={20}
-          />
-        </div>
-      </Modal>
 
       <Modal
         open={termsModal !== null}
