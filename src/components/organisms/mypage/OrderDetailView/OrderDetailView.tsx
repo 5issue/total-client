@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import type { ReactNode } from 'react';
 
 import { useRouter } from 'next/navigation';
@@ -21,6 +21,7 @@ import {
   MOCK_ORDER_DETAIL,
   MOCK_ORDER_INFO_ROWS,
   MOCK_ORDER_PRODUCTS,
+  MOCK_PARTIAL_RETURN_GROUPS,
   MOCK_PAYMENT_ROWS,
   MOCK_PAYMENT_TOTAL,
 } from './mock';
@@ -43,19 +44,25 @@ import {
  * 못 써서, 두 토스트 모두 화면 최하단에 고정한다 — `CheckoutView` 의 상단 고정 에러
  * 토스트와 같은 원리(항상 마운트, opacity/translate 만 토글)를 뒤집은 형태.
  *
- * 주문 상태(취소·배송중·배송완료 — node 666-27472/782-61437/782-61559)는 모두 같은 화면의
- * 파생 상태다 — 별도 라우트가 아니라 `OrderStatus` 로 분기한다(`initialStatus` prop 은
- * 스토리·QA 용, `RefundReturnView` 의 `defaultSelectedIds` 와 같은 패턴 — 실제 라이브
- * 페이지는 BE 연동 전이라 기본값 "주문완료"만 보여준다):
- * - 주문취소: 상태 라벨 단독("주문완료"+도착 예정 문구 없음), 카드 안 액션 버튼 없음,
- *   맨 아래 "전체 상품 주문 취소" 버튼이 비활성 "…완료" 라벨로 바뀐다(테두리는 그대로,
- *   글자색만 `disabled:text-fg-disabled` = Figma `text/disabled_button` #b5c4cf 와 일치).
+ * 주문 상태(node 666-27472/782-61437/782-61559/848-82244/848-82363/848-82482)는 모두
+ * 같은 화면의 파생 상태다 — 별도 라우트가 아니라 `OrderStatus` 로 분기한다(`initialStatus`
+ * prop 은 스토리·QA 용, `RefundReturnView` 의 `defaultSelectedIds` 와 같은 패턴 — 실제
+ * 라이브 페이지는 BE 연동 전이라 기본값 "주문완료"만 보여준다). 취소 가능 여부(맨 아래
+ * "전체 상품 주문 취소" 버튼 활성/비활성)는 `CANCEL_ALLOWED_STATUSES` 로 한 곳에서 관리한다:
+ * - 주문취소: 상태 라벨 단독(도착 예정 문구 없음), 카드 안 액션 버튼 없음, 맨 아래 버튼이
+ *   비활성 "…완료" 라벨로 바뀐다(테두리는 그대로, 글자색만 `disabled:text-fg-disabled` =
+ *   Figma `text/disabled_button` #b5c4cf 와 일치).
  * - 배송중: 도착 예정 문구는 그대로, 액션 버튼만 "주문 취소" → "배송 조회"(무동작 — 배송
- *   조회 페이지 없음). 맨 아래 취소 버튼은 Figma 그대로 활성 유지(주문완료와 동일 — 실제
- *   취소 가능 여부는 BE 판단이라 이 단계에서 막지 않는다).
+ *   조회 페이지 없음). 맨 아래 버튼은 Figma 그대로 활성 유지(주문완료와 동일).
  * - 배송완료: 도착 예정 문구가 실제 배송 일시로 바뀌고, 액션 버튼이 "반품 접수"(tertiary)
  *   + "후기 작성"(secondary, 무동작) 2개로 나뉜다. "반품 접수"는 issue #97 라우트
  *   (`/mypage/orders/return`)로 연결 — 그 화면 구현은 #97 범위라 여기서는 라우팅만 건다.
+ * - 반품접수 / 반품완료: 주문취소와 같은 레이아웃(액션 버튼 없음, 맨 아래 비활성 "…완료")
+ *   이고 상태 라벨만 다르다.
+ * - 일부반품완료: 상품이 배송완료/반품완료 두 그룹으로 나뉘는 유일한 상태라 렌더 분기
+ *   자체가 다르다 — `MOCK_PARTIAL_RETURN_GROUPS` 를 순회해 그룹마다 라벨+상품+(있으면)
+ *   "후기 작성" 버튼을 그리고, 그룹 사이에만 `CardDivider` 를 끼운다(Figma 실측: 각 그룹
+ *   상단엔 구분선이 없다). "전체 상품 다시 담기" 는 그룹과 무관하게 항상 맨 끝에 하나.
  *
  * Figma 는 결제 정보 아래 카드 3개의 제목이 모두 `주문 정보` 지만 내용이 서로 달라
  * 복붙 아티팩트다 — `주문 정보`/`배송 정보`/`배송 요청사항` 으로 확정했다(사용자 확인,
@@ -87,7 +94,11 @@ function CardDivider() {
   return <hr className="border-border -mx-px" />;
 }
 
-export type OrderStatus = '주문완료' | '배송중' | '배송완료' | '주문취소';
+export type OrderStatus =
+  '주문완료' | '배송중' | '배송완료' | '주문취소' | '반품접수' | '반품완료' | '일부반품완료';
+
+/** 이 상태에서만 맨 아래 "전체 상품 주문 취소" 버튼이 활성이다(Figma 실측). */
+const CANCEL_ALLOWED_STATUSES: OrderStatus[] = ['주문완료', '배송중', '배송완료'];
 
 export interface OrderDetailViewProps {
   /** 스토리·QA 용 초기 주문 상태. 생략 시 `MOCK_ORDER_DETAIL.status`(node 666-28077). */
@@ -103,13 +114,15 @@ export function OrderDetailView({
   const { visible: copyToastVisible, copy: copyOrderNumber } = useCopyToast();
   const { visible: refillToastVisible, trigger: showRefillToast } = useTimedToast(2000);
 
-  const isCancelled = status === '주문취소';
   const isDelivered = status === '배송완료';
-  const rightText = isCancelled
-    ? null
-    : isDelivered
+  const isPartialReturn = status === '일부반품완료';
+  const canCancel = CANCEL_ALLOWED_STATUSES.includes(status);
+  const rightText =
+    status === '배송완료'
       ? MOCK_ORDER_DETAIL.deliveredAt
-      : MOCK_ORDER_DETAIL.arrival;
+      : status === '주문완료' || status === '배송중'
+        ? MOCK_ORDER_DETAIL.arrival
+        : null;
 
   return (
     <div className="bg-surface-secondary flex flex-1 flex-col">
@@ -141,68 +154,103 @@ export function OrderDetailView({
         {/* 주문 상품 */}
         <Section title="주문 상품">
           <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-heading-2 text-primary">{status}</p>
-              {rightText ? <p className="text-body-s text-brand-300">{rightText}</p> : null}
-            </div>
-            <CardDivider />
-
-            <ul className="flex flex-col gap-4">
-              {MOCK_ORDER_PRODUCTS.map((product) => (
-                <li key={product.id}>
-                  <OrderProductItem
-                    deliveryType={product.deliveryType}
-                    name={product.name}
-                    price={product.price}
-                    originalPrice={product.originalPrice}
-                    quantity={product.quantity}
-                  />
-                </li>
-              ))}
-            </ul>
-
-            {status === '주문완료' ? (
+            {isPartialReturn ? (
+              MOCK_PARTIAL_RETURN_GROUPS.map((group, index) => (
+                <Fragment key={group.label}>
+                  {index > 0 ? <CardDivider /> : null}
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-heading-2 text-primary">{group.label}</p>
+                    {group.rightText ? (
+                      <p className="text-body-s text-brand-300">{group.rightText}</p>
+                    ) : null}
+                  </div>
+                  <ul className="flex flex-col gap-4">
+                    {group.products.map((product) => (
+                      <li key={product.id}>
+                        <OrderProductItem
+                          deliveryType={product.deliveryType}
+                          name={product.name}
+                          price={product.price}
+                          originalPrice={product.originalPrice}
+                          quantity={product.quantity}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                  {group.hasReview ? (
+                    // 후기 작성 화면이 아직 없어 무동작.
+                    <Button variant="secondary" size="l" className="h-14 w-full">
+                      후기 작성
+                    </Button>
+                  ) : null}
+                </Fragment>
+              ))
+            ) : (
               <>
-                <Button
-                  variant="tertiary"
-                  size="l"
-                  className="h-14 w-full"
-                  onClick={() => setCancelOpen(true)}
-                >
-                  주문 취소
-                </Button>
-                <CardDivider />
-              </>
-            ) : null}
-            {status === '배송중' ? (
-              <>
-                {/* 배송 조회 페이지가 아직 없어 무동작 — 라벨만 바뀐 버튼. */}
-                <Button variant="tertiary" size="l" className="h-14 w-full">
-                  배송 조회
-                </Button>
-                <CardDivider />
-              </>
-            ) : null}
-            {isDelivered ? (
-              <>
-                <div className="flex w-full gap-2">
-                  {/* 반품 접수 화면 구현은 issue #97 범위 — 여기서는 라우팅만 건다. */}
-                  <Button
-                    variant="tertiary"
-                    size="l"
-                    className="h-14 flex-1"
-                    onClick={() => router.push('/mypage/orders/return')}
-                  >
-                    반품 접수
-                  </Button>
-                  {/* 후기 작성 화면이 아직 없어 무동작. */}
-                  <Button variant="secondary" size="l" className="h-14 flex-1">
-                    후기 작성
-                  </Button>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-heading-2 text-primary">{status}</p>
+                  {rightText ? <p className="text-body-s text-brand-300">{rightText}</p> : null}
                 </div>
                 <CardDivider />
+
+                <ul className="flex flex-col gap-4">
+                  {MOCK_ORDER_PRODUCTS.map((product) => (
+                    <li key={product.id}>
+                      <OrderProductItem
+                        deliveryType={product.deliveryType}
+                        name={product.name}
+                        price={product.price}
+                        originalPrice={product.originalPrice}
+                        quantity={product.quantity}
+                      />
+                    </li>
+                  ))}
+                </ul>
+
+                {status === '주문완료' ? (
+                  <>
+                    <Button
+                      variant="tertiary"
+                      size="l"
+                      className="h-14 w-full"
+                      onClick={() => setCancelOpen(true)}
+                    >
+                      주문 취소
+                    </Button>
+                    <CardDivider />
+                  </>
+                ) : null}
+                {status === '배송중' ? (
+                  <>
+                    {/* 배송 조회 페이지가 아직 없어 무동작 — 라벨만 바뀐 버튼. */}
+                    <Button variant="tertiary" size="l" className="h-14 w-full">
+                      배송 조회
+                    </Button>
+                    <CardDivider />
+                  </>
+                ) : null}
+                {isDelivered ? (
+                  <>
+                    <div className="flex w-full gap-2">
+                      {/* 반품 접수 화면 구현은 issue #97 범위 — 여기서는 라우팅만 건다. */}
+                      <Button
+                        variant="tertiary"
+                        size="l"
+                        className="h-14 flex-1"
+                        onClick={() => router.push('/mypage/orders/return')}
+                      >
+                        반품 접수
+                      </Button>
+                      {/* 후기 작성 화면이 아직 없어 무동작. */}
+                      <Button variant="secondary" size="l" className="h-14 flex-1">
+                        후기 작성
+                      </Button>
+                    </div>
+                    <CardDivider />
+                  </>
+                ) : null}
               </>
-            ) : null}
+            )}
             {/* 장바구니 연동 전이라 실제로 담지는 않고 결과 토스트만 보여준다. */}
             <Button
               variant="outlineBlack"
@@ -298,10 +346,10 @@ export function OrderDetailView({
               variant="outlineBlack"
               size="l"
               className="h-14 w-full"
-              disabled={isCancelled}
+              disabled={!canCancel}
               onClick={() => setCancelOpen(true)}
             >
-              {isCancelled ? '전체 상품 주문 취소 완료' : '전체 상품 주문 취소'}
+              {canCancel ? '전체 상품 주문 취소' : '전체 상품 주문 취소 완료'}
             </Button>
           </div>
         </SectionCard>
