@@ -86,7 +86,7 @@ export function ProductCard({
         type="button"
         onClick={onAddToCart}
         aria-label={`${name} 장바구니 담기`}
-        className="text-label-l text-fg active:bg-surface-secondary relative flex h-8 w-full items-center justify-center gap-1 rounded-sm border border-neutral-400 before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-['']"
+        className="text-label-l text-fg active:bg-surface-secondary border-border relative flex h-8 w-full items-center justify-center gap-1 rounded-sm border before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-['']"
       >
         <Icon name="cart" size={20} aria-hidden />
         담기

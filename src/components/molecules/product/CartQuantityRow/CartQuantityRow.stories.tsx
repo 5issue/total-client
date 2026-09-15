@@ -15,7 +15,7 @@ const meta = {
     priceLabel: '2,520원',
     originalPriceLabel: '3,400원',
     unitPriceLabel: '100g 당 360원',
-    quantity: 0,
+    quantity: 1,
     onQuantityChange: () => {},
   },
   argTypes: {
@@ -53,6 +53,6 @@ export const IncreaseQuantity: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole('button', { name: /수량 증가/ }));
-    await expect(canvas.getByText('1')).toBeInTheDocument();
+    await expect(canvas.getByText('2')).toBeInTheDocument();
   },
 };
