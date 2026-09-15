@@ -35,6 +35,7 @@ export function RefundSelectAllBar({
           checked={allSelected}
           disabled={totalCount === 0}
           onChange={(e) => onToggleAll(e.target.checked)}
+          className="size-10"
         />
       </span>
       <span className="text-heading-2 text-fg flex items-center gap-1">
