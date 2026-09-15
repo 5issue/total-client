@@ -57,11 +57,13 @@ export function OrderCompleteView() {
         <div className="flex flex-col gap-4">
           <div className="bg-surface flex items-center justify-between rounded-xl px-4 py-3">
             <p className="text-heading-5 text-fg-tertiary">주문번호 {MOCK_ORDER_NUMBER}</p>
-            {/* Button `s` 는 높이가 콘텐츠로 결정돼 Figma 고정 38×52 와 달라 실측값으로 덮어쓴다. */}
+            {/* Button `s` 는 높이가 콘텐츠로 결정돼 Figma 고정 38×52 와 다르다 — 다만 38px 는
+                최소 터치 타깃 44px(code-style §5) 에 못 미쳐 44px(`h-11`)로 올린다(CodeRabbit
+                리뷰로 발견). */}
             <Button
               size="s"
               variant="outlineBlack"
-              className="h-[38px] w-13"
+              className="h-11 w-13"
               onClick={() => copyOrderNumber(MOCK_ORDER_NUMBER)}
             >
               복사

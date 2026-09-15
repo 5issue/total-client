@@ -97,7 +97,16 @@ function CardDivider() {
 export type OrderStatus =
   '주문완료' | '배송중' | '배송완료' | '주문취소' | '반품접수' | '반품완료' | '일부반품완료';
 
-/** 이 상태에서만 맨 아래 "전체 상품 주문 취소" 버튼이 활성이다(Figma 실측). */
+/**
+ * 이 상태에서만 맨 아래 "전체 상품 주문 취소" 버튼이 활성이다(782-61437/782-61559 Figma
+ * 실측 — 두 화면 모두 버튼이 비활성 스타일 없이 그대로 활성 상태로 그려져 있다).
+ *
+ * `MOCK_CANCEL_NOTICE`("[주문완료] 또는 [배송준비중] 상태에서만 취소 가능")와 문구가 어긋난다
+ * (CodeRabbit 리뷰로 확인) — Figma 가 여러 상태 화면에 같은 안내 카드를 복붙하면서 문구를
+ * 안 고친 것으로 보인다. 인터랙션(버튼 활성/비활성)은 각 화면에서 개별 실측한 값이라 더
+ * 신뢰할 수 있어 그대로 두고, 안내 카드 문구 자체는 디자인 쪽 확인 없이 이 목록에 맞춰
+ * 임의로 고치지 않는다(structure-convention §6-1: 변경은 Figma 코멘트로 통지).
+ */
 const CANCEL_ALLOWED_STATUSES: OrderStatus[] = ['주문완료', '배송중', '배송완료'];
 
 export interface OrderDetailViewProps {
@@ -137,10 +146,12 @@ export function OrderDetailView({
                 <p className="text-heading-6 text-fg-tertiary">{MOCK_ORDER_DETAIL.paidAt}</p>
                 <p className="text-heading-0 text-fg">주문번호 {MOCK_ORDER_DETAIL.orderNumber}</p>
               </div>
+              {/* Figma 고정 높이는 38px 지만 최소 터치 타깃 44px(code-style §5) 에 못 미쳐
+                  44px(`h-11`)로 올린다(CodeRabbit 리뷰로 발견, OrderCompleteView 와 동일). */}
               <Button
                 size="s"
                 variant="outlineBlack"
-                className="h-[38px] w-13 shrink-0"
+                className="h-11 w-13 shrink-0"
                 onClick={() => copyOrderNumber(MOCK_ORDER_DETAIL.orderNumber)}
               >
                 복사
