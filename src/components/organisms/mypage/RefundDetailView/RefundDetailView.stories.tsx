@@ -8,6 +8,8 @@ const meta = {
   component: RefundDetailView,
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen', nextjs: { appDirectory: true } },
+  args: {},
+  argTypes: {},
   decorators: [
     (Story) => (
       <div className="mx-auto flex min-h-dvh max-w-screen-sm flex-col">
