@@ -113,6 +113,40 @@ export const ConfirmingCancelShowsCancelledState: Story = {
   },
 };
 
+export const ShippingStatusShowsTrackingButton: Story = {
+  tags: ['!autodocs'],
+  args: { initialStatus: '배송중' },
+  play: async ({ canvasElement }) => {
+    // 배송중(node 782-61437): 도착 예정 문구는 그대로, 액션 버튼만 "배송 조회" 로 바뀐다.
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText('배송중')).toBeInTheDocument();
+    await expect(canvas.getByText('내일 (수) 아침 도착')).toBeInTheDocument();
+    await expect(canvas.getByRole('button', { name: '배송 조회' })).toBeInTheDocument();
+    await expect(canvas.queryByRole('button', { name: '주문 취소' })).not.toBeInTheDocument();
+
+    // 맨 아래 취소 버튼은 Figma 그대로 활성 유지.
+    await expect(canvas.getByRole('button', { name: '전체 상품 주문 취소' })).toBeEnabled();
+  },
+};
+
+export const DeliveredStatusShowsReturnAndReviewButtons: Story = {
+  tags: ['!autodocs'],
+  args: { initialStatus: '배송완료' },
+  play: async ({ canvasElement }) => {
+    // 배송완료(node 782-61559): 도착 예정 문구가 실제 배송 일시로 바뀌고, 액션 버튼이
+    // "반품 접수"+"후기 작성" 2개로 나뉜다.
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText('배송완료')).toBeInTheDocument();
+    await expect(canvas.getByText('08.27(수) 04:16')).toBeInTheDocument();
+    await expect(canvas.queryByText('내일 (수) 아침 도착')).not.toBeInTheDocument();
+    await expect(canvas.getByRole('button', { name: '후기 작성' })).toBeInTheDocument();
+
+    // "반품 접수" 는 issue #97 화면으로 라우팅만 건다(그 화면 자체는 이 PR 범위 밖).
+    await userEvent.click(canvas.getByRole('button', { name: '반품 접수' }));
+    await expect(getRouter().push).toHaveBeenCalledWith('/mypage/orders/return');
+  },
+};
+
 export const RefillingAllShowsToast: Story = {
   tags: ['!autodocs'],
   play: async ({ canvasElement }) => {
