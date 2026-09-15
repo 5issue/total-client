@@ -101,7 +101,9 @@ export const CompletesReason: Story = {
     await expect(next).toBeDisabled();
 
     const file = new File(['photo'], 'refund.png', { type: 'image/png' });
-    await userEvent.upload(canvas.getByLabelText('사진 추가 (최대 3장)', { exact: false }), file);
+    const photoInput = canvasElement.querySelector<HTMLInputElement>('input[type="file"]');
+    if (!photoInput) throw new Error('사진 업로드 input을 찾을 수 없습니다');
+    await userEvent.upload(photoInput, file);
 
     await expect(next).toBeEnabled();
   },
