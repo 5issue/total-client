@@ -1,1 +1,1 @@
-export { HeroBanner, type HeroBannerProps } from './HeroBanner';
+export { HeroBanner, type HeroBannerProps, type HeroBannerSlide } from './HeroBanner';

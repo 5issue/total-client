@@ -23,14 +23,16 @@ export default function HomePage() {
       <HomeHeader cartCount={4} />
       <CategoryTabs />
       <HeroBanner
-        imageSrc="/banners/today-deal.webp"
-        imageAlt="오늘만이 가격, 지금 반값세일 중"
-        eyebrow="오늘만이 가격"
-        title="지금 반값세일 중"
-        description="오늘의 특가 보러 가기"
-        href="/products?section=today-deal"
-        current={4}
-        total={30}
+        banners={[
+          {
+            imageSrc: '/banners/today-deal.webp',
+            imageAlt: '오늘만이 가격, 지금 반값세일 중',
+            eyebrow: '오늘만이 가격',
+            title: '지금 반값세일 중',
+            description: '오늘의 특가 보러 가기',
+            href: '/products?section=today-deal',
+          },
+        ]}
       />
       <QuickMenuSection />
       <HomeProductSections sections={MOCK_DISPLAY_SECTIONS} />
