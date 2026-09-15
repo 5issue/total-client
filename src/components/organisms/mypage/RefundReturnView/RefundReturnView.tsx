@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useState } from 'react';
+import { useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
@@ -18,12 +18,11 @@ import { MOCK_REFUND_ITEMS } from './mock';
  * 퍼블리싱 단계: 선택만 로컬 state. API·다음 단계(사유 입력)는 없음.
  * page.tsx 는 이 컴포넌트만 렌더한다(RSC 유지).
  *
- * 헤더 타이틀은 "반품 접수". 하단 CTA 는 `Button` black 56px 풀폭 "다음" —
+ * 헤더 타이틀은 "반품 접수". 하단 CTA 는 `Button` black `size="l"` 풀폭 "다음" —
  * 미선택 시 disabled (`neutral-700` + `fg-disabled`). 활성은 공용 `black`.
  *
- * 헤더↔목록 섹션 28px(`mt-7`). 목록 섹션은 화면 대비 좌우 15px(`mx-3.75`) —
- * 402 프레임 안 372 폭 카드(node 848-82669). 내부 패딩은 16/8/20(`px-4 pt-2 pb-5`).
- * 카드 간 auto-layout gap 16(디바이더 포함) → 카드 박스끼리 32px(`gap-4` + 라인 + `gap-4`).
+ * 헤더↔목록 `mt-7`, 목록 좌우 `mx-3.75`, 내부 `px-4 pt-2 pb-5`.
+ * 구분선 위·아래는 `mt-4` / `pt-4` / `pb-4`.
  */
 export interface RefundReturnViewProps {
   /** 스토리·초기 상태용. 생략 시 미선택(node 848-82641). */
@@ -65,30 +64,24 @@ export function RefundReturnView({ defaultSelectedIds }: RefundReturnViewProps) 
             totalCount={totalCount}
             onToggleAll={setAllChecked}
           />
-          <div className="border-border mt-2 border-t" />
+          <div className="border-border mt-4 border-t" />
 
-          <ul className="mt-4 flex flex-col gap-4">
-            {items.map((item, index) => (
-              <Fragment key={item.id}>
-                <li>
-                  <RefundLineItem
-                    name={item.name}
-                    imageSrc={item.imageSrc}
-                    price={item.price}
-                    quantity={item.quantity}
-                    checked={selectedIds.has(item.id)}
-                    onCheckedChange={(checked) => setItemChecked(item.id, checked)}
-                  />
-                </li>
-                {index < items.length - 1 ? (
-                  <li aria-hidden className="border-border border-t" />
-                ) : null}
-              </Fragment>
+          <ul className="flex flex-col">
+            {items.map((item) => (
+              <li key={item.id} className="border-border border-b py-4 last:border-b-0 last:pb-0">
+                <RefundLineItem
+                  name={item.name}
+                  imageSrc={item.imageSrc}
+                  price={item.price}
+                  quantity={item.quantity}
+                  checked={selectedIds.has(item.id)}
+                  onCheckedChange={(checked) => setItemChecked(item.id, checked)}
+                />
+              </li>
             ))}
           </ul>
         </div>
 
-        {/* Figma CTA 프레임 pad 16/16/8/8, 버튼 56. */}
         <div className="bg-surface px-4 pt-2 pb-2">
           <Button variant="black" size="l" disabled={!canNext} className="h-14 w-full">
             다음
