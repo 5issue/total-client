@@ -11,6 +11,8 @@ export const MOCK_ORDER_DETAIL = {
   address: '서울특별시 강남구 테헤란로 152, 101동 1502호 (역삼동, 강남파이낸스센터아파트)',
   status: '주문완료',
   arrival: '내일 (수) 아침 도착',
+  /** 배송완료 상태에서 도착 예정 문구 대신 보여주는 실제 배송 완료 일시. */
+  deliveredAt: '08.27(수) 04:16',
   receiver: '이준호',
   phone: '010-1234-****',
 } as const;
