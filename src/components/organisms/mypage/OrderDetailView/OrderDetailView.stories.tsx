@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { getRouter } from '@storybook/nextjs-vite/navigation.mock';
-import { expect, screen, userEvent, within } from 'storybook/test';
+import { expect, fn, screen, userEvent, within } from 'storybook/test';
 
 import { OrderDetailView } from './OrderDetailView';
 
@@ -86,5 +86,23 @@ export const FullCancelButtonOpensSameModal: Story = {
     await expect(
       await screen.findByRole('dialog', { name: '주문을 취소하시겠어요?' }),
     ).toBeInTheDocument();
+  },
+};
+
+export const CopyingOrderNumberShowsToast: Story = {
+  tags: ['!autodocs'],
+  play: async ({ canvasElement }) => {
+    // 헤드리스 브라우저는 클립보드 권한이 없을 수 있어 writeText 를 스텁으로 갈아끼운다
+    // (`OrderCompleteView` 의 같은 테스트와 동일한 패턴 — 둘 다 `useCopyToast` 를 쓴다).
+    const writeText = fn(async () => {});
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+
+    const canvas = within(canvasElement);
+    await expect(canvas.queryByRole('status')).not.toBeInTheDocument();
+
+    await userEvent.click(canvas.getByRole('button', { name: '복사' }));
+
+    await expect(writeText).toHaveBeenCalledWith('24242424224422');
+    await expect(await canvas.findByRole('status')).toHaveTextContent('주문 번호를 복사했어요');
   },
 };

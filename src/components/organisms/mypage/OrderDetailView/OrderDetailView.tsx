@@ -6,10 +6,12 @@ import type { ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/atoms/Button';
+import { Toast } from '@/components/atoms/Toast';
 import { OrderBreakdownRow } from '@/components/molecules/order/OrderBreakdownRow';
 import { OrderProductItem } from '@/components/molecules/order/OrderProductItem';
 import { Modal } from '@/components/molecules/shared/Modal';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
+import { useCopyToast } from '@/hooks/useCopyToast';
 
 import {
   MOCK_CANCEL_NOTICE,
@@ -31,6 +33,11 @@ import {
  * 아래 동작은 의도적으로 비워 뒀다:
  * - 주문 취소 실제 처리 — 모달까지만 뜨고 "주문 취소" 를 눌러도 닫히기만 한다.
  * - 상품 "담기", "전체 상품 다시 담기" — 무동작(장바구니 연동 전).
+ *
+ * 주문번호 복사는 `OrderCompleteView` 와 같은 `useCopyToast` 를 쓴다(같은 문구 "주문 번호를
+ * 복사했어요"). 이 화면은 하단 고정 CTA 바가 없어 토스트를 그 위에 얹는 방식을 못 써서,
+ * 화면 최하단에 고정한다 — `CheckoutView` 의 상단 고정 에러 토스트와 같은 원리(항상
+ * 마운트, opacity/translate 만 토글)를 뒤집은 형태.
  *
  * Figma 는 결제 정보 아래 카드 3개의 제목이 모두 `주문 정보` 지만 내용이 서로 달라
  * 복붙 아티팩트다 — `주문 정보`/`배송 정보`/`배송 요청사항` 으로 확정했다(사용자 확인,
@@ -65,6 +72,7 @@ function CardDivider() {
 export function OrderDetailView() {
   const router = useRouter();
   const [cancelOpen, setCancelOpen] = useState(false);
+  const { visible: copyToastVisible, copy: copyOrderNumber } = useCopyToast();
 
   return (
     <div className="bg-surface-secondary flex flex-1 flex-col">
@@ -79,8 +87,12 @@ export function OrderDetailView() {
                 <p className="text-heading-6 text-fg-tertiary">{MOCK_ORDER_DETAIL.paidAt}</p>
                 <p className="text-heading-0 text-fg">주문번호 {MOCK_ORDER_DETAIL.orderNumber}</p>
               </div>
-              {/* 복사 동작은 주문 완료 화면(#93)에만 있다 — 이 화면 몫은 다음 작업에서 배선. */}
-              <Button size="s" variant="outlineBlack" className="h-[38px] w-13 shrink-0">
+              <Button
+                size="s"
+                variant="outlineBlack"
+                className="h-[38px] w-13 shrink-0"
+                onClick={() => copyOrderNumber(MOCK_ORDER_DETAIL.orderNumber)}
+              >
                 복사
               </Button>
             </div>
@@ -217,6 +229,22 @@ export function OrderDetailView() {
             </Button>
           </div>
         </SectionCard>
+      </div>
+
+      {/* 복사 토스트 — 화면 하단 고정, 항상 마운트해두고 opacity/translate 만 토글한다
+          (`CheckoutView` 상단 에러 토스트와 같은 원칙: 마운트/언마운트로 트랜지션을 걸면
+          사라질 때 안 걸린다). */}
+      <div
+        aria-hidden={!copyToastVisible}
+        className={[
+          'pointer-events-none fixed inset-x-4 bottom-4 z-50 flex justify-center',
+          'transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none',
+          copyToastVisible ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0',
+        ].join(' ')}
+      >
+        <Toast variant="action" className="w-full">
+          주문 번호를 복사했어요
+        </Toast>
       </div>
 
       {/* 주문 취소 모달(node 666-28213). 실제 취소 처리는 BE 연동 후 — 지금은 닫히기만 한다.
