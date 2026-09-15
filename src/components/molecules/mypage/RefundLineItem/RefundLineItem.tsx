@@ -5,13 +5,16 @@ import Image from 'next/image';
 import { Checkbox } from '@/components/atoms/Checkbox';
 
 /**
- * 반품 접수 상품 한 줄 (molecule). Figma "5팀 UI 공유용" — `RefundItemCard`
- * (node 848-82641 계열).
+ * 반품 접수 상품 한 줄 (molecule). Figma node 848-82641 `RefundItemCard`
+ * (체크박스 위치는 848-82764 로 재확인).
  *
- * 체크박스 + 상품명 + 썸네일 + `n개 | 판매가`. 수량 스테퍼·삭제 ✕ 는 없다
- * (`CartLineItem` 과 역할이 다름). 선택 상태는 상위(`RefundReturnView`)가 소유.
- *
- * 상품명 `text-heading-4` 와 체크박스는 같은 행에서 `items-center` 로 수직 정렬한다.
+ * 체크박스(40px 터치 영역)는 상품명과 같은 행에서 `items-center` 로 짝지어 y축을
+ * 맞춘다 — `RefundSelectAllBar` 의 "전체선택" 행과 동일 패턴. 체크박스를 상품명·
+ * 썸네일 전체 열의 형제로 두고 `items-start` 로만 정렬하면, 체크박스 자체 터치
+ * 영역(40px) 안에서 아이콘이 중앙 정렬되어 상품명 한 줄(24px)의 중심보다 아래로
+ * 처지는 문제가 있었다(2026-09-15 재확인). 썸네일·수량·가격 행은 체크박스 열
+ * 너비(40px)만큼 `pl-10` 으로 들여써 상품명과 시작선을 맞춘다.
+ * 수량 `text-heading-1`, 판매가 `text-heading-2 text-fg-tertiary`.
  */
 export interface RefundLineItemProps {
   name: string;
@@ -37,15 +40,18 @@ export function RefundLineItem({
   return (
     <div className={['flex w-full flex-col gap-5', className].filter(Boolean).join(' ')}>
       <div className="flex items-center">
-        <Checkbox
-          variant="filled"
-          label={`${name} 선택`}
-          checked={checked}
-          onChange={(e) => onCheckedChange(e.target.checked)}
-        />
+        <span className="flex size-10 shrink-0 items-center justify-center">
+          <Checkbox
+            variant="filled"
+            label={`${name} 선택`}
+            checked={checked}
+            onChange={(e) => onCheckedChange(e.target.checked)}
+            className="size-10"
+          />
+        </span>
         <p className="text-heading-4 text-fg min-w-0 flex-1">{name}</p>
       </div>
-      <div className="flex items-start gap-5 pl-11">
+      <div className="flex items-start gap-5 pl-10">
         {imageSrc ? (
           <div className="relative h-23.75 w-17.75 shrink-0 overflow-hidden rounded-sm">
             <Image src={imageSrc} alt="" fill className="object-cover" />

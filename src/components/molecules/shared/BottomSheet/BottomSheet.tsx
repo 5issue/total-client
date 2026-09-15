@@ -153,7 +153,7 @@ export function BottomSheet({
           transform: open && dragging ? `translateY(${dragY}px)` : undefined,
         }}
         className={[
-          'bg-surface rounded-tl-l rounded-tr-l flex w-full max-w-screen-sm flex-col ease-out focus:outline-none',
+          'bg-surface flex w-full max-w-screen-sm flex-col rounded-tl-lg rounded-tr-lg ease-out focus:outline-none',
           open ? 'translate-y-0' : 'translate-y-full',
           dragging
             ? 'transition-none'
