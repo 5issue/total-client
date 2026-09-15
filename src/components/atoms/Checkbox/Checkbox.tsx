@@ -14,48 +14,77 @@ import type { InputHTMLAttributes } from 'react';
  * "Outline/Selected"(2332:76)는 테두리+체크가 한 path로 합쳐져 있어 분리 재사용이
  * 불가능해 박스는 CSS(border/bg 토큰)로 별도로 그린다.
  *
- * - outline 테두리는 Default/Selected/Disabled 모두 2px, 기본 색은 `neutral-400`
- *   (Radio Default 와 동일)이고 배경은 기본적으로 투명이다.
- * - outline Selected 테두리색(`#5F0080`)은 Figma에 토큰 바인딩이 없는 raw 값이라
- *   가장 가까운 프로젝트 토큰 `primary`(`#690085`)를 쓴다(디자인 확인 필요).
+ * - outline 테두리는 Default/Selected/Disabled 모두 2px, 배경은 기본적으로 투명이다.
+ *   기본 색은 `tone` 이 정한다 — purple 은 `fg-disabled`(#b5c4cf, Text/Disabled),
+ *   black 은 `neutral-400`(#c9d5df, Figma "Icon/Disabled").
+ * - outline Selected 는 `tone` 별로 다르다: purple 은 테두리만 브랜드색으로 바뀌고
+ *   (Figma raw `#5F0080` → 가장 가까운 토큰 `primary` #690085, 디자인 확인 필요),
+ *   black 은 Radio Black 과 같은 검정 채움 + 흰 체크가 된다.
  * - filled Selected 배경은 `fg`(검정, Radio Black Selected 와 동일), Disabled 배경은
  *   `neutral-400`이고 테두리는 없다.
  * - disabled+checked 조합은 Figma "Disabled" 행에 정의가 없다(unselected만 정의) —
  *   Radio와 동일한 기준으로 합리적으로 확장했다(디자인 확인 필요).
  * - 시각적 라벨 텍스트는 그리지 않는다 — 접근성 이름은 `label`(sr-only)이 담당.
+ * - `size` 는 **프레임 크기**다(박스 자체가 아니다). Figma 컴포넌트는 박스 둘레에 3px
+ *   여백을 두른 프레임이라 18 → 박스 18/프레임 24, 28("checkbox 28") → 박스 22/프레임 28
+ *   이다(node 968-111162 실측 22×22). 44px 터치 타깃은 두 사이즈 모두 동일.
  */
 export type CheckboxVariant = 'outline' | 'filled';
+export type CheckboxSize = 18 | 28;
+/** outline Selected 색 계열. Radio 의 `tone` 과 같은 개념(purple = 브랜드, black = 검정 채움). */
+export type CheckboxTone = 'purple' | 'black';
 
-export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
-  variant?: CheckboxVariant;
+interface CheckboxBaseProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
+  size?: CheckboxSize;
   /** `<label htmlFor>` 로 연결되는 접근성 라벨(sr-only). */
   label: string;
 }
 
-// 18px 는 Figma 실측 고정값 — 박스(fill/border) 자체 크기이고, 그 위에 여백 3px 를 더한
-// 24px 프레임이 감싼다(2426:1195 / node 188-8927 Group 26: radius 3.727 ≈ radius/s).
-// 이전엔 24px 프레임을 박스로 그려 실제보다 컸다. 44px 터치 타깃은 감싸는 label(size-11)이 확보한다(code-style §5).
+/** `tone` 은 outline 전용 — filled 는 Selected 색이 검정 하나뿐이라 타입에서 막는다. */
+export type CheckboxProps = CheckboxBaseProps &
+  ({ variant?: 'outline'; tone?: CheckboxTone } | { variant: 'filled'; tone?: never });
+
+// 44px 터치 타깃은 감싸는 label(`size-11`)이 확보한다(code-style §5).
 const BASE_CLASSNAME =
-  'peer size-4.5 shrink-0 appearance-none rounded-sm transition-colors ' +
+  'peer shrink-0 appearance-none rounded-sm transition-colors ' +
   'disabled:pointer-events-none ' +
   'focus-visible:outline-border-active outline-offset-2 focus-visible:outline-2 ' +
   'motion-reduce:transition-none';
 
+// 박스 자체 크기 — `size`(프레임)보다 3px씩 작다. 위 주석 참고.
+const SIZE_CLASSNAME: Record<CheckboxSize, string> = {
+  18: 'size-4.5',
+  28: 'size-5.5',
+};
+
 const VARIANT_CLASSNAME: Record<CheckboxVariant, string> = {
   outline:
-    'border-2 border-neutral-400 bg-transparent checked:border-primary ' +
-    'disabled:border-neutral-400 disabled:checked:border-neutral-400 disabled:bg-surface-secondary',
+    'border-2 bg-transparent ' +
+    'disabled:border-fg-disabled disabled:checked:border-fg-disabled disabled:bg-surface-secondary',
   filled:
     'bg-surface-secondary checked:bg-fg ' +
     'disabled:bg-neutral-400 disabled:checked:bg-neutral-400',
 };
 
-const VARIANT_TICK_CLASSNAME: Record<CheckboxVariant, string> = {
-  outline: 'text-primary',
-  filled: 'text-fg-inverse',
+const OUTLINE_TONE_CLASSNAME: Record<CheckboxTone, string> = {
+  purple: 'border-fg-disabled checked:border-primary',
+  black: 'border-neutral-400 checked:border-fg checked:bg-fg disabled:checked:bg-fg-disabled',
 };
 
-export function Checkbox({ variant = 'outline', label, id, className, ...props }: CheckboxProps) {
+const OUTLINE_TICK_CLASSNAME: Record<CheckboxTone, string> = {
+  purple: 'text-primary',
+  black: 'text-fg-inverse',
+};
+
+export function Checkbox({
+  variant = 'outline',
+  tone = 'purple',
+  size = 18,
+  label,
+  id,
+  className,
+  ...props
+}: CheckboxProps) {
   const autoId = useId();
   const inputId = id ?? autoId;
 
@@ -70,7 +99,14 @@ export function Checkbox({ variant = 'outline', label, id, className, ...props }
         <input
           type="checkbox"
           id={inputId}
-          className={[BASE_CLASSNAME, VARIANT_CLASSNAME[variant]].join(' ')}
+          className={[
+            BASE_CLASSNAME,
+            SIZE_CLASSNAME[size],
+            VARIANT_CLASSNAME[variant],
+            variant === 'outline' ? OUTLINE_TONE_CLASSNAME[tone] : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
           {...props}
         />
         <svg
@@ -78,9 +114,10 @@ export function Checkbox({ variant = 'outline', label, id, className, ...props }
           fill="none"
           aria-hidden
           className={[
-            'pointer-events-none absolute inset-0 m-auto size-4.5 opacity-0 peer-checked:opacity-100',
+            'pointer-events-none absolute inset-0 m-auto opacity-0 peer-checked:opacity-100',
+            SIZE_CLASSNAME[size],
             'peer-disabled:text-fg-disabled',
-            VARIANT_TICK_CLASSNAME[variant],
+            variant === 'filled' ? 'text-fg-inverse' : OUTLINE_TICK_CLASSNAME[tone],
           ].join(' ')}
         >
           <path
