@@ -14,11 +14,16 @@ import { Icon } from '@/components/atoms/Icon';
  * `href` 가 있을 때만 우측 링크를, `ad` 가 true 일 때만 제목 옆 "광고" 라벨을 렌더한다.
  *
  * 토큰(`get_variable_defs`):
- * - 제목: 부제가 있으면 `Heading/H2_Medium`(node 2429-2288) → `text-heading-2`,
- *   없으면 `Heading/H4_SemiBold`(node 2757-2678) → `text-heading-4`. 색 `Text/Primary` → `text-fg`.
- *   홈 진열 섹션(node 577:13064 등)은 바인딩된 스타일명(H2_Medium=500)과 달리 레이어에서
- *   Bold(700)로 수동 오버라이드돼 있다 — `titleWeight="bold"` 로 그 인스턴스만 켠다
- *   (기본은 기존 소비자와 동일하게 medium 유지, 하위 호환).
+ * - 제목: 기본은 부제 유무로 자동 결정 — 있으면 `Heading/H2_Medium`(node 2429-2288)
+ *   → `text-heading-2`, 없으면 `Heading/H4_SemiBold`(node 2757-2678) → `text-heading-4`.
+ *   ⚠️ 화면마다 항상 맞는 규칙은 아니다 — 검색 화면(577-13977/14028)은 부제가 없어도
+ *   18px/weight 700 을 쓴다(Figma CSS 실측). `text-heading-2` 토큰은 이름이 "Medium"
+ *   이지만 실제 weight 는 500 이라 그대로 쓰면 더 얇게 나온다. 토큰 자체를 바꾸면
+ *   이 컴포넌트를 쓰는 다른 곳(Calendar/Modal/CloseButton/TabItem)에 영향이 가므로,
+ *   그런 화면은 `titleSize="h2"` + `titleClassName="font-bold!"` 로 override 한다 — 홈
+ *   진열 섹션(node 577:13064 등, 바인딩된 스타일명 H2_Medium=500과 달리 레이어에서
+ *   Bold(700)로 수동 오버라이드된 인스턴스)도 같은 방식으로 켠다.
+ *   색 `Text/Primary` → `text-fg`.
  * - 부제: `Label/XL_Bold` + `Text/Tertiary` → `text-label-xl text-fg-tertiary`.
  * - 링크: `Label/L_SemiBold` + `Brand/Primary` + arrow 20 → `text-label-l text-primary`.
  *   hover/active/focus 는 `Button` atom 의 `variant="text" size="s"` 클래스와 동일하게 맞춘다
@@ -36,6 +41,12 @@ import { Icon } from '@/components/atoms/Icon';
 export interface HomeSectionHeaderProps {
   title: string;
   subtitle?: string;
+  /** 제목 시각 크기 override. 생략하면 subtitle 유무로 자동 결정(있으면 h2, 없으면
+   *  h4) — 디자인 시스템 일반 규칙. 검색 화면처럼 subtitle 없이도 h2 크기가 필요하면
+   *  명시로 지정한다. */
+  titleSize?: 'h2' | 'h4';
+  /** 제목 요소에 추가할 클래스 — font-weight 등 개별 화면 override 용. */
+  titleClassName?: string;
   /** true 면 제목 옆에 "광고" 라벨을 렌더한다 (node 2757-2678). */
   ad?: boolean;
   /** 있으면 우측에 "전체보기" 링크를 렌더한다. Next 경로. */
@@ -44,22 +55,22 @@ export interface HomeSectionHeaderProps {
   linkLabel?: string;
   /** 제목 heading 레벨. 페이지 문맥에 맞춘다. 기본 2. */
   headingLevel?: 2 | 3 | 4;
-  /** 제목 폰트 굵기. 기본 medium(바인딩된 스타일 그대로). bold 는 수동 오버라이드된 인스턴스용. */
-  titleWeight?: 'medium' | 'bold';
   className?: string;
 }
 
 export function HomeSectionHeader({
   title,
   subtitle,
+  titleSize,
+  titleClassName,
   ad = false,
   href,
   linkLabel = '전체보기',
   headingLevel = 2,
-  titleWeight = 'medium',
   className,
 }: HomeSectionHeaderProps) {
   const Heading = `h${headingLevel}` as 'h2' | 'h3' | 'h4';
+  const resolvedTitleSize = titleSize ?? (subtitle ? 'h2' : 'h4');
 
   return (
     <div
@@ -70,7 +81,13 @@ export function HomeSectionHeader({
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex items-center gap-2">
           <Heading
-            className={`${subtitle ? 'text-heading-2' : 'text-heading-4'} text-fg ${titleWeight === 'bold' ? 'font-bold' : ''}`}
+            className={[
+              resolvedTitleSize === 'h2' ? 'text-heading-2' : 'text-heading-4',
+              'text-fg',
+              titleClassName,
+            ]
+              .filter(Boolean)
+              .join(' ')}
           >
             {title}
           </Heading>

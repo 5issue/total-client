@@ -42,6 +42,7 @@ const meta = {
   },
   argTypes: {
     variant: { control: 'inline-radio', options: ['box', 'text'] },
+    radius: { control: 'inline-radio', options: [4, 12] },
     block: { control: 'boolean' },
     disabled: { control: 'boolean' },
     options: { control: false },
@@ -85,6 +86,15 @@ export const Block: Story = {
 /** Figma "Dropdown_Text" — 테두리 없는 인라인 트리거. */
 export const Text: Story = {
   args: { variant: 'text', value: 'recommend' },
+};
+
+/** Figma Dropdown_Box `Round=12` — 주변 버튼과 어우러지는 큰 반경(`rounded-lg`). */
+export const Round12: Story = {
+  args: { radius: 12, value: 'benefit' },
+  play: async ({ canvasElement }) => {
+    const trigger = within(canvasElement).getByRole('combobox');
+    await expect(trigger).toHaveClass('rounded-lg');
+  },
 };
 
 export const Disabled: Story = {

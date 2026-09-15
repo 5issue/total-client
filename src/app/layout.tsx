@@ -34,14 +34,23 @@ export const viewport: Viewport = {
   // black-translucent 상태바가 콘텐츠 위에 겹쳐지려면 뷰포트가 노치/상태바 영역까지
   // 덮어야 한다 — 실제 콘텐츠는 안전영역(safe-area-inset-*)만큼 패딩으로 밀어낸다.
   viewportFit: 'cover',
+  // 기본값(resizes-visual)은 키보드가 떠도 레이아웃 뷰포트(dvh, window.innerHeight)가
+  // 줄어들지 않고 시각 뷰포트만 줄어든다 — 그러면 "스크롤을 끝까지 올리면 키보드와
+  // 40px 간격" 같은 레이아웃 기반 계산이 실제 화면과 안 맞는다(#69 검색 화면 하단
+  // 여백). resizes-content 로 레이아웃 뷰포트 자체를 키보드만큼 줄여 dvh/스크롤
+  // 계산이 실제 보이는 영역과 일치하게 만든다.
+  interactiveWidget: 'resizes-content',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ko" dir="ltr">
       <body>
-        {/* swUrl 은 반드시 src/app/serwist/[path]/route.ts 의 경로와 일치해야 한다. */}
-        <SerwistProvider swUrl="/serwist/sw.js">
+        {/* swUrl 은 반드시 src/app/serwist/[path]/route.ts 의 경로와 일치해야 한다.
+            개발 모드에선 disable — 서비스워커가 실기기(특히 iOS Safari)에 설치되면
+            이후 dev 서버 변경사항이 코드로는 반영돼도 캐시된 옛 페이지/JS 가 계속
+            서빙돼 새로고침해도 안 바뀌는 것처럼 보인다(#69 실기기 디버깅 중 발견). */}
+        <SerwistProvider swUrl="/serwist/sw.js" disable={process.env.NODE_ENV !== 'production'}>
           <Providers>{children}</Providers>
         </SerwistProvider>
       </body>

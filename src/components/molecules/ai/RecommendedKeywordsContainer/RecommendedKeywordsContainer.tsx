@@ -52,7 +52,14 @@ export function RecommendedKeywordsContainer({
       </div>
       <div className="flex flex-col gap-3">
         <p className="text-label-xl text-fg">{promptLabel}</p>
-        <div className="flex items-center gap-1 overflow-x-auto">
+        {/* stopPropagation: (shop) 화면 전체를 감싸는 SwipeTabShell 의 좌우 스와이프
+            탭 전환 핸들러가 이 가로 스크롤과 충돌해 스크롤하다 탭이 넘어간다. */}
+        <div
+          className="scrollbar-hide flex items-center gap-1 overflow-x-auto"
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
+          onTouchCancel={(e) => e.stopPropagation()}
+        >
           {keywords.map((keyword) => (
             <button
               key={keyword}

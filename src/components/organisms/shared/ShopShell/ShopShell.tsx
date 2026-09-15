@@ -10,8 +10,10 @@ import { SwipeTabShell } from '@/components/organisms/shared/SwipeTabShell';
 /**
  * (shop) 셸 크롬(BottomNav + 전역 스와이프 탭 + BottomNav 높이만큼의 하단 여백)을 두르지 않는
  * 경로. 자체 하단 CTA 를 가진 "밀어서 띄운" 전체화면 뷰 — 크롬을 켜면 CTA 와 겹친다.
+ * `/checkout`(주문서, 결제하기 CTA)도 같은 이유로 크롬리스(이슈 #82). `/mypage/addresses`
+ * (배송지 관리, 이슈 #72)도 동일.
  */
-const CHROMELESS_PREFIXES = ['/cart', '/mypage/addresses'];
+const CHROMELESS_PREFIXES = ['/cart', '/checkout', '/mypage/addresses'];
 
 function isChromeless(pathname: string): boolean {
   return CHROMELESS_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
@@ -34,8 +36,10 @@ export function ShopShell({ children }: { children: ReactNode }) {
 
   return (
     <>
-      {/* pb-24: BottomNav 가 fixed 라 문서 흐름을 안 차지하는 만큼(실측 ~98px) 콘텐츠 하단 예약. */}
-      <main className="flex flex-1 flex-col pb-24">
+      {/* pb-bottom-nav-safe: BottomNav 가 fixed 라 문서 흐름을 안 차지하는 만큼 콘텐츠 하단
+          예약 — 디자인팀 핸드오프 기준값(BottomNav만 있는 화면 112px, globals.css
+          `--spacing-bottom-nav-safe` 참고)과 정확히 일치시킨 값이라 근사치가 아니다. */}
+      <main className="pb-bottom-nav-safe flex flex-1 flex-col">
         <SwipeTabShell className="flex-1">{children}</SwipeTabShell>
       </main>
       <BottomNav />

@@ -8,10 +8,12 @@ import { HomeSectionHeader } from '@/components/molecules/shared/HomeSectionHead
  * Figma "HomeScreen" > "Product Section" (node 577:20681 / 577:20688 / 577:20695),
  * 홈에 3세트 반복.
  *
- * `molecules/shared/HomeSectionHeader`(`titleWeight="bold"` — 이 화면은 바인딩된
- * Medium 대신 수동 Bold 오버라이드)와 `molecules/product/ProductCard`를 그대로
- * 조립한다. 실제 데이터는 `/products/home-recommendations` API 미확정
- * (structure-convention §6-2)이라 `mock.ts` 정적 배열만 쓴다.
+ * `molecules/shared/HomeSectionHeader`(`titleClassName="font-bold!"` — 이 화면은
+ * 바인딩된 Medium 대신 수동 Bold 오버라이드, 최우선 순위가 필요해 `!` 필수 — 그냥
+ * `font-bold` 는 `text-heading-2` 자체 font-weight 유틸리티에 밀려 적용되지 않는다)와
+ * `molecules/product/ProductCard`를 그대로 조립한다. 실제 데이터는
+ * `/products/home-recommendations` API 미확정(structure-convention §6-2)이라
+ * `mock.ts` 정적 배열만 쓴다.
  */
 export type DisplaySectionProduct = Omit<ProductCardProps, 'onAddToCart' | 'className'> & {
   id: string;
@@ -36,7 +38,12 @@ export function DisplaySectionList({
 }: DisplaySectionListProps) {
   return (
     <section className={['flex flex-col gap-4 py-4', className].filter(Boolean).join(' ')}>
-      <HomeSectionHeader title={title} subtitle={subtitle} href={href} titleWeight="bold" />
+      <HomeSectionHeader
+        title={title}
+        subtitle={subtitle}
+        href={href}
+        titleClassName="font-bold!"
+      />
       {/* SwipeTabShell 의 전역 좌우 스와이프(하단 탭 전환)와 충돌하지 않도록 터치 버블링을 끊는다 — TabBar 참고 */}
       <div
         onTouchStart={(event) => event.stopPropagation()}
