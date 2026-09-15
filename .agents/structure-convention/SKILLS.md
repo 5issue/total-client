@@ -18,9 +18,10 @@ App Router 라우트 그룹으로 **레이아웃 경계**를 나눈다. URL 에�
 - 인증 가드는 **`src/middleware.ts`** 가 담당한다. `matcher: ["/checkout/:path*", "/mypage/:path*"]` — 주문 전체 + 마이컬리 전부(랜딩 포함). 미인증 시 `/login?redirect=` 로 이동. 로그인 화면은 `(shop)/login`(마이컬리 탭에서 진입하는 로그아웃 상태 — 헤더·BottomNav 유지, BottomNav 마이컬리 활성).
 - middleware 는 UX 목적이고 **실제 인가는 서버(Route Handler/외부 API)가 매 요청 검증**한다 (security-convention FE-15).
 - 그룹별 `layout.tsx` 는 그 그룹의 공통 셸만 담당한다. 공유 UI 는 `components/` 로 올린다.
-- `(shop)` 크롬(BottomNav + 전역 스와이프 탭 + 하단 여백)은 **경로마다 다르다**. `layout.tsx` 는
-  서버로 두고, `usePathname` 이 필요한 `<ShopShell>`(클라) 이 크롬을 켠다. 자체 하단 CTA 를 가진
-  전체화면 뷰(`/cart`, `/mypage/addresses` 등)는 크롬을 끈다 — `ShopShell.CHROMELESS_PREFIXES` (PR #58 리뷰).
+- `(shop)` 크롬(BottomNav + 전역 스와이프 탭 + 하단 여백)은 **경로마다 다르다**. 부모 `layout.tsx` 는
+  모바일 프레임만 두고, 하위 라우트 그룹이 크롬을 **고정**한다. `(chrome)` 은 `<ShopShell>`,
+  `(chromeless)` 는 `<main>` 만 (`/cart`, `/checkout/**`, `/mypage/addresses`). URL 에는 그룹명이
+  안 나온다. 클라 `usePathname()` 으로 트리를 바꾸면 정적 프리렌더 HTML 과 하이드레이션이 어긋난다.
 
 ---
 
@@ -45,23 +46,28 @@ src/
     │   ├── signup/page.tsx              # 회원가입
     │   └── callback/[provider]/route.ts # OAuth 콜백 (provider: kakao | naver) — GET, code→세션쿠키→리다이렉트
     └── (shop)/
-        ├── layout.tsx                   # 모바일 프레임 + <ShopShell>(경로별 크롬: Header·BottomNav·스와이프 탭)
-        ├── login/page.tsx               # 로그인 (US-AUTH-003: 카카오/네이버) — LoginView(잎), 헤더+BottomNav(마이컬리 활성)
-        ├── page.tsx                     # 홈 (SL-HOME 001~004, 006)
-        ├── search/page.tsx              # 검색
-        ├── lounge/page.tsx              # 라운지 (BottomNav 탭, 이슈 #57) — 뼈대만, 기능 범위 미정
-        ├── category/page.tsx            # 카테고리 (BottomNav 탭, 이슈 #57) — 뼈대만, 기능 범위 미정
-        ├── ai/page.tsx                  # AI — 마이컬리 경유 진입으로 변경 예정(이슈 #57), 라우트 자체는 유지
-        ├── products/page.tsx            # 상품 컬렉션 리스트 (SL-LIST 001~005)
-        ├── products/[productId]/page.tsx# 상품 상세 (SL-COM, SL-PROD, SL-SPEC)
-        ├── cart/page.tsx                # 장바구니 (SL-CART 001~004, 007) — 진입은 헤더 아이콘, 셸 크롬 없음(자체 CTA)
-        ├── checkout/
-        │   ├── page.tsx                 # 주문서 작성 (SL-ORD 001~004, 008)
-        │   └── complete/page.tsx        # 주문 완료 (결제 영수증 조회 API)
-        └── mypage/
-            ├── page.tsx                 # 마이컬리 홈 (US-MY-001) — 로그아웃 시 미들웨어가 /login 으로
-            ├── addresses/page.tsx       # 배송지 관리 (US-ADDR 001~002) — 장바구니 "추가" 진입, 화면 퍼블 완료(로컬 state, API 대기)
-            └── profile/page.tsx         # 회원 프로필 (US-PROF-001, US-AUTH-005)
+        ├── layout.tsx                   # 모바일 프레임만 (크롬은 하위 그룹)
+        ├── (chrome)/                    # BottomNav + SwipeTabShell (`ShopShell`)
+        │   ├── layout.tsx
+        │   ├── login/page.tsx           # 로그인 (US-AUTH-003: 카카오/네이버) — LoginView(잎), 헤더+BottomNav(마이컬리 활성)
+        │   ├── page.tsx                 # 홈 (SL-HOME 001~004, 006)
+        │   ├── search/page.tsx          # 검색
+        │   ├── lounge/page.tsx          # 라운지 (BottomNav 탭, 이슈 #57) — 뼈대만, 기능 범위 미정
+        │   ├── category/page.tsx        # 카테고리 (BottomNav 탭, 이슈 #57) — 뼈대만, 기능 범위 미정
+        │   ├── ai/page.tsx              # AI — 마이컬리 경유 진입으로 변경 예정(이슈 #57), 라우트 자체는 유지
+        │   ├── products/page.tsx        # 상품 컬렉션 리스트 (SL-LIST 001~005)
+        │   ├── products/[productId]/page.tsx# 상품 상세 (SL-COM, SL-PROD, SL-SPEC)
+        │   └── mypage/
+        │       ├── page.tsx             # 마이컬리 홈 (US-MY-001) — 로그아웃 시 미들웨어가 /login 으로
+        │       └── profile/page.tsx     # 회원 프로필 (US-PROF-001, US-AUTH-005)
+        └── (chromeless)/                # `<main>` 만 — 자체 하단 CTA (PR #58)
+            ├── layout.tsx
+            ├── cart/page.tsx            # 장바구니 (SL-CART 001~004, 007)
+            ├── checkout/
+            │   ├── page.tsx             # 주문서 작성 (SL-ORD 001~004, 008)
+            │   ├── delivery-detail/page.tsx # 배송 상세정보 수정 (#92)
+            │   └── complete/page.tsx    # 주문 완료 (결제 영수증 조회 API)
+            └── mypage/addresses/page.tsx# 배송지 관리 (US-ADDR 001~002)
 ```
 
 | 화면               | 실제 URL                | 렌더링 전략                                                                              | 보호                     | 책임 지표                                                            |
@@ -126,7 +132,7 @@ src/components/
 │   ├── cart/                  # CartLineItem, CartTemperatureSectionHeader, CartDeliveryAddress, CartSelectAllBar, CartAmountRow
 │   └── auth/                  # SocialLoginButton, ReauthPasswordField
 └── organisms/
-    ├── shared/                # Header, Footer, BottomNav, ShopShell(셸 크롬 온·오프), FilterSheet, SectionHeader, KurlyHeader(마이컬리+아이콘)
+    ├── shared/                # Header, Footer, BottomNav, ShopShell((chrome) 전용), FilterSheet, SectionHeader, KurlyHeader(마이컬리+아이콘)
     ├── home/                  # CategoryTabs, QuickMenuSection, DisplaySectionList, HeroBanner
     ├── product/               # ProductGrid, ProductDetailPanel, ProductOptionSheet
     ├── cart/                  # CartView(컨테이너), CartList(배송그룹)→CartCard(온도별), CartSummary, CartOrderBar, CartRecommendCarousel/Sheet
