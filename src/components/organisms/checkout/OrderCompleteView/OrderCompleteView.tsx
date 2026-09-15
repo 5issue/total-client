@@ -1,7 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/atoms/Button';
@@ -10,6 +8,7 @@ import { InfoBox } from '@/components/atoms/InfoBox';
 import { Toast } from '@/components/atoms/Toast';
 import { OrderRecommendCarousel } from '@/components/organisms/checkout/OrderRecommendCarousel';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
+import { useCopyToast } from '@/hooks/useCopyToast';
 
 import { MOCK_ORDER_NUMBER, MOCK_ORDER_RECOMMEND, MOCK_ORDER_TOTAL } from './mock';
 
@@ -18,7 +17,8 @@ import { MOCK_ORDER_NUMBER, MOCK_ORDER_RECOMMEND, MOCK_ORDER_TOTAL } from './moc
  * 1315-107613(복사 토스트).
  *
  * 결제 후 도착하는 종착 화면. 주문번호 복사 + 토스트 때문에 상태가 필요해 클라 경계다
- * (`CheckoutView` 와 같은 화면 단위 organism 패턴).
+ * (`CheckoutView` 와 같은 화면 단위 organism 패턴). 복사→토스트 로직은 `useCopyToast` —
+ * 같은 패턴이 필요한 `OrderDetailView` 와 공유한다.
  *
  * 이번 작업 범위는 **퍼블리싱만**이다(사용자 확정, 2026-09-15). 결제 연동(토스페이먼츠)은
  * 별도 진행하고, 지금은 체크아웃의 "결제하기"가 이 경로로 넘어오는 더미 흐름만 있다.
@@ -38,30 +38,9 @@ const NOTICE_ITEMS = [
   '• 주문 / 배송 및 기타 문의가 있을 경우, 1:1 문의에 남겨주시면 신속히 해결해드리겠습니다.',
 ] as const;
 
-/** 토스트 노출 시간. Figma 에 지속시간 정보가 없어 관례값(3초)을 쓴다. */
-const TOAST_DURATION_MS = 3000;
-
 export function OrderCompleteView() {
   const router = useRouter();
-  // 0 이면 숨김. 복사할 때마다 증가시켜, 토스트가 떠 있는 중에 다시 복사해도
-  // 아래 타이머가 새로 걸리도록(= 노출 시간이 리셋되도록) 한다.
-  const [copiedSeq, setCopiedSeq] = useState(0);
-
-  useEffect(() => {
-    if (copiedSeq === 0) return;
-    const timer = setTimeout(() => setCopiedSeq(0), TOAST_DURATION_MS);
-    return () => clearTimeout(timer);
-  }, [copiedSeq]);
-
-  async function handleCopyOrderNumber() {
-    try {
-      await navigator.clipboard.writeText(MOCK_ORDER_NUMBER);
-      setCopiedSeq((seq) => seq + 1);
-    } catch {
-      // 클립보드 권한 거부·비보안 컨텍스트 등. 실패했는데 "복사했어요" 를 띄우면
-      // 거짓말이 되므로 토스트를 띄우지 않는다.
-    }
-  }
+  const { visible: copyToastVisible, copy: copyOrderNumber } = useCopyToast();
 
   return (
     <div className="bg-surface-secondary flex flex-1 flex-col">
@@ -82,7 +61,7 @@ export function OrderCompleteView() {
               size="s"
               variant="outlineBlack"
               className="h-[38px] w-13"
-              onClick={handleCopyOrderNumber}
+              onClick={() => copyOrderNumber(MOCK_ORDER_NUMBER)}
             >
               복사
             </Button>
@@ -114,7 +93,7 @@ export function OrderCompleteView() {
           `min-h-dvh`(확정 높이가 아님)라 안쪽 `overflow-y-auto` 로는 바가 고정되지 않고
           문서 아래로 밀려난다(실측 확인). */}
       <div className="bg-surface sticky bottom-0 px-4 pt-3 pb-11">
-        {copiedSeq > 0 ? (
+        {copyToastVisible ? (
           <div className="absolute inset-x-4 bottom-full mb-3">
             <Toast variant="action">주문 번호를 복사했어요</Toast>
           </div>
