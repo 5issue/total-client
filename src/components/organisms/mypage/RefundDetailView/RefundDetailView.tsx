@@ -15,6 +15,15 @@ import {
 
 import { MOCK_AMOUNTS, MOCK_PICKUP } from './mock';
 
+/** 원 단위 금액 표시. */
+const won = (n: number) => `${n.toLocaleString('ko-KR')}원`;
+/** 할인액은 양수일 때만 마이너스 접두. */
+const discountWon = (n: number) => (n > 0 ? `-${won(n)}` : won(0));
+
+const HEADER_ACTIONS: SectionHeaderAction[] = [{ icon: 'home', label: '홈으로 이동', href: '/' }];
+
+type TermsModal = 'privacy' | 'payment' | null;
+
 /**
  * 반품 내역 상세 (organism). Figma "5팀 UI 공유용" —
  * "반품 사유 다음 화면"(node 795-64058) + 하단 sticky CTA(node 795-64232 `HorizontalCtaBar`).
@@ -34,13 +43,6 @@ import { MOCK_AMOUNTS, MOCK_PICKUP } from './mock';
  * RefundReasonView 의 하단 CTA 바와 동일 패턴(크롬리스 풀스크린 뷰, 문서 자체가 스크롤).
  * [반품 접수] 다음 화면은 미정(완료 화면 백엔드 명세 대기) — 임시로 마이컬리 홈으로 이동.
  */
-const won = (n: number) => `${n.toLocaleString('ko-KR')}원`;
-const discountWon = (n: number) => (n > 0 ? `-${won(n)}` : won(0));
-
-const HEADER_ACTIONS: SectionHeaderAction[] = [{ icon: 'home', label: '홈으로 이동', href: '/' }];
-
-type TermsModal = 'privacy' | 'payment' | null;
-
 export function RefundDetailView() {
   const router = useRouter();
   const [termsModal, setTermsModal] = useState<TermsModal>(null);
