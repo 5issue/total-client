@@ -7,7 +7,7 @@ const meta = {
   title: 'organisms/mypage/RefundDetailView',
   component: RefundDetailView,
   tags: ['autodocs'],
-  parameters: { layout: 'fullscreen' },
+  parameters: { layout: 'fullscreen', nextjs: { appDirectory: true } },
   decorators: [
     (Story) => (
       <div className="mx-auto flex min-h-dvh max-w-screen-sm flex-col">

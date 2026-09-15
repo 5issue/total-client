@@ -7,7 +7,7 @@ const meta = {
   title: 'organisms/mypage/RefundReasonView',
   component: RefundReasonView,
   tags: ['autodocs'],
-  parameters: { layout: 'fullscreen' },
+  parameters: { layout: 'fullscreen', nextjs: { appDirectory: true } },
   args: {
     defaultReasonId: null,
     defaultSheetOpen: false,

@@ -7,7 +7,7 @@ const meta = {
   title: 'organisms/mypage/RefundReturnView',
   component: RefundReturnView,
   tags: ['autodocs'],
-  parameters: { layout: 'fullscreen' },
+  parameters: { layout: 'fullscreen', nextjs: { appDirectory: true } },
   args: {
     defaultSelectedIds: [],
   },
