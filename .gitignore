@@ -151,6 +151,10 @@ vite.config.ts.timestamp-*
 # oh-my-claudecode local state
 .omc/
 
+# local editor / agent
+.cursor/
+.claude/
+
 # local Figma icon import staging (not part of the build)
 .icon-import/
 
