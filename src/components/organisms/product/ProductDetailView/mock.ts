@@ -6,6 +6,10 @@ import type { ProductDetailOverview } from '@/components/organisms/product/model
 export const MOCK_PRODUCT_OVERVIEW: ProductDetailOverview = {
   memberDeal: true,
   recentRepurchaseCount: 6138,
+  missionReward: {
+    pointsLabel: '100P',
+    description: '장바구니에 상품 담기 미션을 완료 했어요.',
+  },
   brandLabel: 'KurlyOnly',
   shippingInfo: ' · 샛별배송  · 풀무원',
   name: '[연세우유 x 마켓컬리] 전용목장우유 900mL',

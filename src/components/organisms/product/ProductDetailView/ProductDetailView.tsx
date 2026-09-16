@@ -9,7 +9,9 @@ import { Badge } from '@/components/atoms/Badge';
 import { FloatingButton } from '@/components/atoms/FloatingButton';
 import { Toast } from '@/components/atoms/Toast';
 import { AddToCartActions } from '@/components/molecules/product/AddToCartActions';
+import { MissionCompleteCard } from '@/components/molecules/shared/MissionCompleteCard';
 import { TabBar, type TabBarItem } from '@/components/molecules/shared/TabBar';
+import { CartAddedProductsBottomSheet } from '@/components/organisms/product/CartAddedProductsBottomSheet';
 import { MultiOptionSelectBottomSheet } from '@/components/organisms/product/MultiOptionSelectBottomSheet';
 import { ProductOptionSheet } from '@/components/organisms/product/ProductOptionSheet';
 import { ProductOverviewCard } from '@/components/organisms/product/ProductOverviewCard';
@@ -29,6 +31,10 @@ const TABS: TabBarItem[] = [
  * 미지정. CheckoutView 의 검증 토스트(5초, VALIDATION_TOAST_DURATION_MS)와 같은 이유로
  * 임시값 — 디자인 확인 필요. 실기기 확인 피드백으로 4초 → 3초 조정. */
 const PURCHASE_INFO_TOAST_DURATION_MS = 3000;
+
+/** 미션 완료 토스트 노출 시간 — 마찬가지로 Figma 미지정, CheckoutView 검증 토스트(5초)
+ * 선례를 따른 임시값. */
+const MISSION_TOAST_DURATION_MS = 5000;
 
 /**
  * 상품 상세 화면 컨테이너 (organism). Figma "5팀 UI 공유용" node 665-43030.
@@ -50,6 +56,8 @@ export function ProductDetailView() {
   const [liked, setLiked] = useState(false);
   const [optionSheetOpen, setOptionSheetOpen] = useState(false);
   const [multiOptionSheetOpen, setMultiOptionSheetOpen] = useState(false);
+  const [cartAddedSheetOpen, setCartAddedSheetOpen] = useState(false);
+  const [showMissionToast, setShowMissionToast] = useState(false);
   const scrollTopVisible = useScrollToTopVisibility();
   const [showPurchaseInfoToast, setShowPurchaseInfoToast] = useState(true);
 
@@ -64,6 +72,15 @@ export function ProductDetailView() {
     );
     return () => clearTimeout(timer);
   }, [hasPurchaseInfo]);
+
+  // 장바구니 담기 완료 시트(node 665:43409) — 단일/다중 옵션 시트 둘 다 성공 시 여기로
+  // 모인다. 미션 리워드(node 665:43410)가 있으면 상단 토스트도 함께 띄운다.
+  function handleAddedToCart() {
+    setCartAddedSheetOpen(true);
+    if (!overview.missionReward) return;
+    setShowMissionToast(true);
+    setTimeout(() => setShowMissionToast(false), MISSION_TOAST_DURATION_MS);
+  }
 
   return (
     <>
@@ -181,11 +198,42 @@ export function ProductDetailView() {
         className="bg-surface sticky bottom-0"
       />
 
-      <ProductOptionSheet open={optionSheetOpen} onClose={() => setOptionSheetOpen(false)} />
+      <ProductOptionSheet
+        open={optionSheetOpen}
+        onClose={() => setOptionSheetOpen(false)}
+        onAddToCart={handleAddedToCart}
+      />
       <MultiOptionSelectBottomSheet
         open={multiOptionSheetOpen}
         onClose={() => setMultiOptionSheetOpen(false)}
+        onAddToCart={handleAddedToCart}
       />
+      <CartAddedProductsBottomSheet
+        open={cartAddedSheetOpen}
+        onClose={() => setCartAddedSheetOpen(false)}
+      />
+
+      {/* 미션 완료 토스트(node 665:43410) — 화면 최상단, CheckoutView 의 검증 에러
+          토스트와 같은 원칙(상시 마운트 + translate-y 토글, top-16.5=66px 는 Figma
+          실측 그대로). z-50(백드롭과 동일 레벨)이면 BottomSheet 백드롭이 mount 순서에
+          따라 위로 덮여 토스트가 탁하게 보였다(실기기 QA 발견) — z-toast(60, globals.css)
+          로 항상 위에 오도록 고정. */}
+      {overview.missionReward ? (
+        <div
+          aria-hidden={!showMissionToast}
+          className={[
+            'z-toast pointer-events-none fixed inset-x-0 top-16.5 flex justify-center px-4',
+            'transition-transform duration-300 ease-out motion-reduce:transition-none',
+            showMissionToast ? 'translate-y-0' : '-translate-y-50',
+          ].join(' ')}
+        >
+          <MissionCompleteCard
+            pointsLabel={overview.missionReward.pointsLabel}
+            description={overview.missionReward.description}
+            className="pointer-events-auto"
+          />
+        </div>
+      ) : null}
     </>
   );
 }

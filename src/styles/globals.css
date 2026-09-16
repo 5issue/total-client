@@ -67,6 +67,14 @@
   /* 히어로 배너 종횡비 — Figma 고정 402×298 (node 577:20652) → aspect-hero-banner */
   --aspect-hero-banner: 402 / 298;
 
+  /* Tailwind 코어 z-index 스케일은 50 이 최댓값이라(z-60 같은 임의 숫자는 spacing 과
+   * 달리 생성되지 않음), BottomSheet/Modal 백드롭(둘 다 z-50, portal 로 document.body
+   * 에 붙음)보다 항상 위여야 하는 알림(미션 완료 토스트 등)을 위해 별도 계층을 둔다.
+   * 백드롭과 같은 z-50 을 쓰면 어느 쪽이 나중에 DOM 에 붙느냐(mount 순서)에 따라
+   * 반투명 검은 백드롭이 흰 토스트 위로 덮여 탁해 보이는 문제가 있었다(실기기 QA 발견,
+   * node 665-61882 미션 토스트가 CartAddedProductsBottomSheet 백드롭에 덮임). */
+  --z-index-toast: 60; /* → z-toast */
+
   /* 전체화면 패널이 아래에서 올라오는 진입 애니메이션 (배송지 주소검색 등, 컬리 앱 패턴).
    * 트랜지션 대신 마운트 애니메이션 — 요소는 항상 제자리(translate 0)에 렌더되고 애니메이션만
    * 화면 밖에서 올라온다. 트랜지션이 안 터져 요소가 화면 밖에 멈추는 경우가 없다. */

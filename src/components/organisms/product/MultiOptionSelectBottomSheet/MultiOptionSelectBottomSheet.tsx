@@ -31,14 +31,25 @@ import { MOCK_MULTI_OPTION_PRODUCT, MOCK_MULTI_OPTION_PROMOTION, MOCK_MULTI_OPTI
 export type MultiOptionSelectBottomSheetProps = {
   open: boolean;
   onClose: () => void;
+  /** 담기 성공 직후(시트가 닫히는 시점) 호출 — 완료 시트 등 다음 단계 트리거용. */
+  onAddToCart?: () => void;
 };
 
-export function MultiOptionSelectBottomSheet({ open, onClose }: MultiOptionSelectBottomSheetProps) {
+export function MultiOptionSelectBottomSheet({
+  open,
+  onClose,
+  onAddToCart,
+}: MultiOptionSelectBottomSheetProps) {
   const [quantities, setQuantities] = useState<Record<string, number>>(() =>
     Object.fromEntries(MOCK_MULTI_OPTIONS.map((option) => [option.id, 0])),
   );
   const [liked, setLiked] = useState(false);
   const [membershipModalOpen, setMembershipModalOpen] = useState(false);
+
+  function handleAddToCart() {
+    onClose();
+    onAddToCart?.();
+  }
 
   function changeQuantity(option: (typeof MOCK_MULTI_OPTIONS)[number], value: number) {
     const current = quantities[option.id] ?? 0;
@@ -62,7 +73,7 @@ export function MultiOptionSelectBottomSheet({ open, onClose }: MultiOptionSelec
               promotion={MOCK_MULTI_OPTION_PROMOTION}
               liked={liked}
               onToggleLike={() => setLiked((prev) => !prev)}
-              onAddToCart={onClose}
+              onAddToCart={handleAddToCart}
             />
           </>
         }
