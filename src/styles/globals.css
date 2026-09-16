@@ -86,14 +86,13 @@
    * pb 만 34px 로 늘려 합이 정확히 112px 가 되게 맞춘다. */
   --spacing-bottom-nav-safe: 112px; /* → pb-bottom-nav-safe (main 콘텐츠 하단 예약 여백) */
   --spacing-nav-pb-safe: 34px; /* → pb-nav-pb-safe (BottomNav 자체 하단 패딩) */
-}
 
-/* 화면 상단 안전영역(노치/상태바) — `layout.tsx` 의 `viewportFit:'cover'` 때문에 콘텐츠가
- * 상태바 아래까지 깔린다. 기기마다 다른 동적 값이라 `env()` 를 직접 쓰는 커스텀
- * 유틸리티로 둔다(`scrollbar-hide` 와 같은 패턴). `+ var(--spacing) * 1` 은 헤더의
- * 기존 상단 4px(`py-1`)를 유지한 채 안전영역만 더하는 값. */
-@utility pt-header-safe {
-  padding-top: calc(env(safe-area-inset-top) + var(--spacing) * 1);
+  /* 화면 상단 안전영역(노치/상태바) — `layout.tsx` 의 `viewportFit:'cover'` 때문에
+   * 콘텐츠가 상태바 아래까지 깔린다. 기기마다 다른 동적 값이라 고정 px 는 아니지만,
+   * `--spacing-*` 네임스페이스에 두면 `@theme` 생성 유틸리티(`pt-header-safe` 등)로
+   * 그대로 나온다(코드래빗 리뷰 — 수동 `@utility` 대신 이 패턴으로 통일).
+   * `+ var(--spacing) * 1` 은 헤더의 기존 상단 4px(`py-1`)를 유지한 채 안전영역만 더한 값. */
+  --spacing-header-safe: calc(env(safe-area-inset-top) + var(--spacing) * 1); /* → pt-header-safe */
 }
 
 /* 가로 스크롤 캐러셀(추천 검색어 등)용 — 스크롤 자체는 유지하고 스크롤바만 숨긴다.

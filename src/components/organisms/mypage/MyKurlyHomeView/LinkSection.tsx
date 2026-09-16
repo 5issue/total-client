@@ -17,7 +17,9 @@ import type { LinkItem, LinkSectionData } from './model';
  * `href` 없는 링크는 목적지 화면이 아직 없다는 뜻이라 `Link`로 감싸지 않는다(가짜 링크 방지).
  *
  * `GRID_ITEM`: Figma 실측 행 높이는 32px지만 최소 터치 타깃 44px(code-style §5)에
- * 못 미쳐 `min-h-11`로 히트 영역만 넓힌다.
+ * 못 미쳐 `min-h-11`로 히트 영역을 넓힌다 — `li`뿐 아니라 실제 클릭 요소인 `Link`
+ * 자체에도 같은 높이를 줘야 한다(코드래빗 리뷰: `li`만 늘리면 `Card`가 콘텐츠 높이만
+ * 차지해 남는 세로 영역이 클릭 불가 상태로 남는다).
  */
 const GRID_ITEM = 'flex min-h-11 w-37.5 items-center';
 
@@ -43,7 +45,7 @@ function LinkCard({ link }: { link: LinkItem }) {
   return (
     <li className={GRID_ITEM}>
       {link.href ? (
-        <Link href={link.href} className="w-full">
+        <Link href={link.href} className="flex min-h-11 w-full items-center">
           {card}
         </Link>
       ) : (
