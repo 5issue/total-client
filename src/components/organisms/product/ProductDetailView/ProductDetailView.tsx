@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -14,6 +14,7 @@ import { TabBar, type TabBarItem } from '@/components/molecules/shared/TabBar';
 import { CartAddedProductsBottomSheet } from '@/components/organisms/product/CartAddedProductsBottomSheet';
 import { InquiryTab } from '@/components/organisms/product/InquiryTab';
 import { MultiOptionSelectBottomSheet } from '@/components/organisms/product/MultiOptionSelectBottomSheet';
+import { ProductDescriptionContent } from '@/components/organisms/product/ProductDescriptionContent';
 import { ProductOptionSheet } from '@/components/organisms/product/ProductOptionSheet';
 import { ProductOverviewCard } from '@/components/organisms/product/ProductOverviewCard';
 import { ProductReviewTab } from '@/components/organisms/product/ProductReviewTab';
@@ -65,6 +66,11 @@ export function ProductDetailView() {
   const [showMissionToast, setShowMissionToast] = useState(false);
   const scrollTopVisible = useScrollToTopVisibility();
   const [showPurchaseInfoToast, setShowPurchaseInfoToast] = useState(true);
+  const missionToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // "문의" 탭 비밀글 알림이 열려 있는 동안 헤더/CTA 바의 포인터 이벤트를 막는다 —
+  // 그 두 요소는 딤 오버레이보다 위(z-30)라 시각적으로는 밝지만, 막지 않으면 모달이
+  // 열린 채로도 뒤로가기/장바구니/CTA 를 누를 수 있다(코드래빗 리뷰 반영).
+  const [inquiryModalOpen, setInquiryModalOpen] = useState(false);
 
   const overview = MOCK_PRODUCT_OVERVIEW;
   const hasPurchaseInfo = overview.recentRepurchaseCount !== undefined;
@@ -78,18 +84,32 @@ export function ProductDetailView() {
     return () => clearTimeout(timer);
   }, [hasPurchaseInfo]);
 
+  // 다시 담기로 첫 timer 만료 전에 재호출되면 이전 timer 가 새 토스트를 먼저 숨겨버려서
+  // ref 로 들고 있다가 매번 clearTimeout 부터 한다. 언마운트 시에도 정리.
+  useEffect(() => {
+    return () => {
+      if (missionToastTimerRef.current) clearTimeout(missionToastTimerRef.current);
+    };
+  }, []);
+
   // 장바구니 담기 완료 시트(node 665:43409) — 단일/다중 옵션 시트 둘 다 성공 시 여기로
   // 모인다. 미션 리워드(node 665:43410)가 있으면 상단 토스트도 함께 띄운다.
   function handleAddedToCart() {
     setCartAddedSheetOpen(true);
     if (!overview.missionReward) return;
+    if (missionToastTimerRef.current) clearTimeout(missionToastTimerRef.current);
     setShowMissionToast(true);
-    setTimeout(() => setShowMissionToast(false), MISSION_TOAST_DURATION_MS);
+    missionToastTimerRef.current = setTimeout(
+      () => setShowMissionToast(false),
+      MISSION_TOAST_DURATION_MS,
+    );
   }
 
   return (
     <>
-      <div className="bg-surface sticky top-0 z-30">
+      <div
+        className={`bg-surface sticky top-0 z-30 ${inquiryModalOpen ? 'pointer-events-none' : ''}`}
+      >
         <SectionHeader
           leading="back"
           onLeadingClick={() => router.back()}
@@ -116,7 +136,7 @@ export function ProductDetailView() {
         ) : activeTab === 'review' ? (
           <ProductReviewTab />
         ) : activeTab === 'qna' ? (
-          <InquiryTab />
+          <InquiryTab onLockedAlertOpenChange={setInquiryModalOpen} />
         ) : (
           <>
             <div className="relative aspect-square w-full overflow-hidden">
@@ -155,6 +175,7 @@ export function ProductDetailView() {
               specialPriceNote={overview.specialPriceNote}
               deliveryRows={overview.deliveryRows}
             />
+            <ProductDescriptionContent />
           </>
         )}
       </div>
@@ -199,7 +220,8 @@ export function ProductDetailView() {
 
       {/* z-30 은 헤더(위 SectionHeader+TabBar 래퍼)와 맞춘 값 — "문의" 탭의 비밀글
           알림 모달이 z-20 딤 오버레이로 이 CTA 바 밑에서 뜨므로(InquiryTab 참고),
-          이 바가 항상 그 위에서 밝게 남아 있어야 한다. */}
+          이 바가 항상 그 위에서 밝게 남아 있어야 한다. 모달이 열린 동안은
+          pointer-events-none 으로 뒤에서 클릭이 통과되지 않게 막는다. */}
       <AddToCartActions
         promotion={{ text: '첫 구매니까, 하나만 사도 ', emphasisText: '무료배송' }}
         liked={liked}
@@ -212,7 +234,7 @@ export function ProductDetailView() {
         onAddToCart={() =>
           overview.memberDeal ? setMultiOptionSheetOpen(true) : setOptionSheetOpen(true)
         }
-        className="bg-surface sticky bottom-0 z-30"
+        className={`bg-surface sticky bottom-0 z-30 ${inquiryModalOpen ? 'pointer-events-none' : ''}`}
       />
 
       <ProductOptionSheet

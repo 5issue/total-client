@@ -115,14 +115,23 @@ export function ProductOverviewCard({
         {/* h1 이 아니다 — 페이지 h1 은 이미 SectionHeader 의 title(같은 상품명, structure §6-1 셸
             헤더)이 맡는다. 한 페이지 h1 하나 원칙(code-style §5). */}
         <p className="text-heading-1 text-fg truncate pr-8">{name}</p>
-        <button
-          type="button"
-          onClick={onShare}
-          aria-label="상품 공유하기"
-          className="absolute top-8.75 right-4.25 size-6"
-        >
-          <Icon name="share" size={24} aria-hidden />
-        </button>
+        {onShare ? (
+          <button
+            type="button"
+            onClick={onShare}
+            aria-label="상품 공유하기"
+            className="absolute top-8.75 right-4.25 size-6"
+          >
+            <Icon name="share" size={24} aria-hidden />
+          </button>
+        ) : (
+          <Icon
+            name="share"
+            size={24}
+            aria-hidden
+            className="text-fg absolute top-8.75 right-4.25 size-6"
+          />
+        )}
 
         {subCopy ? <p className="text-label-m text-fg-quaternary">{subCopy}</p> : null}
         <p className="text-label-m text-fg">{origin}</p>

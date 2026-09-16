@@ -43,6 +43,8 @@ export type AddToCartActionsProps = {
   showSubscribeButton?: boolean;
   onSubscribe?: () => void;
   onAddToCart?: () => void;
+  /** "장바구니 담기" 버튼 비활성화(예: 옵션 수량 합계가 0일 때) — 기본 false. */
+  addToCartDisabled?: boolean;
   /** 기본 true. 결제 전 약관 고지 문구 노출 여부. */
   showTerms?: boolean;
   className?: string;
@@ -55,6 +57,7 @@ export function AddToCartActions({
   showSubscribeButton = true,
   onSubscribe,
   onAddToCart,
+  addToCartDisabled = false,
   showTerms = true,
   className,
 }: AddToCartActionsProps) {
@@ -80,7 +83,13 @@ export function AddToCartActions({
               신선구독
             </Button>
           ) : null}
-          <Button variant="primary" size="l" onClick={onAddToCart} className="h-14 flex-1">
+          <Button
+            variant="primary"
+            size="l"
+            onClick={onAddToCart}
+            disabled={addToCartDisabled}
+            className="h-14 flex-1"
+          >
             장바구니 담기
           </Button>
         </div>

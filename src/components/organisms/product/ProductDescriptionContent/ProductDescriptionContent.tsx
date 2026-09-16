@@ -24,7 +24,10 @@ export function ProductDescriptionContent() {
       <InstructionBanner text="아래 이미지를 터치하면 확대해서 볼 수 있습니다." />
 
       <div className="w-full px-4">
-        <div aria-hidden className="bg-surface-secondary rounded-m aspect-[369/245] w-full" />
+        <div
+          aria-hidden
+          className="bg-surface-secondary rounded-m aspect-product-description-hero w-full"
+        />
       </div>
 
       {/* node 665:43700 실측 재확인 — 태그라인은 Heading/H0_SemiBold(20px), 상품명은
@@ -80,10 +83,16 @@ export function ProductDescriptionContent() {
       <InstructionBanner text="아래 이미지를 터치하면 확대해서 볼 수 있습니다." />
 
       <div className="w-full px-4">
-        <div aria-hidden className="bg-surface-secondary rounded-m aspect-[370/224] w-full" />
+        <div
+          aria-hidden
+          className="bg-surface-secondary rounded-m aspect-product-description-detail-a w-full"
+        />
       </div>
       <div className="w-full px-4">
-        <div aria-hidden className="bg-surface-secondary rounded-m aspect-[370/895] w-full" />
+        <div
+          aria-hidden
+          className="bg-surface-secondary rounded-m aspect-product-description-detail-b w-full"
+        />
       </div>
 
       {/* node 665:43722 실측 — Label_XS_Regular(400weight) + text/secondary, label-m(500)

@@ -18,9 +18,25 @@ import { MOCK_INQUIRIES } from './mock';
  * 알림 모달은 헤더·하단 CTA 바(둘 다 z-30)보다 낮은 z-20 오버레이를 쓴다(`Modal`
  * 의 `overlayClassName` override) — 그 두 sticky 요소만 딤 위로 밝게 남기기 위함.
  * 색도 Figma 실측 그대로 `rgba(0,0,0,0.5)`(`bg-black/50`, 공용 `--overlay` 토큰과 다름).
+ * 다만 딤 위에 밝게 뜨는 것과 별개로 그 영역이 여전히 클릭 가능하면 모달이 열린 채로
+ * 뒤로가기/장바구니/CTA 를 누를 수 있다 — `onLockedAlertOpenChange` 로 열림 상태를
+ * 부모(ProductDetailView)에 올려서, 부모가 그 두 요소에 `pointer-events-none` 을
+ * 걸게 한다.
  */
-export function InquiryTab() {
-  const [lockedAlertOpen, setLockedAlertOpen] = useState(false);
+export type InquiryTabProps = {
+  /** 비밀글 알림 모달의 열림 상태가 바뀔 때마다 호출 — 부모가 헤더/CTA 바의
+   *  포인터 이벤트를 막는 데 쓴다. */
+  onLockedAlertOpenChange?: (open: boolean) => void;
+};
+
+export function InquiryTab({ onLockedAlertOpenChange }: InquiryTabProps) {
+  const [lockedAlertOpen, setLockedAlertOpenState] = useState(false);
+
+  function setLockedAlertOpen(open: boolean) {
+    setLockedAlertOpenState(open);
+    onLockedAlertOpenChange?.(open);
+  }
+
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   return (

@@ -19,14 +19,15 @@ import { MOCK_MULTI_OPTION_PRODUCT, MOCK_MULTI_OPTION_PROMOTION, MOCK_MULTI_OPTI
  * 미선택 상태로 시작할 수 있다, 단일 상품 담기와 달리 "0개"가 유효한 초기값) 옵션 사이에도
  * 구분선이 들어간다. 옵션에 `badgeLabel="멤버스"`(멤버십 전용 옵션 표시).
  *
- * 담기 버튼 활성/비활성(선택 수량 0일 때)은 Figma 정적 목업에 표시가 없어(버튼이 항상
- * 기본 상태) 구현하지 않았다 — 필요하면 디자인 확인 후 추가.
- *
  * `badgeLabel`(멤버스)이 붙은 옵션은 수량을 늘리려는 시도(+ 클릭) 자체를 가로채
  * `MembershipPromotionModal` 을 띄운다 — 실제 증가는 커밋하지 않는다(가입 전까지는
  * 멤버스 전용 옵션을 담을 수 없다는 뜻). 감소/일반 옵션 증가는 그대로 통과.
  * (사용자 확인 2026-09-16: 일반 상품→단일 옵션 시트, 멤버스특가 상품→이 다중 옵션
  * 시트, 그 안에서 멤버스 옵션 + 클릭 시 가입 모달.)
+ *
+ * 모든 옵션이 `min={0}`이라 초기 수량 합계는 0이다 — 아무것도 선택 안 한 채 CTA를
+ * 누르면 빈 담기 완료 흐름이 시작되지 않도록 수량 합계가 1 이상일 때만 담기를
+ * 허용하고, 그 전에는 버튼을 비활성화한다.
  */
 export type MultiOptionSelectBottomSheetProps = {
   open: boolean;
@@ -46,7 +47,10 @@ export function MultiOptionSelectBottomSheet({
   const [liked, setLiked] = useState(false);
   const [membershipModalOpen, setMembershipModalOpen] = useState(false);
 
+  const totalQuantity = Object.values(quantities).reduce((sum, q) => sum + q, 0);
+
   function handleAddToCart() {
+    if (totalQuantity === 0) return;
     onClose();
     onAddToCart?.();
   }
@@ -74,6 +78,7 @@ export function MultiOptionSelectBottomSheet({
               liked={liked}
               onToggleLike={() => setLiked((prev) => !prev)}
               onAddToCart={handleAddToCart}
+              addToCartDisabled={totalQuantity === 0}
             />
           </>
         }

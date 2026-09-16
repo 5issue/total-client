@@ -14,7 +14,8 @@ import Image from 'next/image';
  *
  * 우측 화살표는 목적지 화면이 아직 없어(미션/리워드 페이지 미확정) 장식용으로만
  * 렌더한다(SectionHeader의 `pending` 아이콘과 같은 원칙) — 실제 이동은 그 화면이
- * 생기면 `onClick`/`href`로 배선.
+ * 생기면 `onClick`/`href`로 배선. 스트로크는 `currentColor` + 부모 `text-fg-tertiary`
+ * 로 시맨틱 색을 쓴다(하드코딩 hex 대신, code-style §6-1).
  */
 export type MissionCompleteCardProps = {
   /** 포인트 표기(예: "100P"). */
@@ -31,7 +32,7 @@ export function MissionCompleteCard({
   return (
     <div
       className={[
-        'bg-surface flex h-15 w-full flex-col justify-center rounded-xl py-2 pr-1 pl-3',
+        'bg-surface rounded-m flex h-15 w-full flex-col justify-center py-2 pr-1 pl-3',
         className,
       ]
         .filter(Boolean)
@@ -51,10 +52,17 @@ export function MissionCompleteCard({
             <p className="text-caption-m text-fg-secondary">{description}</p>
           </div>
         </div>
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden>
+        <svg
+          width="32"
+          height="32"
+          viewBox="0 0 32 32"
+          fill="none"
+          aria-hidden
+          className="text-fg-quaternary"
+        >
           <path
             d="M12.8 22.4L19.2 16.1459L13.0214 9.6"
-            stroke="#8AA1AB"
+            stroke="currentColor"
             strokeWidth="2.4"
             strokeLinecap="square"
             strokeLinejoin="round"

@@ -31,7 +31,8 @@ import { StatusLabel } from '@/components/molecules/shared/StatusLabel';
  *
  * `size="compact"`: 장바구니 담기 완료 시트의 추천 카드(node 665:43409, "Item")도 이
  * 컴포넌트와 담기 버튼·쿠폰 배지·가격 표기가 동일해 재사용한다 — 다만 카드 폭 120px
- * (`w-30`, 홈은 150px `w-37.5`)·이미지 160px(`h-40`, 홈은 240px `h-60`)·리뷰 수 없음·
+ * (`w-30`, 홈은 150px `w-37.5`)·이미지 종횡비(`aspect-product-card-compact`, 홈은
+ * `aspect-product-card`)·리뷰 수 없음·
  * 고정 높이 없음(홈은 가로 스크롤 정렬을 위해 `h-product-card` 고정)이 달라 폭/높이
  * 유틸리티를 분기했다(같은 속성을 기본값과 className 으로 동시에 주면 캐스케이드가
  * 꼬이는 문제, 이 세션에서 반복 확인된 패턴이라 처음부터 분기로 피한다).
@@ -68,9 +69,9 @@ const ROOT_SIZE_CLASSNAME: Record<ProductCardSize, string> = {
   compact: 'w-30',
 };
 
-const IMAGE_HEIGHT_CLASSNAME: Record<ProductCardSize, string> = {
-  default: 'h-60',
-  compact: 'h-40',
+const IMAGE_ASPECT_CLASSNAME: Record<ProductCardSize, string> = {
+  default: 'aspect-product-card',
+  compact: 'aspect-product-card-compact',
 };
 
 export function ProductCard({
@@ -117,7 +118,7 @@ export function ProductCard({
         .filter(Boolean)
         .join(' ')}
     >
-      <div className={`relative w-full overflow-hidden rounded-sm ${IMAGE_HEIGHT_CLASSNAME[size]}`}>
+      <div className={`relative w-full overflow-hidden rounded-sm ${IMAGE_ASPECT_CLASSNAME[size]}`}>
         {/* 이미지 링크는 아래 이름/메타 링크와 목적지가 같은 중복 링크라 포커스에서
             빼고(tabIndex=-1) 스크린리더에도 숨긴다(aria-hidden) — 접근 가능한 이름은
             메타 블록 링크(§5 "상품 상세 보기: {상품명}")가 담당한다. */}

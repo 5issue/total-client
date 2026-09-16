@@ -20,7 +20,8 @@ import { Modal } from '@/components/molecules/shared/Modal';
 export type MembershipPromotionModalProps = {
   open: boolean;
   onClose: () => void;
-  /** "컬리멤버스 혜택받기" 클릭 — 멤버십 가입 플로우가 아직 없어 기본은 시트 닫기만. */
+  /** "컬리멤버스 혜택받기" 클릭 — 멤버십 가입 플로우가 아직 없어 생략하면 `onClose` 로
+   *  대체한다(닫기만 하더라도 버튼이 아무 반응 없는 것보단 낫다). */
   onSubscribe?: () => void;
 };
 
@@ -41,7 +42,12 @@ export function MembershipPromotionModal({
       footerLayout="column"
       footer={
         <>
-          <Button variant="primary" size="l" onClick={onSubscribe} className="h-11.5 w-full">
+          <Button
+            variant="primary"
+            size="l"
+            onClick={onSubscribe ?? onClose}
+            className="h-11.5 w-full"
+          >
             컬리멤버스 혜택받기
           </Button>
           <Button variant="outlineBlack" size="l" onClick={onClose} className="h-11.5 w-full">

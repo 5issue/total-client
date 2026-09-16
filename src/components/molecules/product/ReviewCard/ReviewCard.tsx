@@ -56,7 +56,7 @@ export function ReviewCard({
         <ReviewerBadge badges={badges} username={username} />
         <p className="text-caption-m text-fg-secondary w-full">{productName}</p>
         <div className="rounded-m flex items-center gap-1 overflow-hidden">
-          {Array.from({ length: imageCount }, (_, i) => (
+          {Array.from({ length: Math.min(imageCount, DEFAULT_IMAGE_COUNT) }, (_, i) => (
             <div key={i} aria-hidden className="bg-surface-secondary size-21 shrink-0" />
           ))}
         </div>
