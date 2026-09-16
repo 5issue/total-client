@@ -88,14 +88,10 @@
   --spacing-nav-pb-safe: 34px; /* → pb-nav-pb-safe (BottomNav 자체 하단 패딩) */
 }
 
-/* 화면 상단 안전영역(노치/상태바) — `layout.tsx` 의 `viewportFit:'cover'` +
- * `statusBarStyle:'black-translucent'` 때문에 콘텐츠가 상태바 아래까지 깔린다
- * (그 의도 자체는 PWA 상태바를 투명하게 비치게 하려는 것 — layout.tsx 주석 참고).
- * 기기마다 다른 동적 값이라 `--spacing-bottom-nav-safe`처럼 고정 px 로 토큰화할 수 없어
- * `env()` 를 직접 쓰는 커스텀 유틸리티로 둔다(`scrollbar-hide`와 같은 패턴).
- * `SectionHeader`(및 이를 쓰는 모든 화면 헤더)의 원래 `py-1` 상단 4px 는 유지하면서
- * 안전영역만큼만 더한다 — `padding-top` 유틸리티 두 개를 클래스명 순서로 겹치는 대신
- * `calc()` 로 한 값에 합쳐 캐스케이드 순서 문제를 피한다. */
+/* 화면 상단 안전영역(노치/상태바) — `layout.tsx` 의 `viewportFit:'cover'` 때문에 콘텐츠가
+ * 상태바 아래까지 깔린다. 기기마다 다른 동적 값이라 `env()` 를 직접 쓰는 커스텀
+ * 유틸리티로 둔다(`scrollbar-hide` 와 같은 패턴). `+ var(--spacing) * 1` 은 헤더의
+ * 기존 상단 4px(`py-1`)를 유지한 채 안전영역만 더하는 값. */
 @utility pt-header-safe {
   padding-top: calc(env(safe-area-inset-top) + var(--spacing) * 1);
 }

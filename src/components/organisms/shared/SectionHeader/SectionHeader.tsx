@@ -19,16 +19,14 @@ import { Icon, type IconName } from '@/components/atoms/Icon';
  *
  * 홈 섹션 구획 헤더(제목 + 부제 + 전체보기)는 `molecules/shared/HomeSectionHeader` 로 별개다.
  *
- * 상단 패딩은 `pt-header-safe`(globals.css) — `viewportFit:'cover'` + 상태바
- * `black-translucent` 라 콘텐츠가 상태바 아래까지 깔린다. 이 헤더는 거의 모든 화면의
- * 최상단이라 안전영역(`env(safe-area-inset-top)`)을 안 더하면 제목·아이콘이 상태바와
- * 겹친다(마이컬리 화면에서 실기기로 발견, issue #106). 노치 없는 기기/데스크톱에서는
- * `env()` 가 0이라 기존 레이아웃과 시각적으로 동일하다.
+ * 상단 패딩 `pt-header-safe`(globals.css)는 노치/상태바 안전영역(`env(safe-area-inset-top)`)용 —
+ * `viewportFit:'cover'` 라 콘텐츠가 상태바 아래까지 깔려서 필요하다(issue #106, 실기기에서
+ * 헤더와 상태바가 겹치는 걸로 발견). 노치 없는 기기는 `env()`가 0이라 영향 없다.
  *
  * 토큰(`get_variable_defs` node 2438-1743): 배경 `Bg/default` → `bg-surface`,
  * 제목 `Heading/H0_SemiBold` + `Text/Primary` → `text-heading-0 text-fg`,
  * 터치 타깃 `Icon Height/XL` 44 → `size-11`, 여백 `Gap/XS`·`Margin/Default` → `pl-2 pr-4`.
- * 아이콘 글리프는 32 — Figma 실측(28)보다 키운 값으로, 모바일에서 back/close 가시성을 높였다.
+ * 아이콘 글리프는 기본 32(Figma 실측 28보다 키운 값, back/close 가시성) — `iconSize` prop 으로 override.
  */
 interface SectionHeaderActionBase {
   icon: IconName;
@@ -63,10 +61,7 @@ export interface SectionHeaderProps {
   /** 오른쪽 액션 아이콘 목록. 생략 시 우측 비움. */
   actions?: SectionHeaderAction[];
 
-  /**
-   * 아이콘 글리프 px. 기본 32(Figma 실측 28보다 키운 값 — back/close 가시성).
-   * `KurlyHeader`처럼 Figma 가 28 그대로인 화면은 명시적으로 28을 넘긴다(node 910-110970).
-   */
+  /** 아이콘 글리프 px. 기본 32 — Figma 실측 그대로인 화면(`KurlyHeader` 등)은 28로 override. */
   iconSize?: number;
 
   className?: string;

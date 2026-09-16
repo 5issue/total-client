@@ -5,13 +5,10 @@ import { BottomSheet } from '@/components/molecules/shared/BottomSheet';
 
 /**
  * PromoBannerBottomSheet(node 1233-114124) — 혜택 알림(마케팅 수신) 동의 유도 바텀시트.
- * `molecules/shared/BottomSheet` 가 포커스 트랩·body 스크롤 잠금·Esc/백드롭 닫기·드래그
- * 닫기를 전부 이미 구현하고 있어 그대로 재사용한다.
+ * `molecules/shared/BottomSheet`가 포커스 트랩·스크롤 잠금·닫기 동작을 이미 구현해 그대로 재사용.
  *
- * Figma CTA 버튼 라벨이 "장바구니 담기"인데, 이 시트의 맥락(광고성 정보 수신 동의)과
- * 맞지 않아 다른 컴포넌트를 재사용하며 복붙된 것으로 보인다(issue #106 추가 내용에 기록,
- * 디자인 확인 전까지 원문 그대로 유지 — structure-convention §6-1). 실제 동의 처리는
- * API 연동 전이라 두 버튼 모두 시트를 닫는 것 외 동작이 없다.
+ * CTA 라벨 "장바구니 담기"는 Figma 원문 그대로다 — 맥락과 안 맞아 보이지만 디자인 확인
+ * 전까지 임의로 안 고친다(issue #106). API 연동 전이라 두 버튼 다 시트를 닫기만 한다.
  */
 export interface BenefitPromoBottomSheetProps {
   open: boolean;
@@ -39,8 +36,7 @@ export function BenefitPromoBottomSheet({ open, onClose }: BenefitPromoBottomShe
         </div>
       }
     >
-      {/* px-6: Figma "Banner Content"(node 1233-114126)가 시트 기본 여백(px-4, margin/default
-          16px) 위에 gap/xs(8px)를 더 얹는다 — 텍스트만 CTA 버튼보다 8px 더 안쪽. */}
+      {/* px-6: 텍스트만 CTA 버튼보다 8px 더 안쪽 여백(Figma 실측). */}
       <div className="flex flex-col gap-3 px-6 pt-2 pb-3">
         <div className="text-heading-1 text-fg">
           <p>혜택 알림 받고</p>

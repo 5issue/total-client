@@ -19,7 +19,6 @@ export interface QuickMenuEntry {
   id: string;
   icon: IconName;
   label: string;
-  href?: string;
   /** 있으면 라벨 옆에 숫자를 강조색으로 표시(쿠폰/찜). */
   count?: number;
 }

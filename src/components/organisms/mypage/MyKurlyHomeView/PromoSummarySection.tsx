@@ -6,18 +6,12 @@ import { StatusLabel } from '@/components/molecules/shared/StatusLabel';
 import { MOCK_KITCHEN_CARDS, MOCK_QUICK_MENU, MOCK_SUMMARY } from './mock';
 
 /**
- * Promo Section(node 910-110883) — 인사말, 구독 배너, 멤버십 혜택 박스, 적립금·캐시·포인트
- * 요약 카드, 퀵메뉴 5종, 컬리키친(MY 냉장고·MY 레시피)까지 한 흰 배경 카드 안에 묶인
- * Figma 원본 그룹을 그대로 하나의 organism 으로 옮겼다.
+ * Promo Section(node 910-110883) — 인사말/구독 배너/멤버십 혜택 박스/적립금·캐시·포인트
+ * 요약/퀵메뉴 5종/컬리키친. Figma 원본 그룹 그대로 하나의 organism 으로 옮겼다.
  *
- * 목적지 화면이 없는 배너·박스·카드는 전부 비상호작용이다(model.ts `LinkItem`과 같은
- * pending 원칙 — 아직 없는 라우트로 가짜 링크를 걸지 않는다).
- *
- * `right-small`(atoms/Icon) 은 stroke 가 흰색으로 고정된 자산이라(`HeroBanner`의 어두운
- * 배경 위 "전체보기"에서 온 것 — themable: false) 흰 배경인 이 화면에서는 안 보인다.
- * 대신 `right`(28px 컷, `stroke="currentColor"`)를 10px로 축소해 쓰고 색은 Figma 실측
- * (`#8AA1AB`, node 910-110892 get_design_context 로 재확인) = `--color-fg-quaternary` 로
- * 직접 지정한다(리뷰 피드백으로 발견, 2026-09-17).
+ * 목적지 화면이 없는 배너·박스·카드는 비상호작용이다(model.ts `LinkItem` pending 원칙).
+ * chevron 은 `right-small` 대신 `right`(currentColor)를 축소해 쓴다 — `right-small` 은
+ * stroke 가 흰색 고정 자산이라(`HeroBanner` 어두운 배경용) 흰 배경에서 안 보인다.
  */
 function ChevronRight() {
   return <Icon name="right" size={10} aria-hidden className="text-fg-quaternary" />;
