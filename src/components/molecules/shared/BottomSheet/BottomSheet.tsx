@@ -30,8 +30,14 @@ export interface BottomSheetProps {
   children: ReactNode;
   /** 스크롤 영역 밖에 고정되는 하단 영역(주문 CTA 등). */
   footer?: ReactNode;
-  /** 시트 최대 높이. 기본 `85dvh`. */
+  /** 시트 최대 높이. 기본 `85dvh`. 콘텐츠가 이보다 짧으면 시트도 그만큼 줄어든다. */
   maxHeight?: string;
+  /**
+   * 시트 고정 높이. 주면 콘텐츠 양과 무관하게 항상 이 높이다 — 시트 안에서 탭을
+   * 오갈 때(필터 시트의 카테고리 19개 ↔ 가격 4개처럼) 시트가 들썩이는 걸 막는다.
+   * 남는 공간은 본문 스크롤 영역이 차지하고 footer 는 바닥에 붙는다.
+   */
+  height?: string;
   /** 백드롭 클릭으로 닫기. 기본 true. */
   closeOnBackdrop?: boolean;
   className?: string;
@@ -52,6 +58,7 @@ export function BottomSheet({
   children,
   footer,
   maxHeight = '85dvh',
+  height,
   closeOnBackdrop = true,
   className,
 }: BottomSheetProps) {
@@ -153,6 +160,7 @@ export function BottomSheet({
         tabIndex={-1}
         onKeyDown={handleKeyDown}
         style={{
+          height,
           maxHeight,
           transform: open && dragging ? `translateY(${dragY}px)` : undefined,
         }}
@@ -174,7 +182,7 @@ export function BottomSheet({
           onPointerCancel={handleDragEnd}
           className="flex shrink-0 cursor-grab touch-none justify-center pt-3 pb-2 active:cursor-grabbing"
         >
-          <span aria-hidden className="bg-overlay-blue h-1 w-[34px] rounded-full" />
+          <span aria-hidden className="bg-overlay-blue h-1 w-8.5 rounded-full" />
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{children}</div>
         {footer ? <div className="shrink-0">{footer}</div> : null}
