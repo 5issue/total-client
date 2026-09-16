@@ -37,6 +37,13 @@ export interface ModalProps {
    *  같은 유틸리티와 새 값이 같은 속성을 겹쳐 쓰면 Tailwind 생성 순서에 따라 뒤엉킨다).
    *  기본값은 기존 소비자(CartView 삭제 확인 등)가 실측한 값 그대로. */
   cardClassName?: string;
+  /** 백드롭(전체화면 딤 레이어) 전체 override — 같은 원칙으로 완전 대체.
+   *  기본값은 기존 소비자 그대로(`bg-overlay` z-50). 상품 상세 "문의" 탭의 비밀글
+   *  알림처럼 상단 헤더·하단 CTA 바가 딤 위로 밝게 떠 있어야 하는 화면(Figma
+   *  node 665:43924 `DimmedOverlay`)은 그 두 sticky 요소의 z-index(30)보다 낮은
+   *  값 + Figma 실측 색(`rgba(0,0,0,0.5)`, 프로젝트 `--overlay` 토큰과 다른 값)으로
+   *  override 해서 쓴다. */
+  overlayClassName?: string;
   /** 제목 타이포 override. 기본 `text-heading-2 text-fg`. */
   titleClassName?: string;
   /** 설명 타이포 override. 기본 `text-body-s text-fg-secondary`. */
@@ -65,6 +72,7 @@ export function Modal({
   closeOnBackdrop = true,
   closeOnEscape = true,
   cardClassName = 'flex w-full max-w-xs flex-col gap-8 rounded-xl px-4 pt-8 pb-4',
+  overlayClassName = 'bg-overlay fixed inset-0 z-50 flex items-center justify-center p-4',
   titleClassName = 'text-heading-2 text-fg',
   descriptionClassName = 'text-body-s text-fg-secondary',
   contentGapClassName = 'gap-3',
@@ -128,10 +136,7 @@ export function Modal({
   if (!open || typeof document === 'undefined') return null;
 
   return createPortal(
-    <div
-      className="bg-overlay fixed inset-0 z-50 flex items-center justify-center p-4"
-      onMouseDown={handleBackdrop}
-    >
+    <div className={overlayClassName} onMouseDown={handleBackdrop}>
       <div
         ref={cardRef}
         role="dialog"

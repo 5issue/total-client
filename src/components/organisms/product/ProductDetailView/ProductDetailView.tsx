@@ -12,6 +12,7 @@ import { AddToCartActions } from '@/components/molecules/product/AddToCartAction
 import { MissionCompleteCard } from '@/components/molecules/shared/MissionCompleteCard';
 import { TabBar, type TabBarItem } from '@/components/molecules/shared/TabBar';
 import { CartAddedProductsBottomSheet } from '@/components/organisms/product/CartAddedProductsBottomSheet';
+import { InquiryTab } from '@/components/organisms/product/InquiryTab';
 import { MultiOptionSelectBottomSheet } from '@/components/organisms/product/MultiOptionSelectBottomSheet';
 import { ProductOptionSheet } from '@/components/organisms/product/ProductOptionSheet';
 import { ProductOverviewCard } from '@/components/organisms/product/ProductOverviewCard';
@@ -48,7 +49,8 @@ const MISSION_TOAST_DURATION_MS = 5000;
  * flex-col 로 쌓이므로 ProductOverviewCard 와 하단 CTA 바 사이에 순서대로 끼워 넣으면 된다).
  *
  * "상세정보" 탭은 `ProductSpecTab`(node 665-43688), "후기" 탭은 `ProductReviewTab`
- * (node 665-43657)으로 연결됨. "문의" 탭은 아직 준비 중 안내만 보여준다(스펙 대기).
+ * (node 665-43657), "문의" 탭은 `InquiryTab`(node 665-43879)으로 연결됨 — 이로써
+ * 4개 탭 모두 구현 완료.
  * 헤더+탭은 `sticky top-0`(Figma 프레임상 별도 고정 블록, node 665:43031), 하단 CTA 는
  * `CartOrderBar` 와 동일하게 `sticky bottom-0`(문서 흐름 안에서 뷰포트 바닥에 붙음 —
  * ShopShell 크롬리스 처리와 함께라야 BottomNav 와 안 겹친다).
@@ -106,10 +108,8 @@ export function ProductDetailView() {
           <ProductSpecTab />
         ) : activeTab === 'review' ? (
           <ProductReviewTab />
-        ) : activeTab !== 'description' ? (
-          <p className="text-label-m text-fg-tertiary flex min-h-40 items-center justify-center">
-            준비 중이에요
-          </p>
+        ) : activeTab === 'qna' ? (
+          <InquiryTab />
         ) : (
           <>
             <div className="relative aspect-square w-full overflow-hidden">
@@ -190,6 +190,9 @@ export function ProductDetailView() {
         </div>
       ) : null}
 
+      {/* z-30 은 헤더(위 SectionHeader+TabBar 래퍼)와 맞춘 값 — "문의" 탭의 비밀글
+          알림 모달이 z-20 딤 오버레이로 이 CTA 바 밑에서 뜨므로(InquiryTab 참고),
+          이 바가 항상 그 위에서 밝게 남아 있어야 한다. */}
       <AddToCartActions
         promotion={{ text: '첫 구매니까, 하나만 사도 ', emphasisText: '무료배송' }}
         liked={liked}
@@ -202,7 +205,7 @@ export function ProductDetailView() {
         onAddToCart={() =>
           overview.memberDeal ? setMultiOptionSheetOpen(true) : setOptionSheetOpen(true)
         }
-        className="bg-surface sticky bottom-0"
+        className="bg-surface sticky bottom-0 z-30"
       />
 
       <ProductOptionSheet
