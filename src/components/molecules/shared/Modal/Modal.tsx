@@ -32,7 +32,19 @@ export interface ModalProps {
   closeOnBackdrop?: boolean;
   /** Esc 키로 닫기. 기본 true. 주문시간 초과처럼 확인 버튼으로만 닫혀야 하는 모달은 false. */
   closeOnEscape?: boolean;
-  /** 카드에 적용할 클래스(폭 조정 등). */
+  /** 카드 레이아웃 전체 override(폭/간격/radius/패딩) — 기존 기본값과 부분 병합이 아니라
+   *  완전히 대체한다(`SectionHeader.titleClassName`과 같은 원칙 — `gap-8`/`rounded-xl`
+   *  같은 유틸리티와 새 값이 같은 속성을 겹쳐 쓰면 Tailwind 생성 순서에 따라 뒤엉킨다).
+   *  기본값은 기존 소비자(CartView 삭제 확인 등)가 실측한 값 그대로. */
+  cardClassName?: string;
+  /** 제목 타이포 override. 기본 `text-heading-2 text-fg`. */
+  titleClassName?: string;
+  /** 설명 타이포 override. 기본 `text-body-s text-fg-secondary`. */
+  descriptionClassName?: string;
+  /** 제목-설명 묶음의 세로 gap override. 기본 `gap-3`. */
+  contentGapClassName?: string;
+  /** footer 버튼 사이 gap override. 기본 `gap-2`. */
+  footerGapClassName?: string;
   className?: string;
 }
 
@@ -52,6 +64,11 @@ export function Modal({
   footerLayout = 'row',
   closeOnBackdrop = true,
   closeOnEscape = true,
+  cardClassName = 'flex w-full max-w-xs flex-col gap-8 rounded-xl px-4 pt-8 pb-4',
+  titleClassName = 'text-heading-2 text-fg',
+  descriptionClassName = 'text-body-s text-fg-secondary',
+  contentGapClassName = 'gap-3',
+  footerGapClassName = 'gap-2',
   className,
 }: ModalProps) {
   const uid = useId();
@@ -123,19 +140,16 @@ export function Modal({
         aria-describedby={description ? descId : undefined}
         tabIndex={-1}
         onKeyDown={handleKeyDown}
-        className={[
-          'bg-surface flex w-full max-w-xs flex-col gap-8 rounded-xl px-4 pt-8 pb-4 focus:outline-none',
-          className,
-        ]
+        className={['bg-surface focus:outline-none', cardClassName, className]
           .filter(Boolean)
           .join(' ')}
       >
-        <div className="flex flex-col gap-3">
-          <h2 id={titleId} className="text-heading-2 text-fg">
+        <div className={['flex flex-col', contentGapClassName].filter(Boolean).join(' ')}>
+          <h2 id={titleId} className={titleClassName}>
             {title}
           </h2>
           {description ? (
-            <p id={descId} className="text-body-s text-fg-secondary">
+            <p id={descId} className={descriptionClassName}>
               {description}
             </p>
           ) : null}
@@ -144,7 +158,11 @@ export function Modal({
 
         {footer ? (
           <div
-            className={footerLayout === 'column' ? 'flex flex-col gap-2' : 'flex gap-2 *:flex-1'}
+            className={
+              footerLayout === 'column'
+                ? `flex flex-col ${footerGapClassName}`
+                : `flex ${footerGapClassName} *:flex-1`
+            }
           >
             {footer}
           </div>

@@ -56,7 +56,10 @@ export function ProductOptionSheet({ open, onClose }: ProductOptionSheetProps) {
         name={MOCK_ADD_TO_CART_PRODUCT.name}
         tagline={MOCK_ADD_TO_CART_PRODUCT.tagline}
       />
-      <div className="border-border mx-4 border-t" />
+      {/* mt-3: OptionSelectBottomSheet(node 665:43255)는 직계 자식 전부를 gap-s(12px)로
+          쌓는데, 이 구분선 앞에서만 그 12px이 비어 있었다(실측 재확인, 버그) —
+          미리보기 바로 아래 구분선이 붙어 보였다. */}
+      <div className="border-border mx-4 mt-3 border-t" />
       <div className="px-4 py-3">
         <CartQuantityRow
           name={MOCK_ADD_TO_CART_PRODUCT.name}

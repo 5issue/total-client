@@ -10,6 +10,7 @@ import { FloatingButton } from '@/components/atoms/FloatingButton';
 import { Toast } from '@/components/atoms/Toast';
 import { AddToCartActions } from '@/components/molecules/product/AddToCartActions';
 import { TabBar, type TabBarItem } from '@/components/molecules/shared/TabBar';
+import { MultiOptionSelectBottomSheet } from '@/components/organisms/product/MultiOptionSelectBottomSheet';
 import { ProductOptionSheet } from '@/components/organisms/product/ProductOptionSheet';
 import { ProductOverviewCard } from '@/components/organisms/product/ProductOverviewCard';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
@@ -48,6 +49,7 @@ export function ProductDetailView() {
   const [activeTab, setActiveTab] = useState('description');
   const [liked, setLiked] = useState(false);
   const [optionSheetOpen, setOptionSheetOpen] = useState(false);
+  const [multiOptionSheetOpen, setMultiOptionSheetOpen] = useState(false);
   const scrollTopVisible = useScrollToTopVisibility();
   const [showPurchaseInfoToast, setShowPurchaseInfoToast] = useState(true);
 
@@ -169,11 +171,21 @@ export function ProductDetailView() {
         liked={liked}
         onToggleLike={() => setLiked((prev) => !prev)}
         showTerms={false}
-        onAddToCart={() => setOptionSheetOpen(true)}
+        // 멤버스특가(overview.memberDeal) 상품은 옵션이 멤버스 전용으로 갈릴 수 있어
+        // 단일 옵션 시트 대신 다중 옵션 시트(멤버스 옵션은 + 클릭 시 그 시트 안에서
+        // 가입 모달로 다시 가로채짐)를 연다 — 일반 상품은 기존 단일 옵션 시트 그대로.
+        // (사용자 확인 2026-09-16)
+        onAddToCart={() =>
+          overview.memberDeal ? setMultiOptionSheetOpen(true) : setOptionSheetOpen(true)
+        }
         className="bg-surface sticky bottom-0"
       />
 
       <ProductOptionSheet open={optionSheetOpen} onClose={() => setOptionSheetOpen(false)} />
+      <MultiOptionSelectBottomSheet
+        open={multiOptionSheetOpen}
+        onClose={() => setMultiOptionSheetOpen(false)}
+      />
     </>
   );
 }

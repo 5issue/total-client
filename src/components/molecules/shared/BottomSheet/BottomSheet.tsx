@@ -172,7 +172,10 @@ export function BottomSheet({
           onPointerMove={handleDragMove}
           onPointerUp={handleDragEnd}
           onPointerCancel={handleDragEnd}
-          className="flex shrink-0 cursor-grab touch-none justify-center pt-3 pb-2 active:cursor-grabbing"
+          // 핸들 박스 총 높이 35px(node 1233:110231 "BottomSheetHandle" 실측: pt-3(12)+
+          // 바(4)+pb-4.75(19)=35) — 기존 pb-2(8)는 실측보다 11px 짧았다(상품 상세 옵션
+          // 시트 QA 중 발견, 모든 BottomSheet 공용이라 여기서 고친다).
+          className="flex shrink-0 cursor-grab touch-none justify-center pt-3 pb-4.75 active:cursor-grabbing"
         >
           <span aria-hidden className="bg-overlay-blue h-1 w-[34px] rounded-full" />
         </div>
