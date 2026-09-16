@@ -45,7 +45,7 @@ export type SearchResultProductCardProps = {
 };
 
 function formatReviewCount(count: number): string {
-  return count >= 9999 ? '9,999+' : `${count.toLocaleString('ko-KR')}+`;
+  return count >= 9999 ? '9,999+' : count.toLocaleString('ko-KR');
 }
 
 export function SearchResultProductCard({
@@ -84,7 +84,7 @@ export function SearchResultProductCard({
         type="button"
         onClick={onAddToCart}
         aria-label={`${name} 장바구니 담기`}
-        className="text-label-m text-fg active:bg-surface-secondary flex h-8 w-full items-center justify-center gap-1 rounded-sm border border-neutral-400 font-semibold"
+        className="text-label-m text-fg active:bg-surface-secondary border-border flex h-8 w-full items-center justify-center gap-1 rounded-sm border font-semibold"
       >
         <Icon name="cart" size={20} aria-hidden />
         담기
