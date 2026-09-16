@@ -15,6 +15,7 @@ import { CartAddedProductsBottomSheet } from '@/components/organisms/product/Car
 import { MultiOptionSelectBottomSheet } from '@/components/organisms/product/MultiOptionSelectBottomSheet';
 import { ProductOptionSheet } from '@/components/organisms/product/ProductOptionSheet';
 import { ProductOverviewCard } from '@/components/organisms/product/ProductOverviewCard';
+import { ProductReviewTab } from '@/components/organisms/product/ProductReviewTab';
 import { ProductSpecTab } from '@/components/organisms/product/ProductSpecTab';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 import { useScrollToTopVisibility } from '@/hooks/useScrollToTopVisibility';
@@ -46,8 +47,8 @@ const MISSION_TOAST_DURATION_MS = 5000;
  * 상세설명/구매안내 섹션은 후속 Figma 스펙을 받아 이어서 추가한다(섹션 사이는 그대로
  * flex-col 로 쌓이므로 ProductOverviewCard 와 하단 CTA 바 사이에 순서대로 끼워 넣으면 된다).
  *
- * "상세정보" 탭은 `ProductSpecTab`(node 665-43688)으로 연결됨. "후기"/"문의" 탭은
- * 아직 준비 중 안내만 보여준다(후기는 다음 스펙 대기).
+ * "상세정보" 탭은 `ProductSpecTab`(node 665-43688), "후기" 탭은 `ProductReviewTab`
+ * (node 665-43657)으로 연결됨. "문의" 탭은 아직 준비 중 안내만 보여준다(스펙 대기).
  * 헤더+탭은 `sticky top-0`(Figma 프레임상 별도 고정 블록, node 665:43031), 하단 CTA 는
  * `CartOrderBar` 와 동일하게 `sticky bottom-0`(문서 흐름 안에서 뷰포트 바닥에 붙음 —
  * ShopShell 크롬리스 처리와 함께라야 BottomNav 와 안 겹친다).
@@ -103,6 +104,8 @@ export function ProductDetailView() {
       <div className="flex flex-1 flex-col">
         {activeTab === 'spec' ? (
           <ProductSpecTab />
+        ) : activeTab === 'review' ? (
+          <ProductReviewTab />
         ) : activeTab !== 'description' ? (
           <p className="text-label-m text-fg-tertiary flex min-h-40 items-center justify-center">
             준비 중이에요
