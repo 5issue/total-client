@@ -27,6 +27,8 @@ export function Indicator({ steps, current, 'aria-label': ariaLabel, className }
     >
       {steps.map((step, i) => {
         const active = i === current;
+        const isFirst = i === 0;
+        const isLast = i === steps.length - 1;
         return (
           <li
             key={`${i}-${step}`}
@@ -34,7 +36,7 @@ export function Indicator({ steps, current, 'aria-label': ariaLabel, className }
             className="flex flex-1 flex-col items-center gap-2"
           >
             <div className="flex w-full items-center gap-2" aria-hidden="true">
-              <span className="bg-border h-px flex-1" />
+              <span className={`h-px flex-1 ${isFirst ? '' : 'bg-border'}`} />
               <span className="flex size-5 shrink-0 items-center justify-center">
                 {active ? (
                   <span className="bg-brand-50 flex size-4 items-center justify-center rounded-full">
@@ -44,7 +46,7 @@ export function Indicator({ steps, current, 'aria-label': ariaLabel, className }
                   <span className="size-2.5 rounded-full bg-neutral-400" />
                 )}
               </span>
-              <span className="bg-border h-px flex-1" />
+              <span className={`h-px flex-1 ${isLast ? '' : 'bg-border'}`} />
             </div>
             <span
               className={
