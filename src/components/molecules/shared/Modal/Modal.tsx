@@ -37,11 +37,16 @@ export interface ModalProps {
   closeOnBackdrop?: boolean;
   /** Esc 키로 닫기. 기본 true. 주문시간 초과처럼 확인 버튼으로만 닫혀야 하는 모달은 false. */
   closeOnEscape?: boolean;
-  /** 카드에 적용할 클래스(폭 조정 등). */
+  /** 카드에 적용할 클래스. dialog 폭은 `widthClassName` 을 쓴다 — 여기에 `max-w-*` 를 넘겨도
+   *  아래 기본 폭 클래스와 같은 CSS 속성이라 확실히 덮이지 않는다(Tailwind 충돌). */
   className?: string;
   /** 카드 프리셋. 기본 'dialog'(확인/취소형, 폭 320px, 타이틀 Heading/H1). 'alert' 는
    * 위 문서 참고. */
   variant?: 'dialog' | 'alert';
+  /** dialog 카드 폭 클래스. 기본 `w-full max-w-xs`(320px, Figma node 2415-5998). 폭이 다른
+   *  모달(예: 주문 취소 302px, node 666-28213)은 이 prop 으로 통째로 교체한다. `alert` 에는
+   *  적용하지 않는다. */
+  widthClassName?: string;
 }
 
 const FOCUSABLE =
@@ -62,6 +67,7 @@ export function Modal({
   closeOnEscape = true,
   className,
   variant = 'dialog',
+  widthClassName = 'w-full max-w-xs',
 }: ModalProps) {
   const uid = useId();
   const titleId = `${uid}-title`;
@@ -163,7 +169,8 @@ export function Modal({
         tabIndex={-1}
         onKeyDown={handleKeyDown}
         className={[
-          'bg-surface flex w-full max-w-xs flex-col gap-8 rounded-xl px-4 pt-8 pb-4 focus:outline-none',
+          'bg-surface flex flex-col gap-8 rounded-xl px-4 pt-8 pb-4 focus:outline-none',
+          widthClassName,
           className,
         ]
           .filter(Boolean)
