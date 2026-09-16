@@ -8,54 +8,47 @@ const meta = {
   component: ProductCard,
   tags: ['autodocs'],
   args: {
-    imageSrc: '/placeholders/product-thumbnail.webp',
+    imageAlt: '',
+    deliveryLabel: '샛별배송',
     name: '[연세우유 x 마켓컬리] 전용목장우유 900mL',
-    price: 2780,
-    originalPrice: 3400,
-    discountRate: 25,
-    reviewCount: 9999,
-    deliveryType: '샛별배송',
-    couponBadgeLabel: '+25%쿠폰',
+    originalPriceLabel: '3,400',
+    discountLabel: '25%',
+    priceLabel: '2,780원~',
+    reviewCountLabel: '9,999+',
+    couponPercentLabel: '+25%',
     kurlyOnly: true,
     onAddToCart: fn(),
   },
   argTypes: {
-    price: { control: 'number' },
-    originalPrice: { control: 'number' },
-    discountRate: { control: 'number' },
-    reviewCount: { control: 'number' },
+    onAddToCart: { control: false },
+    className: { control: false },
   },
   parameters: { layout: 'padded' },
-  decorators: [
-    // ProductCard 는 w-full(그리드 셀 폭에 맞춤) — 실사용처(ProductGrid 2열 셀)와
-    // 비슷한 폭으로 프리뷰하기 위해 고정폭 컨테이너로 감싼다.
-    (Story) => (
-      <div className="w-45">
-        <Story />
-      </div>
-    ),
-  ],
 } satisfies Meta<typeof ProductCard>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+/** 기본 — 쿠폰 배지 + Kurly Only 태그 (node 577:20684). */
 export const Default: Story = {};
 
-/** 할인·쿠폰·Kurly Only 뱃지가 전부 없는 일반 상품(Figma node 882-60590 계열). */
-export const WithoutDiscount: Story = {
-  name: '할인/쿠폰 없음',
+/** 할인/쿠폰/Kurly Only 모두 없는 최소 구성. */
+export const Minimal: Story = {
+  name: '최소 구성(할인·쿠폰·Kurly Only 없음)',
   args: {
-    price: 4990,
-    originalPrice: null,
-    discountRate: null,
-    couponBadgeLabel: null,
+    originalPriceLabel: undefined,
+    discountLabel: undefined,
+    couponPercentLabel: undefined,
     kurlyOnly: false,
+    name: '[동원] 고추참치 85g x 8캔',
+    priceLabel: '13,510원',
   },
 };
 
+// --- 인터랙션 테스트 전용 (autodocs 에서 숨김) ---
+
 export const ClickAddToCart: Story = {
-  name: '담기 버튼 클릭 시 핸들러 호출',
+  tags: ['!autodocs'],
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole('button', { name: /장바구니 담기/ }));

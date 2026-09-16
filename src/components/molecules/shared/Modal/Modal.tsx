@@ -15,25 +15,38 @@ import { createPortal } from 'react-dom';
  * - 상태를 갖지 않는 컨트롤드 — `open` / `onClose` 는 부모 소유.
  * - 액션 버튼은 `footer` 슬롯으로 받는다(Button atom 도입 후 그걸로 채운다).
  *   `footerLayout` 이 Figma Button_Align(가로/세로)에 대응.
+ * - `variant="alert"`: Figma "Modal_API"(node 761-106129 등) — 안내 문구 한 줄 + 버튼
+ *   1개짜리 짧은 알림형. 기존 확인/취소형(`dialog`, 기본값)과 폭·여백·타이틀 크기가
+ *   달라 opt-in 프리셋으로 분리했다(다른 화면에 영향 없음). `description`/`children`/
+ *   `footerLayout` 은 이 변형에서 쓰지 않는다 — `title` 이 곧 안내 문구, `footer` 는
+ *   보통 버튼 1개를 우측 정렬로 담는다.
  */
 export interface ModalProps {
   open: boolean;
   onClose: () => void;
   title: string;
-  /** 제목 아래 본문 텍스트. */
+  /** 제목 아래 본문 텍스트. `variant="alert"` 에서는 사용하지 않는다. */
   description?: string;
-  /** description 외 추가 본문(폼 등). */
+  /** description 외 추가 본문(폼 등). `variant="alert"` 에서는 사용하지 않는다. */
   children?: ReactNode;
   /** 하단 액션 버튼 영역. */
   footer?: ReactNode;
-  /** footer 배치. row = 가로 균등분할, column = 세로 스택. 기본 row. */
+  /** footer 배치. row = 가로 균등분할, column = 세로 스택. 기본 row. `alert` 에서는 무시. */
   footerLayout?: 'row' | 'column';
   /** 백드롭 클릭으로 닫기. 기본 true. */
   closeOnBackdrop?: boolean;
   /** Esc 키로 닫기. 기본 true. 주문시간 초과처럼 확인 버튼으로만 닫혀야 하는 모달은 false. */
   closeOnEscape?: boolean;
-  /** 카드에 적용할 클래스(폭 조정 등). */
+  /** 카드에 적용할 클래스. dialog 폭은 `widthClassName` 을 쓴다 — 여기에 `max-w-*` 를 넘겨도
+   *  아래 기본 폭 클래스와 같은 CSS 속성이라 확실히 덮이지 않는다(Tailwind 충돌). */
   className?: string;
+  /** 카드 프리셋. 기본 'dialog'(확인/취소형, 폭 320px, 타이틀 Heading/H1). 'alert' 는
+   * 위 문서 참고. */
+  variant?: 'dialog' | 'alert';
+  /** dialog 카드 폭 클래스. 기본 `w-full max-w-xs`(320px, Figma node 2415-5998). 폭이 다른
+   *  모달(예: 주문 취소 302px, node 666-28213)은 이 prop 으로 통째로 교체한다. `alert` 에는
+   *  적용하지 않는다. */
+  widthClassName?: string;
 }
 
 const FOCUSABLE =
@@ -53,6 +66,8 @@ export function Modal({
   closeOnBackdrop = true,
   closeOnEscape = true,
   className,
+  variant = 'dialog',
+  widthClassName = 'w-full max-w-xs',
 }: ModalProps) {
   const uid = useId();
   const titleId = `${uid}-title`;
@@ -110,6 +125,36 @@ export function Modal({
 
   if (!open || typeof document === 'undefined') return null;
 
+  if (variant === 'alert') {
+    return createPortal(
+      <div
+        className="bg-overlay fixed inset-0 z-50 flex items-center justify-center p-4"
+        onMouseDown={handleBackdrop}
+      >
+        <div
+          ref={cardRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
+          tabIndex={-1}
+          onKeyDown={handleKeyDown}
+          className={[
+            'bg-surface flex w-full max-w-[376px] flex-col rounded-xl focus:outline-none',
+            className,
+          ]
+            .filter(Boolean)
+            .join(' ')}
+        >
+          <p id={titleId} className="text-heading-5 text-fg px-6 py-4">
+            {title}
+          </p>
+          {footer ? <div className="flex items-center justify-end px-2 pb-2">{footer}</div> : null}
+        </div>
+      </div>,
+      document.body,
+    );
+  }
+
   return createPortal(
     <div
       className="bg-overlay fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -124,7 +169,8 @@ export function Modal({
         tabIndex={-1}
         onKeyDown={handleKeyDown}
         className={[
-          'bg-surface flex w-full max-w-xs flex-col gap-8 rounded-xl px-4 pt-8 pb-4 focus:outline-none',
+          'bg-surface flex flex-col gap-8 rounded-xl px-4 pt-8 pb-4 focus:outline-none',
+          widthClassName,
           className,
         ]
           .filter(Boolean)

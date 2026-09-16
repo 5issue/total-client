@@ -1,7 +1,7 @@
 'use client';
 
 import { useId } from 'react';
-import type { InputHTMLAttributes, ReactNode } from 'react';
+import type { InputHTMLAttributes, ReactNode, Ref } from 'react';
 
 /**
  * 단일 줄 텍스트 입력 (atom).
@@ -21,6 +21,9 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
   /** 우측 슬롯 — 아이콘/버튼(24×24 권장). 색은 `currentColor` 로 따라온다. */
   trailing?: ReactNode;
+  /** React 19 ref-as-prop. RHF `register()` 의 ref 와 별도로 DOM 접근이 필요할 때(포커스
+   * 이동 등) 병합해서 넘긴다. */
+  ref?: Ref<HTMLInputElement>;
 }
 
 const BOX_BASE = 'flex items-center gap-1 rounded-m border py-2 pl-4 pr-3 transition-colors';
@@ -32,6 +35,7 @@ export function Input({
   trailing,
   id,
   disabled,
+  ref,
   'aria-describedby': describedBy,
   'aria-invalid': ariaInvalid,
   ...props
@@ -60,6 +64,7 @@ export function Input({
       <div className={box}>
         <input
           id={inputId}
+          ref={ref}
           disabled={disabled}
           aria-invalid={invalid ? true : ariaInvalid}
           aria-describedby={

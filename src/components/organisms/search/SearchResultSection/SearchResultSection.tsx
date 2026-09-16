@@ -89,9 +89,10 @@ function ToggleChip({
  * - Kurly Only/멤버스혜택/쿠폰 토글 칩은 시각 상태(node 882-60388)뿐 아니라 실제 목록도
  *   `filterProducts` 로 좁힌다 — 백엔드 필터 API 가 없어 이미 받아온 목록을 거르는 임시
  *   구현이다(#90). 전부 걸러지면 `ProductGrid` 가 빈 상태를 보여준다.
- * - `useProducts` 를 이 컴포넌트와 `ProductGrid` 가 각각 구독한다 — 같은 쿼리 키라
- *   요청은 중복되지 않는다. 여기서는 `filterProducts` 통과 개수를 써야 해서 원본
- *   `pagination.totalCount` 가 아니라 걸러낸 길이를 센다. 로딩/에러 UI 는 `ProductGrid` 전담.
+ * - `useProducts` 는 이 컴포넌트만 구독한다(api-convention §8 — 컨테이너 계층 하나가
+ *   로딩·에러·빈 상태를 책임진다) — `ProductGrid` 는 걸러진 `items`/`isPending`/`isError`
+ *   를 props 로만 받는 순수 표현 컴포넌트다(#90 리뷰 반영, 2026-09-16 — 예전엔 이 화면과
+ *   `ProductGrid` 가 각각 `useProducts` 를 구독해 컨테이너 책임이 둘로 쪼개져 있었다).
  */
 export function SearchResultSection({ query }: SearchResultSectionProps) {
   const [sort, setSort] = useState<ProductListParams['sort']>('recommend');
@@ -99,9 +100,10 @@ export function SearchResultSection({ query }: SearchResultSectionProps) {
   const [coupon, setCoupon] = useState(false);
   const [membership, setMembership] = useState(false);
   const [isFilterSheetOpen, setFilterSheetOpen] = useState(false);
-  const { data } = useProducts({ query, sort });
+  const { data, isPending, isError } = useProducts({ query, sort });
   const filters = { kurlyOnly, coupon, membershipBenefit: membership };
-  const filteredCount = data ? filterProducts(data.items, filters).length : 0;
+  const items = data ? filterProducts(data.items, filters) : [];
+  const filteredCount = items.length;
 
   const resetFilters = () => {
     setKurlyOnly(false);
@@ -161,7 +163,12 @@ export function SearchResultSection({ query }: SearchResultSectionProps) {
         </div>
       </div>
 
-      <ProductGrid query={query} sort={sort} filters={filters} onResetFilters={resetFilters} />
+      <ProductGrid
+        items={items}
+        isPending={isPending}
+        isError={isError}
+        onResetFilters={resetFilters}
+      />
 
       <FilterSheet
         open={isFilterSheetOpen}

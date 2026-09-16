@@ -1,51 +1,44 @@
-'use client';
-
 import { FloatingButton } from '@/components/atoms/FloatingButton';
 import { Icon } from '@/components/atoms/Icon';
-import { ProductCard } from '@/components/molecules/product/ProductCard';
+import { SearchResultProductCard } from '@/components/molecules/product/SearchResultProductCard';
 import { ErrorState } from '@/components/molecules/shared/ErrorState';
-import { filterProducts, useProducts, type ProductQuickFilters } from '@/hooks/product/useProducts';
-import type { ProductListParams } from '@/types/product';
+import type { Product } from '@/types/product';
 
 /**
- * 검색 결과 상품 카드 그리드 (organism, Figma node 882-60583). `useProducts` 를 직접
- * 호출해 로딩·에러·빈 상태까지 이 컨테이너가 책임진다(api-convention §8).
+ * 검색 결과 상품 카드 그리드 (organism, Figma node 882-60583) — 순수 표현 컴포넌트.
+ *
+ * `useProducts` 조회와 `filterProducts` 필터링은 부모 `SearchResultSection` 이 소유한다
+ * (api-convention §8 — "이 훅을 소비하는 화면/organism 컨테이너"가 로딩·에러·빈 상태를
+ * 정의하는 계층이지, 표현 컴포넌트가 아니다). 원래는 이 컴포넌트도 `useProducts` 를
+ * 직접 호출했는데, 부모가 필터링된 개수(`filteredCount`) 때문에 이미 같은 훅을 구독하고
+ * 있어 컨테이너가 둘로 쪼개져 있었다 — 같은 쿼리 키라 실제 네트워크 요청이 중복되진
+ * 않지만(TanStack Query 캐시), "누가 로딩/에러/빈 상태를 책임지는가"가 두 컴포넌트에
+ * 흩어지는 관심사 분리 위반이었다(#90 리뷰 반영, 2026-09-16). 지금은 이 컴포넌트가
+ * `items`/`isPending`/`isError` 를 그대로 받아 렌더만 한다.
  *
  * 고정폭 카드 + `flex-wrap` 이 아니라 `grid-cols-2` 다 — Figma 402px 실측(180px 두 장)을
  * 고정폭으로 옮기면 그보다 좁은 실기기(390px 등)에서 폭 합이 컨테이너를 넘겨 1열로
  * 깨진다(#90 실기기 QA 재현). 종횡비는 카드의 `aspect-3/4` 가 유지한다.
- *
- * `filters`(Kurly Only/멤버스혜택/쿠폰)는 쿼리 파라미터가 아니라 응답을 받은 뒤
- * `filterProducts` 로 좁힌다 — 필터 API 가 아직 없어서다(#90). 전부 걸러지면 빈 상태
- * (node 882-60444 "EmptyStateView")가 뜬다.
  */
 export interface ProductGridProps {
-  query: string;
-  sort?: ProductListParams['sort'];
-  /** Kurly Only/멤버스혜택/쿠폰 퀵필터 칩 상태 — 미지정 시 전부 미적용. */
-  filters?: ProductQuickFilters;
+  /** 부모가 `filterProducts` 로 이미 걸러낸 목록. */
+  items: Product[];
+  isPending: boolean;
+  isError: boolean;
   onAddToCart?: (productId: string) => void;
   /** 빈 상태(Figma node 882-60444 "EmptyStateView")의 "필터 초기화" 버튼 클릭 시 호출. */
   onResetFilters?: () => void;
   className?: string;
 }
 
-const NO_FILTERS: ProductQuickFilters = {
-  kurlyOnly: false,
-  coupon: false,
-  membershipBenefit: false,
-};
-
 export function ProductGrid({
-  query,
-  sort,
-  filters = NO_FILTERS,
+  items,
+  isPending,
+  isError,
   onAddToCart,
   onResetFilters,
   className,
 }: ProductGridProps) {
-  const { data, isPending, isError } = useProducts({ query, sort });
-
   if (isPending) {
     return (
       <p className="text-label-m text-fg-tertiary w-full px-4 py-8 text-center">
@@ -64,8 +57,6 @@ export function ProductGrid({
       />
     );
   }
-
-  const items = filterProducts(data.items, filters);
 
   if (items.length === 0) {
     return (
@@ -89,7 +80,7 @@ export function ProductGrid({
         .join(' ')}
     >
       {items.map((item) => (
-        <ProductCard
+        <SearchResultProductCard
           key={item.id}
           imageSrc={item.thumbnailUrl}
           name={item.name}
