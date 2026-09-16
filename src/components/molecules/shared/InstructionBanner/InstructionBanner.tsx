@@ -11,18 +11,20 @@ export type InstructionBannerProps = {
 
 export function InstructionBanner({ text, className }: InstructionBannerProps) {
   return (
-    <div
-      className={[
-        // mx-5(20px): Figma 실측(node 665:43698, x=20/width=362/container 402)이 여백
-        // margin/default(16px) 가 아니라 20px 다 — 이 배너만의 예외.
-        'bg-surface-secondary mx-5 flex h-11.75 items-center justify-center gap-3 rounded-full px-4',
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
-    >
-      <p className="text-caption-m text-fg whitespace-nowrap">{text}</p>
-      <Icon name="touch" size={40} aria-hidden />
+    // px-5(20px, Figma node 848:74853 실측 — margin/default 16px 아님) 인셋 wrapper +
+    // 안쪽 w-full. mx-5 단독이면 부모가 items-start 라 콘텐츠 크기로 쪼그라든다.
+    <div className="w-full px-5">
+      <div
+        className={[
+          'bg-surface-secondary flex h-11.75 w-full items-center justify-center gap-3 rounded-full px-4',
+          className,
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
+        <p className="text-caption-m text-fg whitespace-nowrap">{text}</p>
+        <Icon name="touch" size={40} aria-hidden />
+      </div>
     </div>
   );
 }

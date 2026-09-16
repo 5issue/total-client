@@ -38,11 +38,8 @@ export interface ModalProps {
    *  기본값은 기존 소비자(CartView 삭제 확인 등)가 실측한 값 그대로. */
   cardClassName?: string;
   /** 백드롭(전체화면 딤 레이어) 전체 override — 같은 원칙으로 완전 대체.
-   *  기본값은 기존 소비자 그대로(`bg-overlay` z-50). 상품 상세 "문의" 탭의 비밀글
-   *  알림처럼 상단 헤더·하단 CTA 바가 딤 위로 밝게 떠 있어야 하는 화면(Figma
-   *  node 665:43924 `DimmedOverlay`)은 그 두 sticky 요소의 z-index(30)보다 낮은
-   *  값 + Figma 실측 색(`rgba(0,0,0,0.5)`, 프로젝트 `--overlay` 토큰과 다른 값)으로
-   *  override 해서 쓴다. */
+   *  기본값은 기존 소비자 그대로(`bg-overlay` z-50). 헤더·하단 CTA 바를 딤 위로
+   *  밝게 띄워야 하는 화면은 그 sticky 요소들의 z-index 보다 낮은 값으로 override. */
   overlayClassName?: string;
   /** 제목 타이포 override. 기본 `text-heading-2 text-fg`. */
   titleClassName?: string;

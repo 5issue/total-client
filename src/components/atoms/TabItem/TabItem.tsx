@@ -17,6 +17,14 @@ import { forwardRef, type KeyboardEventHandler } from 'react';
  * 프레임 사이 간격이 아니라 프레임↔텍스트 내부 패딩(`px-2`) — TabBar 는 아이템끼리
  * gap 없이 바로 붙인다.
  *
+ * `md`(Heading/H5_Medium, 16px)는 lg(18px)보다 좁은 라벨 슬롯이 필요한 상품 상세
+ * TabBar 용 — lg 는 이미 18px 로 쓰이는 화면들이 있어 그대로 두고 옵션을 추가했다.
+ *
+ * `fitted` 는 `shrink-0` 을 `flex-1 shrink` 로 완전히 교체한다(같은 속성을 다투는
+ * 유틸리티 두 개를 동시에 넣지 않는다 — Tailwind 의 클래스 우선순위는 소스 순서에
+ * 좌우돼 보장되지 않는다). `min-w-11`(44px 터치 타깃)은 그대로 둬서 lg 의
+ * `min-w-24`(CartView 가 쓰는 조합)엔 영향 없다.
+ *
  * `variant="filled"`(issue #67, Figma node 2923-2605~2733 "Tab_item" 카운트뱃지
  * 추가분)는 완전히 다른 박스 모델이다 — 밑줄 대신 하단 2px 바, 인라인 행이 아니라
  * `flex-col` 고정 높이(48px) + 배지 카운트. 별도 atom 으로 쪼개는 대신 같은
@@ -25,7 +33,7 @@ import { forwardRef, type KeyboardEventHandler } from 'react';
  * 별도 prop 없이 `active:` 유사클래스로 처리 — 컨트롤드 상태를 만들 이유가 없다.
  */
 export type TabItemTone = 'brand-secondary' | 'brand-primary' | 'black';
-export type TabItemSize = 'sm' | 'lg';
+export type TabItemSize = 'sm' | 'md' | 'lg';
 export type TabItemVariant = 'underline' | 'filled';
 
 const TONE_CLASSNAME: Record<TabItemTone, string> = {
@@ -36,6 +44,7 @@ const TONE_CLASSNAME: Record<TabItemTone, string> = {
 
 const SIZE_CLASSNAME: Record<TabItemSize, string> = {
   sm: 'text-label-l',
+  md: 'text-heading-5',
   lg: 'min-w-24 text-heading-2',
 };
 
@@ -48,10 +57,13 @@ export type TabItemProps = {
   count?: number;
   /** active 상태 색. 기본 brand-secondary(#50006B, 상품설명 등 콘텐츠 탭). filled 는 항상 흑백(fg)이라 무시 */
   tone?: TabItemTone;
-  /** 기본 lg(Heading/M 18px, 최소폭 96px). 추천 키워드 탭처럼 작은 맥락은 sm(Label/M 14px) */
+  /** 기본 lg(Heading/M 18px, 최소폭 96px). md 는 Heading/H5 16px, 최소폭 없이 `fitted`
+   *  와 함께 씀(상품 상세 TabBar). 추천 키워드 탭처럼 작은 맥락은 sm(Label/M 14px) */
   size?: TabItemSize;
   /** roving tabIndex — TabBar 가 관리(활성 탭만 0, 나머지 -1). 단독 사용 시 기본 포커스 가능(0) */
   tabIndex?: number;
+  /** TabBar 의 균등분할 모드 — 폭을 콘텐츠가 아니라 `flex-1` 로 정한다(TabBar 참고). */
+  fitted?: boolean;
   onClick?: () => void;
   onKeyDown?: KeyboardEventHandler<HTMLButtonElement>;
   className?: string;
@@ -66,6 +78,7 @@ export const TabItem = forwardRef<HTMLButtonElement, TabItemProps>(function TabI
     tone = 'brand-secondary',
     size = 'lg',
     tabIndex = 0,
+    fitted = false,
     onClick,
     onKeyDown,
     className,
@@ -96,6 +109,7 @@ export const TabItem = forwardRef<HTMLButtonElement, TabItemProps>(function TabI
   }
 
   const colorClassName = active ? TONE_CLASSNAME[tone] : 'border-transparent text-fg-secondary';
+  const shrinkClassName = fitted ? 'flex-1 shrink' : 'shrink-0';
 
   return (
     <button
@@ -106,7 +120,7 @@ export const TabItem = forwardRef<HTMLButtonElement, TabItemProps>(function TabI
       tabIndex={tabIndex}
       onClick={onClick}
       onKeyDown={onKeyDown}
-      className={`flex h-11 min-w-11 shrink-0 items-center justify-center border-b-2 px-2 whitespace-nowrap transition-colors motion-reduce:transition-none ${colorClassName} ${SIZE_CLASSNAME[size]} ${className ?? ''}`.trim()}
+      className={`flex h-11 min-w-11 items-center justify-center border-b-2 px-2 whitespace-nowrap transition-colors motion-reduce:transition-none ${shrinkClassName} ${colorClassName} ${SIZE_CLASSNAME[size]} ${className ?? ''}`.trim()}
     >
       {label}
     </button>

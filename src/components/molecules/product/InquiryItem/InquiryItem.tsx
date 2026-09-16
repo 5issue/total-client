@@ -39,30 +39,34 @@ export function InquiryItem({
   className,
 }: InquiryItemProps) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-expanded={locked ? undefined : expanded}
-      className={[
-        'flex w-full flex-col items-start gap-1 border-b border-neutral-400 px-4 py-4 text-left',
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
-    >
-      <span className="inline-flex items-center gap-1">
-        <span className={locked ? 'text-body-s text-fg-disabled' : 'text-body-s text-fg'}>
-          {title}
+    // padding 은 border 위치를 안 바꾼다 — 구분선(border-b)을 화면 양끝에서 16px
+    // 띄우려면 버튼이 아니라 바깥 wrapper 에 px-4 를 줘야 한다.
+    <div className="w-full px-4">
+      <button
+        type="button"
+        onClick={onClick}
+        aria-expanded={locked ? undefined : expanded}
+        className={[
+          'flex w-full flex-col items-start gap-1 border-b border-neutral-400 py-4 text-left',
+          className,
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
+        <span className="inline-flex items-center gap-1">
+          <span className={locked ? 'text-body-s text-fg-disabled' : 'text-body-s text-fg'}>
+            {title}
+          </span>
+          {locked ? <Icon name="lock" size={20} aria-hidden className="text-fg-disabled" /> : null}
         </span>
-        {locked ? <Icon name="lock" size={20} aria-hidden className="text-fg-disabled" /> : null}
-      </span>
-      <span className="inline-flex items-center gap-1">
-        <span className="text-label-m text-primary">{answerLabel}</span>
-        <Separator />
-        <span className="text-label-xs text-fg-disabled">{author}</span>
-        <Separator />
-        <span className="text-label-xs text-fg-disabled">{date}</span>
-      </span>
-    </button>
+        <span className="inline-flex items-center gap-1">
+          <span className="text-label-m text-primary">{answerLabel}</span>
+          <Separator />
+          <span className="text-label-xs text-fg-disabled">{author}</span>
+          <Separator />
+          <span className="text-label-xs text-fg-disabled">{date}</span>
+        </span>
+      </button>
+    </div>
   );
 }

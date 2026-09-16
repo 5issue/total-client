@@ -100,7 +100,14 @@ export function ProductDetailView() {
             { icon: 'cart', label: '장바구니로 이동', href: '/cart' },
           ]}
         />
-        <TabBar tone="brand-secondary" activeId={activeTab} onChange={setActiveTab} items={TABS} />
+        <TabBar
+          tone="brand-secondary"
+          size="md"
+          fitted
+          activeId={activeTab}
+          onChange={setActiveTab}
+          items={TABS}
+        />
       </div>
 
       <div className="flex flex-1 flex-col">

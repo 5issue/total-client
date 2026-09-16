@@ -6,16 +6,14 @@ import { MOCK_REVIEWS } from './mock';
 
 /**
  * "후기" 탭 전체 콘텐츠 (organism). Figma "5팀 UI 공유용" node 665-43657 —
- * `ReviewSummaryCard` + `ListControlBar` + `Review_Info_Card` 8건(구분선 포함, 마지막
- * 카드 뒤엔 구분선 없음).
+ * `ReviewSummaryCard` + `ReviewListControlBar` + `ReviewCard` 8건(구분선 포함,
+ * 마지막 카드 뒤엔 없음).
  *
- * "총 30,042개"(ListControlBar)와 상위 `TabBar` 의 "후기 3,000"(ProductDetailView)은
- * 같은 Figma 화면(node 665:43657/43685) 안에서도 서로 다른 숫자다 — 디자인 원본 자체의
- * 불일치라 둘 다 각 노드 실측 그대로 두고 임의로 맞추지 않았다.
+ * "총 30,042개"(목록)와 상위 `TabBar` 의 "후기 3,000"은 같은 Figma 화면 안에서도
+ * 서로 다른 숫자다 — 디자인 원본 자체의 불일치라 그대로 둔다.
  *
- * `ReviewSummaryCard`(y=160~360)와 그 아래 리스트 프레임(y=368) 사이에 metadata 실측
- * 8px 틈이 있다 — 화면 배경(bg/secondary, `bg-surface-secondary`)이 카드 사이로 살짝
- * 비치는 간격이라 마진이 아니라 그 배경색을 가진 스페이서로 재현했다.
+ * `ReviewSummaryCard`와 목록 사이 8px 틈은 화면 배경색(`bg-surface-secondary`)이
+ * 카드 사이로 비치는 간격이라, 마진이 아니라 그 색을 가진 스페이서로 재현했다.
  */
 export function ProductReviewTab() {
   return (

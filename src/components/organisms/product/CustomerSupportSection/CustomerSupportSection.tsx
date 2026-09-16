@@ -14,7 +14,8 @@ export function CustomerSupportSection() {
   return (
     <div className="bg-surface flex w-full flex-col items-center gap-8 pt-8">
       <div className="text-fg-secondary flex w-full flex-col items-center gap-3 text-center">
-        <p className="text-heading-4">고객행복센터</p>
+        {/* Figma: Heading/H5_Medium(16/500) — heading-4 는 600(SemiBold)이라 더 굵다 */}
+        <p className="text-heading-5">고객행복센터</p>
         <p className="text-label-xs">궁금하신 점이나 서비스 이용에 불편한 점이 있으신가요?</p>
         <div className="border-border w-67.5 border-t" />
         <p className="text-label-xs w-61 text-center">
