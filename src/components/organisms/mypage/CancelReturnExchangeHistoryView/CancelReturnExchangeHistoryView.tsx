@@ -4,7 +4,10 @@ import { useMemo, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
+import { FloatingButton } from '@/components/atoms/FloatingButton';
+import { Icon } from '@/components/atoms/Icon';
 import { OrderRefundStatusCard } from '@/components/molecules/mypage/OrderRefundStatusCard';
+import { ErrorState } from '@/components/molecules/shared/ErrorState';
 import { TabBar } from '@/components/molecules/shared/TabBar';
 import type { TabBarItem } from '@/components/molecules/shared/TabBar';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
@@ -31,6 +34,12 @@ import {
  *   보여줄 두 예시(반품/취소) 모두 꺼진 상태라 구현하지 않았다.
  * - Figma `showButton1`("반품 내역" 버튼)도 두 예시 모두 꺼져 있어 구현하지 않았다.
  *
+ * 빈 상태(node 779-61022/61066/61110/61154, 탭별 4종)는 공용 `ErrorState` +
+ * `FloatingButton` 조합으로 그대로 재사용한다(`CartView`·`AddressManageView` 와 동일
+ * 패턴) — 아이콘·문구 톤·버튼 스타일이 전부 일치해 새 컴포넌트를 만들 이유가 없다.
+ * "1:1 문의 가기" 버튼은 클릭해도 화면 이동이 없다(사용자 확인 사항) — 문의 채널이
+ * 아직 없어 `onClick` 없이 버튼만 둔다.
+ *
  * 진행 단계 인디케이터 표시 여부는 `shouldShowStepIndicator`(mock.ts) 로 계산한다 —
  * "완료" 상태 도달 후 5일 경과 시 인디케이터가 사라진다(사용자 확인 사항).
  *
@@ -47,6 +56,13 @@ const TAB_ITEMS: TabBarItem[] = [
   { id: '반품', label: '반품' },
   { id: '교환', label: '교환' },
 ];
+
+const EMPTY_STATE_TITLE: Record<'전체' | CancelReturnExchangeType, string> = {
+  전체: '취소·반품·교환 내역이 없어요',
+  취소: '취소 내역이 없어요',
+  반품: '반품 내역이 없어요',
+  교환: '교환 내역이 없어요',
+};
 
 export function CancelReturnExchangeHistoryView() {
   const router = useRouter();
@@ -80,9 +96,13 @@ export function CancelReturnExchangeHistoryView() {
 
       <div className="flex flex-1 flex-col gap-5 px-4 pt-5 pb-10">
         {items.length === 0 ? (
-          <p className="text-heading-5 text-fg-quaternary py-10 text-center">
-            {activeTab} 내역이 없어요
-          </p>
+          <div className="flex flex-1 flex-col items-center justify-center">
+            <ErrorState
+              icon={<Icon name="alert" size={56} aria-hidden />}
+              title={EMPTY_STATE_TITLE[activeTab]}
+              action={<FloatingButton>1:1 문의 가기</FloatingButton>}
+            />
+          </div>
         ) : (
           items.map((item) => {
             const steps = item.type === '교환' ? undefined : STEP_LABELS[item.type];

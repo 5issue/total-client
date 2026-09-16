@@ -79,6 +79,19 @@ export const ExchangeTabShowsEmptyState: Story = {
   },
 };
 
+export const EmptyStateInquiryButtonDoesNotNavigate: Story = {
+  tags: ['!autodocs'],
+  play: async ({ canvasElement }) => {
+    // node 779-61154("교환 내역이 없는 경우") — "1:1 문의 가기" 버튼은 문의 채널이
+    // 아직 없어 클릭해도 화면 이동이 없다(사용자 확인 사항).
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('tab', { name: '교환' }));
+
+    await userEvent.click(canvas.getByRole('button', { name: '1:1 문의 가기' }));
+    await expect(getRouter().push).not.toHaveBeenCalled();
+  },
+};
+
 export const CardClickNavigatesToDetail: Story = {
   tags: ['!autodocs'],
   play: async ({ canvasElement }) => {
