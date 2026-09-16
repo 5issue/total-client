@@ -54,6 +54,8 @@
   --color-cyan: #00c0da; /* Secondary/cyan */
   --color-banner: #a500f6; /* Secondary/Banner-Purple */
   --color-blue: #69a3e1; /* Secondary/Blue — node 2674-4482 그라데이션에서 확인 */
+  --color-sky: #aadce7; /* Semantic/Banner (node 1233-113360 BannerCard 배경) — 위 --color-banner
+    (Secondary/Banner-Purple)와는 이름만 비슷한 별개의 Figma 변수, 값도 다르다(퍼플 vs 하늘색) */
 
   /* 소셜 로그인 브랜드색 — Figma "Secondary/Brand-*" */
   --color-naver: #00cb48;
