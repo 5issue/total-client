@@ -1,3 +1,5 @@
+'use client';
+
 import { Icon } from '@/components/atoms/Icon';
 import {
   ProductDeliveryInfo,
@@ -34,6 +36,11 @@ function ShippingChevron() {
  * `justify-between` 로 재구성했다. 공유 버튼은 디자인 확인 결과(코멘트 피드백)
  * Figma 실측 그대로 `absolute top-8.75 right-4.25`(35px/17px, 카드 패딩 엣지 기준) —
  * 상품명 줄과 한 flex 행이 아니라 헤더 블록 전체에 겹쳐진 고정 위치라 absolute 가 맞다.
+ *
+ * `onReviewClick`/`onShare` 가 JSX 에 `onClick` 으로 직접 걸려 있어(호출부가 안 넘겨도
+ * 조건부 렌더 분기 자체는 파일에 존재) 이 컴포넌트는 `'use client'` 가 필요하다 —
+ * `ProductDetailView`(RSC 셸) 가 이 카드를 직접 렌더하면서도 그 잎만 클라 경계를 갖는다
+ * (코드래빗 리뷰 반영 — 상세 화면 전체가 client 였던 걸 분리, #101 QA).
  *
  * 가격 숫자는 `font-numeric`(SF Pro) — "원" 접미사는 컴포넌트가 붙인다(ProductCard 관례).
  * 후기 건수 클릭(후기 탭 이동)·공유는 이번 이슈 범위 밖이라 핸들러 미전달 시 비상호작용
