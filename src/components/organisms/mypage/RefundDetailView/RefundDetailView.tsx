@@ -303,8 +303,9 @@ function CostRow({ label, value }: { label: string; value: string }) {
 }
 
 /** 처리 일정 4단계 중 한 칸 — 좌우 연결선 + 점 아이콘 + 라벨(+ 캡션).
- * Figma 실측: 1단계(반품접수)만 라벨이 tertiary, 나머지 3단계는 primary(#222) — 이미 지난
- * 단계라 오히려 흐리게 처리된 상태로 그대로 옮겼다. */
+ * Figma node 848-87348 실측: 점은 4단계 모두 `Icon/Disabled`(#c9d5df = `neutral-400`).
+ * 진행 상태 인디케이터(`dot-active` 퍼플)가 아니라 안내 타임라인이라 비활성 점만 쓴다.
+ * 라벨은 1단계(반품접수)만 tertiary, 나머지 3단계는 primary(#222). */
 function TimelineStep({
   label,
   caption,
@@ -322,7 +323,7 @@ function TimelineStep({
     <li className="flex flex-1 flex-col items-center gap-2">
       <div className="flex w-full items-center gap-2">
         <span aria-hidden className={first ? 'h-px flex-1' : 'bg-border h-px flex-1'} />
-        <Icon name="dot-active" size={20} aria-hidden />
+        <Icon name="dot" size={20} className="text-neutral-400" aria-hidden />
         <span aria-hidden className={last ? 'h-px flex-1' : 'bg-border h-px flex-1'} />
       </div>
       <div className="flex flex-col items-center text-center">
