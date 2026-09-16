@@ -108,11 +108,10 @@ export const ExpandsToShowFourthProduct: Story = {
   tags: ['!autodocs'],
   args: { products: FOUR_PRODUCTS },
   play: async ({ canvasElement }) => {
+    // 숨김/펼침 자체의 카운트 검증은 AccordionBreakdown 자신의 스토리가 이미
+    // 담당한다(이 카드엔 인디케이터도 같은 listitem 역할을 써서 개수가 섞인다) —
+    // 여기서는 카드가 AccordionBreakdown 에 상품 목록을 올바르게 넘기는지만 본다.
     const canvas = within(canvasElement);
-    await expect(
-      canvas.queryByText('[풀무원] 동물복지 치킨 너겟 오리지널'),
-    ).not.toBeInTheDocument();
-
     await userEvent.click(canvas.getByRole('button', { name: '총 4건 제품 펼쳐보기' }));
 
     await expect(canvas.getByText('[풀무원] 동물복지 치킨 너겟 오리지널')).toBeInTheDocument();

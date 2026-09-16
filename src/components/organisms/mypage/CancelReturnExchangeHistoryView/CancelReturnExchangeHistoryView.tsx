@@ -60,12 +60,15 @@ export function CancelReturnExchangeHistoryView() {
         onLeadingClick={() => router.back()}
         title="취소·반품·교환 내역"
       />
+      {/* Figma(node 666-30388): 탭 바 배경은 흰색(Bg/default) — 아래 목록의 회색
+          배경(Bg/secondary)과 다르다. */}
       <TabBar
         items={TAB_ITEMS}
         activeId={activeTab}
         onChange={(id) => setActiveTab(id as '전체' | CancelReturnExchangeType)}
         tone="brand-secondary"
         size="md"
+        className="bg-surface"
       />
 
       <div className="flex flex-1 flex-col gap-5 px-4 pt-5 pb-10">
@@ -84,6 +87,7 @@ export function CancelReturnExchangeHistoryView() {
                 key={item.id}
                 steps={showIndicator ? steps : undefined}
                 activeStepIndex={activeStepIndex}
+                indicatorLabel={`${item.type} 진행 상태`}
                 status={item.status}
                 receivedDateLabel={item.receivedDateLabel}
                 products={item.products}
