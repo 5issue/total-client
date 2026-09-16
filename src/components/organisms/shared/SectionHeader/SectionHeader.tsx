@@ -23,6 +23,14 @@ import { Icon, type IconName } from '@/components/atoms/Icon';
  * 제목 `Heading/H0_SemiBold` + `Text/Primary` → `text-heading-0 text-fg`,
  * 터치 타깃 `Icon Height/XL` 44 → `size-11`, 여백 `Gap/XS`·`Margin/Default` → `pl-2 pr-4`.
  * 아이콘 글리프는 32 — Figma 실측(28)보다 키운 값으로, 모바일에서 back/close 가시성을 높였다.
+ *
+ * `pt-[calc(env(safe-area-inset-top)+4px)]`: `viewport-fit: cover`(app/layout.tsx)라 콘텐츠가
+ * 기기 상단 안전영역(노치·상태바)까지 그려진다 — 이 패딩 없으면 헤더 행(뒤로가기/제목/
+ * 아이콘)이 상태바(시계·네트워크·배터리)와 겹친다(실기기 QA 발견, node 665:43034
+ * TopNavigationBar 를 이 컴포넌트로 구현한 상품 상세에서 재현). `HomeHeader` 가
+ * 이미 같은 이유로 쓰던 패턴 — 이 공용 헤더에는 빠져 있어 이 컴포넌트를 쓰는 모든
+ * 화면(장바구니/체크아웃/검색/배송지 등)에 실기기에서 동일하게 있었을 결함이다.
+ * `env()`는 Figma 실측 픽셀이 아니라 기기별 노치 높이라 토큰화 대상이 아니다.
  */
 interface SectionHeaderActionBase {
   icon: IconName;
@@ -129,7 +137,13 @@ export function SectionHeader({
 
   return (
     <header
-      className={['bg-surface flex items-center py-1 pr-4 pl-2', className]
+      className={[
+        // py-1 대신 pb-1 + pt-[calc(...)] 로 쪼갰다 — py-1 과 pt-[...] 를 같이 쓰면
+        // 같은 우선순위(단일 클래스)라 Tailwind 가 생성한 스타일시트 순서에 따라
+        // padding-top 이 뒤엉킨다(DisplaySectionList 의 font-bold! 와 같은 함정).
+        'bg-surface flex items-center pt-[calc(env(safe-area-inset-top)+4px)] pr-4 pb-1 pl-2',
+        className,
+      ]
         .filter(Boolean)
         .join(' ')}
     >
