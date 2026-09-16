@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import { FloatingButton } from '@/components/atoms/FloatingButton';
 import { Icon } from '@/components/atoms/Icon';
@@ -24,8 +24,12 @@ import {
  * 취소·반품·교환 내역 화면 (organism) — Figma node 666-30339(전체) / 666-30389
  * (5일 경과) / 666-30892(상품 4개 이상). `/mypage/orders/cancel-return-exchange`.
  *
- * 탭(전체/취소/반품/교환) 전환은 로컬 state — 서버 필터링 없이 이미 받아온 목록을
- * 클라에서 타입으로 거른다(BE 연동 전 단계라 목록 자체가 mock).
+ * 탭(전체/취소/반품/교환) 선택은 URL 쿼리(`?tab=`)가 단일 진실 소스다 — 서버 필터링
+ * 없이 이미 받아온 목록을 클라에서 타입으로 거른다(BE 연동 전 단계라 목록 자체가
+ * mock). 로컬 state 로 두면 카드 클릭 → 상세 화면 → `router.back()` 왕복 시 이 화면이
+ * 다시 마운트되면서 선택이 "전체"로 리셋된다(사용자 확인 사항) — `router.replace` 로
+ * 쿼리만 갱신해 히스토리를 쌓지 않고, 상세 화면에서 돌아오면 떠날 때의 탭 그대로
+ * 복원된다.
  *
  * 이번 작업 범위는 **퍼블리싱만**이다:
  * - 교환은 Figma 예시 화면에 실제 항목이 없어 mock 데이터가 없다 — "교환" 탭을 누르면
@@ -57,6 +61,14 @@ const TAB_ITEMS: TabBarItem[] = [
   { id: '교환', label: '교환' },
 ];
 
+const TAB_PARAM = 'tab';
+
+function isCancelReturnExchangeTab(
+  value: string | null,
+): value is '전체' | CancelReturnExchangeType {
+  return TAB_ITEMS.some((item) => item.id === value);
+}
+
 const EMPTY_STATE_TITLE: Record<'전체' | CancelReturnExchangeType, string> = {
   전체: '취소·반품·교환 내역이 없어요',
   취소: '취소 내역이 없어요',
@@ -66,7 +78,21 @@ const EMPTY_STATE_TITLE: Record<'전체' | CancelReturnExchangeType, string> = {
 
 export function CancelReturnExchangeHistoryView() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'전체' | CancelReturnExchangeType>('전체');
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get(TAB_PARAM);
+  const activeTab = isCancelReturnExchangeTab(tabParam) ? tabParam : '전체';
+
+  const setActiveTab = (id: '전체' | CancelReturnExchangeType) => {
+    const params = new URLSearchParams(searchParams);
+    if (id === '전체') {
+      params.delete(TAB_PARAM);
+    } else {
+      params.set(TAB_PARAM, id);
+    }
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  };
 
   const items = useMemo(
     () =>
