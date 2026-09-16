@@ -93,8 +93,10 @@ export const MOCK_CANCEL_RETURN_EXCHANGE_ITEMS: CancelReturnExchangeItem[] = [
     type: '반품',
     status: '반품완료',
     receivedDateLabel: '접수일자 2026. 08. 20',
-    // 데모 기준일(아래 REFERENCE_TODAY)보다 5일 이상 지난 완료 항목 — 인디케이터 소멸 확인용.
-    completedAt: '2026-08-21',
+    // 데모 기준일(아래 REFERENCE_TODAY)보다 5일 미만 지난 완료 항목 — 완료 상태에서도
+    // 인디케이터가 계속 보여야 한다(사용자 확인 사항). 5일 경과 후 소멸하는 케이스는
+    // OrderRefundStatusCard 자신의 스토리(`CompletedWithoutIndicator`)가 별도로 검증한다.
+    completedAt: '2026-08-24',
     products: FOUR_PRODUCTS,
   },
   {
@@ -102,7 +104,7 @@ export const MOCK_CANCEL_RETURN_EXCHANGE_ITEMS: CancelReturnExchangeItem[] = [
     type: '취소',
     status: '취소완료',
     receivedDateLabel: '접수일자 2026. 08. 20',
-    completedAt: '2026-08-21',
+    completedAt: '2026-08-24',
     products: FOUR_PRODUCTS,
   },
 ];

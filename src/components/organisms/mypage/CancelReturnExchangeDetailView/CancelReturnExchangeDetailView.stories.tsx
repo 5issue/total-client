@@ -29,8 +29,8 @@ type Story = StoryObj<typeof meta>;
 /** 반품 상세, 상품 1개(node 848-83792) — 인디케이터 + 상품별 "상품불량" 증빙 사진. */
 export const ReturnRequested: Story = {};
 
-/** 반품 상세, 상품 4개(node 666-30712) — 상품마다 증빙 사진이 반복되고, 완료 후
- * 5일 경과라 인디케이터가 없다. */
+/** 반품 상세, 상품 4개(node 666-30712) — 상품마다 증빙 사진이 반복된다. 완료 후
+ * 5일 미만이라 인디케이터도 계속 보인다(사용자 확인 사항). */
 export const ReturnCompletedFourProducts: Story = {
   args: { item: RETURN_COMPLETED! },
 };
@@ -40,7 +40,8 @@ export const CancelRequested: Story = {
   args: { item: CANCEL_REQUESTED! },
 };
 
-/** 취소 상세, 상품 4개(node 666-30539) — 완료 후 5일 경과라 인디케이터가 없다. */
+/** 취소 상세, 상품 4개(node 666-30539) — 완료 후 5일 미만이라 인디케이터가 계속
+ * 보인다(사용자 확인 사항). */
 export const CancelCompletedFourProducts: Story = {
   args: { item: CANCEL_COMPLETED! },
 };
@@ -53,6 +54,16 @@ export const BackGoesBack: Story = {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole('button', { name: '뒤로 가기' }));
     await expect(getRouter().back).toHaveBeenCalledTimes(1);
+  },
+};
+
+export const CompletedShowsIndicator: Story = {
+  tags: ['!autodocs'],
+  args: { item: RETURN_COMPLETED! },
+  play: async ({ canvasElement }) => {
+    // 완료 후 5일 미만이면 상세 화면 상단에도 인디케이터가 계속 보인다(사용자 확인 사항).
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole('list', { name: '반품 진행 상태' })).toBeInTheDocument();
   },
 };
 

@@ -22,7 +22,10 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** 전체 탭 — 반품접수(4단계) + 취소접수(2단계) + 5일 경과 완료 2건(인디케이터 없음). */
+/**
+ * 전체 탭 — 반품접수(4단계, 진행중) + 취소접수(2단계, 진행중) + 완료 후 5일 미만인
+ * 반품완료·취소완료 2건. 완료 상태도 인디케이터를 계속 보여준다(사용자 확인 사항).
+ */
 export const Default: Story = {};
 
 // --- 인터랙션 테스트 전용 (autodocs 에서 숨김) ---
@@ -40,16 +43,17 @@ export const ShowsAllFourEntriesOnAllTab: Story = {
   tags: ['!autodocs'],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    // 인디케이터는 전체 단계를 라벨로 보여준다(활성 단계만 강조) — "반품접수" 진행
-    // 카드의 인디케이터가 "반품접수"(활성)~"반품완료"(마지막 단계) 를 전부 라벨로
-    // 그리고, 그 라벨이 5일 지나 인디케이터 없는 "반품완료" 카드의 제목과 겹쳐 각각
-    // 두 번씩 나타난다("택배회수"·"상품검수" 는 인디케이터에만 있어 한 번).
-    await expect(canvas.getAllByText('반품접수')).toHaveLength(2);
-    await expect(canvas.getByText('택배회수')).toBeInTheDocument();
-    await expect(canvas.getByText('상품검수')).toBeInTheDocument();
-    await expect(canvas.getAllByText('반품완료')).toHaveLength(2);
-    await expect(canvas.getAllByText('취소접수')).toHaveLength(2);
-    await expect(canvas.getAllByText('취소완료')).toHaveLength(2);
+    // 인디케이터는 전체 단계를 라벨로 보여준다(활성 단계만 강조) — 반품접수·반품완료
+    // 카드 둘 다 자기 인디케이터를 갖는다(완료 후 5일 미만이라 인디케이터 유지). 각 라벨은
+    // "카드 제목(자기 자신)" + "반품접수 카드 인디케이터" + "반품완료 카드 인디케이터"
+    // 3곳에 겹쳐 나타나고, 인디케이터에만 있는 중간 단계("택배회수"·"상품검수")는
+    // 두 카드의 인디케이터에서 한 번씩, 총 2번 나타난다. 취소도 동일한 구조(2단계).
+    await expect(canvas.getAllByText('반품접수')).toHaveLength(3);
+    await expect(canvas.getAllByText('택배회수')).toHaveLength(2);
+    await expect(canvas.getAllByText('상품검수')).toHaveLength(2);
+    await expect(canvas.getAllByText('반품완료')).toHaveLength(3);
+    await expect(canvas.getAllByText('취소접수')).toHaveLength(3);
+    await expect(canvas.getAllByText('취소완료')).toHaveLength(3);
   },
 };
 
@@ -59,10 +63,10 @@ export const CancelTabFiltersOutReturnEntries: Story = {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole('tab', { name: '취소' }));
 
-    // "취소접수"(카드 제목 + 인디케이터 활성 라벨)와 "취소완료"(인디케이터 마지막
-    // 단계 라벨 + 완료 카드 제목) 모두 두 번씩 나타난다.
-    await expect(canvas.getAllByText('취소접수')).toHaveLength(2);
-    await expect(canvas.getAllByText('취소완료')).toHaveLength(2);
+    // 취소접수·취소완료 카드 둘 다 자기 인디케이터를 갖는다(완료 후 5일 미만) — 각
+    // 라벨이 "카드 제목" + "두 카드의 인디케이터" 3곳에 겹쳐 나타난다.
+    await expect(canvas.getAllByText('취소접수')).toHaveLength(3);
+    await expect(canvas.getAllByText('취소완료')).toHaveLength(3);
     await expect(canvas.queryByText('반품접수')).not.toBeInTheDocument();
     await expect(canvas.queryByText('반품완료')).not.toBeInTheDocument();
   },
@@ -103,14 +107,15 @@ export const CardClickNavigatesToDetail: Story = {
   },
 };
 
-export const CompletedOldEntriesHaveNoIndicator: Story = {
+export const CompletedRecentEntriesShowIndicator: Story = {
   tags: ['!autodocs'],
   play: async ({ canvasElement }) => {
-    // 인디케이터가 있는 카드(반품접수 1건)에서만 단계 라벨이 렌더돼야 한다 — 5일
-    // 경과한 완료 카드(반품완료·취소완료)에 인디케이터가 또 붙으면 "택배회수"·
-    // "상품검수" 가 두 번씩 나타난다.
+    // 완료(반품완료·취소완료) 카드도 완료 후 5일이 지나지 않았다면 인디케이터를
+    // 계속 보여준다(사용자 확인 사항) — 반품/취소 각각 진행중 카드 + 완료 카드,
+    // 총 2개씩 자기 인디케이터(`aria-label="~ 진행 상태"`, ol 의 암묵적 role="list")
+    // 를 가진다.
     const canvas = within(canvasElement);
-    await expect(canvas.getAllByText('택배회수')).toHaveLength(1);
-    await expect(canvas.getAllByText('상품검수')).toHaveLength(1);
+    await expect(canvas.getAllByRole('list', { name: '반품 진행 상태' })).toHaveLength(2);
+    await expect(canvas.getAllByRole('list', { name: '취소 진행 상태' })).toHaveLength(2);
   },
 };
