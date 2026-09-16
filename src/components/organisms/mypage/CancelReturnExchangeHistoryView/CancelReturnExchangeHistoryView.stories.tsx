@@ -79,6 +79,17 @@ export const ExchangeTabShowsEmptyState: Story = {
   },
 };
 
+export const CardClickNavigatesToDetail: Story = {
+  tags: ['!autodocs'],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: '반품접수 상세보기' }));
+    await expect(getRouter().push).toHaveBeenCalledWith(
+      '/mypage/orders/cancel-return-exchange/r-1',
+    );
+  },
+};
+
 export const CompletedOldEntriesHaveNoIndicator: Story = {
   tags: ['!autodocs'],
   play: async ({ canvasElement }) => {

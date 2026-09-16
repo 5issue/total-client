@@ -33,6 +33,13 @@ import {
  *
  * 진행 단계 인디케이터 표시 여부는 `shouldShowStepIndicator`(mock.ts) 로 계산한다 —
  * "완료" 상태 도달 후 5일 경과 시 인디케이터가 사라진다(사용자 확인 사항).
+ *
+ * 카드를 누르면 상세 화면(`/mypage/orders/cancel-return-exchange/[id]`)으로 이동한다
+ * (사용자 확인 사항). Figma 목록 카드엔 별도 화살표 표시가 없어(showDetail 꺼짐)
+ * 새로 그리지 않고 카드 전체를 눌림 영역으로 둔다 — 안에 "총 N건 펼쳐보기" 버튼이
+ * 있어 `<a>`/`<button>` 으로 통째로 감싸면 인터랙티브 요소 중첩이라, `role="button"`
+ * div 로 만들고 그 버튼 쪽 클릭만 `stopPropagation` 으로 막는다
+ * (`AccordionBreakdown` 참고).
  */
 const TAB_ITEMS: TabBarItem[] = [
   { id: '전체', label: '전체' },
@@ -82,16 +89,31 @@ export function CancelReturnExchangeHistoryView() {
             const activeStepIndex = steps?.indexOf(item.status) ?? 0;
             const showIndicator = shouldShowStepIndicator(item, REFERENCE_TODAY);
 
+            const detailHref = `/mypage/orders/cancel-return-exchange/${item.id}`;
+
             return (
-              <OrderRefundStatusCard
+              <div
                 key={item.id}
-                steps={showIndicator ? steps : undefined}
-                activeStepIndex={activeStepIndex}
-                indicatorLabel={`${item.type} 진행 상태`}
-                status={item.status}
-                receivedDateLabel={item.receivedDateLabel}
-                products={item.products}
-              />
+                role="button"
+                tabIndex={0}
+                aria-label={`${item.status} 상세보기`}
+                onClick={() => router.push(detailHref)}
+                onKeyDown={(event) => {
+                  if (event.key !== 'Enter' && event.key !== ' ') return;
+                  event.preventDefault();
+                  router.push(detailHref);
+                }}
+                className="focus-visible:outline-border-active cursor-pointer rounded-xl outline-offset-2 focus-visible:outline-2"
+              >
+                <OrderRefundStatusCard
+                  steps={showIndicator ? steps : undefined}
+                  activeStepIndex={activeStepIndex}
+                  indicatorLabel={`${item.type} 진행 상태`}
+                  status={item.status}
+                  receivedDateLabel={item.receivedDateLabel}
+                  products={item.products}
+                />
+              </div>
             );
           })
         )}

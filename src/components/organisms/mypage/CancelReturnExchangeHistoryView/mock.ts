@@ -107,6 +107,46 @@ export const MOCK_CANCEL_RETURN_EXCHANGE_ITEMS: CancelReturnExchangeItem[] = [
   },
 ];
 
+/**
+ * 상세 화면 "환불 정보" 브레이크다운(node 848-83792/666-30539) — 반품/취소 두 예시
+ * 화면 모두 값이 완전히 같아 하나로 공유한다.
+ */
+export const MOCK_REFUND_PRODUCT_TOTAL = '35,240원';
+
+export const MOCK_REFUND_ROWS: {
+  label: string;
+  value: string;
+  tone?: 'tertiary' | 'primary';
+  details?: { label: string; value: string }[];
+}[] = [
+  { label: '상품 할인 금액', value: '-4,440원' },
+  { label: '배송비', value: '0원' },
+  { label: '카드즉시할인', value: '0원' },
+  {
+    label: '쿠폰할인 금액',
+    value: '0원',
+    details: [
+      { label: '상품 쿠폰', value: '0원' },
+      { label: '장바구니 쿠폰', value: '0원' },
+    ],
+  },
+  {
+    label: '적립금 · 컬리캐시',
+    value: '0원',
+    details: [
+      { label: '적립금', value: '0원' },
+      { label: '컬리캐시', value: '0원' },
+    ],
+  },
+  { label: '결제금액', value: '30,800원' },
+  { label: '환불 수단', value: '토스페이', tone: 'primary' },
+  { label: '환불 차감금액', value: '0원', tone: 'primary' },
+];
+
+export const MOCK_REFUND_EXPECTED_AMOUNT = '3,516원';
+export const MOCK_REFUND_EXPECTED_POINTS_LABEL = '잔환 예정 적립금 · 캐시 · 상품권';
+export const MOCK_REFUND_EXPECTED_POINTS_VALUE = '0원';
+
 /** 데모 기준 "오늘" — 위 완료 항목들의 5일 경과 여부가 이 날짜 기준으로 갈린다. */
 export const REFERENCE_TODAY = new Date('2026-08-27');
 

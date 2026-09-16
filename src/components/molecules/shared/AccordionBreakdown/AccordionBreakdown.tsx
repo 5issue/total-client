@@ -80,7 +80,13 @@ export function AccordionBreakdown({
       {hasToggle ? (
         <button
           type="button"
-          onClick={() => setOpen((v) => !v)}
+          onClick={(event) => {
+            // 카드 전체가 클릭 가능한 컨테이너 안에 놓일 수 있어(취소·반품·교환 내역
+            // 목록) 토글 클릭이 상위로 버블링돼 카드 자체의 클릭(상세 이동)까지
+            // 트리거하지 않도록 막는다.
+            event.stopPropagation();
+            setOpen((v) => !v);
+          }}
           className="text-heading-5 text-fg-tertiary mt-5 flex h-8 items-center justify-center gap-1"
         >
           {open ? collapseLabel : expandLabel(items.length)}
