@@ -19,6 +19,12 @@ import { Icon, type IconName } from '@/components/atoms/Icon';
  *
  * 홈 섹션 구획 헤더(제목 + 부제 + 전체보기)는 `molecules/shared/HomeSectionHeader` 로 별개다.
  *
+ * 상단 패딩은 `pt-header-safe`(globals.css) — `viewportFit:'cover'` + 상태바
+ * `black-translucent` 라 콘텐츠가 상태바 아래까지 깔린다. 이 헤더는 거의 모든 화면의
+ * 최상단이라 안전영역(`env(safe-area-inset-top)`)을 안 더하면 제목·아이콘이 상태바와
+ * 겹친다(마이컬리 화면에서 실기기로 발견, issue #106). 노치 없는 기기/데스크톱에서는
+ * `env()` 가 0이라 기존 레이아웃과 시각적으로 동일하다.
+ *
  * 토큰(`get_variable_defs` node 2438-1743): 배경 `Bg/default` → `bg-surface`,
  * 제목 `Heading/H0_SemiBold` + `Text/Primary` → `text-heading-0 text-fg`,
  * 터치 타깃 `Icon Height/XL` 44 → `size-11`, 여백 `Gap/XS`·`Margin/Default` → `pl-2 pr-4`.
@@ -57,6 +63,12 @@ export interface SectionHeaderProps {
   /** 오른쪽 액션 아이콘 목록. 생략 시 우측 비움. */
   actions?: SectionHeaderAction[];
 
+  /**
+   * 아이콘 글리프 px. 기본 32(Figma 실측 28보다 키운 값 — back/close 가시성).
+   * `KurlyHeader`처럼 Figma 가 28 그대로인 화면은 명시적으로 28을 넘긴다(node 910-110970).
+   */
+  iconSize?: number;
+
   className?: string;
 }
 
@@ -74,14 +86,16 @@ function IconControl({
   href,
   onClick,
   pending,
+  iconSize,
 }: {
   icon: IconName;
   label: string;
   href?: string;
   onClick?: () => void;
   pending?: boolean;
+  iconSize: number;
 }) {
-  const glyph = <Icon name={icon} size={32} aria-hidden />;
+  const glyph = <Icon name={icon} size={iconSize} aria-hidden />;
   if (pending) {
     // 목적지 화면이 아직 없어 클릭 불가 — 시각적으로만 노출한다(스크린리더 대상 아님).
     return (
@@ -109,6 +123,7 @@ export function SectionHeader({
   title,
   center,
   actions,
+  iconSize = 32,
   className,
 }: SectionHeaderProps) {
   const preset = leading ? LEADING_PRESET[leading] : null;
@@ -119,7 +134,7 @@ export function SectionHeader({
 
   return (
     <header
-      className={['bg-surface flex items-center py-1 pr-4 pl-2', className]
+      className={['bg-surface pt-header-safe flex items-center pr-4 pb-1 pl-2', className]
         .filter(Boolean)
         .join(' ')}
     >
@@ -129,6 +144,7 @@ export function SectionHeader({
           label={leadingLabel ?? preset.label}
           href={leadingHref || undefined}
           onClick={onLeadingClick}
+          iconSize={iconSize}
         />
       ) : null}
 
@@ -140,7 +156,7 @@ export function SectionHeader({
       {actions && actions.length > 0 ? (
         <nav aria-label="바로가기" className="flex shrink-0 items-center">
           {actions.map((action, i) => (
-            <IconControl key={`${action.icon}-${i}`} {...action} />
+            <IconControl key={`${action.icon}-${i}`} {...action} iconSize={iconSize} />
           ))}
         </nav>
       ) : null}
