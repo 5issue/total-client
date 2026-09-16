@@ -19,8 +19,12 @@ import type { ReactNode } from 'react';
  * - `error`는 아이콘이 없고 pill이 아니라 카드형(`rounded-m`, 균등 패딩, `shadow-m`)
  *   이라 `default`와 클래스를 공유하지 않는다. 폭은 hug-contents가 아니라 Figma
  *   실측 고정폭(385px → `w-96`)이다.
+ * - `action`은 Figma `ActionToast`(주문 내역 node 848-86191). 동작 직후 결과만 알리는
+ *   한 줄 바 — 아이콘 없이 좌측 정렬, `Radius/M`8, 패딩 `Gap/S`12, `Heading/H5_Medium`
+ *   + `Static/White`, 배경 `Surface/Tertiary`(#323a40 = `neutral-950`). 폭은 hug 가
+ *   아니라 호출부가 채우는 full-width(Figma 370 = 화면 폭 − 좌우 16).
  */
-export type ToastVariant = 'default' | 'error';
+export type ToastVariant = 'default' | 'error' | 'action';
 
 export interface ToastProps {
   variant?: ToastVariant;
@@ -32,6 +36,23 @@ export interface ToastProps {
 }
 
 export function Toast({ variant = 'default', icon, children, className }: ToastProps) {
+  if (variant === 'action') {
+    return (
+      <div
+        role="status"
+        className={[
+          'text-fg-inverse rounded-m flex w-full items-center bg-neutral-950 p-3',
+          'text-heading-5',
+          className,
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
+        {children}
+      </div>
+    );
+  }
+
   if (variant === 'error') {
     return (
       <div
