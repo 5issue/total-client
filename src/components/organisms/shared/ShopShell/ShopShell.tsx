@@ -2,48 +2,18 @@
 
 import type { ReactNode } from 'react';
 
-import { usePathname } from 'next/navigation';
-
 import { BottomNav } from '@/components/organisms/shared/BottomNav';
 import { SwipeTabShell } from '@/components/organisms/shared/SwipeTabShell';
 
 /**
- * (shop) 셸 크롬(BottomNav + 전역 스와이프 탭 + BottomNav 높이만큼의 하단 여백)을 두르지 않는
- * 경로. 자체 하단 CTA 를 가진 "밀어서 띄운" 전체화면 뷰 — 크롬을 켜면 CTA 와 겹친다.
- * `/checkout`(주문서, 결제하기 CTA)도 같은 이유로 크롬리스(이슈 #82). `/mypage/addresses`
- * (배송지 관리, 이슈 #72)도 동일.
- */
-const CHROMELESS_PREFIXES = ['/cart', '/checkout', '/mypage/addresses'];
-
-/**
- * `startsWith` 만으로 매칭하는 접두사 — 목록 화면(`/products`)은 BottomNav 를 유지해야
- * 해서 위 CHROMELESS_PREFIXES 처럼 정확히 일치하는 경로까지 잡으면 안 된다. 상세
- * (`/products/[productId]`)만 자체 하단 CTA(HorizontalCtaBar)를 가져 크롬리스다(이슈 #101).
- */
-const CHROMELESS_NESTED_PREFIXES = ['/products/'];
-
-function isChromeless(pathname: string): boolean {
-  return (
-    CHROMELESS_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`)) ||
-    CHROMELESS_NESTED_PREFIXES.some((p) => pathname.startsWith(p))
-  );
-}
-
-/**
- * (shop) 공통 셸의 클라 경계. 대부분의 화면은 BottomNav + 전역 스와이프 탭 + 하단 여백을
- * 두르지만, 장바구니처럼 자체 하단 CTA 를 가진 전체화면 뷰는 이 크롬을 전부 끈다
- * (PR #58 리뷰, dew2314 — "장바구니 화면엔 BottomNav 불필요, 주문 CTA 와 겹칠 수 있음").
+ * (shop) `(chrome)` 그룹의 클라 경계. BottomNav + 전역 스와이프 탭 + BottomNav 높이만큼의
+ * 하단 여백을 두른다. 크롬리스 화면은 이 컴포넌트를 쓰지 않고 `(chromeless)/layout.tsx` 가
+ * `<main>` 만 렌더한다 — pathname 분기는 하이드레이션 불일치를 만든다.
  *
- * `(shop)/layout.tsx` 는 서버로 남고 `children`(page) 도 서버에서 그대로 렌더된다 —
- * `usePathname` 이 필요한 이 래퍼만 클라 경계를 갖는다(SwipeTabShell 과 같은 패턴).
+ * `(shop)/layout.tsx` 는 서버 프레임만, `(chrome)/layout.tsx` 가 이 래퍼를 붙인다.
+ * `children`(page) 은 서버에서 그대로 통과한다(SwipeTabShell 과 같은 패턴).
  */
 export function ShopShell({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
-
-  if (isChromeless(pathname)) {
-    return <main className="flex flex-1 flex-col">{children}</main>;
-  }
-
   return (
     <>
       {/* pb-bottom-nav-safe: BottomNav 가 fixed 라 문서 흐름을 안 차지하는 만큼 콘텐츠 하단

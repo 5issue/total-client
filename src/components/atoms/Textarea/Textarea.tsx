@@ -1,7 +1,7 @@
 'use client';
 
 import { useId, useState } from 'react';
-import type { ChangeEvent, TextareaHTMLAttributes } from 'react';
+import type { ChangeEvent, Ref, TextareaHTMLAttributes } from 'react';
 
 /**
  * 여러 줄 텍스트 입력 (atom).
@@ -25,6 +25,9 @@ export interface TextareaProps extends Omit<
   hint?: string;
   /** 에러 메시지. 있으면 `aria-invalid` + 박스 아래 `role="alert"` 텍스트. */
   error?: string;
+  /** React 19 ref-as-prop. RHF `register()` 의 ref 와 별도로 DOM 접근이 필요할 때(포커스
+   * 이동 등) 병합해서 넘긴다. */
+  ref?: Ref<HTMLTextAreaElement>;
 }
 
 const BOX_BASE =
@@ -42,6 +45,7 @@ export function Textarea({
   value,
   defaultValue,
   onChange,
+  ref,
   'aria-invalid': ariaInvalid,
   ...props
 }: TextareaProps) {
@@ -70,6 +74,7 @@ export function Textarea({
       <div className={BOX_BASE}>
         <textarea
           id={fieldId}
+          ref={ref}
           rows={rows}
           disabled={disabled}
           maxLength={maxLength}
