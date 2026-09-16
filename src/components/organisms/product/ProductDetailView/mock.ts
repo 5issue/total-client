@@ -5,6 +5,7 @@ import type { ProductDetailOverview } from '@/components/organisms/product/model
  * mock(`ProductOptionSheet/mock.ts`)과 동일 상품이라 두 UI를 나란히 봐도 값이 어긋나지 않는다). */
 export const MOCK_PRODUCT_OVERVIEW: ProductDetailOverview = {
   memberDeal: true,
+  recentRepurchaseCount: 6138,
   brandLabel: 'KurlyOnly',
   shippingInfo: ' · 샛별배송  · 풀무원',
   name: '[연세우유 x 마켓컬리] 전용목장우유 900mL',

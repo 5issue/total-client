@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 import { Badge } from '@/components/atoms/Badge';
 import { FloatingButton } from '@/components/atoms/FloatingButton';
+import { Toast } from '@/components/atoms/Toast';
 import { AddToCartActions } from '@/components/molecules/product/AddToCartActions';
 import { TabBar, type TabBarItem } from '@/components/molecules/shared/TabBar';
 import { ProductOptionSheet } from '@/components/organisms/product/ProductOptionSheet';
@@ -22,6 +23,11 @@ const TABS: TabBarItem[] = [
   { id: 'review', label: '후기 3,000' },
   { id: 'qna', label: '문의' },
 ];
+
+/** 실시간 구매정보 토스트 노출 시간 — Figma(node 665-43179)는 정적이라 소멸 타이밍
+ * 미지정. CheckoutView 의 검증 토스트(5초, VALIDATION_TOAST_DURATION_MS)와 같은 이유로
+ * 임시값 — 디자인 확인 필요. 실기기 확인 피드백으로 4초 → 3초 조정. */
+const PURCHASE_INFO_TOAST_DURATION_MS = 3000;
 
 /**
  * 상품 상세 화면 컨테이너 (organism). Figma "5팀 UI 공유용" node 665-43030.
@@ -43,8 +49,19 @@ export function ProductDetailView() {
   const [liked, setLiked] = useState(false);
   const [optionSheetOpen, setOptionSheetOpen] = useState(false);
   const scrollTopVisible = useScrollToTopVisibility();
+  const [showPurchaseInfoToast, setShowPurchaseInfoToast] = useState(true);
 
   const overview = MOCK_PRODUCT_OVERVIEW;
+  const hasPurchaseInfo = overview.recentRepurchaseCount !== undefined;
+
+  useEffect(() => {
+    if (!hasPurchaseInfo) return;
+    const timer = setTimeout(
+      () => setShowPurchaseInfoToast(false),
+      PURCHASE_INFO_TOAST_DURATION_MS,
+    );
+    return () => clearTimeout(timer);
+  }, [hasPurchaseInfo]);
 
   return (
     <>
@@ -126,6 +143,26 @@ export function ProductDetailView() {
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         />
       </div>
+
+      {/* 실시간 구매정보 토스트(node 665:43179) — CTA 바 위 16px, 가로 중앙 정렬.
+          플로팅 스크롤 버튼과 같은 fixed 오버레이 레이어지만 가로 정렬이 달라(가운데 vs
+          우측) 같은 화면에 함께 있어도 안 겹친다. 항상 마운트해두고 opacity 만 토글
+          (top 검증 토스트와 동일 원칙 — 사라질 때도 트랜지션이 걸리게). */}
+      {hasPurchaseInfo ? (
+        <div
+          aria-hidden={!showPurchaseInfoToast}
+          className={`pointer-events-none fixed inset-x-0 bottom-41 z-40 flex justify-center px-4 transition-opacity duration-300 motion-reduce:transition-none ${
+            showPurchaseInfoToast ? 'opacity-100' : 'opacity-0'
+          }`}
+        >
+          <Toast
+            icon={<Image src="/graphic-icons/toast-card.webp" alt="" width={20} height={20} />}
+          >
+            최근 3개월간 {overview.recentRepurchaseCount?.toLocaleString('ko-KR')}명이{' '}
+            <span className="text-brand-50">재구매했어요</span>
+          </Toast>
+        </div>
+      ) : null}
 
       <AddToCartActions
         promotion={{ text: '첫 구매니까, 하나만 사도 ', emphasisText: '무료배송' }}
