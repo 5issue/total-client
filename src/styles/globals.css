@@ -96,9 +96,8 @@
     }
   }
 
-  /* 공통 로딩 인디케이터(LoadingIndicator, node 665-60896 "LoadingDots") — 점 3개가
-   * 순서대로 살짝 떠올랐다 가라앉는다. transform/opacity 만 애니메이트(code-style §7).
-   * `loading` 아이콘은 themable=false(#222 고정)라 색은 못 바꾸고 opacity 로 명암을 낸다. */
+  /* LoadingIndicator(node 665-60896 "LoadingDots") — `loading` 아이콘은 themable=false
+   * (#222 고정)라 색은 못 바꿔 opacity 로 명암을 낸다. */
   --animate-loading-dot: loading-dot 1s ease-in-out infinite;
   @keyframes loading-dot {
     0%,
