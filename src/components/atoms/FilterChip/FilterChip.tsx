@@ -16,12 +16,21 @@ import { Icon, type IconName } from '@/components/atoms/Icon/Icon';
  * 트레일링 화살표(arrow-down)는 필터 확장(시트/드롭다운) 가능함을 나타낸다 — 기본
  * 노출이지만, 확장 없는 순수 토글 칩(예: 검색 결과 화면 "멤버스혜택", node 882-60576)
  * 은 `showTrailingIcon={false}` 로 끈다.
+ *
+ * `tone="neutral"`(나의 냉장고, node 1120-56214)은 미선택 상태가 회색 톤(테두리·텍스트
+ * 모두 `Icon/Tertiary` = `neutral-700`/`fg-tertiary`, 우연히 같은 hex #8aa1ab)인
+ * 변형이다 — 기존 `basic`(미선택도 브랜드 보더)과 선택 상태 스타일은 동일해 그 값만
+ * 공유한다. 기존 `basic`/`gradient` 사용처는 영향 없음.
+ *
+ * 미선택 배경은 `Bg/default`(`bg-surface`, node 1120-57260 실측) — 투명이 아니다.
+ * 처음엔 배경 없이 뒀다가(#111 QA) Figma 를 다시 확인해 채웠다.
  */
 export interface FilterChipProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** 토글 상태(Figma "State"). */
   selected?: boolean;
-  /** Figma "Style" — 기본 브랜드 보더(basic) vs 멤버십 강조 그라데이션 보더(gradient). */
-  tone?: 'basic' | 'gradient';
+  /** Figma "Style" — 기본 브랜드 보더(basic) vs 멤버십 강조 그라데이션 보더(gradient)
+   *  vs 미선택 회색 톤(neutral). */
+  tone?: 'basic' | 'gradient' | 'neutral';
   /** 장식용(aria-hidden)으로 렌더 — accessible name 은 항상 `children` 텍스트가 담당. */
   leadingIcon?: IconName;
   /** 트레일링 화살표(확장 가능 표시) 노출 여부. 기본 true. */
@@ -29,9 +38,18 @@ export interface FilterChipProps extends ButtonHTMLAttributes<HTMLButtonElement>
   children: ReactNode;
 }
 
-const BASIC_VARIANT_CLASSNAME: Record<'default' | 'selected', string> = {
-  default: 'border-primary text-brand-secondary',
-  selected: 'bg-brand-50 border-brand-200 text-primary',
+const BASIC_VARIANT_CLASSNAME: Record<
+  'basic' | 'neutral',
+  Record<'default' | 'selected', string>
+> = {
+  basic: {
+    default: 'border-primary text-brand-secondary',
+    selected: 'bg-brand-50 border-brand-200 text-primary',
+  },
+  neutral: {
+    default: 'bg-surface border-neutral-700 text-fg-tertiary',
+    selected: 'bg-brand-50 border-brand-200 text-primary',
+  },
 };
 
 function FilterChipContent({
@@ -98,7 +116,9 @@ export function FilterChip({
       aria-pressed={selected}
       className={[
         'text-label-m inline-flex h-9 items-center justify-center gap-1 rounded-full border px-3 py-2 whitespace-nowrap transition-colors disabled:pointer-events-none motion-reduce:transition-none',
-        BASIC_VARIANT_CLASSNAME[selected ? 'selected' : 'default'],
+        BASIC_VARIANT_CLASSNAME[tone === 'neutral' ? 'neutral' : 'basic'][
+          selected ? 'selected' : 'default'
+        ],
         className,
       ]
         .filter(Boolean)
