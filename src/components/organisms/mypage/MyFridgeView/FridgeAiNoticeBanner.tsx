@@ -7,10 +7,8 @@ import { Logo } from '@/components/atoms/Logo';
  * (`RecommendedKeywordsContainer.tsx` 자체 주석과 같은 "전용으로 둔다" 원칙). 그라데이션
  * 색만 그대로 재사용(`--color-blue`/`--color-brand-200`, get_variable_defs 확인).
  */
-const GRADIENT_STYLE = {
-  backgroundImage:
-    'linear-gradient(127deg, color-mix(in srgb, var(--color-blue) 40%, transparent) 0%, color-mix(in srgb, var(--color-brand-200) 40%, transparent) 100%)',
-};
+const GRADIENT_CLASSNAME =
+  'bg-[linear-gradient(127deg,color-mix(in_srgb,var(--color-blue)_40%,transparent)_0%,color-mix(in_srgb,var(--color-brand-200)_40%,transparent)_100%)]';
 
 export interface FridgeAiNoticeBannerProps {
   /** `\n` 으로 줄바꿈 지점을 명시한다 — Figma 가 `<p>` 두 개로 강제 개행한 제목을
@@ -26,8 +24,9 @@ export function FridgeAiNoticeBanner({ title, description, className }: FridgeAi
 
   return (
     <div
-      className={['flex w-full flex-col gap-1 px-4 pt-5 pb-3', className].filter(Boolean).join(' ')}
-      style={GRADIENT_STYLE}
+      className={['flex w-full flex-col gap-1 px-4 pt-5 pb-3', GRADIENT_CLASSNAME, className]
+        .filter(Boolean)
+        .join(' ')}
     >
       {/* Figma(node 1120-56175) 는 로고와 제목 줄을 상단 정렬한다 — `items-center` 로
           두면 2줄로 접히는 제목이 로고 옆 세로 중앙에 붙어 위치가 어긋난다. */}

@@ -9,18 +9,14 @@ import { QuantityStepper } from '@/components/molecules/shared/QuantityStepper';
  * 가격/스테퍼는 Figma 원본이 스테퍼를 절대 위치로 겹쳐뒀지만, `flex justify-between`
  * 로 대체해도 시각 결과가 동일하고 더 견고하다.
  *
- * `QuantityStepper`(84px pill, node 2429-3870)를 그대로 재사용 — 이 노드의 스테퍼와
- * 동일 컴포넌트다. 담기 시트 맥락이라 기본 `min=1` — 0개를 담을 순 없다(기본 min=0인
- * 범용 스테퍼와 다르게, 삭제는 별도 동작이지 감소로 0까지 가는 게 아니다). 다만 한
- * 상품에 여러 가격 등급 줄이 함께 뜨는 화면(나의 냉장고 "채워넣기" — 일반가/멤버스가
- * 중 하나만 골라도 되는 경우, node 1206-109860)은 `min={0}` 으로 override 한다.
+ * `QuantityStepper`(84px pill, node 2429-3870) 기본 `min=1` — 0개를 담을 순 없다.
+ * 한 상품에 여러 가격 등급 줄이 함께 뜨는 화면(나의 냉장고 "채워넣기", node
+ * 1206-109860)은 `min={0}` 으로 override 한다.
  *
- * "멤버스" 뱃지는 `atoms/Badge`(cyan/small = 22px, `px-2 py-1`)가 아니라 이 노드
- * 전용 `PromoBadge`(node 2461-7209, 18px 고정)를 직접 그린다 — `Badge` 를 썼을 때
- * 실측보다 커 보이는 버그가 있었다(#111 QA). `text-caption-s` 는 기본 400 이라
- * `font-bold` 로 700 override. 부모가 `flex-col`이라 기본 `align-items: stretch`로
- * 뱃지가 가로 폭 전체로 늘어나 버려 `self-start`로 내용 크기만큼만 차지하도록 고정한다
- * (겉으로 봤을 때 뱃지가 다시 "커 보이는" 두 번째 원인, #111 QA).
+ * "멤버스" 뱃지는 `atoms/Badge`(cyan/small ≈22px)가 아니라 이 노드 전용
+ * `PromoBadge`(node 2461-7209, 18px 고정)를 직접 그린다 — `Badge` 는 실측보다 커
+ * 보였다(#111 QA). 부모가 `flex-col`이라 기본 `align-items: stretch` 로 뱃지가 가로
+ * 폭 전체로 늘어나므로 `self-start` 로 고정한다.
  */
 export type CartQuantityRowProps = {
   /** 있으면 상품명 위에 뱃지를 렌더한다(예: "멤버스"). */

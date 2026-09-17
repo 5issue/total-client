@@ -18,12 +18,10 @@ import { Icon, type IconName } from '@/components/atoms/Icon/Icon';
  * 은 `showTrailingIcon={false}` 로 끈다.
  *
  * `tone="neutral"`(나의 냉장고, node 1120-56214)은 미선택 상태가 회색 톤(테두리·텍스트
- * 모두 `Icon/Tertiary` = `neutral-700`/`fg-tertiary`, 우연히 같은 hex #8aa1ab)인
- * 변형이다 — 기존 `basic`(미선택도 브랜드 보더)과 선택 상태 스타일은 동일해 그 값만
- * 공유한다. 기존 `basic`/`gradient` 사용처는 영향 없음.
- *
- * 미선택 배경은 `Bg/default`(`bg-surface`, node 1120-57260 실측) — 투명이 아니다.
- * 처음엔 배경 없이 뒀다가(#111 QA) Figma 를 다시 확인해 채웠다.
+ * 모두 `Icon/Tertiary` = `neutral-700`/`fg-tertiary`, 우연히 같은 hex #8aa1ab)이고
+ * 배경은 투명이 아니라 `Bg/default`(`bg-surface`, node 1120-57260 실측)인 변형이다 —
+ * 기존 `basic`(미선택도 브랜드 보더)과 선택 상태 스타일은 동일해 그 값만 공유한다.
+ * 기존 `basic`/`gradient` 사용처는 영향 없음.
  */
 export interface FilterChipProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** 토글 상태(Figma "State"). */

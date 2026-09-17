@@ -16,17 +16,13 @@ import { MOCK_FRIDGE_RECOMMENDED_PRODUCTS } from './mock';
  * 배너 + "장바구니에 상품을 담았어요." + 바로가기) + "함께 구매하면 좋을 상품" 캐러셀
  * (카드 단독 스펙은 `VerticalProductCardM`, node 3119-3760).
  *
- * 추천 카드는 이 브랜치 `molecules/product/ProductCard`(150×428px 고정, 리뷰 수 필수)와
- * 스펙이 달라(120×160px, 리뷰 없음) 재사용하지 않고 이 시트 전용 카드로 둔다 —
- * `#101` 브랜치의 `size="compact"` 변형은 아직 develop 에 없다.
+ * 추천 카드는 기존 `ProductCard`(150×428px 고정, 리뷰 수 필수)와 스펙이 달라
+ * (120×160px, 리뷰 없음) 이 시트 전용 카드로 새로 뒀다. `PromotionBar` 는 상단만
+ * 둥근 기본 모양만 지원하지만(4면 둥근 override 없음) 배너가 맨 위라 그대로 둔다.
  *
- * `PromotionBar` 는 이 브랜치 기준 상단만 둥근 기본 모양(`rounded-t-lg`)만 지원한다
- * (4면 둥근 인라인 배너용 override prop 은 아직 없음) — 이 화면에서는 배너가 맨 위라
- * 시각 차이가 미미해 그대로 둔다.
- *
- * 캐러셀의 `overflow-x-auto` 플렉스 박스는 트레일링(우측) `padding` 이 스크롤 시
- * 사라지는 플렉스박스 공통 버그가 있어(마지막 카드가 화면 끝에 딱 붙어 "잘린" 것처럼
- * 보임, #111 QA) 우측은 `padding` 대신 `gap`+spacer 로 폭을 확보한다.
+ * 캐러셀의 `overflow-x-auto` 는 트레일링(우측) `padding` 이 스크롤 시 사라지는
+ * 플렉스박스 공통 버그가 있어(마지막 카드가 화면 끝에 딱 붙어 잘린 것처럼 보임,
+ * #111 QA) 우측은 `padding` 대신 `gap`+spacer 로 폭을 확보한다.
  */
 export interface FridgeRefillCompleteBottomSheetProps {
   open: boolean;

@@ -9,10 +9,10 @@ import { FRIDGE_FILTERS, type FridgeFilterId } from './model';
  * 필터 칩 행 (organism). Figma node 1120-56214.
  *
  * 헤더+탭바와 함께 스크롤 중에도 붙어 있어야 해서(#111 QA) `MyFridgeView`가 이걸
- * 헤더+탭바와 같은 `sticky` 컨테이너 안에 두지만, 뒤 배경은 없다(사용자 요청) — 칩
- * 자체의 배경(`FilterChip`)만 보이고 행 컨테이너는 투명해 스크롤되는 그리드가 칩
- * 사이로 그대로 비친다. "전체선택/선택삭제" 툴바(`FridgeSelectionToolbar`)는 이
- * 스크롤 고정 대상이 아니라 별도 컴포넌트로 뺐다.
+ * 헤더+탭바와 같은 `sticky` 컨테이너 안에 두지만, 뒤 배경은 없다 — 칩 자체의 배경
+ * (`FilterChip`)만 보이고 행 컨테이너는 투명해 스크롤되는 그리드가 칩 사이로 그대로
+ * 비친다. "전체선택/선택삭제" 툴바(`FridgeSelectionToolbar`)는 이 스크롤 고정
+ * 대상이 아니라 별도 컴포넌트로 뺐다.
  */
 export interface FridgeFilterBarProps {
   activeFilter: FridgeFilterId;
@@ -48,8 +48,8 @@ export function FridgeFilterBar({ activeFilter, onFilterChange, className }: Fri
 /**
  * "전체선택(n/총계)" + "선택삭제" 툴바 (organism). Figma node 1120-56176.
  * 별도 "선택 모드" 진입 없이 항상 선택 가능한 상태다(Figma 전 화면 상태에 공통).
- * `FridgeFilterBar`(칩 행)와 달리 스크롤 시 같이 붙어 있지 않아도 된다(사용자 요청) —
- * 그리드와 함께 정상적으로 스크롤된다.
+ * `FridgeFilterBar`(칩 행)와 달리 스크롤 시 같이 붙어 있지 않아도 된다 — 그리드와
+ * 함께 정상적으로 스크롤된다.
  */
 export interface FridgeSelectionToolbarProps {
   selectedCount: number;
