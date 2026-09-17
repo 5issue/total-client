@@ -67,6 +67,25 @@
   /* 히어로 배너 종횡비 — Figma 고정 402×298 (node 577:20652) → aspect-hero-banner */
   --aspect-hero-banner: 402 / 298;
 
+  /* ProductCard 이미지 종횡비 — 폭이 고정값(w-37.5/w-30)이라 h-60/h-40 고정 높이와
+   * 수치는 같지만, 대괄호 임의값 없이 이름 있는 유틸리티로 고정한다(code-style §6-1). */
+  --aspect-product-card: 150 / 240; /* default, node 577:20684 → aspect-product-card */
+  --aspect-product-card-compact: 120 / 160; /* compact → aspect-product-card-compact */
+
+  /* ProductDescriptionContent 이미지 종횡비 — Figma 실측(node 665:43696), 상품마다
+   * 교체되는 콘텐츠 이미지라 각각 별도 토큰. */
+  --aspect-product-description-hero: 369 / 245; /* → aspect-product-description-hero */
+  --aspect-product-description-detail-a: 370 / 224; /* → aspect-product-description-detail-a */
+  --aspect-product-description-detail-b: 370 / 895; /* → aspect-product-description-detail-b */
+
+  /* Tailwind 코어 z-index 스케일은 50 이 최댓값이라(z-60 같은 임의 숫자는 spacing 과
+   * 달리 생성되지 않음), BottomSheet/Modal 백드롭(둘 다 z-50, portal 로 document.body
+   * 에 붙음)보다 항상 위여야 하는 알림(미션 완료 토스트 등)을 위해 별도 계층을 둔다.
+   * 백드롭과 같은 z-50 을 쓰면 어느 쪽이 나중에 DOM 에 붙느냐(mount 순서)에 따라
+   * 반투명 검은 백드롭이 흰 토스트 위로 덮여 탁해 보이는 문제가 있었다(실기기 QA 발견,
+   * node 665-61882 미션 토스트가 CartAddedProductsBottomSheet 백드롭에 덮임). */
+  --z-index-toast: 60; /* → z-toast */
+
   /* 전체화면 패널이 아래에서 올라오는 진입 애니메이션 (배송지 주소검색 등, 컬리 앱 패턴).
    * 트랜지션 대신 마운트 애니메이션 — 요소는 항상 제자리(translate 0)에 렌더되고 애니메이션만
    * 화면 밖에서 올라온다. 트랜지션이 안 터져 요소가 화면 밖에 멈추는 경우가 없다. */
@@ -86,6 +105,11 @@
    * pb 만 34px 로 늘려 합이 정확히 112px 가 되게 맞춘다. */
   --spacing-bottom-nav-safe: 112px; /* → pb-bottom-nav-safe (main 콘텐츠 하단 예약 여백) */
   --spacing-nav-pb-safe: 34px; /* → pb-nav-pb-safe (BottomNav 자체 하단 패딩) */
+
+  /* 화면 상단 안전영역 — 기기 노치/상태바를 피하는 헤더 상단 패딩. env() 는 기기별
+   * 노치 높이라 Figma 실측 픽셀은 아니지만, 컴포넌트 클래스에서 대괄호 임의값을 쓰지
+   * 않기 위해 이름 있는 유틸리티로 뺀다(code-style §6-1). */
+  --spacing-header-safe-top: calc(env(safe-area-inset-top) + 4px); /* → pt-header-safe-top */
 }
 
 /* 가로 스크롤 캐러셀(추천 검색어 등)용 — 스크롤 자체는 유지하고 스크롤바만 숨긴다.

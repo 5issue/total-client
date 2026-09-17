@@ -1,0 +1,1 @@
+export { ProductReviewTab } from './ProductReviewTab';

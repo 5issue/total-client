@@ -16,14 +16,24 @@ export type PromotionBarProps = {
   text: string;
   /** 강조 텍스트(예: "무료배송"). */
   emphasisText: string;
+  /** 모서리 override. 기본 `rounded-t-lg`(CTA 바 최상단에 flush로 붙는 원래 용법).
+   *  장바구니 담기 완료 시트(node 665:43409)처럼 4면 다 둥글고 좌우 여백이 있는
+   *  인라인 배너는 `rounded-m`으로 — `rounded-t-lg` 와 새 값을 동시에 주면(같은
+   *  속성, 같은 우선순위) Tailwind 생성 순서에 따라 꼬여 완전 대체 방식으로 받는다. */
+  roundedClassName?: string;
   className?: string;
 };
 
-export function PromotionBar({ text, emphasisText, className }: PromotionBarProps) {
+export function PromotionBar({
+  text,
+  emphasisText,
+  roundedClassName = 'rounded-t-lg',
+  className,
+}: PromotionBarProps) {
   return (
     <div
       className={[
-        'bg-surface-secondary flex h-9 items-center justify-center gap-2 rounded-t-lg px-4',
+        `bg-surface-secondary flex h-9 items-center justify-center gap-2 px-4 ${roundedClassName}`,
         className,
       ]
         .filter(Boolean)
