@@ -43,6 +43,11 @@ const TABS: TabBarItem[] = [
  * 스크롤돼 올라올 때 칩 사이·둘레로 그대로 비친다. "전체선택/선택삭제" 툴바
  * (`FridgeSelectionToolbar`)는 이 sticky 대상이 아니다 — 그리드와 함께 정상적으로
  * 스크롤된다.
+ *
+ * `selectedIds` 는 필터가 바뀌어도 유지된다(다른 필터에서 고른 항목이 필터를 되돌리면
+ * 다시 선택돼 있어야 함). 그래서 삭제 대상은 `selectedIds` 전체가 아니라 현재
+ * `filteredItems` 와의 교집합(`selectedInView`)으로 제한한다 — 안 그러면 필터에 안
+ * 보이는 항목까지 "선택삭제"에 같이 삭제된다(코드래빗 리뷰, #111).
  */
 export interface MyFridgeViewProps {
   initialTab: FridgeTabId;
@@ -68,7 +73,8 @@ export function MyFridgeView({ initialTab }: MyFridgeViewProps) {
     () => items.filter((item) => matchesFridgeFilter(item, activeFilter)),
     [items, activeFilter],
   );
-  const selectedCount = filteredItems.filter((item) => selectedIds.has(item.id)).length;
+  const selectedInView = filteredItems.filter((item) => selectedIds.has(item.id));
+  const selectedCount = selectedInView.length;
   const allSelected = filteredItems.length > 0 && selectedCount === filteredItems.length;
 
   function handleTabChange(id: string) {
@@ -97,8 +103,13 @@ export function MyFridgeView({ initialTab }: MyFridgeViewProps) {
   }
 
   function handleConfirmDelete() {
-    setItems((prev) => prev.filter((item) => !selectedIds.has(item.id)));
-    setSelectedIds(new Set());
+    const idsToDelete = new Set(selectedInView.map((item) => item.id));
+    setItems((prev) => prev.filter((item) => !idsToDelete.has(item.id)));
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      idsToDelete.forEach((id) => next.delete(id));
+      return next;
+    });
     setDeleteModalOpen(false);
   }
 

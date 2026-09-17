@@ -6,10 +6,9 @@ import { Logo } from '@/components/atoms/Logo';
  * `promptLabel`/`keywords` 가 항상 필수라 키워드 칩이 없는 이 화면에는 맞지 않는다
  * (`RecommendedKeywordsContainer.tsx` 자체 주석과 같은 "전용으로 둔다" 원칙). 그라데이션
  * 색만 그대로 재사용(`--color-blue`/`--color-brand-200`, get_variable_defs 확인).
+ * 그라데이션은 `color.css` 의 `--background-image-fridge-ai-banner-gradient` 토큰이라
+ * `bg-fridge-ai-banner-gradient` 로 쓴다 — 대괄호 임의값 금지(code-style-convention §6-1).
  */
-const GRADIENT_CLASSNAME =
-  'bg-[linear-gradient(127deg,color-mix(in_srgb,var(--color-blue)_40%,transparent)_0%,color-mix(in_srgb,var(--color-brand-200)_40%,transparent)_100%)]';
-
 export interface FridgeAiNoticeBannerProps {
   /** `\n` 으로 줄바꿈 지점을 명시한다 — Figma 가 `<p>` 두 개로 강제 개행한 제목을
    *  그대로 옮긴 것이라, 자연스러운 wrap 에 맡기면 컨테이너 폭에 따라 단어 중간이
@@ -24,7 +23,10 @@ export function FridgeAiNoticeBanner({ title, description, className }: FridgeAi
 
   return (
     <div
-      className={['flex w-full flex-col gap-1 px-4 pt-5 pb-3', GRADIENT_CLASSNAME, className]
+      className={[
+        'bg-fridge-ai-banner-gradient flex w-full flex-col gap-1 px-4 pt-5 pb-3',
+        className,
+      ]
         .filter(Boolean)
         .join(' ')}
     >

@@ -21,8 +21,11 @@ import type { FridgeItem } from '@/components/organisms/mypage/MyFridgeView/mode
  * 체크박스는 `Checkbox` atom 을 그대로 쓰되, 그 `<label>` 이 항상 44px 터치 타깃으로
  * 글리프를 가운데 두기 때문에 Figma 가 원하는 "썸네일 (8,8) 지점에 글리프 좌상단"과는
  * 어긋난다(글리프 18px 기준 중심 오프셋 13px) — 감싸는 요소를 `-top-1.25 -left-1.25`
- * (-5px)만큼 당겨 글리프만 (8,8)에 오도록 보정한다. 44px 히트박스 일부가 이미지의
- * `overflow-hidden` 밖(음수 좌표)으로 잘리지만 안 보이는 터치 여백일 뿐이라 무해하다.
+ * (-5px)만큼 당겨 글리프만 (8,8)에 오도록 보정한다. 이 44px 히트박스가 이미지의
+ * `overflow-hidden` 안에 있으면 상단·좌측 5px 가 잘려 실제 터치 영역이 39×39px 로
+ * 줄어든다(코드래빗 리뷰, #111) — 그래서 이미지 클리핑(`overflow-hidden`)은 안쪽
+ * 래퍼로 따로 두고, 체크박스·D-day 뱃지는 클리핑 없는 바깥 `relative` 컨테이너에
+ * 얹어 44px 전체가 히트된다.
  */
 export interface KitchenInventoryCardProps {
   item: FridgeItem;
@@ -65,25 +68,24 @@ export function KitchenInventoryCard({
 }: KitchenInventoryCardProps) {
   return (
     <div className={['flex w-full flex-col gap-1', className].filter(Boolean).join(' ')}>
-      <div className="bg-surface-secondary relative aspect-square w-full overflow-hidden rounded-sm">
-        <Link href={`/products/${item.productId}`} className="absolute inset-0">
-          {item.imageSrc ? (
-            <Image
-              src={item.imageSrc}
-              alt={item.name}
-              fill
-              sizes="180px"
-              className="object-cover"
-            />
-          ) : null}
-        </Link>
-        {/* "IMG_Size"(디자인 시스템 node 3329-8439) 자체 스펙 — 사진 위에 항상 얹는
-            어두운 스크림. 체크박스·D-day 뱃지가 어떤 사진 위에서도 보이게 하는
-            용도라 `pointer-events-none`으로 클릭은 이미지 링크로 그대로 통과시킨다. */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-fg-secondary)_30%,transparent)_-31.11%,transparent_68.89%)]"
-        />
+      <div className="relative aspect-square w-full">
+        <div className="bg-surface-secondary absolute inset-0 overflow-hidden rounded-sm">
+          <Link href={`/products/${item.productId}`} className="absolute inset-0">
+            {item.imageSrc ? (
+              <Image
+                src={item.imageSrc}
+                alt={item.name}
+                fill
+                sizes="180px"
+                className="object-cover"
+              />
+            ) : null}
+          </Link>
+          {/* "IMG_Size"(디자인 시스템 node 3329-8439) 자체 스펙 — 사진 위에 항상 얹는
+              어두운 스크림. 체크박스·D-day 뱃지가 어떤 사진 위에서도 보이게 하는
+              용도라 `pointer-events-none`으로 클릭은 이미지 링크로 그대로 통과시킨다. */}
+          <div aria-hidden className="bg-fridge-card-scrim pointer-events-none absolute inset-0" />
+        </div>
         <span className="absolute -top-1.25 -left-1.25">
           <Checkbox
             variant="filled"

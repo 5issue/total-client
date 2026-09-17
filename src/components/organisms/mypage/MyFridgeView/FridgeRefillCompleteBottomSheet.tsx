@@ -52,10 +52,13 @@ function RecommendedProductCard({
           </span>
         ) : null}
       </div>
+      {/* 추천 캐러셀 "담기" — 이 화면은 아직 mock 이라 실제 장바구니 연동이 없다. 동작
+          없이 활성 버튼처럼 보이면 안 되니(코드래빗 리뷰, #111) API 연동 전까지 비활성. */}
       <button
         type="button"
+        disabled
         aria-label={`${product.name} 담기`}
-        className="text-label-l text-fg active:bg-surface-secondary flex h-8 w-full items-center justify-center gap-1 rounded-sm border border-neutral-400"
+        className="text-label-l text-fg-disabled flex h-8 w-full items-center justify-center gap-1 rounded-sm border border-neutral-400"
       >
         <Icon name="cart" size={20} aria-hidden />
         담기

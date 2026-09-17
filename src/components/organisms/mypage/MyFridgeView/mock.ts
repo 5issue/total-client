@@ -199,7 +199,7 @@ export const MOCK_FRIDGE_AI_NOTICE = {
 };
 
 export const MOCK_FRIDGE_EXPIRY_NOTICE =
-  '만료 후3일간 비활성화 상태로 유지되며, 이후 자동 삭제돼요';
+  '만료 후 3일간 비활성화 상태로 유지되며, 이후 자동 삭제돼요';
 
 /** "담기 완료" 시트 — "함께 구매하면 좋을 상품" 캐러셀(node 3119-3924/3119-3760). */
 export const MOCK_FRIDGE_RECOMMENDED_PRODUCTS = [
