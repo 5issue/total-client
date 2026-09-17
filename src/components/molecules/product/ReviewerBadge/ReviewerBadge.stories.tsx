@@ -8,11 +8,11 @@ const meta = {
   tags: ['autodocs'],
   args: {
     username: '정**',
-    badge: { color: 'purple', size: 'small', children: '베스트' },
+    badges: [{ color: 'purple', size: 'small', children: '베스트' }],
   },
   argTypes: {
     username: { control: 'text' },
-    badge: { control: 'object' },
+    badges: { control: 'object' },
   },
   parameters: { layout: 'padded' },
 } satisfies Meta<typeof ReviewerBadge>;
@@ -23,11 +23,20 @@ type Story = StoryObj<typeof meta>;
 export const Best: Story = {};
 
 export const Membership: Story = {
-  args: { badge: { color: 'cyan', size: 'small', children: '멤버스' } },
+  args: { badges: [{ color: 'cyan', size: 'small', children: '멤버스' }] },
+};
+
+export const BestAndMembership: Story = {
+  args: {
+    badges: [
+      { color: 'purple', size: 'small', children: '베스트' },
+      { color: 'cyan', size: 'small', children: '멤버스' },
+    ],
+  },
 };
 
 export const NoBadge: Story = {
-  args: { badge: undefined },
+  args: { badges: [] },
 };
 
 export const AllVariants: Story = {
@@ -35,9 +44,15 @@ export const AllVariants: Story = {
     <div className="flex flex-col items-start gap-3">
       <ReviewerBadge
         username="정**"
-        badge={{ color: 'purple', size: 'small', children: '베스트' }}
+        badges={[
+          { color: 'purple', size: 'small', children: '베스트' },
+          { color: 'cyan', size: 'small', children: '멤버스' },
+        ]}
       />
-      <ReviewerBadge username="김**" badge={{ color: 'cyan', size: 'small', children: '멤버스' }} />
+      <ReviewerBadge
+        username="김**"
+        badges={[{ color: 'cyan', size: 'small', children: '멤버스' }]}
+      />
       <ReviewerBadge username="이**" />
     </div>
   ),

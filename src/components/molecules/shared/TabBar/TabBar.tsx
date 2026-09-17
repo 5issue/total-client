@@ -37,7 +37,7 @@ export type TabBarProps = {
   fitted?: boolean;
   /** 탭 바 전체에 적용할 active 색. 그룹마다 다르다(상품설명=brand-secondary 등) — TabItem 참고 */
   tone?: TabItemTone;
-  /** 탭 바 전체에 적용할 크기. 기본 lg(Heading/M) */
+  /** 탭 바 전체에 적용할 크기. 기본 lg(Heading/M 18px) */
   size?: TabItemSize;
   className?: string;
 };
@@ -105,9 +105,9 @@ export function TabBar({
           tabIndex={item.id === activeId ? 0 : -1}
           tone={tone}
           size={size}
+          fitted={fitted}
           onClick={() => onChange(item.id)}
           onKeyDown={(event) => handleKeyDown(event, item.id)}
-          className={fitted ? 'flex-1 text-center' : undefined}
         />
       ))}
     </div>

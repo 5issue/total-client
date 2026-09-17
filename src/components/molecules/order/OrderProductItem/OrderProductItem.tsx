@@ -8,16 +8,15 @@ import { Icon } from '@/components/atoms/Icon';
  * 주문 내역/상세의 상품 한 줄 (molecule).
  * Figma "5팀 UI 공유용" — `OrderBreakdownItem`(node 2454-4327, 주문 내역 771-106840).
  *
- * 썸네일 + 배송유형·상품명·가격 + 우측 담기 버튼. 장바구니의 `CartLineItem`
- * (`Item_H_Cart`)와는 다른 컴포넌트다 — 체크박스·수량 스테퍼가 없고 수량이 텍스트로만
- * 붙는다. 썸네일 63×84 는 `CartLineItem` 과 같아 `h-21` + `aspect-3/4` 로 크기를
- * 선고정한다(CLS 방지 — structure-convention §5).
+ * 썸네일 + 배송유형·상품명·가격 + 우측 담기 버튼. 장바구니의 `molecules/cart/CartLineItem`
+ * (`Item_H_Cart`, node 2454-4242)와는 다른 컴포넌트다 — 체크박스·수량 스테퍼가 없고
+ * 수량이 텍스트(`1개`)로만 붙는다. 썸네일 63×84 는 두 컴포넌트가 같아 같은 방식으로
+ * 크기를 선고정한다(`h-21` + `aspect-3/4`, CLS 방지 — structure-convention §5).
  *
- * 토큰(실측 node 771-106840): 배송유형 `Heading/H6_Regular` + `Text/Tertiary` →
- * `text-heading-6 text-fg-tertiary`, 상품명 같은 16/400 + `Text/Primary`. 판매가
- * `Heading/H0_SemiBold`20/600(`text-heading-0`) + 단위 "원" `Heading/H4_SemiBold`,
- * 정가 `Heading/H5_Medium` + `Text/Quaternary` 취소선, 수량 `Heading/H6_Regular` +
- * `Text/Secondary`. 담기 버튼 40×40 `Radius/M` + `Border/Strong`.
+ * 토큰(실측): 배송유형 `Heading/H6_Regular`16/400 + `Text/Tertiary` → `text-heading-6
+ * text-fg-tertiary`, 상품명 같은 16/400 + `Text/Primary`. 판매가 20/600(`text-heading-0`)
+ * + 단위 "원" 16/600(`text-heading-4`), 정가 16/500 + `Text/Quaternary` 취소선, 수량
+ * 16/400 + `Text/Secondary`. 담기 버튼 40×40 `Radius/M`8 + `Border/Strong`(#dde4ed).
  */
 export interface OrderProductItemProps {
   /** 배송 유형 라벨(예: `샛별배송`). */

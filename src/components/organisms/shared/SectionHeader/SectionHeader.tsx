@@ -23,6 +23,13 @@ import { Icon, type IconName } from '@/components/atoms/Icon';
  * 제목 `Heading/H0_SemiBold` + `Text/Primary` → `text-heading-0 text-fg`,
  * 터치 타깃 `Icon Height/XL` 44 → `size-11`, 여백 `Gap/XS`·`Margin/Default` → `pl-2 pr-4`.
  * 아이콘 글리프는 32 — Figma 실측(28)보다 키운 값으로, 모바일에서 back/close 가시성을 높였다.
+ *
+ * `pt-header-safe-top`(globals.css `--spacing-header-safe-top`): `viewport-fit: cover`
+ * (app/layout.tsx)라 콘텐츠가 기기 상단 안전영역(노치·상태바)까지 그려진다 — 이
+ * 패딩 없으면 헤더 행(뒤로가기/제목/아이콘)이 상태바와 겹친다(실기기 QA 발견,
+ * node 665:43034 TopNavigationBar 를 이 컴포넌트로 구현한 상품 상세에서 재현).
+ * `HomeHeader` 가 이미 같은 이유로 쓰던 패턴 — 이 컴포넌트를 쓰는 다른 화면(장바구니/
+ * 체크아웃/검색/배송지 등)에도 실기기에서 동일하게 있었을 결함이다.
  */
 interface SectionHeaderActionBase {
   icon: IconName;
@@ -51,6 +58,12 @@ export interface SectionHeaderProps {
 
   /** 가운데 제목 — `<h1>` 로 렌더. `center` 가 있으면 무시. */
   title?: string;
+  /** 제목 타이포+색 클래스 override(기본 `text-heading-0 text-fg` 전체를 대체 — 부분
+   *  병합이 아니다. `text-heading-*` 는 폰트사이즈/줄높이/자간/굵기를 한 클래스에
+   *  묶어 내므로 둘을 같이 주면 캐스케이드 순서에 따라 뒤엉킨다). 화면마다 실제
+   *  바인딩된 타입 스타일이 다르다 — 예: 상품 상세 TopNavigationBar(node 665:43034)는
+   *  `Heading/H2_Medium`(`text-heading-2`)이라 기본값(H0_SemiBold)과 다르다. */
+  titleClassName?: string;
   /** 가운데 커스텀 노드(예: `<SearchBar/>`). `title` 보다 우선. */
   center?: ReactNode;
 
@@ -81,7 +94,7 @@ function IconControl({
   onClick?: () => void;
   pending?: boolean;
 }) {
-  const glyph = <Icon name={icon} size={32} aria-hidden />;
+  const glyph = <Icon name={icon} size={28} aria-hidden />;
   if (pending) {
     // 목적지 화면이 아직 없어 클릭 불가 — 시각적으로만 노출한다(스크린리더 대상 아님).
     return (
@@ -107,6 +120,7 @@ export function SectionHeader({
   leadingHref,
   leadingLabel,
   title,
+  titleClassName,
   center,
   actions,
   className,
@@ -115,11 +129,20 @@ export function SectionHeader({
   const showLeading = preset && (leadingHref || onLeadingClick);
 
   const centerNode =
-    center ?? (title ? <h1 className="text-heading-0 text-fg truncate">{title}</h1> : null);
+    center ??
+    (title ? (
+      <h1 className={`${titleClassName ?? 'text-heading-0 text-fg'} truncate`}>{title}</h1>
+    ) : null);
 
   return (
     <header
-      className={['bg-surface flex items-center py-1 pr-4 pl-2', className]
+      className={[
+        // py-1 대신 pb-1 + pt-header-safe-top 으로 쪼갰다 — py-1 과 pt-* 를 같이 쓰면
+        // 같은 우선순위(단일 클래스)라 Tailwind 가 생성한 스타일시트 순서에 따라
+        // padding-top 이 뒤엉킨다(DisplaySectionList 의 font-bold! 와 같은 함정).
+        'bg-surface pt-header-safe-top flex items-center pr-4 pb-1 pl-2',
+        className,
+      ]
         .filter(Boolean)
         .join(' ')}
     >

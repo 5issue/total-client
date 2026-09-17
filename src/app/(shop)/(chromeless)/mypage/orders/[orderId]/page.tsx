@@ -1,24 +1,16 @@
 import type { Metadata } from 'next';
 
-import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
+import { OrderDetailView } from '@/components/organisms/mypage/OrderDetailView';
 
 export const metadata: Metadata = { title: '주문 내역 상세' };
 
 /**
- * 주문 내역 상세 (`/mypage/orders/[orderId]`).
- * 목록의 방향 아이콘이 여기로 이동한다(Figma 주문 상세 내역_주문완료).
- * 상세 본문 퍼블리싱은 주문 상세 화면 이슈에서 이어 간다 — 이 라우트는 진입점만 연다.
+ * 주문 내역 상세 (`/mypage/orders/[orderId]`) — 주문 완료 화면의 "주문 상세보기" 진입점.
+ * Figma node 666-28077.
+ *
+ * 렌더링(structure §2-1): 값이 전부 스텁이라 지금은 정적 셸이다. BE 주문 API 연동 시
+ * `orderId` 로 주문을 읽어와 `OrderDetailView` 에 내려주는 형태로 바뀐다(이슈 #94).
  */
-export default async function OrderDetailPage({
-  params,
-}: {
-  params: Promise<{ orderId: string }>;
-}) {
-  await params;
-
-  return (
-    <div className="bg-surface-secondary flex flex-1 flex-col">
-      <SectionHeader leading="back" leadingHref="/mypage/orders" title="주문 내역 상세" />
-    </div>
-  );
+export default function OrderDetailPage() {
+  return <OrderDetailView />;
 }

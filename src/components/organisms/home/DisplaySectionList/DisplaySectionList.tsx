@@ -15,7 +15,7 @@ import { HomeSectionHeader } from '@/components/molecules/shared/HomeSectionHead
  * `/products/home-recommendations` API 미확정(structure-convention §6-2)이라
  * `mock.ts` 정적 배열만 쓴다.
  */
-export type DisplaySectionProduct = Omit<ProductCardProps, 'onAddToCart' | 'className'> & {
+export type DisplaySectionProduct = Omit<ProductCardProps, 'onAddToCart' | 'className' | 'href'> & {
   id: string;
 };
 
@@ -53,6 +53,7 @@ export function DisplaySectionList({
         {products.map((product) => (
           <ProductCard
             key={product.id}
+            href={`/products/${product.id}`}
             imageSrc={product.imageSrc}
             imageAlt={product.imageAlt}
             deliveryLabel={product.deliveryLabel}

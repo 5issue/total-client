@@ -1,7 +1,7 @@
 'use client';
 
 import { useId, useRef, useState } from 'react';
-import type { ChangeEvent, InputHTMLAttributes, KeyboardEvent } from 'react';
+import type { ChangeEvent, FormEvent, InputHTMLAttributes } from 'react';
 
 import { Icon } from '@/components/atoms/Icon';
 
@@ -15,6 +15,14 @@ import { Icon } from '@/components/atoms/Icon';
  *   디자인팀 스펙 갱신(#69, 검색 화면 헤더 실측 40→44px).
  * - 값이 있을 때만 우측 클리어(X) 버튼을 노출한다.
  * - Enter 로 `onSearch`. 제어/비제어 모두 지원(Textarea 와 동일한 방식).
+ *   `keydown Enter` 가 아니라 `<form onSubmit>` 으로 감지한다 — 실기기(특히 한글 IME)의
+ *   가상 키보드 검색 키는 신뢰할 수 있는 Enter 이벤트를 항상 보내지 않지만, 폼 submit 은
+ *   플랫폼 공통으로 트리거한다. 제출 값은 state 가 아니라 `inputRef.current.value` 를 읽는다
+ *   — iOS Safari 는 IME 조합 중 controlled value 갱신이 DOM 과 한 박자 어긋나, state 가
+ *   못 따라온 순간 제출되면 빈 값이 나간다.
+ * - `type="search"` 가 아니라 `type="text"` + `enterKeyHint="search"` + `role="searchbox"` —
+ *   WebKit 은 `type="search"` 와 IME 조합을 같이 쓸 때 controlled value 동기화가 깨진다.
+ *   클리어(X) 버튼은 이미 자체 구현이라 네이티브 취소 버튼을 잃어도 상관없다.
  * - 좌측 돋보기 / 우측 X 는 Icon atom(`search` · `close`, #19).
  * - Figma 에는 포커스 스타일이 없지만, 키보드 포커스 가시성(WCAG 2.4.7)을 위해
  *   `focus-within` 시 활성 보더를 준다. (code-style §5 접근성)
@@ -71,8 +79,12 @@ export function SearchBar({
     onChange?.(e);
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') onSearch?.(current);
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    onSearch?.(inputRef.current?.value ?? current);
+    // 결과 화면은 키패드 OFF 목업이라 제출 후 키패드를 닫는다. blur 가 onBlur 도 태워
+    // BottomNav 가 자연히 다시 보인다.
+    inputRef.current?.blur();
   };
 
   const handleClear = () => {
@@ -82,7 +94,7 @@ export function SearchBar({
   };
 
   return (
-    <div className="flex w-full flex-col gap-2">
+    <form className="flex w-full flex-col gap-2" onSubmit={handleSubmit}>
       <label htmlFor={inputId} className={labelVisible ? 'text-label-l text-fg' : 'sr-only'}>
         {label}
       </label>
@@ -92,14 +104,15 @@ export function SearchBar({
         <input
           ref={inputRef}
           id={inputId}
-          type="search"
+          type="text"
+          role="searchbox"
+          enterKeyHint="search"
           value={current}
           disabled={disabled}
           placeholder={placeholder}
           onChange={handleChange}
-          onKeyDown={handleKeyDown}
           aria-describedby={describedBy}
-          className="text-input text-fg placeholder:text-fg-quaternary min-w-0 flex-1 bg-transparent placeholder:font-medium focus:outline-none [&::-webkit-search-cancel-button]:appearance-none"
+          className="text-input text-fg placeholder:text-fg-quaternary min-w-0 flex-1 bg-transparent placeholder:font-medium focus:outline-none"
           {...props}
         />
         {showClear ? (
@@ -113,6 +126,6 @@ export function SearchBar({
           </button>
         ) : null}
       </div>
-    </div>
+    </form>
   );
 }

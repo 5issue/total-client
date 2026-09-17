@@ -26,6 +26,9 @@ export type CartQuantityRowProps = {
   unitPriceLabel: string;
   quantity: number;
   onQuantityChange: (value: number) => void;
+  /** 기본 1(담기 시트 — 0개를 담을 순 없다). 다중 옵션 시트(node 665:43562)처럼 옵션별
+   *  수량이 미선택(0)에서 시작해야 하면 0으로 넘긴다. */
+  min?: number;
   className?: string;
 };
 
@@ -37,17 +40,23 @@ export function CartQuantityRow({
   unitPriceLabel,
   quantity,
   onQuantityChange,
+  min = 1,
   className,
 }: CartQuantityRowProps) {
   return (
-    <div className={['flex w-full flex-col gap-1', className].filter(Boolean).join(' ')}>
+    // items-start 필수 — 없으면 flex-col 기본값(align-items: stretch) 때문에 폭을
+    // 명시하지 않은 뱃지가 행 전체 폭으로 늘어난다(ProductCard 의 Kurly Only 뱃지와
+    // 같은 함정, 다중 옵션 시트 QA 중 발견).
+    <div
+      className={['flex w-full flex-col items-start gap-1', className].filter(Boolean).join(' ')}
+    >
       {badgeLabel ? (
         <Badge color="cyan" size="small">
           <span className="font-bold">{badgeLabel}</span>
         </Badge>
       ) : null}
-      <p className="text-body-m text-fg">{name}</p>
-      <div className="flex items-center justify-between gap-2">
+      <p className="text-body-m text-fg w-full">{name}</p>
+      <div className="flex w-full items-center justify-between gap-2">
         <div className="flex items-end gap-1.5">
           <span className="text-numeric-l font-numeric text-fg">{priceLabel}</span>
           {originalPriceLabel ? (
@@ -59,11 +68,11 @@ export function CartQuantityRow({
         <QuantityStepper
           value={quantity}
           onChange={onQuantityChange}
-          min={1}
+          min={min}
           label={`${name} 수량`}
         />
       </div>
-      <p className="text-caption-m font-numeric text-fg-secondary">{unitPriceLabel}</p>
+      <p className="text-caption-m font-numeric text-fg-secondary w-full">{unitPriceLabel}</p>
     </div>
   );
 }

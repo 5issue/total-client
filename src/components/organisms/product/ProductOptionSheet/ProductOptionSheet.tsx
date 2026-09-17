@@ -21,16 +21,24 @@ import { MOCK_ADD_TO_CART_PRODUCT, MOCK_ADD_TO_CART_PROMOTION } from './mock';
  * 어떤 카드의 "담기"를 눌러도 `mock.ts`의 대표 상품(Figma 예시 "연세우유")으로
  * 고정 렌더한다 — 클릭한 상품별 데이터 연동은 API 연동 단계 몫. 수량 조절은
  * 로컬 state로 실제 동작하지만, 장바구니 담기/신선구독/찜은 뮤테이션 API가 아직
- * 없어 "담기" 클릭 시 시트만 닫는다.
+ * 없어 실제 담기는 없다 — "담기" 클릭 시 시트를 닫고 `onAddToCart` 로 성공을 알린다
+ * (호출부가 `CartAddedProductsBottomSheet` 를 잇달아 여는 데 쓴다, node 665:43409).
  */
 export type ProductOptionSheetProps = {
   open: boolean;
   onClose: () => void;
+  /** 담기 성공 직후(시트가 닫히는 시점) 호출 — 완료 시트 등 다음 단계 트리거용. */
+  onAddToCart?: () => void;
 };
 
-export function ProductOptionSheet({ open, onClose }: ProductOptionSheetProps) {
+export function ProductOptionSheet({ open, onClose, onAddToCart }: ProductOptionSheetProps) {
   const [quantity, setQuantity] = useState(1);
   const [liked, setLiked] = useState(false);
+
+  function handleAddToCart() {
+    onClose();
+    onAddToCart?.();
+  }
 
   return (
     <BottomSheet
@@ -46,7 +54,7 @@ export function ProductOptionSheet({ open, onClose }: ProductOptionSheetProps) {
             promotion={MOCK_ADD_TO_CART_PROMOTION}
             liked={liked}
             onToggleLike={() => setLiked((prev) => !prev)}
-            onAddToCart={onClose}
+            onAddToCart={handleAddToCart}
           />
         </>
       }
@@ -56,7 +64,10 @@ export function ProductOptionSheet({ open, onClose }: ProductOptionSheetProps) {
         name={MOCK_ADD_TO_CART_PRODUCT.name}
         tagline={MOCK_ADD_TO_CART_PRODUCT.tagline}
       />
-      <div className="border-border mx-4 border-t" />
+      {/* mt-3: OptionSelectBottomSheet(node 665:43255)는 직계 자식 전부를 gap-s(12px)로
+          쌓는데, 이 구분선 앞에서만 그 12px이 비어 있었다(실측 재확인, 버그) —
+          미리보기 바로 아래 구분선이 붙어 보였다. */}
+      <div className="border-border mx-4 mt-3 border-t" />
       <div className="px-4 py-3">
         <CartQuantityRow
           name={MOCK_ADD_TO_CART_PRODUCT.name}

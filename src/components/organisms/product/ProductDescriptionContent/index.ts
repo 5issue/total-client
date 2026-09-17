@@ -1,0 +1,1 @@
+export { ProductDescriptionContent } from './ProductDescriptionContent';

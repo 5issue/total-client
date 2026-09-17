@@ -25,6 +25,14 @@ import { PromotionBar } from '@/components/molecules/shared/PromotionBar';
  * (56px) 오버라이드가 캐스케이드 충돌 없이 안전하게 먹는다(Button.tsx SIZE_HEIGHT_CLASSNAME.l
  * 확인). `showSubscribeButton=false` 면(node 2490:1629, 2831:2424 — 신선구독 불가 상품)
  * 장바구니 담기 버튼이 혼자 전체 폭을 차지한다.
+ *
+ * 하단 패딩은 `showTerms` 로 갈린다 — 약관 고지가 보일 때(`pb-3`)는 그 텍스트 줄 자체가
+ * 버튼 아래 여백을 채워 Figma 버튼-행 프레임 실측(112px, node 1233:110910)과 맞아떨어지지만,
+ * 고지를 숨기는 화면(예: 상품 상세 고정 하단바, node 665:43103 — 약관 텍스트 레이어가
+ * `hidden`)은 그 자리가 원래 홈 인디케이터 여유 44px 였다(get_metadata 로 확인: 버튼 행
+ * 프레임 112px 중 pt-3(12)+버튼(56)=68, 나머지 44가 고지 없이도 남는 하단 여백).
+ * `CartOrderBar` 의 `pb-11`(같은 이유, "홈 인디케이터 여유")과 동일한 값 — `showTerms=false`
+ * 일 때만 그만큼을 명시적으로 되살린다.
  */
 export type AddToCartActionsProps = {
   /** 있으면 상단에 혜택 배너를 렌더한다. */
@@ -35,6 +43,8 @@ export type AddToCartActionsProps = {
   showSubscribeButton?: boolean;
   onSubscribe?: () => void;
   onAddToCart?: () => void;
+  /** "장바구니 담기" 버튼 비활성화(예: 옵션 수량 합계가 0일 때) — 기본 false. */
+  addToCartDisabled?: boolean;
   /** 기본 true. 결제 전 약관 고지 문구 노출 여부. */
   showTerms?: boolean;
   className?: string;
@@ -47,6 +57,7 @@ export function AddToCartActions({
   showSubscribeButton = true,
   onSubscribe,
   onAddToCart,
+  addToCartDisabled = false,
   showTerms = true,
   className,
 }: AddToCartActionsProps) {
@@ -56,7 +67,7 @@ export function AddToCartActions({
         <PromotionBar text={promotion.text} emphasisText={promotion.emphasisText} />
       ) : null}
 
-      <div className="flex flex-col gap-3 px-4 py-3">
+      <div className={`flex flex-col gap-3 px-4 pt-3 ${showTerms ? 'pb-3' : 'pb-11'}`}>
         <div className="flex items-center gap-2">
           <IconButton
             variant="outlineBlack"
@@ -72,7 +83,13 @@ export function AddToCartActions({
               신선구독
             </Button>
           ) : null}
-          <Button variant="primary" size="l" onClick={onAddToCart} className="h-14 flex-1">
+          <Button
+            variant="primary"
+            size="l"
+            onClick={onAddToCart}
+            disabled={addToCartDisabled}
+            className="h-14 flex-1"
+          >
             장바구니 담기
           </Button>
         </div>
