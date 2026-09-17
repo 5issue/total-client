@@ -97,8 +97,11 @@
   }
 
   /* LoadingIndicator(node 665-60896 "LoadingDots") — `loading` 아이콘은 themable=false
-   * (#222 고정)라 색은 못 바꿔 opacity 로 명암을 낸다. */
-  --animate-loading-dot: loading-dot 1s ease-in-out infinite;
+   * (#222 고정)라 색은 못 바꿔 opacity 로 명암을 낸다. 점 3개가 순서대로 뜨도록 dot 마다
+   * 지연 시간만 다른 애니메이션을 생성 유틸리티로 둔다(대괄호 임의값 대신). */
+  --animate-loading-dot-1: loading-dot 1s ease-in-out infinite;
+  --animate-loading-dot-2: loading-dot 1s ease-in-out 150ms infinite;
+  --animate-loading-dot-3: loading-dot 1s ease-in-out 300ms infinite;
   @keyframes loading-dot {
     0%,
     80%,

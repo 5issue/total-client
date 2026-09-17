@@ -6,6 +6,12 @@ import { LoadingIndicator } from './LoadingIndicator';
 const meta = {
   title: 'atoms/LoadingIndicator',
   component: LoadingIndicator,
+  args: {
+    label: '불러오는 중',
+  },
+  argTypes: {
+    className: { control: false },
+  },
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
 } satisfies Meta<typeof LoadingIndicator>;

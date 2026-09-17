@@ -11,7 +11,11 @@ export interface LoadingIndicatorProps {
   className?: string;
 }
 
-const DOT_DELAY_CLASSNAME = ['', '[animation-delay:150ms]', '[animation-delay:300ms]'];
+const DOT_ANIMATION_CLASSNAME = [
+  'animate-loading-dot-1',
+  'animate-loading-dot-2',
+  'animate-loading-dot-3',
+];
 
 export function LoadingIndicator({ label = '불러오는 중', className }: LoadingIndicatorProps) {
   return (
@@ -22,15 +26,13 @@ export function LoadingIndicator({ label = '불러오는 중', className }: Load
         .join(' ')}
     >
       <div className="flex items-center">
-        {DOT_DELAY_CLASSNAME.map((delayClassName, i) => (
+        {DOT_ANIMATION_CLASSNAME.map((animationClassName, i) => (
           <Icon
             key={i}
             name="loading"
             size={12}
             aria-hidden
-            className={['animate-loading-dot motion-reduce:animate-none', delayClassName]
-              .filter(Boolean)
-              .join(' ')}
+            className={`${animationClassName} motion-reduce:animate-none`}
           />
         ))}
       </div>

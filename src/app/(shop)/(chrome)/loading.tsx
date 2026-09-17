@@ -5,5 +5,5 @@ import { LoadingIndicator } from '@/components/atoms/LoadingIndicator';
  * 감싸므로 부모 레이아웃의 BottomNav는 그대로 유지된다.
  */
 export default function Loading() {
-  return <LoadingIndicator className="flex-1" />;
+  return <LoadingIndicator className="h-full" />;
 }

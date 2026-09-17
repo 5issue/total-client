@@ -24,7 +24,9 @@ export function FullScreenErrorState({
   action,
 }: FullScreenErrorStateProps) {
   return (
-    <div className="bg-surface mx-auto flex min-h-dvh max-w-screen-sm flex-col items-center justify-center px-6">
+    <main className="bg-surface mx-auto flex min-h-dvh max-w-screen-sm flex-col items-center justify-center px-6">
+      {/* 페이지 랜드마크/제목 보강용 — 시각적으로는 ErrorState 의 title 문단이 대신한다. */}
+      <h1 className="sr-only">{title}</h1>
       <ErrorState
         icon={
           <Image
@@ -39,6 +41,6 @@ export function FullScreenErrorState({
         description={description}
         action={action}
       />
-    </div>
+    </main>
   );
 }
