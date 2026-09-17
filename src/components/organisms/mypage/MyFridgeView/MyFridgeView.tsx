@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
 import { TabBar, type TabBarItem } from '@/components/molecules/shared/TabBar';
+import { MyRecipeView } from '@/components/organisms/mypage/MyRecipeView';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 
 import { FridgeAiNoticeBanner } from './FridgeAiNoticeBanner';
@@ -35,7 +36,7 @@ const TABS: TabBarItem[] = [
  * 고정 링크를 쓴다(`OrderCompleteView`의 `leadingHref="/"`와 같은 패턴).
  *
  * 탭 선택은 URL 쿼리로 유지한다(취소·반품·교환 내역 탭과 동일 컨벤션, #102).
- * "MY 레시피" 탭은 이번 Figma 범위에 없어 다른 미구현 화면과 같은 스텁으로 둔다.
+ * "MY 레시피" 탭 콘텐츠는 `MyRecipeView`(이슈 #113) 참고.
  *
  * 헤더+탭바+필터 칩(카테고리)은 스크롤 중에도 같이 붙어 있어야 해서(#111 QA) 한
  * `sticky top-0` 컨테이너로 묶는다. 배경은 헤더+탭바 구간에만 준다(`bg-surface`
@@ -174,7 +175,7 @@ export function MyFridgeView({ initialTab }: MyFridgeViewProps) {
           />
         </>
       ) : (
-        <p className="text-body-m text-fg-tertiary p-8 text-center">MY 레시피 (구현 예정)</p>
+        <MyRecipeView />
       )}
 
       <FridgeRefillBottomSheet

@@ -30,7 +30,12 @@ export const MOCK_QUICK_MENU: QuickMenuEntry[] = [
 
 export const MOCK_KITCHEN_CARDS: KitchenCardData[] = [
   { id: 'fridge', title: 'MY 냉장고', iconSrc: '/mypage/fridge.png', href: '/mypage/fridge' },
-  { id: 'recipe', title: 'MY 레시피', iconSrc: '/mypage/recipe.png' },
+  {
+    id: 'recipe',
+    title: 'MY 레시피',
+    iconSrc: '/mypage/recipe.png',
+    href: '/mypage/fridge?tab=recipe',
+  },
 ];
 
 export const MOCK_CURATOR_CARDS: CuratorCardData[] = [
