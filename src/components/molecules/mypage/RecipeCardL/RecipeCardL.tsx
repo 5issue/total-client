@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 import { Checkbox } from '@/components/atoms/Checkbox';
 import { Icon } from '@/components/atoms/Icon';
+import { RecipeIngredientCounts } from '@/components/molecules/mypage/RecipeIngredientCounts';
 import type { RecipeCardSummary } from '@/components/organisms/mypage/MyRecipeView/model';
 
 /**
@@ -84,15 +85,10 @@ export function RecipeCardL({
       <div className="flex w-full flex-col items-start justify-center gap-2 pt-1">
         <div className="flex w-full flex-col items-start">
           <p className="text-label-m text-fg w-full truncate">{recipe.name}</p>
-          <div className="flex h-5 items-center gap-1">
-            <span className="text-caption-m text-fg-secondary">
-              보유재료 {recipe.ownedIngredientCount}개
-            </span>
-            <span aria-hidden className="bg-border h-3 w-px" />
-            <span className="text-caption-m text-fg-secondary">
-              필요재료 {recipe.neededIngredientCount}개
-            </span>
-          </div>
+          <RecipeIngredientCounts
+            ownedCount={recipe.ownedIngredientCount}
+            neededCount={recipe.neededIngredientCount}
+          />
         </div>
         <Link
           href={`/mypage/fridge/recipes/${recipe.id}`}

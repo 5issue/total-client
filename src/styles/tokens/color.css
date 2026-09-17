@@ -116,6 +116,22 @@
     color-mix(in srgb, var(--color-blue) 40%, transparent) 0%,
     color-mix(in srgb, var(--color-brand-200) 40%, transparent) 100%
   );
+  /* MY 레시피 AI 로딩 화면(node 1343-109131) — 전체 배경의 옅은 보라 방사형
+     그라데이션과, 중앙 컬리 AI 마크 배지의 원형 그라데이션. */
+  --background-image-recipe-ai-loading-bg: radial-gradient(
+    circle at 50% 20%,
+    color-mix(in srgb, var(--color-primary) 18%, transparent) 0%,
+    transparent 60%
+  );
+  --background-image-recipe-ai-loading-mark: linear-gradient(126deg, #ac89ff 0.56%, #74befd 95.9%);
+  /* MY 레시피 메인 "AI 추천 레시피" 섹션(제목+캐러셀) 배경 — node 1281-210506 원본은
+     radial-gradient SVG, 근사 CSS 그라데이션으로 재현. */
+  --background-image-recipe-ai-recommend-bg: radial-gradient(
+    120% 90% at 100% 0%,
+    color-mix(in srgb, var(--color-primary) 22%, transparent) 0%,
+    color-mix(in srgb, var(--color-primary) 10%, transparent) 45%,
+    transparent 75%
+  );
 }
 
 /* ── 시맨틱 토큰 (테마 인식) — 값은 아래 :root 에서 ──────────── */

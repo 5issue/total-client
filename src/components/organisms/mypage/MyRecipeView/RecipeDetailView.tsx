@@ -86,9 +86,9 @@ export function RecipeDetailView({ recipe }: RecipeDetailViewProps) {
         {/* 아코디언 제목의 "N개"는 Figma 원문("4개")이 아래 보유/구매 개수 합(3+4=7)과
             어긋나 있어(디자인 확인 필요), 보유 개수 기준으로 다시 계산해 붙인다. */}
         <AccordionRecipe
-          title={`냉장고 속 재료 ${recipe.ownedCount}개로 요리를 할 수 있어요`}
-          ownedCount={recipe.ownedCount}
-          neededCount={recipe.neededCount}
+          title={`냉장고 속 재료 ${recipe.ownedIngredientCount}개로 요리를 할 수 있어요`}
+          ownedCount={recipe.ownedIngredientCount}
+          neededCount={recipe.neededIngredientCount}
           ownedItems={recipe.ownedItems}
           ingredients={recipe.ingredients}
         />
