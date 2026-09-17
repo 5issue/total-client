@@ -7,8 +7,10 @@ import { BottomSheet } from '@/components/molecules/shared/BottomSheet';
  * PromoBannerBottomSheet(node 1233-114124) — 혜택 알림(마케팅 수신) 동의 유도 바텀시트.
  * `molecules/shared/BottomSheet`가 포커스 트랩·스크롤 잠금·닫기 동작을 이미 구현해 그대로 재사용.
  *
- * CTA 라벨 "장바구니 담기"는 Figma 원문 그대로다 — 맥락과 안 맞아 보이지만 디자인 확인
- * 전까지 임의로 안 고친다(issue #106). API 연동 전이라 두 버튼 다 시트를 닫기만 한다.
+ * Figma CTA 라벨은 "장바구니 담기"인데 이 시트 맥락(광고성 정보 수신 동의)과 전혀
+ * 안 맞아 다른 컴포넌트 재사용 중 복붙된 것으로 보여 "혜택 알림 동의하기"로 바꿨다
+ * (코드래빗 리뷰 — 최종 문구는 디자인 확인 후 Figma 코멘트로 갱신 예정, issue #106).
+ * API 연동 전이라 두 버튼 다 시트를 닫기만 한다.
  */
 export interface BenefitPromoBottomSheetProps {
   open: boolean;
@@ -24,7 +26,7 @@ export function BenefitPromoBottomSheet({ open, onClose }: BenefitPromoBottomShe
       footer={
         <div className="flex flex-col items-center px-4 pb-4">
           <Button variant="primary" size="l" className="h-14 w-full" onClick={onClose}>
-            장바구니 담기
+            혜택 알림 동의하기
           </Button>
           <button
             type="button"

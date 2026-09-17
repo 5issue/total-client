@@ -7,6 +7,8 @@ const meta = {
   title: 'organisms/mypage/MyKurlyHomeView',
   component: MyKurlyHomeView,
   tags: ['autodocs'],
+  args: {},
+  argTypes: {},
   parameters: {
     layout: 'fullscreen',
     nextjs: { appDirectory: true, navigation: { pathname: '/mypage' } },
