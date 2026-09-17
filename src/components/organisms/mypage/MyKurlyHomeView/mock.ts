@@ -29,7 +29,7 @@ export const MOCK_QUICK_MENU: QuickMenuEntry[] = [
 ];
 
 export const MOCK_KITCHEN_CARDS: KitchenCardData[] = [
-  { id: 'fridge', title: 'MY 냉장고', iconSrc: '/mypage/fridge.png' },
+  { id: 'fridge', title: 'MY 냉장고', iconSrc: '/mypage/fridge.png', href: '/mypage/fridge' },
   { id: 'recipe', title: 'MY 레시피', iconSrc: '/mypage/recipe.png' },
 ];
 

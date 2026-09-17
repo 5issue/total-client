@@ -34,6 +34,8 @@ export interface KitchenCardData {
   id: string;
   title: string;
   iconSrc: string;
+  /** 없으면 목적지 화면이 아직 없다는 뜻 — 비상호작용으로 렌더한다(`LinkItem` 과 동일 원칙). */
+  href?: string;
 }
 
 /**

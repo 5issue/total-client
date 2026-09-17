@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 
 import { Icon } from '@/components/atoms/Icon';
 import { StatusLabel } from '@/components/molecules/shared/StatusLabel';
@@ -89,15 +90,25 @@ export function PromoSummarySection() {
       <div className="flex flex-col gap-3 pt-3">
         <h2 className="text-label-xl text-fg">컬리키친</h2>
         <div className="flex items-center gap-2">
-          {MOCK_KITCHEN_CARDS.map((card) => (
-            <div
-              key={card.id}
-              className="bg-surface-secondary rounded-m flex h-13 flex-1 items-center justify-center gap-2 px-4 py-3"
-            >
-              <p className="text-label-xl text-fg flex-1 text-center">{card.title}</p>
-              <Image src={card.iconSrc} alt="" width={40} height={40} />
-            </div>
-          ))}
+          {MOCK_KITCHEN_CARDS.map((card) => {
+            const content = (
+              <>
+                <p className="text-label-xl text-fg flex-1 text-center">{card.title}</p>
+                <Image src={card.iconSrc} alt="" width={40} height={40} />
+              </>
+            );
+            const className =
+              'bg-surface-secondary rounded-m flex h-13 flex-1 items-center justify-center gap-2 px-4 py-3';
+            return card.href ? (
+              <Link key={card.id} href={card.href} className={className}>
+                {content}
+              </Link>
+            ) : (
+              <div key={card.id} className={className}>
+                {content}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
