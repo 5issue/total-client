@@ -63,6 +63,7 @@ export type IconName =
   | 'receipt'
   | 'refresh'
   | 'refrigerated'
+  | 'refrigerated-danger'
   | 'reset'
   | 'review'
   | 'right'
@@ -1109,6 +1110,26 @@ function render_refrigerated_20(idFor: (raw: string) => string): ReactNode {
   );
 }
 
+function render_refrigerated_danger_20(idFor: (raw: string) => string): ReactNode {
+  return (
+    <>
+      <g clipPath={`url(#${idFor('clip0_2374_2100')})`}>
+        <path
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d="M10.0003 16.1771C12.5316 16.1771 14.5834 14.1985 14.5834 11.7582C14.5834 10.1314 13.0557 7.40313 10.0003 3.57292C6.94437 7.40255 5.41669 10.1314 5.41669 11.7582C5.41669 14.1985 7.46901 16.1771 10.0003 16.1771Z"
+          fill="var(--color-fg-danger)"
+        />
+      </g>
+      <defs>
+        <clipPath id={idFor('clip0_2374_2100')}>
+          <rect width={10} height={13.75} fill="white" transform="translate(5 3)" />
+        </clipPath>
+      </defs>
+    </>
+  );
+}
+
 function render_reset_20(_idFor: (raw: string) => string): ReactNode {
   return (
     <>
@@ -1460,6 +1481,13 @@ export const ICONS: Record<IconName, IconVariant[]> = {
   refresh: [{ viewBox: '0 0 20 20', themable: true, render: (idFor) => render_refresh_20(idFor) }],
   refrigerated: [
     { viewBox: '0 0 20 20', themable: false, render: (idFor) => render_refrigerated_20(idFor) },
+  ],
+  'refrigerated-danger': [
+    {
+      viewBox: '0 0 20 20',
+      themable: false,
+      render: (idFor) => render_refrigerated_danger_20(idFor),
+    },
   ],
   reset: [{ viewBox: '0 0 20 20', themable: true, render: (idFor) => render_reset_20(idFor) }],
   review: [
