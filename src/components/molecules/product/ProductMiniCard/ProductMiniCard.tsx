@@ -18,6 +18,10 @@ export type ProductMiniCardProps = {
   /** 정가 표기(예: "7,900원"). */
   originalPriceLabel?: string;
   onAddToCart?: () => void;
+  /** true 면 "담기" 버튼을 비활성화한다 — 실제 장바구니 연동 전 목업 화면에서
+   *  동작 없는 버튼이 활성처럼 보이지 않도록 쓴다(`FridgeRefillCompleteBottomSheet`
+   *  등 기존 mock 카드와 동일 원칙). */
+  disabled?: boolean;
   className?: string;
 };
 
@@ -28,6 +32,7 @@ export function ProductMiniCard({
   discountLabel,
   originalPriceLabel,
   onAddToCart,
+  disabled = false,
   className,
 }: ProductMiniCardProps) {
   return (
@@ -39,9 +44,14 @@ export function ProductMiniCard({
           고정 32px(h-8) 스펙과 안 맞아(가장 작은 s 사이즈도 36px) 직접 스타일링한다. */}
       <button
         type="button"
+        disabled={disabled}
         onClick={onAddToCart}
         aria-label={`${name} 장바구니 담기`}
-        className="rounded-m text-label-l text-fg active:bg-surface-secondary flex h-8 w-full items-center justify-center gap-1 border border-neutral-400"
+        className={[
+          'rounded-m flex h-8 w-full items-center justify-center gap-1 border border-neutral-400',
+          disabled ? 'text-fg-disabled' : 'text-fg active:bg-surface-secondary',
+          'text-label-l',
+        ].join(' ')}
       >
         <Icon name="cart" size={20} aria-hidden />
         담기

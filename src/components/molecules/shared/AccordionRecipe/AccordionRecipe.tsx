@@ -1,5 +1,6 @@
 import Image from 'next/image';
 
+import { Icon, type IconName } from '@/components/atoms/Icon';
 import { Accordion } from '@/components/molecules/shared/Accordion';
 
 /**
@@ -19,6 +20,8 @@ export interface AccordionRecipeIngredient {
 export interface AccordionRecipeOwnedItem {
   name: string;
   badge?: string;
+  /** `badge` 앞에 붙는 아이콘(예: 보관 방법 — `refrigerated`/`frozen`, node 1687-111481 "InputBadge"). */
+  badgeIcon?: IconName;
   /**
    * 썸네일 이미지. `public/` 기준 내부 절대 경로(`/…`)만 지원한다.
    * 외부 URL 은 `next.config` `images.remotePatterns` 설정이 필요해 렌더하지 않고
@@ -102,7 +105,8 @@ export function AccordionRecipe({
               </div>
               <div className="flex min-w-0 flex-col gap-1">
                 {item.badge ? (
-                  <span className="bg-surface-secondary text-caption-m text-fg-secondary inline-flex h-6 items-center self-start rounded-full px-2">
+                  <span className="bg-surface-secondary text-caption-m text-fg-secondary inline-flex h-6 items-center gap-0.5 self-start rounded-full px-2">
+                    {item.badgeIcon ? <Icon name={item.badgeIcon} size={16} aria-hidden /> : null}
                     {item.badge}
                   </span>
                 ) : null}
