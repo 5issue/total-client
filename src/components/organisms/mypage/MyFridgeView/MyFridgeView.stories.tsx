@@ -8,6 +8,12 @@ const meta = {
   component: MyFridgeView,
   tags: ['autodocs'],
   args: { initialTab: 'fridge' },
+  argTypes: {
+    initialTab: {
+      control: 'select',
+      options: ['fridge', 'recipe'],
+    },
+  },
   parameters: {
     layout: 'fullscreen',
     nextjs: { appDirectory: true, navigation: { pathname: '/mypage/fridge' } },

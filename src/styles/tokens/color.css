@@ -93,6 +93,20 @@
     var(--color-kbank-pointer) 0%,
     #7480f4 100%
   );
+  /* 나의 냉장고 상품 카드 이미지 스크림 — "IMG_Size"(디자인 시스템 node 3329-8439) 자체
+     스펙. 사진 위에 항상 얹는 어두운 그라데이션(체크박스·D-day 뱃지 가시성 보장용). */
+  --background-image-fridge-card-scrim: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-fg-secondary) 30%, transparent) -31.11%,
+    transparent 68.89%
+  );
+  /* 나의 냉장고 AI 안내 배너 배경 — "5팀 UI 공유용" RecommendedKeywordsContainer
+     (node 1120-56175) 그라데이션 색만 재사용(get_variable_defs 확인). */
+  --background-image-fridge-ai-banner-gradient: linear-gradient(
+    127deg,
+    color-mix(in srgb, var(--color-blue) 40%, transparent) 0%,
+    color-mix(in srgb, var(--color-brand-200) 40%, transparent) 100%
+  );
 }
 
 /* ── 시맨틱 토큰 (테마 인식) — 값은 아래 :root 에서 ──────────── */

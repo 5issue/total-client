@@ -36,6 +36,13 @@ const meta = {
     onRefill: fn(),
     onShowStorageTip: fn(),
   },
+  argTypes: {
+    item: { control: false },
+    checked: { control: 'boolean' },
+    onCheckedChange: { control: false },
+    onRefill: { control: false },
+    onShowStorageTip: { control: false },
+  },
   parameters: { layout: 'padded' },
   decorators: [
     (Story) => (

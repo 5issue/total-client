@@ -22,7 +22,11 @@ import type { FridgeItem } from './model';
  * `AddToCartActions`)만으로 조합했다 — 멤버스 가입 유도 모달은 이번 스펙 범위 밖.
  *
  * `item` 은 닫히는 트랜지션 중에도 `null` 로 비우면 안 된다 — `BottomSheet` 가
- * `open=false` 에도 children 을 마운트해두기 때문.
+ * `open=false` 에도 children 을 마운트해두기 때문. 같은 이유로 수량 state 도 컴포넌트가
+ * 언마운트되지 않아 다음 상품을 열 때 이전 값이 남는다 — `open` 이 true 로 바뀔 때마다
+ * 초기값으로 재설정한다(코드래빗 리뷰, #111). `useEffect` 로 하면 리렌더 한 번을 더
+ * 유발해(`react-hooks/set-state-in-effect`) 렌더 중 `prevOpen` 비교로 직접 처리한다
+ * (React 공식 "You Might Not Need an Effect" 패턴).
  */
 export interface FridgeRefillBottomSheetProps {
   open: boolean;
@@ -40,6 +44,16 @@ export function FridgeRefillBottomSheet({
   const [regularQty, setRegularQty] = useState(1);
   const [memberQty, setMemberQty] = useState(0);
   const [liked, setLiked] = useState(false);
+  const [prevOpen, setPrevOpen] = useState(open);
+
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) {
+      setRegularQty(1);
+      setMemberQty(0);
+      setLiked(false);
+    }
+  }
 
   if (!item) return null;
 
