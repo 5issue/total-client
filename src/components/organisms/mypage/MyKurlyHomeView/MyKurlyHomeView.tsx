@@ -1,7 +1,3 @@
-'use client';
-
-import { useState } from 'react';
-
 import { KurlyHeader } from '@/components/organisms/shared/KurlyHeader';
 
 import { BenefitPromoBottomSheet } from './BenefitPromoBottomSheet';
@@ -14,12 +10,12 @@ import { ShoppingLinksSection } from './ShoppingLinksSection';
  * 바텀시트, 동일 화면 + 디밍 오버레이). issue #106.
  *
  * 하단 여백은 `ShopShell`이 `pb-bottom-nav-safe`로 이미 예약해 여기선 안 둔다.
- * 바텀시트는 Figma 두 번째 프레임이 진입 즉시 떠 있는 상태라 마운트 시 자동으로 연다.
- * 노출 조건·"30일 동안 보지 않기" 영속 저장은 정책 미정이라 클라 상태로 여닫기만 한다.
+ * 바텀시트는 Figma 두 번째 프레임이 진입 즉시 떠 있는 상태라 마운트 시 자동으로 연다
+ * (`BenefitPromoBottomSheet` 자체 state) — 이 화면은 상호작용 state 가 없어 RSC로
+ * 유지한다(코드래빗 리뷰, #111. 예전엔 그 state 를 여기서 들고 있어 트리 전체가
+ * 클라이언트 경계였다).
  */
 export function MyKurlyHomeView() {
-  const [benefitSheetOpen, setBenefitSheetOpen] = useState(true);
-
   return (
     <div className="flex flex-1 flex-col">
       <KurlyHeader />
@@ -28,7 +24,7 @@ export function MyKurlyHomeView() {
         <CuratorSection />
         <ShoppingLinksSection />
       </div>
-      <BenefitPromoBottomSheet open={benefitSheetOpen} onClose={() => setBenefitSheetOpen(false)} />
+      <BenefitPromoBottomSheet />
     </div>
   );
 }
