@@ -3,6 +3,8 @@ import { type NextRequest } from 'next/server';
 import { fail, ok } from '@/lib/apiResponse';
 import { isOAuthProvider } from '@/lib/constants';
 import { env } from '@/lib/env';
+import { setOAuthTransactionCookies } from '@/lib/oauthTransactionCookies';
+import { extractCookieValue } from '@/lib/springCookie';
 import { SpringEnvelopeSchema, SpringLoginUrlDataSchema } from '@/types/auth';
 
 /**
@@ -34,5 +36,17 @@ export async function POST(
     return fail(springRes.status, raw.message);
   }
 
-  return ok(raw.data);
+  // 콜백에서 Spring 검증에 그대로 되돌려줘야 하는 인가 트랜잭션 값 — Set-Cookie 에만 실려온다
+  // (JSON 바디에는 없음). 하나라도 없으면 콜백이 반드시 실패하니 여기서 바로 막는다.
+  const setCookieHeaders = springRes.headers.getSetCookie();
+  const state = extractCookieValue(setCookieHeaders, 'oauth_state');
+  const codeVerifier = extractCookieValue(setCookieHeaders, 'oauth_code_verifier');
+  const redirectUriCookie = extractCookieValue(setCookieHeaders, 'oauth_redirect_uri');
+  if (!state || !codeVerifier || !redirectUriCookie) {
+    return fail(502, '로그인을 시작하지 못했어요. 잠시 후 다시 시도해주세요.');
+  }
+
+  const res = ok(raw.data);
+  setOAuthTransactionCookies(res, { state, codeVerifier, redirectUri: redirectUriCookie });
+  return res;
 }
