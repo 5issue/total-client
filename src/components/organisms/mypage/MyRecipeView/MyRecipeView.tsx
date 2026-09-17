@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { RecipeCardM } from '@/components/molecules/mypage/RecipeCardM';
 import { HomeSectionHeader } from '@/components/molecules/shared/HomeSectionHeader';
 
-import { MOCK_AI_RECOMMENDED_RECIPE_IDS, MOCK_RECENT_RECIPE_IDS, MOCK_RECIPES } from './mock';
+import { findRecipe, MOCK_AI_RECOMMENDED_RECIPE_IDS, MOCK_RECENT_RECIPE_IDS } from './mock';
 import { RecipeAiLoadingView } from './RecipeAiLoadingView';
 import { RecipeAiRecommendSection } from './RecipeAiRecommendSection';
 
@@ -29,12 +29,8 @@ export function MyRecipeView() {
   const router = useRouter();
   const [loadingRecipeId, setLoadingRecipeId] = useState<string | null>(null);
 
-  const aiRecommendedRecipes = MOCK_AI_RECOMMENDED_RECIPE_IDS.map((id) =>
-    MOCK_RECIPES.find((recipe) => recipe.id === id)!,
-  );
-  const recentRecipes = MOCK_RECENT_RECIPE_IDS.map((id) =>
-    MOCK_RECIPES.find((recipe) => recipe.id === id)!,
-  );
+  const aiRecommendedRecipes = MOCK_AI_RECOMMENDED_RECIPE_IDS.map((id) => findRecipe(id)!);
+  const recentRecipes = MOCK_RECENT_RECIPE_IDS.map((id) => findRecipe(id)!);
   const likedRecipes = recentRecipes.filter((recipe) => recipe.liked);
 
   function handleSelectAiRecipe(recipeId: string) {

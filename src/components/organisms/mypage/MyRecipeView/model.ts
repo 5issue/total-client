@@ -55,8 +55,6 @@ export interface Recipe extends RecipeCardSummary {
   description: string;
   /** 예: ['1인분', '간단해요']. */
   tags: string[];
-  ownedCount: number;
-  neededCount: number;
   ownedItems: RecipeOwnedItem[];
   ingredients: RecipeIngredient[];
   steps: string[];

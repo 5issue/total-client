@@ -9,7 +9,7 @@ import { RecipeCardL } from '@/components/molecules/mypage/RecipeCardL';
 import { ErrorState } from '@/components/molecules/shared/ErrorState';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 
-import { MOCK_RECENT_RECIPE_IDS, MOCK_RECIPES } from './mock';
+import { findRecipe, MOCK_RECENT_RECIPE_IDS } from './mock';
 import type { RecipeCardSummary } from './model';
 import { toCardSummary } from './model';
 import { RecipeDeleteConfirmModal } from './RecipeDeleteConfirmModal';
@@ -88,9 +88,7 @@ function RecipeSelectionToolbar({
 
 export function RecentRecipesView() {
   const [recipes, setRecipes] = useState<RecipeCardSummary[]>(() =>
-    MOCK_RECENT_RECIPE_IDS.map((id) =>
-      toCardSummary(MOCK_RECIPES.find((recipe) => recipe.id === id)!),
-    ),
+    MOCK_RECENT_RECIPE_IDS.map((id) => toCardSummary(findRecipe(id)!)),
   );
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
