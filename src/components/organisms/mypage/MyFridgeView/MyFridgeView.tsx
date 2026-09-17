@@ -38,11 +38,11 @@ const TABS: TabBarItem[] = [
  * "MY 레시피" 탭은 이번 Figma 범위에 없어 다른 미구현 화면과 같은 스텁으로 둔다.
  *
  * 헤더+탭바+필터 칩(카테고리)은 스크롤 중에도 같이 붙어 있어야 해서(#111 QA) 한
- * `sticky top-0` 컨테이너로 묶는다. 단 배경은 헤더+탭바 구간에만 준다(`bg-surface`
- * 를 두른 안쪽 `div`) — 칩 행(`FridgeFilterBar`)은 사용자 요청대로 뒤 배경 없이
- * 투명하게 떠서, 그리드가 스크롤돼 올라올 때 칩 사이·둘레로 그대로 비친다.
- * "전체선택/선택삭제" 툴바(`FridgeSelectionToolbar`)는 이 sticky 대상이 아니다 —
- * 그리드와 함께 정상적으로 스크롤된다.
+ * `sticky top-0` 컨테이너로 묶는다. 배경은 헤더+탭바 구간에만 준다(`bg-surface`
+ * 를 두른 안쪽 `div`) — 칩 행(`FridgeFilterBar`)은 배경 없이 투명하게 떠서, 그리드가
+ * 스크롤돼 올라올 때 칩 사이·둘레로 그대로 비친다. "전체선택/선택삭제" 툴바
+ * (`FridgeSelectionToolbar`)는 이 sticky 대상이 아니다 — 그리드와 함께 정상적으로
+ * 스크롤된다.
  */
 export interface MyFridgeViewProps {
   initialTab: FridgeTabId;

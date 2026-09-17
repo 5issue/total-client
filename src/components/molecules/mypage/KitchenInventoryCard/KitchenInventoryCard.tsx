@@ -82,11 +82,7 @@ export function KitchenInventoryCard({
             용도라 `pointer-events-none`으로 클릭은 이미지 링크로 그대로 통과시킨다. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              'linear-gradient(180deg, color-mix(in srgb, var(--color-fg-secondary) 30%, transparent) -31.11%, transparent 68.89%)',
-          }}
+          className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-fg-secondary)_30%,transparent)_-31.11%,transparent_68.89%)]"
         />
         <span className="absolute -top-1.25 -left-1.25">
           <Checkbox
