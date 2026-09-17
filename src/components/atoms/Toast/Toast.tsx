@@ -21,8 +21,8 @@ import type { ReactNode } from 'react';
  *   실측 고정폭(385px → `w-96`)이다.
  * - `action`은 Figma 의 별도 컴포넌트 `ActionToast`(node 1315-107772)다. 동작 직후
  *   결과만 알리는 한 줄 바 — 아이콘 없이 좌측 정렬, `rounded-m`, 균등 패딩 12,
- *   16px Medium 흰 글씨, 배경 `Surface/Tertiary`(#323a40 = `neutral-950`, `default`와
- *   같은 색). 폭은 hug 가 아니라 호출부가 채우는 full-width(Figma 370 = 화면 폭 − 좌우 16).
+ *   16px Medium 흰 글씨, 배경 `bg-surface-tertiary`(`default`와 같은 색). 폭은 hug 가
+ *   아니라 호출부가 채우는 full-width(Figma 370 = 화면 폭 − 좌우 16).
  */
 export type ToastVariant = 'default' | 'error' | 'action';
 
@@ -41,7 +41,7 @@ export function Toast({ variant = 'default', icon, children, className }: ToastP
       <div
         role="status"
         className={[
-          'text-fg-inverse rounded-m flex w-full items-center bg-neutral-950 p-3',
+          'text-fg-inverse rounded-m bg-surface-tertiary flex w-full items-center p-3',
           'text-heading-5',
           className,
         ]
@@ -74,7 +74,7 @@ export function Toast({ variant = 'default', icon, children, className }: ToastP
     <div
       role="status"
       className={[
-        'text-fg-inverse inline-flex items-center gap-3 rounded-full bg-neutral-950 px-4 py-2',
+        'text-fg-inverse bg-surface-tertiary inline-flex items-center gap-3 rounded-full px-4 py-2',
         'text-label-l font-bold',
         className,
       ]

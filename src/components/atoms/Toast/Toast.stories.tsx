@@ -20,7 +20,7 @@ const meta = {
     ),
   },
   argTypes: {
-    variant: { control: 'select', options: ['default', 'error'] },
+    variant: { control: 'select', options: ['default', 'error', 'action'] },
     icon: { control: false },
     children: { control: false },
   },
@@ -32,6 +32,15 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+
+/** Figma "ActionToast"(848:86191) — 아이콘 없이 카드형, 흰 글씨. */
+export const Action: Story = {
+  args: {
+    variant: 'action',
+    icon: undefined,
+    children: '장바구니에 상품 1개를 다시 담았어요',
+  },
+};
 
 /** Figma "Error Toast"(2949:2915) — 아이콘 없이 카드형, 텍스트는 danger 색. */
 export const Error: Story = {

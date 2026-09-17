@@ -9,8 +9,8 @@ import {
 
 /**
  * (shop) 상단 헤더 — 뒤로가기 + 마이컬리 로고(좌) + 위치·알림·장바구니(우).
- * Figma "TopNavigationBar"(node 910-110970) — 아이콘 글리프는 `SectionHeader` 기본값(32)이
- * 아닌 Figma 실측 28(`iconSize={28}`).
+ * Figma "TopNavigationBar"(node 910-110970) — 아이콘 글리프는 `SectionHeader` 기본값(28,
+ * Figma 실측)을 그대로 쓴다.
  *
  * 아직 `(shop)/layout.tsx` 에 전역 배치하지 않는다 — 장바구니는 X(닫기)형 `SectionHeader` 라
  * 전역화하면 충돌한다. 헤더가 필요한 페이지(`/login`, `/mypage`)가 직접 조립한다.
@@ -32,7 +32,6 @@ export function KurlyHeader({ className }: { className?: string }) {
       onLeadingClick={() => router.back()}
       center={<span className="text-heading-0 text-fg">마이컬리</span>}
       actions={ACTIONS}
-      iconSize={28}
     />
   );
 }

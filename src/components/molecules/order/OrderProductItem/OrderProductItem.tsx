@@ -1,8 +1,12 @@
+'use client';
+
+import Image from 'next/image';
+
 import { Icon } from '@/components/atoms/Icon';
 
 /**
- * 주문 상세의 주문 상품 한 줄 (molecule).
- * Figma "5팀 UI 공유용" — `OrderBreakdownItem`(node 2454-4327).
+ * 주문 내역/상세의 상품 한 줄 (molecule).
+ * Figma "5팀 UI 공유용" — `OrderBreakdownItem`(node 2454-4327, 주문 내역 771-106840).
  *
  * 썸네일 + 배송유형·상품명·가격 + 우측 담기 버튼. 장바구니의 `molecules/cart/CartLineItem`
  * (`Item_H_Cart`, node 2454-4242)와는 다른 컴포넌트다 — 체크박스·수량 스테퍼가 없고
@@ -23,6 +27,7 @@ export interface OrderProductItemProps {
   /** 정가(원). 있으면 취소선으로 함께 보여준다. */
   originalPrice?: number;
   quantity: number;
+  imageSrc?: string;
   /** 장바구니 담기. 아직 연동 전이면 생략한다(버튼은 Figma 대로 노출). */
   onAddToCart?: () => void;
   className?: string;
@@ -36,6 +41,7 @@ export function OrderProductItem({
   price,
   originalPrice,
   quantity,
+  imageSrc,
   onAddToCart,
   className,
 }: OrderProductItemProps) {
@@ -44,8 +50,17 @@ export function OrderProductItem({
       className={['flex items-center justify-between gap-3', className].filter(Boolean).join(' ')}
     >
       <div className="flex min-w-0 flex-1 items-start gap-3">
-        {/* 퍼블리싱 단계 — 실제 썸네일은 데이터 연동 시 next/image 로 교체(장바구니와 같은 처리). */}
-        <div aria-hidden className="bg-surface-secondary aspect-3/4 h-21 shrink-0 rounded-sm" />
+        {imageSrc ? (
+          <Image
+            src={imageSrc}
+            alt=""
+            width={63}
+            height={84}
+            className="aspect-3/4 h-21 w-auto shrink-0 rounded-sm object-cover"
+          />
+        ) : (
+          <div aria-hidden className="bg-surface-secondary aspect-3/4 h-21 shrink-0 rounded-sm" />
+        )}
 
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
           <p className="text-heading-6 text-fg-tertiary">{deliveryType}</p>
@@ -69,7 +84,7 @@ export function OrderProductItem({
       <button
         type="button"
         onClick={onAddToCart}
-        aria-label={`${name} 담기`}
+        aria-label={`${name} 장바구니 담기`}
         className="border-border bg-surface rounded-m text-fg flex size-10 shrink-0 items-center justify-center border"
       >
         <Icon name="cart" size={20} aria-hidden />

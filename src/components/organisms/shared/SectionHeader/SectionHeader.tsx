@@ -19,14 +19,17 @@ import { Icon, type IconName } from '@/components/atoms/Icon';
  *
  * 홈 섹션 구획 헤더(제목 + 부제 + 전체보기)는 `molecules/shared/HomeSectionHeader` 로 별개다.
  *
- * 상단 패딩 `pt-header-safe`(globals.css)는 노치/상태바 안전영역(`env(safe-area-inset-top)`)용 —
- * `viewportFit:'cover'` 라 콘텐츠가 상태바 아래까지 깔려서 필요하다(issue #106, 실기기에서
- * 헤더와 상태바가 겹치는 걸로 발견). 노치 없는 기기는 `env()`가 0이라 영향 없다.
- *
  * 토큰(`get_variable_defs` node 2438-1743): 배경 `Bg/default` → `bg-surface`,
  * 제목 `Heading/H0_SemiBold` + `Text/Primary` → `text-heading-0 text-fg`,
  * 터치 타깃 `Icon Height/XL` 44 → `size-11`, 여백 `Gap/XS`·`Margin/Default` → `pl-2 pr-4`.
- * 아이콘 글리프는 기본 32(Figma 실측 28보다 키운 값, back/close 가시성) — `iconSize` prop 으로 override.
+ * 아이콘 글리프는 기본 28(Figma 실측 그대로) — 필요하면 `iconSize` prop 으로 override.
+ * 예전엔 back/close 가시성을 위해 32로 키웠었지만(node 665:43034 상품 상세에서 실기기
+ * 겹침으로 재현), 이 컴포넌트를 쓰는 다른 화면도 동일한 결함이라 28을 기본값으로 되돌렸다.
+ *
+ * `pt-header-safe-top`(globals.css `--spacing-header-safe-top`): `viewport-fit: cover`
+ * (app/layout.tsx)라 콘텐츠가 기기 상단 안전영역(노치·상태바)까지 그려진다 — 이
+ * 패딩 없으면 헤더 행(뒤로가기/제목/아이콘)이 상태바와 겹친다(실기기 QA 발견).
+ * `HomeHeader` 가 이미 같은 이유로 쓰던 패턴.
  */
 interface SectionHeaderActionBase {
   icon: IconName;
@@ -55,13 +58,19 @@ export interface SectionHeaderProps {
 
   /** 가운데 제목 — `<h1>` 로 렌더. `center` 가 있으면 무시. */
   title?: string;
+  /** 제목 타이포+색 클래스 override(기본 `text-heading-0 text-fg` 전체를 대체 — 부분
+   *  병합이 아니다. `text-heading-*` 는 폰트사이즈/줄높이/자간/굵기를 한 클래스에
+   *  묶어 내므로 둘을 같이 주면 캐스케이드 순서에 따라 뒤엉킨다). 화면마다 실제
+   *  바인딩된 타입 스타일이 다르다 — 예: 상품 상세 TopNavigationBar(node 665:43034)는
+   *  `Heading/H2_Medium`(`text-heading-2`)이라 기본값(H0_SemiBold)과 다르다. */
+  titleClassName?: string;
   /** 가운데 커스텀 노드(예: `<SearchBar/>`). `title` 보다 우선. */
   center?: ReactNode;
 
   /** 오른쪽 액션 아이콘 목록. 생략 시 우측 비움. */
   actions?: SectionHeaderAction[];
 
-  /** 아이콘 글리프 px. 기본 32 — Figma 실측 그대로인 화면(`KurlyHeader` 등)은 28로 override. */
+  /** 아이콘 글리프 px. 기본 28(Figma 실측). 더 크게 써야 하면 override. */
   iconSize?: number;
 
   className?: string;
@@ -116,20 +125,30 @@ export function SectionHeader({
   leadingHref,
   leadingLabel,
   title,
+  titleClassName,
   center,
   actions,
-  iconSize = 32,
+  iconSize = 28,
   className,
 }: SectionHeaderProps) {
   const preset = leading ? LEADING_PRESET[leading] : null;
   const showLeading = preset && (leadingHref || onLeadingClick);
 
   const centerNode =
-    center ?? (title ? <h1 className="text-heading-0 text-fg truncate">{title}</h1> : null);
+    center ??
+    (title ? (
+      <h1 className={`${titleClassName ?? 'text-heading-0 text-fg'} truncate`}>{title}</h1>
+    ) : null);
 
   return (
     <header
-      className={['bg-surface pt-header-safe flex items-center pr-4 pb-1 pl-2', className]
+      className={[
+        // py-1 대신 pb-1 + pt-header-safe-top 으로 쪼갰다 — py-1 과 pt-* 를 같이 쓰면
+        // 같은 우선순위(단일 클래스)라 Tailwind 가 생성한 스타일시트 순서에 따라
+        // padding-top 이 뒤엉킨다(DisplaySectionList 의 font-bold! 와 같은 함정).
+        'bg-surface pt-header-safe-top flex items-center pr-4 pb-1 pl-2',
+        className,
+      ]
         .filter(Boolean)
         .join(' ')}
     >
