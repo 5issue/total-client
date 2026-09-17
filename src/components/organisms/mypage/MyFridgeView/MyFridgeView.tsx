@@ -30,6 +30,9 @@ const TABS: TabBarItem[] = [
 /**
  * 나의 냉장고 화면 루트 (organism). Figma "5팀 UI 공유용" node 1120-56174 등.
  * 마이컬리 홈 "컬리키친 > MY 냉장고" 카드에서 진입한다(`MyKurlyHomeView` mock.ts 참고).
+ * 뒤로가기는 항상 그 진입점(마이컬리 홈 `/mypage`)으로 고정 — 진입 경로가 다양한
+ * `SearchPageHeader`(그래서 `router.back()`)와 달리 여긴 하나뿐이라 `leadingHref`로
+ * 고정 링크를 쓴다(`OrderCompleteView`의 `leadingHref="/"`와 같은 패턴).
  *
  * 탭 선택은 URL 쿼리로 유지한다(취소·반품·교환 내역 탭과 동일 컨벤션, #102).
  * "MY 레시피" 탭은 이번 Figma 범위에 없어 다른 미구현 화면과 같은 스텁으로 둔다.
@@ -120,7 +123,7 @@ export function MyFridgeView({ initialTab }: MyFridgeViewProps) {
         <div className="bg-surface">
           <SectionHeader
             leading="back"
-            onLeadingClick={() => router.back()}
+            leadingHref="/mypage"
             title="컬리키친"
             iconSize={28}
             actions={[
