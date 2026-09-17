@@ -25,7 +25,7 @@ import { forwardRef, type KeyboardEventHandler } from 'react';
  * 별도 prop 없이 `active:` 유사클래스로 처리 — 컨트롤드 상태를 만들 이유가 없다.
  */
 export type TabItemTone = 'brand-secondary' | 'brand-primary' | 'black';
-export type TabItemSize = 'sm' | 'lg';
+export type TabItemSize = 'sm' | 'md' | 'lg';
 export type TabItemVariant = 'underline' | 'filled';
 
 const TONE_CLASSNAME: Record<TabItemTone, string> = {
@@ -36,6 +36,9 @@ const TONE_CLASSNAME: Record<TabItemTone, string> = {
 
 const SIZE_CLASSNAME: Record<TabItemSize, string> = {
   sm: 'text-label-l',
+  // 취소·반품·교환 내역 탭(node 666-30388) 실측: Heading/M 16px Medium — 상품설명 탭(lg,
+  // 18px)과 슬롯 폭(96px)은 같지만 글자 크기만 다르다.
+  md: 'min-w-24 text-heading-5',
   lg: 'min-w-24 text-heading-2',
 };
 
