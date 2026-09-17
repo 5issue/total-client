@@ -1,0 +1,143 @@
+'use client';
+
+import Image from 'next/image';
+import Link from 'next/link';
+
+import { Checkbox } from '@/components/atoms/Checkbox';
+import { Icon } from '@/components/atoms/Icon';
+import type { FridgeItem } from '@/components/organisms/mypage/MyFridgeView/model';
+
+/**
+ * 나의 냉장고 상품 카드 (molecule). Figma "5팀 UI 공유용" `KitchenInventoryCardXl`
+ * (node 1120-56187 등, 180×330).
+ *
+ * `SearchResultProductCard`(썸네일 위 뱃지 오버레이)와 `CartLineItem`(체크박스·품절
+ * 표현)의 컨벤션을 합쳤다 — 체크박스+D-day 뱃지가 동시에 썸네일 위에 겹치는 조합은
+ * 기존 카드 어디에도 없어 새 molecule 로 뒀다.
+ *
+ * 이미지는 상세 페이지 링크(`/products/[productId]`) — 품절이어도 그대로 이동 가능,
+ * "채워넣기"만 비활성화된다(디자인 요구사항).
+ *
+ * 체크박스는 `Checkbox` atom 을 그대로 쓰되, 그 `<label>` 이 항상 44px 터치 타깃으로
+ * 글리프를 가운데 두기 때문에 Figma 가 원하는 "썸네일 (8,8) 지점에 글리프 좌상단"과는
+ * 어긋난다(글리프 18px 기준 중심 오프셋 13px) — 감싸는 요소를 `-top-1.25 -left-1.25`
+ * (-5px)만큼 당겨 글리프만 (8,8)에 오도록 보정한다. 44px 히트박스 일부가 이미지의
+ * `overflow-hidden` 밖(음수 좌표)으로 잘리지만 안 보이는 터치 여백일 뿐이라 무해하다.
+ */
+export interface KitchenInventoryCardProps {
+  item: FridgeItem;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  onRefill: () => void;
+  onShowStorageTip: () => void;
+  className?: string;
+}
+
+function DDayBadge({ item }: { item: FridgeItem }) {
+  const icon = item.expired
+    ? item.storageType === 'frozen'
+      ? 'frozen-danger'
+      : 'refrigerated-danger'
+    : item.storageType;
+
+  return (
+    <span
+      className={[
+        'inline-flex h-6 items-center gap-0.5 rounded-full border px-2',
+        item.expired
+          ? 'bg-error border-error text-fg-danger'
+          : 'bg-surface-secondary text-fg-secondary border-neutral-400',
+      ].join(' ')}
+    >
+      <Icon name={icon} size={16} aria-hidden />
+      <span className="text-caption-m">{item.dDayLabel}</span>
+    </span>
+  );
+}
+
+export function KitchenInventoryCard({
+  item,
+  checked,
+  onCheckedChange,
+  onRefill,
+  onShowStorageTip,
+  className,
+}: KitchenInventoryCardProps) {
+  return (
+    <div className={['flex w-full flex-col gap-1', className].filter(Boolean).join(' ')}>
+      <div className="bg-surface-secondary relative aspect-square w-full overflow-hidden rounded-sm">
+        <Link href={`/products/${item.productId}`} className="absolute inset-0">
+          {item.imageSrc ? (
+            <Image
+              src={item.imageSrc}
+              alt={item.name}
+              fill
+              sizes="180px"
+              className="object-cover"
+            />
+          ) : null}
+        </Link>
+        {/* "IMG_Size"(디자인 시스템 node 3329-8439) 자체 스펙 — 사진 위에 항상 얹는
+            어두운 스크림. 체크박스·D-day 뱃지가 어떤 사진 위에서도 보이게 하는
+            용도라 `pointer-events-none`으로 클릭은 이미지 링크로 그대로 통과시킨다. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(180deg, color-mix(in srgb, var(--color-fg-secondary) 30%, transparent) -31.11%, transparent 68.89%)',
+          }}
+        />
+        <span className="absolute -top-1.25 -left-1.25">
+          <Checkbox
+            variant="filled"
+            label={`${item.name} 선택`}
+            checked={checked}
+            onChange={(e) => onCheckedChange(e.target.checked)}
+          />
+        </span>
+        <span className="absolute top-2 right-2">
+          <DDayBadge item={item} />
+        </span>
+      </div>
+
+      <div className="flex flex-col items-start gap-2 pt-1">
+        {item.soldOut ? (
+          <button
+            type="button"
+            disabled
+            className="text-label-l text-fg-disabled rounded-m flex h-9.5 w-full items-center justify-center gap-1 border border-neutral-400"
+          >
+            품절
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={onRefill}
+            className="text-label-l text-fg active:bg-surface-secondary rounded-m flex h-9.5 w-full items-center justify-center gap-1 border border-neutral-400"
+          >
+            <Icon name="plus-small" size={20} aria-hidden />
+            채워넣기
+          </button>
+        )}
+
+        <div className="flex flex-col items-start">
+          <p className="text-label-m text-fg">{item.name}</p>
+          <div className="flex h-5 items-center gap-1">
+            <span className="text-caption-m text-fg-secondary">{item.quantityLabel}</span>
+            <span aria-hidden className="bg-border h-3 w-px" />
+            <span className="text-caption-m text-fg-secondary">{item.expiryLabel}</span>
+          </div>
+          <button
+            type="button"
+            onClick={onShowStorageTip}
+            className="text-label-m text-primary flex h-9 w-15.25 items-center justify-center gap-1 py-2"
+          >
+            보관팁
+            <Icon name="right" size={12} aria-hidden />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
