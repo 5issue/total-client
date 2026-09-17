@@ -202,10 +202,13 @@ export function Dropdown({
         <span className={block ? 'min-w-0 truncate' : undefined}>
           {selected ? selected.label : placeholder}
         </span>
+        {/* Figma 스펙: 닫힘(기본) 상태가 위를 향하고, 펼치면 아래를 향한다(일반적인
+            셰브론 관례와 반대) — `arrow-down` 아이콘 자체가 "아래"가 기본형이라
+            닫힘일 때 180도 돌려 위를 향하게 하고, 펼쳤을 때 회전을 없앤다. */}
         <Icon
           name="arrow-down"
           size={20}
-          className={`shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`shrink-0 transition-transform ${open ? '' : 'rotate-180'}`}
           aria-hidden
         />
       </button>

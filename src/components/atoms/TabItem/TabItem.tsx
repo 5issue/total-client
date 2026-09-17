@@ -44,8 +44,21 @@ const TONE_CLASSNAME: Record<TabItemTone, string> = {
 
 const SIZE_CLASSNAME: Record<TabItemSize, string> = {
   sm: 'text-label-l',
+  // 취소·반품·교환 내역 탭(node 666-30388) 실측: Heading/M 16px Medium — 상품설명 탭(lg,
+  // 18px)과 슬롯 폭(96px)은 같지만 글자 크기만 다르다.
   md: 'text-heading-5',
-  lg: 'min-w-24 text-heading-2',
+  lg: 'text-heading-2',
+};
+
+// md/lg 의 96px 최소폭은 `fitted`(균등분할) 모드와 상충한다 — 상품 상세 TabBar 처럼 탭
+// 4개가 `flex-1` 로 폭을 나눠 갖는 화면에서 96px×4=384px 최소폭을 강제하면 360~390px
+// 폭 실기기에서 탭 바가 넘친다(#101 QA 재현, 402px Figma 프레임에서만 안 넘쳤다). 그래서
+// `fitted` 일 땐 이 최소폭을 두지 않고 `flex-1` 균등분할에 맡긴다 — 44px 터치 타깃은
+// base 클래스의 `min-w-11`이 이미 보장하므로 접근성엔 영향 없다.
+const SIZE_MIN_WIDTH_CLASSNAME: Record<TabItemSize, string> = {
+  sm: '',
+  md: 'min-w-24',
+  lg: 'min-w-24',
 };
 
 export type TabItemProps = {
@@ -57,8 +70,11 @@ export type TabItemProps = {
   count?: number;
   /** active 상태 색. 기본 brand-secondary(#50006B, 상품설명 등 콘텐츠 탭). filled 는 항상 흑백(fg)이라 무시 */
   tone?: TabItemTone;
-  /** 기본 lg(Heading/M 18px, 최소폭 96px). md 는 Heading/H5 16px, 최소폭 없이 `fitted`
-   *  와 함께 씀(상품 상세 TabBar). 추천 키워드 탭처럼 작은 맥락은 sm(Label/M 14px) */
+  /** 기본 lg(Heading/M 18px, 최소폭 96px). md 는 Heading/H5 16px, 최소폭도 lg 와 동일
+   *  96px(취소·반품·교환 내역 탭 실측) — 단, `fitted` 와 함께 쓰면 이 최소폭은 적용하지
+   *  않는다(상품 상세 TabBar 처럼 여러 탭이 `flex-1` 로 폭을 나눠 가지면 96px×탭수가
+   *  좁은 화면에서 컨테이너를 넘긴다, #101 QA). 추천 키워드 탭처럼 작은 맥락은
+   *  sm(Label/M 14px) */
   size?: TabItemSize;
   /** roving tabIndex — TabBar 가 관리(활성 탭만 0, 나머지 -1). 단독 사용 시 기본 포커스 가능(0) */
   tabIndex?: number;
@@ -110,6 +126,7 @@ export const TabItem = forwardRef<HTMLButtonElement, TabItemProps>(function TabI
 
   const colorClassName = active ? TONE_CLASSNAME[tone] : 'border-transparent text-fg-secondary';
   const shrinkClassName = fitted ? 'flex-1 shrink' : 'shrink-0';
+  const minWidthClassName = fitted ? '' : SIZE_MIN_WIDTH_CLASSNAME[size];
 
   return (
     <button
@@ -120,7 +137,7 @@ export const TabItem = forwardRef<HTMLButtonElement, TabItemProps>(function TabI
       tabIndex={tabIndex}
       onClick={onClick}
       onKeyDown={onKeyDown}
-      className={`flex h-11 min-w-11 items-center justify-center border-b-2 px-2 whitespace-nowrap transition-colors motion-reduce:transition-none ${shrinkClassName} ${colorClassName} ${SIZE_CLASSNAME[size]} ${className ?? ''}`.trim()}
+      className={`flex h-11 min-w-11 items-center justify-center border-b-2 px-2 whitespace-nowrap transition-colors motion-reduce:transition-none ${shrinkClassName} ${colorClassName} ${SIZE_CLASSNAME[size]} ${minWidthClassName} ${className ?? ''}`.trim()}
     >
       {label}
     </button>

@@ -94,7 +94,7 @@ function IconControl({
   onClick?: () => void;
   pending?: boolean;
 }) {
-  const glyph = <Icon name={icon} size={32} aria-hidden />;
+  const glyph = <Icon name={icon} size={28} aria-hidden />;
   if (pending) {
     // 목적지 화면이 아직 없어 클릭 불가 — 시각적으로만 노출한다(스크린리더 대상 아님).
     return (

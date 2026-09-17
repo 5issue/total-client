@@ -13,7 +13,9 @@ import { Icon, type IconName } from '@/components/atoms/Icon/Icon';
  * 채우는 padding-box 트릭으로 구현. 바깥 요소를 button 으로 둬야 1px 보더 위 클릭도
  * 이벤트가 잡힌다(안쪽만 button 이면 보더 부분 클릭이 씹힘).
  *
- * 트레일링 화살표(arrow-down)는 필터 확장 가능함을 나타내는 고정 요소라 prop 이 아니다.
+ * 트레일링 화살표(arrow-down)는 필터 확장(시트/드롭다운) 가능함을 나타낸다 — 기본
+ * 노출이지만, 확장 없는 순수 토글 칩(예: 검색 결과 화면 "멤버스혜택", node 882-60576)
+ * 은 `showTrailingIcon={false}` 로 끈다.
  */
 export interface FilterChipProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** 토글 상태(Figma "State"). */
@@ -22,6 +24,8 @@ export interface FilterChipProps extends ButtonHTMLAttributes<HTMLButtonElement>
   tone?: 'basic' | 'gradient';
   /** 장식용(aria-hidden)으로 렌더 — accessible name 은 항상 `children` 텍스트가 담당. */
   leadingIcon?: IconName;
+  /** 트레일링 화살표(확장 가능 표시) 노출 여부. 기본 true. */
+  showTrailingIcon?: boolean;
   children: ReactNode;
 }
 
@@ -32,16 +36,18 @@ const BASIC_VARIANT_CLASSNAME: Record<'default' | 'selected', string> = {
 
 function FilterChipContent({
   leadingIcon,
+  showTrailingIcon,
   children,
 }: {
   leadingIcon?: IconName;
+  showTrailingIcon: boolean;
   children: ReactNode;
 }) {
   return (
     <>
       {leadingIcon ? <Icon name={leadingIcon} size={24} aria-hidden /> : null}
       {children}
-      <Icon name="arrow-down" size={20} aria-hidden />
+      {showTrailingIcon ? <Icon name="arrow-down" size={20} aria-hidden /> : null}
     </>
   );
 }
@@ -50,6 +56,7 @@ export function FilterChip({
   selected = false,
   tone = 'basic',
   leadingIcon,
+  showTrailingIcon = true,
   disabled,
   className,
   children,
@@ -76,7 +83,9 @@ export function FilterChip({
             selected ? 'bg-brand-50' : 'bg-surface',
           ].join(' ')}
         >
-          <FilterChipContent leadingIcon={leadingIcon}>{children}</FilterChipContent>
+          <FilterChipContent leadingIcon={leadingIcon} showTrailingIcon={showTrailingIcon}>
+            {children}
+          </FilterChipContent>
         </span>
       </button>
     );
@@ -96,7 +105,9 @@ export function FilterChip({
         .join(' ')}
       {...props}
     >
-      <FilterChipContent leadingIcon={leadingIcon}>{children}</FilterChipContent>
+      <FilterChipContent leadingIcon={leadingIcon} showTrailingIcon={showTrailingIcon}>
+        {children}
+      </FilterChipContent>
     </button>
   );
 }
