@@ -6,7 +6,8 @@ import type { ReactNode } from 'react';
  * BottomNav·전역 스와이프 탭·하단 여백은 경로마다 다르다. 클라 `usePathname()` 분기는
  * 정적 프리렌더와 하이드레이션이 어긋나므로, 하위 라우트 그룹이 레이아웃으로 고정한다.
  * - `(chrome)`: ShopShell (BottomNav + SwipeTabShell)
- * - `(chromeless)`: `<main>` 만 (`/cart`, `/checkout/**`, `/mypage/addresses`, `/mypage/orders`)
+ * - `(chromeless)`: `<main>` 만 (`/cart`, `/checkout/**`, `/mypage/addresses`, `/mypage/orders/**`,
+ *   `/products/[productId]`)
  */
 export default function ShopLayout({ children }: { children: ReactNode }) {
   return (

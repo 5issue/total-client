@@ -151,8 +151,9 @@ vite.config.ts.timestamp-*
 # oh-my-claudecode local state
 .omc/
 
-# Cursor 로컬 설정(에이전트 룰·MCP) — 저장소에 올리지 않는다
+# 로컬 에디터 / 에이전트 설정(에이전트 룰·MCP) — 저장소에 올리지 않는다
 .cursor/
+.claude/
 
 # local Figma icon import staging (not part of the build)
 .icon-import/
