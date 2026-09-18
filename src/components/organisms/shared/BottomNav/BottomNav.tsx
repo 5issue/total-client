@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 
 import type { TabName } from '@/components/atoms/TabIcon';
 import { BottomNavItem } from '@/components/molecules/shared/BottomNavItem';
+import { useThemeStore } from '@/hooks/useThemeStore';
 import { useUIStore } from '@/hooks/useUIStore';
 
 import { isNavItemActive, NAV_ITEMS } from './nav-items';
@@ -20,6 +21,14 @@ import { isNavItemActive, NAV_ITEMS } from './nav-items';
  * 검색 화면 SearchBar 가 포커스(키패드 ON) 상태면 스스로 숨는다 — Figma "화면"
  * node 577-13645(키패드 ON) 목업엔 하단 탭바가 없다(키보드가 그 자리를 차지).
  * `uiStore.isSearchInputFocused` 는 `organisms/search/SearchPageHeader` 가 설정.
+ *
+ * 다크모드는 지금 `/mypage`(마이컬리 홈) 볼 때만 켠다 — 이 컴포넌트는 `(chrome)` 라우트
+ * 전체가 공유하는 단일 인스턴스라 `MyKurlyHomeView` 의 `ThemeScope` DOM 밖에 있다(형제
+ * 관계). 여기서 직접 `pathname`+테마를 보고 `data-theme` 를 스스로 단다 — 마이컬리를
+ * 벗어나면 테마 상태와 무관하게 항상 라이트로 돌아온다. Figma 에 다크 BottomNav 스펙은
+ * 없어(2026-09-18 확인) 화면 나머지와 같은 시맨틱 토큰을 재사용했다. 테마 초기값이
+ * 항상 'light'(themeStore 문서 참고, 복원 로직 없음)라 서버/클라 첫 렌더가 항상 같다 —
+ * `suppressHydrationWarning` 불필요.
  */
 export type BottomNavProps = {
   /** 탭별 알림 배지. 알림 도메인 훅이 아직 없어 상위 컨테이너가 주입하는 형태로 시작
@@ -31,11 +40,14 @@ export type BottomNavProps = {
 export function BottomNav({ badges, className }: BottomNavProps) {
   const pathname = usePathname();
   const isSearchInputFocused = useUIStore((s) => s.isSearchInputFocused);
+  const theme = useThemeStore((s) => s.theme);
+  const scopedTheme = pathname === '/mypage' ? theme : 'light';
 
   if (isSearchInputFocused) return null;
 
   return (
     <nav
+      data-theme={scopedTheme}
       aria-label="주요 메뉴"
       className={`pb-nav-pb-safe fixed inset-x-0 bottom-0 z-50 flex justify-center px-6 pt-4 ${className ?? ''}`.trim()}
     >
