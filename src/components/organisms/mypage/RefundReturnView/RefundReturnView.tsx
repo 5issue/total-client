@@ -10,6 +10,7 @@ import { RefundSelectAllBar } from '@/components/molecules/mypage/RefundSelectAl
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 
 import { MOCK_REFUND_ITEMS } from './mock';
+import type { RefundReturnItemView } from './model';
 
 /**
  * 반품 접수 화면 컨테이너 (organism). Figma node 848-82641.
@@ -18,13 +19,20 @@ import { MOCK_REFUND_ITEMS } from './mock';
  * 내부 `px-4 pt-2 pb-5`. 카드는 내용 높이만 차지한다(`flex-1` 금지).
  */
 export interface RefundReturnViewProps {
+  /** 실주문 상품 목록(`RefundReturnContainer` 가 `useOrderDetail` 로 채운다). 생략 시 목데이터. */
+  items?: RefundReturnItemView[];
+  /** 다음 화면(반품 사유)에 쿼리로 넘길 주문 id. 생략하면 쿼리에 안 실린다(스토리북 경유). */
+  orderId?: number;
   /** 스토리·초기 상태용. 생략 시 미선택(node 848-82641). */
   defaultSelectedIds?: string[];
 }
 
-export function RefundReturnView({ defaultSelectedIds }: RefundReturnViewProps) {
+export function RefundReturnView({
+  items = MOCK_REFUND_ITEMS,
+  orderId,
+  defaultSelectedIds,
+}: RefundReturnViewProps) {
   const router = useRouter();
-  const items = MOCK_REFUND_ITEMS;
   const [selectedIds, setSelectedIds] = useState<Set<string>>(
     () => new Set(defaultSelectedIds ?? []),
   );
@@ -33,12 +41,15 @@ export function RefundReturnView({ defaultSelectedIds }: RefundReturnViewProps) 
   const totalCount = items.length;
   const canNext = selectedCount > 0;
 
-  /** 선택한 상품 id를 쿼리로 넘겨 반품 사유 화면으로 이동한다. */
+  /** 선택한 상품 id(+ 주문 id)를 쿼리로 넘겨 반품 사유 화면으로 이동한다. */
   function goToReasonStep() {
     // 체크한 상품 id 를 다음 화면(반품 사유)에 전달한다 — 항목이 여럿이면
     // 그만큼 사유 입력 그룹이 반복돼야 하기 때문(RefundReasonView 참고).
     const ids = items.filter((item) => selectedIds.has(item.id)).map((item) => item.id);
-    const query = new URLSearchParams({ items: ids.join(',') }).toString();
+    const query = new URLSearchParams({
+      items: ids.join(','),
+      ...(orderId ? { orderId: String(orderId) } : {}),
+    }).toString();
     router.push(`/mypage/orders/return/reason?${query}`);
   }
 
