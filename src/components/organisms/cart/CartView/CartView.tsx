@@ -18,8 +18,10 @@ import { CartRecommendCarousel } from '@/components/organisms/cart/CartRecommend
 import { CartRecommendSheet } from '@/components/organisms/cart/CartRecommendSheet';
 import { CartSummary } from '@/components/organisms/cart/CartSummary';
 import type { CartAmounts, CartDeliveryGroup } from '@/components/organisms/cart/model';
+import { mapAddressToView } from '@/components/organisms/mypage/AddressManageView/mapAddressResponse';
 import { addressLineOf } from '@/components/organisms/mypage/model';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
+import { useAddresses } from '@/hooks/address/useAddresses';
 import { useDeliveryAddressStore } from '@/hooks/useDeliveryAddressStore';
 
 import { MOCK_CART_GROUPS, MOCK_RECOMMEND } from './mock';
@@ -46,7 +48,10 @@ export function CartView() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(
     () => new Set(allItemIds(MOCK_CART_GROUPS)),
   );
-  const addresses = useDeliveryAddressStore((s) => s.addresses);
+  // 배송지 목록은 useAddresses(TanStack Query) 캐시가 소스 오브 트루스 — AddressManageView 와
+  // 같은 쿼리 키를 써서 캐시를 공유한다(이슈 #119). 선택 id 만 계속 Zustand 에서 읽는다.
+  const addressesQuery = useAddresses();
+  const addresses = addressesQuery.data?.addresses.map(mapAddressToView) ?? [];
   const selectedAddressId = useDeliveryAddressStore((s) => s.selectedId);
   const selectedAddress = addresses.find((a) => a.id === selectedAddressId);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
