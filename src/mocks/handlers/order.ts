@@ -139,6 +139,50 @@ export const orderHandlers = [
     });
   }),
 
+  // GET /api/v1/orders/cancellations-returns — 취소·반품 통합 내역
+  // 아래 `:orderId` 와일드카드보다 반드시 먼저 등록해야 한다 — MSW 는 등록 순서대로
+  // 첫 매치를 쓰기 때문에, 순서가 바뀌면 "cancellations-returns" 문자열이 orderId 로
+  // 오매칭돼 항상 ORDER_NOT_FOUND(404)가 난다.
+  http.get(`${BASE}/api/v1/orders/cancellations-returns`, () => {
+    return HttpResponse.json({
+      status: 'SUCCESS',
+      message: '취소·반품 내역을 조회했습니다.',
+      data: {
+        total: 1,
+        page: 1,
+        size: 20,
+        histories: [
+          {
+            requestType: 'CANCEL',
+            requestId: 81,
+            orderId: MOCK_ORDER_ID,
+            orderNo: 'O202608260001',
+            requestStatus: 'COMPLETED',
+            refundStatus: 'COMPLETED',
+            refundAmount: 41000,
+            requestedAt: nowIso(),
+            completedAt: nowIso(),
+            items: [
+              {
+                orderItemId: 1001,
+                productId: 10,
+                skuId: 1001,
+                deliveryType: 'DAWN',
+                title: '샐러드',
+                thumbnailUrl: 'https://cdn.example.com/products/10.jpg',
+                unitPrice: 16000,
+                quantity: 2,
+                totalPrice: 32000,
+              },
+            ],
+          },
+        ],
+      },
+      error: null,
+      timestamp: nowIso(),
+    });
+  }),
+
   // GET /api/v1/orders/{orderId} — 주문 상세(주문 추적)
   http.get(`${BASE}/api/v1/orders/:orderId`, ({ params }) => {
     const orderId = Number(params.orderId);
@@ -230,47 +274,6 @@ export const orderHandlers = [
         cancellationStatus: 'REQUESTED',
         refundAmount: 32000,
         cancelledAt: nowIso(),
-      },
-      error: null,
-      timestamp: nowIso(),
-    });
-  }),
-
-  // GET /api/v1/orders/cancellations-returns — 취소·반품 통합 내역
-  http.get(`${BASE}/api/v1/orders/cancellations-returns`, () => {
-    return HttpResponse.json({
-      status: 'SUCCESS',
-      message: '취소·반품 내역을 조회했습니다.',
-      data: {
-        total: 1,
-        page: 1,
-        size: 20,
-        histories: [
-          {
-            requestType: 'CANCEL',
-            requestId: 81,
-            orderId: MOCK_ORDER_ID,
-            orderNo: 'O202608260001',
-            requestStatus: 'COMPLETED',
-            refundStatus: 'COMPLETED',
-            refundAmount: 41000,
-            requestedAt: nowIso(),
-            completedAt: nowIso(),
-            items: [
-              {
-                orderItemId: 1001,
-                productId: 10,
-                skuId: 1001,
-                deliveryType: 'DAWN',
-                title: '샐러드',
-                thumbnailUrl: 'https://cdn.example.com/products/10.jpg',
-                unitPrice: 16000,
-                quantity: 2,
-                totalPrice: 32000,
-              },
-            ],
-          },
-        ],
       },
       error: null,
       timestamp: nowIso(),
