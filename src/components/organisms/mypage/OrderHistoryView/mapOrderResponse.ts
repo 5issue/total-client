@@ -39,9 +39,7 @@ export function mapOrderListEntry(entry: OrderListEntry): OrderHistoryOrder {
     orderNumber: entry.orderNo,
     orderedAt: formatOrderedAt(entry.orderedAt),
     status: deriveHistoryStatus(entry),
-    arrival: entry.deliveredAt
-      ? formatOrderedAt(entry.deliveredAt)
-      : (entry.expectedDeliveryAt ?? ''),
+    arrival: formatOrderedAt(entry.deliveredAt ?? entry.expectedDeliveryAt ?? ''),
     returnPeriodEnded: false,
     products: entry.items.map((item) => ({
       id: String(item.orderItemId),
