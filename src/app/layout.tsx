@@ -42,6 +42,11 @@ export const viewport: Viewport = {
   interactiveWidget: 'resizes-content',
 };
 
+// 다크모드는 지금 마이컬리 화면에서만 켜진다(2026-09-18, "우선 마이컬리만" 결정) —
+// `<html>` 은 테마를 모르는 채로 항상 라이트로 렌더한다. `ThemeScope`(마이컬리
+// 서브트리 wrapper)가 자기 자신에게 `data-theme` 을 붙이고 그 안에서만 FOUC 를
+// 감당한다(molecules/shared/ThemeScope 참고) — 전역 인라인 스크립트/hydration
+// 예외 처리가 더 이상 여기 필요 없다.
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ko" dir="ltr">

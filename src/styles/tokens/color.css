@@ -10,9 +10,13 @@
  *   바로 추출한다 — 주석에 출처 노드를 남길 것. (radius 스와치 카드 20px 오추출 사례:
  *   globals.css 참고)
  *
- * 다크 모드: 디자인 시스템에 다크 팔레트가 없다(라이트 전용).
- *   시맨틱 색은 `@theme inline` + `:root` 캐스케이드 구조라, 다크 팔레트가
- *   확정되면 `:root[data-theme="dark"]` 블록만 추가하면 된다.
+ * 다크 모드: 마이컬리 다크모드 파운데이션 확정(2026-09-17, node 1691-205422 +
+ *   디자인 시스템 파일 색상 파운데이션 4종) — `:root[data-theme="dark"]` 블록에 실제
+ *   값을 채웠다. 값은 전부 그 화면에서 직접 바인딩된 변수를 get_variable_defs 로
+ *   추출한 것(스와치 전시 보드 아님). 마이컬리 밖 다른 화면은 이 팔레트로 아직
+ *   검증 전이라, 토큰을 안 쓰거나 body 배경에만 의존하는 화면은 다크 전환 시
+ *   "어둡지만 카드 구분이 약한" 정도로만 보일 수 있다(깨지지는 않음) — 그 화면들의
+ *   다크 검증은 각자 작업 시 진행.
  * ========================================================================== */
 
 /* ── 프리미티브 (raw 팔레트) ─────────────────────────────────
@@ -100,6 +104,11 @@
 
 /* ── 시맨틱 토큰 (테마 인식) — 값은 아래 :root 에서 ──────────── */
 @theme inline {
+  /* Bg — Figma "Bg" (페이지 배경). Surface 와 라이트에선 값이 같아(둘 다 흰색) 지금까지
+     하나로 뭉뚱그려 썼지만, 다크에서 갈라진다(Bg/default #222 vs Surface/Base #323a40,
+     카드가 페이지보다 한 톤 밝아 떠 보이게) — 그래서 별도 토큰으로 분리했다. */
+  --color-bg: var(--bg); /* Bg/default */
+
   /* Surface — Figma "Surface" */
   --color-surface: var(--surface); /* Surface/base */
   --color-surface-secondary: var(--surface-secondary); /* Surface/Secondary */
@@ -133,9 +142,12 @@
   --color-brand-secondary: var(--brand-secondary);
 }
 
-/* 라이트 (기본, 현재 유일한 테마) */
+/* 라이트 (기본) */
 :root {
   color-scheme: light;
+
+  /* Bg */
+  --bg: #ffffff; /* Bg/default */
 
   /* Surface */
   --surface: #ffffff; /* Surface/base */
@@ -178,4 +190,35 @@
 
   /* Secondary */
   --brand-secondary: #50006b; /* Brand/Secondary = Brand/600 */
+}
+
+/* 다크 — 마이컬리 화면(node 1691-205422)에서 직접 바인딩 값 추출(2026-09-17).
+ * 여기 없는 토큰은 라이트 값을 그대로 물려받는다(캐스케이드) — 파운데이션 이미지
+ * 대조 결과 값이 라이트와 같아 명시적으로 안 둔 것(Text/Quaternary, Overlay_gray 등).
+ *
+ * `:root[data-theme]` 뿐 아니라 `[data-theme]`(비-root 요소)도 매칭한다 — 다크가
+ * 아직 마이컬리 화면에서만 검증돼(2026-09-18, "우선 마이컬리만" 결정) `<html>` 전역이
+ * 아니라 `ThemeScope`(마이컬리 서브트리 wrapper)의 `data-theme` 속성이 실제 스코프다.
+ * 나중에 다른 화면도 검증되면 `<html>` 에 다시 달기만 하면 전역 전환된다. */
+:root[data-theme='dark'],
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #222222; /* Bg/default */
+  --surface: #323a40; /* Surface/base */
+  --surface-secondary: #7e8f9b; /* Surface/Secondary */
+  --overlay-blue: #a1b3beb2; /* Surface/Overlay_blue — 라이트 40% -> 70% */
+
+  --fg: #ffffff; /* Text/primary */
+  --fg-secondary: #f0f5f8; /* Text/Secondary */
+  --fg-tertiary: #b5c4cf; /* Text/Tertiary */
+
+  /* Border/Strong — 화면 내 구분선 실측값. 같은 화면의 카드 테두리 한 곳은 라이트와
+     같은 값(#dde4ed)으로 바인딩돼 있어 나머지 하나(옛 값)가 다크 반영 누락인지
+     구분선만 의도적으로 다른 톤인지 Figma 상으로 확정하기 어려웠다 — 실제 구분선
+     코드에 쓰인 값(#515e69)을 채택했다. 다크모드 카드 테두리가 밝게 보이면 이 값
+     때문일 수 있음, 디자인 확인 필요. */
+  --border: #515e69;
+
+  --primary: #aa49d8; /* Brand/Primary */
 }
