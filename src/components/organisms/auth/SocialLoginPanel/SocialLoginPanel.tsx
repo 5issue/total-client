@@ -13,10 +13,12 @@ import { useSocialLogin } from '@/hooks/auth/useSocialLogin';
  */
 export interface SocialLoginPanelProps {
   className?: string;
+  /** 로그인 완료 후 되돌아갈 페이지(선택). 이미 `safeRedirect` 로 검증된 값이어야 한다. */
+  returnTo?: string;
 }
 
-export function SocialLoginPanel({ className }: SocialLoginPanelProps) {
-  const { mutate, isPending, isError } = useSocialLogin();
+export function SocialLoginPanel({ className, returnTo }: SocialLoginPanelProps) {
+  const { mutate, isPending, isError } = useSocialLogin(returnTo);
 
   return (
     <div
