@@ -26,6 +26,13 @@ import type { FridgeItem } from '@/components/organisms/mypage/MyFridgeView/mode
  * 줄어든다(코드래빗 리뷰, #111) — 그래서 이미지 클리핑(`overflow-hidden`)은 안쪽
  * 래퍼로 따로 두고, 체크박스·D-day 뱃지는 클리핑 없는 바깥 `relative` 컨테이너에
  * 얹어 44px 전체가 히트된다.
+ *
+ * "채워넣기"/"품절"/"보관팁" 버튼은 Figma 실측 높이(38px/36px)가 44px 터치 타깃보다
+ * 작다(코드래빗 리뷰, #111) — 카드 전체 높이(180×330 고정)를 지키기 위해 시각적
+ * 크기(테두리·배경이 있는 안쪽 `span`)는 실측 그대로 두고, 클릭을 받는 바깥
+ * `button` 만 44px로 키운 뒤 `-my-*` 음수 마진으로 레이아웃에 차지하는 공간은
+ * 원래 크기로 되돌린다(체크박스 오프셋 보정과 같은 원칙) — 여분 몇 px는 인접 여백
+ * (gap-2/pt-1)로 흡수돼 다른 요소와 겹치지 않는다.
  */
 export interface KitchenInventoryCardProps {
   item: FridgeItem;
@@ -104,18 +111,22 @@ export function KitchenInventoryCard({
           <button
             type="button"
             disabled
-            className="text-label-l text-fg-disabled rounded-m flex h-9.5 w-full items-center justify-center gap-1 border border-neutral-400"
+            className="-my-0.75 flex h-11 w-full items-center justify-center"
           >
-            품절
+            <span className="text-label-l text-fg-disabled rounded-m flex h-9.5 w-full items-center justify-center gap-1 border border-neutral-400">
+              품절
+            </span>
           </button>
         ) : (
           <button
             type="button"
             onClick={onRefill}
-            className="text-label-l text-fg active:bg-surface-secondary rounded-m flex h-9.5 w-full items-center justify-center gap-1 border border-neutral-400"
+            className="-my-0.75 flex h-11 w-full items-center justify-center"
           >
-            <Icon name="plus-small" size={20} aria-hidden />
-            채워넣기
+            <span className="text-label-l text-fg active:bg-surface-secondary rounded-m flex h-9.5 w-full items-center justify-center gap-1 border border-neutral-400">
+              <Icon name="plus-small" size={20} aria-hidden />
+              채워넣기
+            </span>
           </button>
         )}
 
@@ -129,10 +140,12 @@ export function KitchenInventoryCard({
           <button
             type="button"
             onClick={onShowStorageTip}
-            className="text-label-m text-primary flex h-9 w-15.25 items-center justify-center gap-1 py-2"
+            className="-my-1 flex h-11 w-15.25 items-center justify-center"
           >
-            보관팁
-            <Icon name="right" size={12} aria-hidden />
+            <span className="text-label-m text-primary flex items-center justify-center gap-1">
+              보관팁
+              <Icon name="right" size={12} aria-hidden />
+            </span>
           </button>
         </div>
       </div>

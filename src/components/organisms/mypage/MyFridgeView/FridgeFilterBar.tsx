@@ -93,16 +93,20 @@ export function FridgeSelectionToolbar({
         </span>
       </div>
       {/* Figma(node 1120-56183)는 선택 개수와 무관하게 항상 활성 스타일 — 선택 없이
-          눌러도 삭제할 게 없어 조용히 아무 일도 안 한다(모달을 열 필요 없음). 크기는
-          실측 그대로 74×32, 테두리는 `Border/Outline_B_Default`(#c9d5df) — 프로젝트
-          공용 `border-border`(#dde4ed, Border/200)와는 다른 색이라 `border-neutral-400`
-          로 직접 지정한다. */}
+          눌러도 삭제할 게 없어 조용히 아무 일도 안 한다(모달을 열 필요 없음). 시각
+          크기(안쪽 span)는 실측 그대로 74×32, 테두리는 `Border/Outline_B_Default`
+          (#c9d5df) — 프로젝트 공용 `border-border`(#dde4ed, Border/200)와는 다른
+          색이라 `border-neutral-400` 로 직접 지정한다. 바깥 `button` 은 44px 터치
+          타깃으로 키우고 `-my-1.5` 로 레이아웃 차지 공간은 32px 그대로 되돌린다
+          (코드래빗 리뷰, #111 — KitchenInventoryCard 버튼과 같은 보정 원칙). */}
       <button
         type="button"
         onClick={onDeleteSelected}
-        className="text-label-l text-fg flex h-8 w-18.5 shrink-0 items-center justify-center gap-1 rounded-sm border border-neutral-400 px-1 py-2"
+        className="-my-1.5 flex h-11 shrink-0 items-center justify-center"
       >
-        선택삭제
+        <span className="text-label-l text-fg flex h-8 w-18.5 items-center justify-center gap-1 rounded-sm border border-neutral-400 px-1 py-2">
+          선택삭제
+        </span>
       </button>
     </div>
   );

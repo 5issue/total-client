@@ -27,6 +27,9 @@ import type { FridgeItem } from './model';
  * 초기값으로 재설정한다(코드래빗 리뷰, #111). `useEffect` 로 하면 리렌더 한 번을 더
  * 유발해(`react-hooks/set-state-in-effect`) 렌더 중 `prevOpen` 비교로 직접 처리한다
  * (React 공식 "You Might Not Need an Effect" 패턴).
+ *
+ * 총 수량이 0이면 "장바구니 담기"를 `addToCartDisabled` 로 비활성화한다 — 예전엔
+ * 클릭이 되지만 핸들러 안에서 조용히 무시했다(코드래빗 리뷰, #111).
  */
 export interface FridgeRefillBottomSheetProps {
   open: boolean;
@@ -59,11 +62,6 @@ export function FridgeRefillBottomSheet({
 
   const totalQuantity = regularQty + memberQty;
 
-  function handleAddToCart() {
-    if (totalQuantity === 0) return;
-    onAddToCart();
-  }
-
   return (
     <BottomSheet
       open={open}
@@ -77,7 +75,8 @@ export function FridgeRefillBottomSheet({
             onToggleLike={() => setLiked((prev) => !prev)}
             showSubscribeButton={false}
             showTerms={false}
-            onAddToCart={handleAddToCart}
+            addToCartDisabled={totalQuantity === 0}
+            onAddToCart={onAddToCart}
           />
         </>
       }

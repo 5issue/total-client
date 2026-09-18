@@ -194,7 +194,7 @@ export const MOCK_FRIDGE_ITEMS: FridgeItem[] = [
  * `<p>`로 렌더한다.
  */
 export const MOCK_FRIDGE_AI_NOTICE = {
-  title: 'AI가 구매하신 상품의 \n유통및 소비기한을 알려드려요!',
+  title: 'AI가 구매하신 상품의 \n유통 및 소비기한을 알려드려요!',
   description: '실제 보관 상태에 따라 제품의 신선도에 차이가 있을 수 있어요',
 };
 
