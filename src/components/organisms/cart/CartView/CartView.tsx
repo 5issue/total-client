@@ -38,6 +38,9 @@ import { MOCK_CART_GROUPS, MOCK_RECOMMEND } from './mock';
  * 로컬 state 로 전과 동일하게 동작한다. `CartContainer` 가 실데이터를 넘기면 그 prop 이
  * 갱신될 때마다 로컬 `groups` 를 다시 동기화한다(렌더 중 비교+setState) — 수량 변경은 쿼리
  * 캐시 낙관적 갱신이 곧바로 새 prop 으로 흘러들어오므로 이 컴포넌트가 따로 낙관 처리하지 않는다.
+ *
+ * "주문하기" → 추천 시트 → 시트 CTA 를 누르면 선택한 상품 id 를 `?items=` 로 실어
+ * `/checkout` 으로 실제 이동한다(이슈 #120 — 예전엔 시트만 닫고 아무 데도 안 갔다).
  */
 type DeleteTarget = { kind: 'item'; id: string } | { kind: 'selected' } | null;
 
@@ -174,6 +177,12 @@ export function CartView({
     setDeleteTarget(null);
   }
 
+  /** 추천 시트 CTA — 선택한 상품 id 를 쿼리로 실어 실제 주문서로 이동한다(이슈 #120). */
+  function goToCheckout() {
+    const query = new URLSearchParams({ items: [...selectedIds].join(',') }).toString();
+    router.push(`/checkout?${query}`);
+  }
+
   // 빈 상태 — 담은상품이 없을 때 / "자주 산 상품" 탭(미구현). Figma node 188-8841 "Error".
   const emptyState = (
     <>
@@ -292,7 +301,7 @@ export function CartView({
         onClose={() => setSheetOpen(false)}
         items={MOCK_RECOMMEND}
         totalPrice={amounts.total}
-        onOrder={() => setSheetOpen(false)}
+        onOrder={goToCheckout}
         onAddItem={() => undefined}
       />
     </>
