@@ -26,14 +26,19 @@ import {
 } from '@/types/checkout';
 import {
   CancellationReturnHistoryResponseSchema,
+  CheckoutOrderRequestSchema,
+  CheckoutOrderResponseSchema,
   OrderCancelRequestSchema,
   OrderCancelResponseSchema,
   OrderDetailResponseSchema,
   OrderListResponseSchema,
   OrderReturnRequestSchema,
   OrderReturnResponseSchema,
+  PlaceOrderRequestSchema,
+  PlaceOrderResponseSchema,
   ReturnPreviewResponseSchema,
   type CancellationReturnParams,
+  type CheckoutOrderRequest,
   type OrderCancelRequest,
   type OrderListParams,
   type OrderReturnRequest,
@@ -256,6 +261,23 @@ export function submitOrderReturn(orderId: number, body: OrderReturnRequest) {
     body: JSON.stringify(OrderReturnRequestSchema.parse(body)),
   });
 }
+
+/** 주문서 생성(체크아웃) — 장바구니에서 선택한 상품으로 실제 주문을 만든다(#126). */
+export function checkoutOrder(body: CheckoutOrderRequest) {
+  return privateFetch('/api/orders/checkout', CheckoutOrderResponseSchema, {
+    method: 'POST',
+    body: JSON.stringify(CheckoutOrderRequestSchema.parse(body)),
+  });
+}
+
+/** 주문 결제 요청 — 결제하기 직전 주문을 결제 대기 상태로 전이시킨다(#126). */
+export function placeOrder(orderId: number) {
+  return privateFetch('/api/orders/place-order', PlaceOrderResponseSchema, {
+    method: 'POST',
+    body: JSON.stringify(PlaceOrderRequestSchema.parse({ orderId })),
+  });
+}
+
 /**
  * 앱 부팅 시 무음 재발급 — `refresh_token` 쿠키가 있으면 accessToken 을 메모리에 채운다.
  * 게스트(쿠키 없음)는 조용히 `authenticated: false` 로 처리한다(에러 아님).

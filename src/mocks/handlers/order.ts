@@ -12,7 +12,123 @@ function nowIso() {
 
 const MOCK_ORDER_ID = 501;
 
+/**
+ * 체크아웃 목 전용 — `mocks/handlers/cart.ts` 의 목 장바구니 상품(2001~2004)과 같은
+ * id·이름·가격을 그대로 써서, 장바구니→주문서 흐름을 로컬에서 이어서 검증할 수 있게 한다.
+ * `cartItemId` 하나당 `orderItemId` 도 그대로 재사용(단순화 — 실 서버는 별개 채번).
+ */
+const CHECKOUT_MOCK_CATALOG: Record<
+  number,
+  { productId: number; skuId: number; title: string; unitPrice: number }
+> = {
+  2001: {
+    productId: 10,
+    skuId: 1001,
+    title: '[연세우유 x 마켓컬리] 전용목장우유 900mL',
+    unitPrice: 2780,
+  },
+  2002: { productId: 11, skuId: 1002, title: "[Kurly's] 동물복지 유정란 20구", unitPrice: 10051 },
+  2003: { productId: 12, skuId: 1003, title: '바로먹는 아보카도 3입 (페루산)', unitPrice: 9990 },
+  2004: {
+    productId: 13,
+    skuId: 1004,
+    title: '[풀무원] 동물복지 치킨 너겟 오리지널',
+    unitPrice: 7979,
+  },
+};
+
+let mockCheckoutOrderSeq = MOCK_ORDER_ID + 1;
+
 export const orderHandlers = [
+  // POST /api/v1/orders/checkout — 주문서 생성(#126)
+  http.post(`${BASE}/api/v1/orders/checkout`, async ({ request }) => {
+    const body = (await request.json()) as { cartItemIds?: number[] };
+    const ids = body.cartItemIds ?? [];
+
+    if (ids.length === 0) {
+      return HttpResponse.json(
+        {
+          status: 'ERROR',
+          message: '주문할 상품을 확인할 수 없습니다.',
+          data: null,
+          error: 'INVALID_CART_ITEM_IDS',
+          timestamp: nowIso(),
+        },
+        { status: 400 },
+      );
+    }
+
+    const items = ids.map((cartItemId) => {
+      const product = CHECKOUT_MOCK_CATALOG[cartItemId] ?? {
+        productId: cartItemId,
+        skuId: cartItemId,
+        title: `상품 ${cartItemId}`,
+        unitPrice: 10000,
+      };
+      return {
+        orderItemId: cartItemId,
+        productId: product.productId,
+        skuId: product.skuId,
+        title: product.title,
+        quantity: 1,
+        unitPrice: product.unitPrice,
+        totalPrice: product.unitPrice,
+      };
+    });
+    const paymentAmount = items.reduce((sum, item) => sum + item.totalPrice, 0);
+    const orderId = mockCheckoutOrderSeq++;
+
+    return HttpResponse.json(
+      {
+        status: 'SUCCESS',
+        message: '주문서 생성 성공',
+        data: {
+          orderId,
+          orderNo: `O${new Date().toISOString().slice(0, 10).replace(/-/g, '')}${String(orderId).padStart(4, '0')}`,
+          reservationToken: `mock-reservation-${orderId}`,
+          expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+          paymentAmount,
+          items,
+        },
+        error: null,
+        timestamp: nowIso(),
+      },
+      { status: 201 },
+    );
+  }),
+
+  // POST /api/v1/orders/place-order — 주문 결제 요청(#126)
+  http.post(`${BASE}/api/v1/orders/place-order`, async ({ request }) => {
+    const body = (await request.json()) as { orderId?: number };
+    const orderId = body.orderId;
+
+    if (!orderId || !Number.isInteger(orderId) || orderId <= 0) {
+      return HttpResponse.json(
+        {
+          status: 'ERROR',
+          message: '올바르지 않은 주문입니다.',
+          data: null,
+          error: 'INVALID_ORDER_ID',
+          timestamp: nowIso(),
+        },
+        { status: 400 },
+      );
+    }
+
+    return HttpResponse.json({
+      status: 'SUCCESS',
+      message: '주문 결제 요청 성공',
+      data: {
+        orderId,
+        orderNo: `O${new Date().toISOString().slice(0, 10).replace(/-/g, '')}${String(orderId).padStart(4, '0')}`,
+        status: 'PENDING_PAYMENT',
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+      },
+      error: null,
+      timestamp: nowIso(),
+    });
+  }),
+
   // GET /api/v1/orders/{orderId}/returns/preview — 반품 접수 사전조회
   http.get(`${BASE}/api/v1/orders/:orderId/returns/preview`, ({ params }) => {
     const orderId = Number(params.orderId);

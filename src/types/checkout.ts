@@ -7,7 +7,8 @@ import { z } from 'zod';
  * - GET  `/api/v1/payments/{payment_id}/receipt`  영수증 (본인 소유 검증은 Spring, FE-15)
  * - POST `/internal/v1/payments/{payment_id}/cancel`  는 내부 API + 이슈 범위 밖(환불/취소)
  *
- * 주문서 생성·주문 확정 전용 엔드포인트는 명세에 없다. Toss `orderId` 는 클라가 발급한다.
+ * 주문서 생성(`/orders/checkout`)·주문 결제 요청(`/orders/place-order`)은 order-service 소속이라
+ * `types/order.ts`에 있다(#126) — 실제 주문이면 그 응답의 `orderNo` 를 Toss `orderId` 로 쓴다.
  * 주문서 '다른 결제수단' UI 는 퍼블 그리드. 결제하기에서 토스 결제창을 연다.
  */
 

@@ -23,6 +23,7 @@ import { OrderItemsSection } from '@/components/organisms/checkout/OrderItemsSec
 import { PaymentMethodAccordion } from '@/components/organisms/checkout/PaymentMethodAccordion';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 import { ApiError } from '@/errors/ApiError';
+import { usePlaceOrder } from '@/hooks/checkout/usePlaceOrder';
 import { useDeliveryDetailStore } from '@/hooks/useDeliveryDetailStore';
 import { toDeliveryDetailSummary } from '@/lib/checkout/deliveryDetailSummary';
 import {
@@ -59,9 +60,10 @@ import { MOCK_AMOUNTS, MOCK_CUSTOMER, MOCK_DEFAULT_ADDRESS, MOCK_ORDER_ITEMS } f
  * ("배송 상세정보를 입력해주세요.")가 뜬다. 네이티브 `disabled` 버튼은 클릭 이벤트 자체가
  * 발생하지 않아 토스트를 못 띄우므로, 유효성 검사는 클릭 핸들러 안에서 직접 한다.
  *
- * 결제하기는 퍼블 '다른 결제수단' 선택값을 토스 결제창 `requestPayment` 로 넘긴 뒤
- * success/fail URL → `POST /api/v1/payments/checkout` 흐름이다(#109).
- * 컬리페이·충전결제는 PG 범위 밖이라 토스트로 막는다.
+ * 결제하기는 (실제 주문이면) 먼저 `place-order` 로 주문을 결제 대기 상태로 전이시킨 뒤(#126),
+ * 퍼블 '다른 결제수단' 선택값을 토스 결제창 `requestPayment` 로 넘기고, success/fail URL →
+ * `POST /api/v1/payments/checkout` 흐름이다(#109). 컬리페이·충전결제는 PG 범위 밖이라
+ * 토스트로 막는다.
  */
 /** 배송 상세정보 편집은 `/checkout/delivery-detail`. 확정값은 `deliveryDetailStore`. */
 type TermsModal = 'privacy' | 'payment' | null;
@@ -87,6 +89,16 @@ export interface CheckoutViewProps {
   amounts?: OrderAmounts;
   /** 배송지 — `useAddresses()` 의 선택된(또는 기본) 배송지. 생략 시 목데이터. */
   deliveryAddress?: CheckoutDeliveryAddressView;
+  /**
+   * 실제 주문 id — `CheckoutContainer` 가 `POST /api/v1/orders/checkout`(#126) 로 채운다.
+   * 생략하면(직접 진입·스토리북) 결제하기가 `place-order` 를 건너뛰고 기존처럼
+   * 클라 발급 `orderId`(`createTossOrderId`)로 토스 결제창을 연다.
+   */
+  orderId?: number;
+  /** 위 `orderId` 의 사람이 읽는 주문번호 — 토스 결제창 `orderId` 로 그대로 쓴다. */
+  orderNo?: string;
+  /** 재고 예약 만료 시각(ISO) — 있으면 `ORDER_TIME_LIMIT_MS` 대신 이 값으로 카운트다운. */
+  expiresAt?: string;
 }
 
 const KURLY_OWNED_PAY_MESSAGE = '컬리페이·충전결제는 아직 지원하지 않습니다.';
@@ -107,9 +119,13 @@ export function CheckoutView({
   items = MOCK_ORDER_ITEMS,
   amounts = MOCK_AMOUNTS,
   deliveryAddress = MOCK_DEFAULT_ADDRESS,
+  orderId,
+  orderNo,
+  expiresAt,
 }: CheckoutViewProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const placeOrder = usePlaceOrder();
 
   // 기본값은 "다른 결제수단" 선택 상태 — Figma 스크린샷 그대로(사용자 확인, 2026-09-11).
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | null>('other');
@@ -148,9 +164,12 @@ export function CheckoutView({
   }
 
   useEffect(() => {
-    const timer = setTimeout(() => setOrderExpired(true), ORDER_TIME_LIMIT_MS);
+    const remainingMs = expiresAt
+      ? new Date(expiresAt).getTime() - Date.now()
+      : ORDER_TIME_LIMIT_MS;
+    const timer = setTimeout(() => setOrderExpired(true), Math.max(remainingMs, 0));
     return () => clearTimeout(timer);
-  }, []);
+  }, [expiresAt]);
 
   useEffect(() => {
     return () => {
@@ -181,16 +200,25 @@ export function CheckoutView({
 
     setIsPaying(true);
     try {
-      const first = MOCK_ORDER_ITEMS[0];
+      const first = items[0];
       const orderName = !first
         ? '컬리 주문'
-        : MOCK_ORDER_ITEMS.length === 1
+        : items.length === 1
           ? first.name
-          : `${first.name} 외 ${MOCK_ORDER_ITEMS.length - 1}건`;
+          : `${first.name} 외 ${items.length - 1}건`;
+
+      // 실제 주문(#126)이면 결제하기 직전 place-order 로 결제 대기 상태로 전이시키고,
+      // 그 응답의 orderNo 를 토스 orderId 로 쓴다. 목데이터/직접 진입은 그대로 클라 발급.
+      let tossOrderId = orderNo ?? createTossOrderId();
+      if (orderId != null) {
+        const placed = await placeOrder.mutateAsync(orderId);
+        tossOrderId = placed.orderNo;
+      }
+
       await requestTossCheckoutPayment({
         clientKey: env.NEXT_PUBLIC_TOSS_CLIENT_KEY,
-        amount: MOCK_AMOUNTS.total,
-        orderId: createTossOrderId(),
+        amount: amounts.total,
+        orderId: tossOrderId,
         orderName,
         method: otherPaymentMethod,
         cardIssuer,
