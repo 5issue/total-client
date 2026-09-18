@@ -45,6 +45,10 @@ export interface PaymentMethodAccordionProps {
   /** 신용카드 선택 시 카드사 드롭다운 값. 미선택은 `null`. */
   cardIssuer: string | null;
   onCardIssuerChange: (value: string) => void;
+  /**
+   * "다른 결제수단" 패널을 호출부가 교체할 때. 없으면 퍼블 신용카드/간편결제 라디오 그리드.
+   */
+  otherContent?: ReactNode;
   className?: string;
 }
 
@@ -71,6 +75,102 @@ const CARD_ISSUER_OPTIONS = [
   { value: 'kdb', label: 'KDB산업은행' },
   { value: 'kakaobank', label: '카카오뱅크' },
 ];
+
+function OtherPaymentMethodGrid({
+  otherMethod,
+  onOtherMethodChange,
+  cardIssuer,
+  onCardIssuerChange,
+}: {
+  otherMethod: OtherPaymentMethodId;
+  onOtherMethodChange: (method: OtherPaymentMethodId) => void;
+  cardIssuer: string | null;
+  onCardIssuerChange: (value: string) => void;
+}) {
+  return (
+    <>
+      {/* Figma 666-22997/666-23355: 2열×3행 고정(row1=신용카드+휴대폰, row2=토스페이+
+          카카오페이, row3=PAYCO 혼자) — Figma 원본도 이 3행을 각각 별도 프레임으로
+          명시한다(666-23356/23359/23362), 자동 줄바꿈에 맡기지 않는다.
+          `grid grid-cols-2`(1fr 트랙)는 컨테이너가 328px(버튼 160×2+gap8) 보다 좁으면
+          버튼이 트랙 폭에 안 맞춰지고(줄지 않고) 다음 칸과 겹쳐버렸다 — 실측 확인.
+          `flex flex-wrap` 은 반대로 폭이 부족하면 1열로 무너졌다. 행마다 명시적
+          `flex` 로 고정하면 폭이 부족해도(기본 flex-shrink) 겹치거나 무너지지 않고
+          버튼만 살짝 줄어든다. */}
+      <div className="flex flex-col gap-y-3">
+        <div className="flex gap-x-2">
+          <PaymentMethodButton
+            type="text"
+            label="신용카드"
+            selected={otherMethod === 'card'}
+            onClick={() => onOtherMethodChange('card')}
+          />
+          <PaymentMethodButton
+            type="text"
+            label="휴대폰"
+            selected={otherMethod === 'phone'}
+            onClick={() => onOtherMethodChange('phone')}
+          />
+        </div>
+        <div className="flex gap-x-2">
+          <PaymentMethodButton
+            type="logo-image"
+            logo="toss-pay"
+            label="토스페이"
+            showBenefitBadge
+            selected={otherMethod === 'tosspay'}
+            onClick={() => onOtherMethodChange('tosspay')}
+          />
+          <PaymentMethodButton
+            type="logo"
+            logo="kakao-pay"
+            label="카카오페이"
+            selected={otherMethod === 'kakaopay'}
+            onClick={() => onOtherMethodChange('kakaopay')}
+          />
+        </div>
+        <div className="flex gap-x-2">
+          <PaymentMethodButton
+            type="logo"
+            logo="payco"
+            label="페이코"
+            selected={otherMethod === 'payco'}
+            onClick={() => onOtherMethodChange('payco')}
+          />
+          {/* 페이코는 Figma 상 단독 행(node 666-23362)이지만 버튼 자체 폭(160px, w-40)은
+              위 두 행과 동일하다(node 666-23344 스크린샷 실측 — 세 행 모두 같은 크기).
+              문제는 좁은 화면(컨테이너 < 328px)에서 위 두 행은 짝이 있어 flex-shrink 로
+              균등하게 줄어드는데, 페이코는 행에 혼자라 shrink 계산에 참여할 상대가 없어
+              줄지 않고 원래 크기(160px)를 유지해버려 다른 버튼보다 더 커 보였다(실측:
+              150px 안팎 vs 160px). 위 행과 동일한 w-40 spacer 를 짝으로 두면 같은
+              flex-basis/gap 조건이 되어 동일한 비율로 줄어든다 — 시각적으로는 보이지
+              않아야 하므로 aria-hidden. */}
+          <div className="h-10 w-40" aria-hidden="true" />
+        </div>
+      </div>
+
+      {otherMethod === 'card' ? (
+        <>
+          <hr className="border-border" />
+          {/* `Dropdown` variant="box" 는 rounded-sm(4px) 이 자체 클래스에 박혀있는데
+              Figma 실측(node 666-23365)은 radius/l(12px) — `rounded-lg!` 로 확실히
+              덮어쓴다(className 병합 순서에 기대지 않는 안전한 방법). `min-h-12` 는
+              이전 라운드에 요청받은 높이 보정, 그대로 유지. */}
+          <Dropdown
+            label="카드사"
+            variant="box"
+            block
+            placeholder="카드를 선택해 주세요"
+            options={CARD_ISSUER_OPTIONS}
+            value={cardIssuer}
+            onChange={onCardIssuerChange}
+            className="min-h-12 rounded-lg!"
+          />
+        </>
+      ) : null}
+    </>
+  );
+}
 
 function RewardsTag() {
   return <StatusLabel type="rewards">혜택</StatusLabel>;
@@ -149,6 +249,7 @@ export function PaymentMethodAccordion({
   onOtherMethodChange,
   cardIssuer,
   onCardIssuerChange,
+  otherContent,
   className,
 }: PaymentMethodAccordionProps) {
   // node 666-24169: "컬리캐시 충전결제란?" 안내 모달 — 정보 아이콘 전용, 라디오 선택과는
@@ -283,85 +384,16 @@ export function PaymentMethodAccordion({
           // 영역(size-11,44px) + gap-1(4px) 을 전부 더한 값이라야 위 "다른 결제수단" 텍스트와
           // x축이 맞는다 — 지난 수정(pl-12,48px)은 컨테이너 자체 px-4 를 빼먹은 계산 실수였다.
           <div className="flex flex-col gap-2 pr-4 pb-6 pl-16">
-            {/* Figma 666-22997/666-23355: 2열×3행 고정(row1=신용카드+휴대폰, row2=토스페이+
-                카카오페이, row3=PAYCO 혼자) — Figma 원본도 이 3행을 각각 별도 프레임으로
-                명시한다(666-23356/23359/23362), 자동 줄바꿈에 맡기지 않는다.
-                `grid grid-cols-2`(1fr 트랙)는 컨테이너가 328px(버튼 160×2+gap8) 보다 좁으면
-                버튼이 트랙 폭에 안 맞춰지고(줄지 않고) 다음 칸과 겹쳐버렸다 — 실측 확인.
-                `flex flex-wrap` 은 반대로 폭이 부족하면 1열로 무너졌다. 행마다 명시적
-                `flex` 로 고정하면 폭이 부족해도(기본 flex-shrink) 겹치거나 무너지지 않고
-                버튼만 살짝 줄어든다. */}
-            <div className="flex flex-col gap-y-3">
-              <div className="flex gap-x-2">
-                <PaymentMethodButton
-                  type="text"
-                  label="신용카드"
-                  selected={otherMethod === 'card'}
-                  onClick={() => onOtherMethodChange('card')}
-                />
-                <PaymentMethodButton
-                  type="text"
-                  label="휴대폰"
-                  selected={otherMethod === 'phone'}
-                  onClick={() => onOtherMethodChange('phone')}
-                />
-              </div>
-              <div className="flex gap-x-2">
-                <PaymentMethodButton
-                  type="logo-image"
-                  logo="toss-pay"
-                  label="토스페이"
-                  showBenefitBadge
-                  selected={otherMethod === 'tosspay'}
-                  onClick={() => onOtherMethodChange('tosspay')}
-                />
-                <PaymentMethodButton
-                  type="logo"
-                  logo="kakao-pay"
-                  label="카카오페이"
-                  selected={otherMethod === 'kakaopay'}
-                  onClick={() => onOtherMethodChange('kakaopay')}
-                />
-              </div>
-              <div className="flex gap-x-2">
-                <PaymentMethodButton
-                  type="logo"
-                  logo="payco"
-                  label="페이코"
-                  selected={otherMethod === 'payco'}
-                  onClick={() => onOtherMethodChange('payco')}
-                />
-                {/* 페이코는 Figma 상 단독 행(node 666-23362)이지만 버튼 자체 폭(160px, w-40)은
-                    위 두 행과 동일하다(node 666-23344 스크린샷 실측 — 세 행 모두 같은 크기).
-                    문제는 좁은 화면(컨테이너 < 328px)에서 위 두 행은 짝이 있어 flex-shrink 로
-                    균등하게 줄어드는데, 페이코는 행에 혼자라 shrink 계산에 참여할 상대가 없어
-                    줄지 않고 원래 크기(160px)를 유지해버려 다른 버튼보다 더 커 보였다(실측:
-                    150px 안팎 vs 160px). 위 행과 동일한 w-40 spacer 를 짝으로 두면 같은
-                    flex-basis/gap 조건이 되어 동일한 비율로 줄어든다 — 시각적으로는 보이지
-                    않아야 하므로 aria-hidden. */}
-                <div className="h-10 w-40" aria-hidden="true" />
-              </div>
-            </div>
-
-            {otherMethod === 'card' ? (
-              <>
-                <hr className="border-border" />
-                {/* `Dropdown` variant="box" 는 rounded-sm(4px) 이 자체 클래스에 박혀있는데
-                    Figma 실측(node 666-23365)은 radius/l(12px) — `rounded-lg!` 로 확실히
-                    덮어쓴다(className 병합 순서에 기대지 않는 안전한 방법). `min-h-12` 는
-                    이전 라운드에 요청받은 높이 보정, 그대로 유지. */}
-                <Dropdown
-                  label="카드사"
-                  variant="box"
-                  block
-                  placeholder="카드를 선택해 주세요"
-                  options={CARD_ISSUER_OPTIONS}
-                  value={cardIssuer}
-                  onChange={onCardIssuerChange}
-                  className="min-h-12 rounded-lg!"
-                />
-              </>
-            ) : null}
+            {otherContent ? (
+              otherContent
+            ) : (
+              <OtherPaymentMethodGrid
+                otherMethod={otherMethod}
+                onOtherMethodChange={onOtherMethodChange}
+                cardIssuer={cardIssuer}
+                onCardIssuerChange={onCardIssuerChange}
+              />
+            )}
           </div>
         ) : null}
 

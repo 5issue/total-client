@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Button } from '@/components/atoms/Button';
 import { Icon } from '@/components/atoms/Icon';
@@ -22,6 +22,16 @@ import type {
 import { OrderItemsSection } from '@/components/organisms/checkout/OrderItemsSection';
 import { PaymentMethodAccordion } from '@/components/organisms/checkout/PaymentMethodAccordion';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
+import { ApiError } from '@/errors/ApiError';
+import { useDeliveryDetailStore } from '@/hooks/useDeliveryDetailStore';
+import { toDeliveryDetailSummary } from '@/lib/checkout/deliveryDetailSummary';
+import {
+  createTossOrderId,
+  isKurlyOwnedPaymentMethod,
+  isTossPgMethod,
+} from '@/lib/checkout/paymentMethod';
+import { requestTossCheckoutPayment } from '@/lib/checkout/requestTossPayment';
+import { env } from '@/lib/env';
 
 import { MOCK_AMOUNTS, MOCK_CUSTOMER, MOCK_DEFAULT_ADDRESS, MOCK_ORDER_ITEMS } from './mock';
 
@@ -34,8 +44,8 @@ import { MOCK_AMOUNTS, MOCK_CUSTOMER, MOCK_DEFAULT_ADDRESS, MOCK_ORDER_ITEMS } f
  * 들여옴), 지금은 장바구니 → 주문서 흐름이 실제로 연결돼 있다(이슈 #120) —
  * `items`/`amounts`/`deliveryAddress` prop 을 `CheckoutContainer` 가 `useCart`/`useAddresses`
  * 로 채워 넘긴다. prop 을 생략하면(직접 진입·스토리북) 여전히 `mock.ts` 목데이터로 동작한다.
- * 결제수단·약관동의는 여전히 이 컴포넌트 로컬 state(결제 자체는 #109 영역, 이 화면은
- * 손대지 않는다) — 새로고침하면 초기화된다.
+ * 결제수단·약관동의는 여전히 이 컴포넌트 로컬 state — 새로고침하면 초기화된다.
+ * 배송 상세정보는 `deliveryDetailStore`(세션 한정, 새로고침 시 초기화).
  *
  * "주문상품"은 상품 개수에 따라 모양이 바뀐다(node 666-23208 1건 / 666-23446·666-25396
  * 2건 이상) — 그 분기와 두 상태의 마크업은 `OrderItemsSection` 에 위임한다.
@@ -49,18 +59,11 @@ import { MOCK_AMOUNTS, MOCK_CUSTOMER, MOCK_DEFAULT_ADDRESS, MOCK_ORDER_ITEMS } f
  * ("배송 상세정보를 입력해주세요.")가 뜬다. 네이티브 `disabled` 버튼은 클릭 이벤트 자체가
  * 발생하지 않아 토스트를 못 띄우므로, 유효성 검사는 클릭 핸들러 안에서 직접 한다.
  *
- * "주문시간 초과" 모달(node 666-24671)은 실제 서버 세션 만료 신호가 아직 없어(백엔드
- * 미연동) 클라이언트 타이머로 흉내만 낸다 — `ORDER_TIME_LIMIT_MS` 는 실제 정책값이 아니라
- * 임시 추정치, 서버 세션 만료 API 나오면 그걸로 교체.
+ * 결제하기는 퍼블 '다른 결제수단' 선택값을 토스 결제창 `requestPayment` 로 넘긴 뒤
+ * success/fail URL → `POST /api/v1/payments/checkout` 흐름이다(#109).
+ * 컬리페이·충전결제는 PG 범위 밖이라 토스트로 막는다.
  */
-/** 배송 상세정보 — node 666-24922: "{위치} | 공동현관 비밀번호({코드})" + "{받는분}, {전화번호}".
- * 편집은 전용 화면 `/checkout/delivery-detail`(Figma node 666-26216, 이슈 #92)이 맡는다 —
- * "수정" 이 그 화면으로 이동한다. 그전까지 임시로 뒀던 위치·비밀번호 Input 2개짜리 모달은
- * 그 화면이 생기면서 제거했다(사용자 확인, 2026-09-15). */
-interface DeliveryDetail {
-  location: string;
-  passcode: string;
-}
+/** 배송 상세정보 편집은 `/checkout/delivery-detail`. 확정값은 `deliveryDetailStore`. */
 type TermsModal = 'privacy' | 'payment' | null;
 
 const won = (n: number) => `${n.toLocaleString('ko-KR')}원`;
@@ -86,22 +89,36 @@ export interface CheckoutViewProps {
   deliveryAddress?: CheckoutDeliveryAddressView;
 }
 
+const KURLY_OWNED_PAY_MESSAGE = '컬리페이·충전결제는 아직 지원하지 않습니다.';
+
+function tossPayErrorMessage(error: unknown): string | null {
+  if (error instanceof ApiError) return error.message;
+  if (error && typeof error === 'object' && 'code' in error) {
+    const code = String((error as { code: unknown }).code);
+    if (code === 'USER_CANCEL' || code === 'PAY_PROCESS_CANCELED') return null;
+    if ('message' in error && typeof (error as { message: unknown }).message === 'string') {
+      return (error as { message: string }).message;
+    }
+  }
+  return '결제를 시작하지 못했습니다.';
+}
+
 export function CheckoutView({
   items = MOCK_ORDER_ITEMS,
   amounts = MOCK_AMOUNTS,
   deliveryAddress = MOCK_DEFAULT_ADDRESS,
 }: CheckoutViewProps = {}) {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // 기본값은 "다른 결제수단" 선택 상태 — Figma 스크린샷 그대로(사용자 확인, 2026-09-11).
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | null>('other');
   const [otherPaymentMethod, setOtherPaymentMethod] = useState<OtherPaymentMethodId>('card');
   const [cardIssuer, setCardIssuer] = useState<string | null>(null);
+  const [isPaying, setIsPaying] = useState(false);
 
-  // 값은 이제 `/checkout/delivery-detail` 화면이 소유한다. 그 화면이 저장값을 여기로
-  // 돌려주는 배선(클라 스토어)은 아직 없어 현재는 항상 미입력 상태다 — 배선되면 이
-  // 자리를 스토어 selector 로 교체한다(이슈 #92 후속).
-  const [deliveryDetail] = useState<DeliveryDetail | null>(null);
+  const deliveryDetail = useDeliveryDetailStore((s) => s.detail);
+  const deliverySummary = deliveryDetail ? toDeliveryDetailSummary(deliveryDetail) : null;
   const [termsModal, setTermsModal] = useState<TermsModal>(null);
   const [ordererOpen, setOrdererOpen] = useState(false);
 
@@ -109,10 +126,26 @@ export function CheckoutView({
   const [couponInfoOpen, setCouponInfoOpen] = useState(false);
   const [pointsInfoOpen, setPointsInfoOpen] = useState(false);
   const [orderExpired, setOrderExpired] = useState(false);
+  const [toastMessage, setToastMessage] = useState('배송 상세정보를 입력해주세요.');
   const [showValidationToast, setShowValidationToast] = useState(false);
   const validationToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const canPay = deliveryDetail != null && deliveryDetail.location !== '' && paymentMethod != null;
+  const payError = searchParams.get('payError');
+  const isToastVisible = showValidationToast || Boolean(payError);
+  const displayedToastMessage = payError ?? toastMessage;
+
+  const canPay = deliverySummary != null && paymentMethod != null;
+
+  function showErrorToast(message: string) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setToastMessage(message);
+    setShowValidationToast(true);
+    if (validationToastTimer.current) clearTimeout(validationToastTimer.current);
+    validationToastTimer.current = setTimeout(
+      () => setShowValidationToast(false),
+      VALIDATION_TOAST_DURATION_MS,
+    );
+  }
 
   useEffect(() => {
     const timer = setTimeout(() => setOrderExpired(true), ORDER_TIME_LIMIT_MS);
@@ -125,20 +158,50 @@ export function CheckoutView({
     };
   }, []);
 
-  function handleSubmitOrder() {
+  useEffect(() => {
+    if (!payError) return;
+    const timer = setTimeout(() => {
+      router.replace('/checkout', { scroll: false });
+    }, VALIDATION_TOAST_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [payError, router]);
+
+  async function handleSubmitOrder() {
     if (!canPay) {
       // 피드백: 토스트가 뜰 때 화면이 자동으로 맨 위로 스크롤된다 — 놓친 필드(배송
       // 상세정보)가 화면 위쪽에 있어서다.
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      setShowValidationToast(true);
-      if (validationToastTimer.current) clearTimeout(validationToastTimer.current);
-      validationToastTimer.current = setTimeout(
-        () => setShowValidationToast(false),
-        VALIDATION_TOAST_DURATION_MS,
-      );
+      showErrorToast('배송 상세정보를 입력해주세요.');
       return;
     }
-    router.push('/checkout/complete');
+    if (isKurlyOwnedPaymentMethod(paymentMethod)) {
+      showErrorToast(KURLY_OWNED_PAY_MESSAGE);
+      return;
+    }
+    if (!isTossPgMethod(paymentMethod) || isPaying) return;
+
+    setIsPaying(true);
+    try {
+      const first = MOCK_ORDER_ITEMS[0];
+      const orderName = !first
+        ? '컬리 주문'
+        : MOCK_ORDER_ITEMS.length === 1
+          ? first.name
+          : `${first.name} 외 ${MOCK_ORDER_ITEMS.length - 1}건`;
+      await requestTossCheckoutPayment({
+        clientKey: env.NEXT_PUBLIC_TOSS_CLIENT_KEY,
+        amount: MOCK_AMOUNTS.total,
+        orderId: createTossOrderId(),
+        orderName,
+        method: otherPaymentMethod,
+        cardIssuer,
+        customerName: MOCK_CUSTOMER.name,
+        customerEmail: MOCK_CUSTOMER.email,
+      });
+    } catch (error) {
+      setIsPaying(false);
+      const message = tossPayErrorMessage(error);
+      if (message) showErrorToast(message);
+    }
   }
 
   return (
@@ -154,14 +217,14 @@ export function CheckoutView({
           -translate-y-50(50*4px=200px, 토스트 자체 높이보다 넉넉히 큰 값)도 같은 이유로
           스케일 값. */}
       <div
-        aria-hidden={!showValidationToast}
+        aria-hidden={!isToastVisible}
         className={[
           'pointer-events-none fixed inset-x-0 top-21 z-50 flex justify-center px-4',
           'transition-transform duration-300 ease-out motion-reduce:transition-none',
-          showValidationToast ? 'translate-y-0' : '-translate-y-50',
+          isToastVisible ? 'translate-y-0' : '-translate-y-50',
         ].join(' ')}
       >
-        <Toast variant="error">배송 상세정보를 입력해주세요.</Toast>
+        <Toast variant="error">{displayedToastMessage}</Toast>
       </div>
 
       <div className="bg-surface-secondary flex flex-1 flex-col gap-2">
@@ -244,7 +307,7 @@ export function CheckoutView({
               배송 상세정보<span className="text-primary">*</span>
             </p>
             <div className="flex items-center justify-between gap-2">
-              {deliveryDetail ? (
+              {deliverySummary ? (
                 // node 666-24922: "{위치} | 공동현관 비밀번호({코드})" 한 줄 + "{받는분}, {전화번호}"
                 // 한 줄. 위치↔안내문 사이 세로선은 실측(문 앞 끝 32px→선 40px→안내문 시작
                 // 48px, 즉 선 좌우 8px씩)대로 h-3 보더 스팬으로 그린다(텍스트 "|" 아님).
@@ -253,19 +316,23 @@ export function CheckoutView({
                       Figma 확인. 아래 받는분·전화번호 줄만 Regular(text-heading-6) +
                       text-fg-secondary. */}
                   <p className="text-heading-4 text-fg flex items-center gap-2 truncate">
-                    <span className="shrink-0">{deliveryDetail.location}</span>
-                    {deliveryDetail.passcode ? (
+                    <span className="shrink-0">{deliverySummary.locationLabel}</span>
+                    {deliverySummary.accessLabel ? (
                       <>
                         <span aria-hidden className="border-border h-3 shrink-0 border-l" />
                         <span className="truncate">
-                          공동현관 비밀번호(
-                          <span className="text-primary">{deliveryDetail.passcode}</span>)
+                          {deliverySummary.accessLabel}
+                          {deliverySummary.passcode ? (
+                            <>
+                              (<span className="text-primary">{deliverySummary.passcode}</span>)
+                            </>
+                          ) : null}
                         </span>
                       </>
                     ) : null}
                   </p>
                   <p className="text-heading-6 text-fg-secondary truncate">
-                    {deliveryAddress.recipient}, {deliveryAddress.phone}
+                    {deliverySummary.receiverName}, {deliverySummary.phone}
                   </p>
                 </div>
               ) : (
@@ -512,7 +579,12 @@ export function CheckoutView({
           여유(pb-11)는 CartOrderBar 와 같은 이유로 유지 — 정적 프레임엔 안 드러나는
           실제 기기 세이프에어리어다. */}
       <div className="bg-surface sticky bottom-0 flex flex-col gap-3 px-4 pt-3 pb-3">
-        <Button variant="primary" size="l" className="h-14 w-full" onClick={handleSubmitOrder}>
+        <Button
+          variant="primary"
+          size="l"
+          className="h-14 w-full"
+          onClick={() => void handleSubmitOrder()}
+        >
           {won(amounts.total)} 결제하기
         </Button>
         <p className="text-caption-m text-fg-tertiary text-center">

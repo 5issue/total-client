@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 
 import { AuthTokenStoreProvider } from '@/providers/AuthTokenStoreProvider';
 import { DeliveryAddressStoreProvider } from '@/providers/DeliveryAddressStoreProvider';
+import { DeliveryDetailStoreProvider } from '@/providers/DeliveryDetailStoreProvider';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { SessionBootstrap } from '@/providers/SessionBootstrap';
 import { ThemeStoreProvider } from '@/providers/ThemeStoreProvider';
@@ -22,7 +23,9 @@ export function Providers({ children }: { children: ReactNode }) {
         <AuthTokenStoreProvider>
           <SessionBootstrap />
           <DeliveryAddressStoreProvider>
-            <ThemeStoreProvider>{children}</ThemeStoreProvider>
+            <DeliveryDetailStoreProvider>
+              <ThemeStoreProvider>{children}</ThemeStoreProvider>
+            </DeliveryDetailStoreProvider>
           </DeliveryAddressStoreProvider>
         </AuthTokenStoreProvider>
       </UIStoreProvider>

@@ -17,6 +17,13 @@ import {
   type RemoveCartItemsRequest,
   type UpdateCartItemQuantityRequest,
 } from '@/types/cart';
+import {
+  CheckoutPaymentRequestSchema,
+  CheckoutPaymentResponseSchema,
+  ConfirmPaymentRequestSchema,
+  PaymentReceiptSchema,
+  type ConfirmPaymentRequest,
+} from '@/types/checkout';
 import { ProductListResponseSchema, type ProductListParams } from '@/types/product';
 
 /**
@@ -164,6 +171,25 @@ export function deleteAddress(addressId: number) {
   return privateFetch(`/api/addresses/${addressId}`, DeleteAddressResponseSchema, {
     method: 'DELETE',
   });
+}
+
+/** Toss successUrl 착지 후 결제 승인. Spring `POST /api/v1/payments/checkout`. */
+export function confirmPayment(body: ConfirmPaymentRequest) {
+  const parsed = ConfirmPaymentRequestSchema.parse(body);
+  const { idempotencyKey, ...checkoutBody } = parsed;
+  return privateFetch('/api/payments/checkout', CheckoutPaymentResponseSchema, {
+    method: 'POST',
+    headers: { 'Idempotency-Key': idempotencyKey },
+    body: JSON.stringify(CheckoutPaymentRequestSchema.parse(checkoutBody)),
+  });
+}
+
+/** 영수증 조회. `GET /api/v1/payments/{payment_id}/receipt`. */
+export function getPaymentReceipt(paymentId: number) {
+  return privateFetch(
+    `/api/payments/${encodeURIComponent(String(paymentId))}/receipt`,
+    PaymentReceiptSchema,
+  );
 }
 
 /**
