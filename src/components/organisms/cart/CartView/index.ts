@@ -1,1 +1,2 @@
-export { CartView } from './CartView';
+export { CartContainer } from './CartContainer';
+export { CartView, type CartViewProps } from './CartView';

@@ -3,7 +3,20 @@ import type { ZodType } from 'zod';
 import { ApiError } from '@/errors/ApiError';
 import type { ApiEnvelope } from '@/lib/apiResponse';
 import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/authTokenRef';
+import {
+  AddressListResponseSchema,
+  AddressSchema,
+  DeleteAddressResponseSchema,
+  type SaveAddressRequest,
+} from '@/types/address';
 import { SpringLoginUrlDataSchema, type OAuthProvider } from '@/types/auth';
+import {
+  CartResponseSchema,
+  RemoveCartItemsResponseSchema,
+  UpdateCartItemQuantityResponseSchema,
+  type RemoveCartItemsRequest,
+  type UpdateCartItemQuantityRequest,
+} from '@/types/cart';
 import { ProductListResponseSchema, type ProductListParams } from '@/types/product';
 
 /**
@@ -102,6 +115,55 @@ export function requestSocialLoginUrl(provider: OAuthProvider) {
 export function searchProducts(params: ProductListParams) {
   const query = new URLSearchParams({ query: params.query, sort: params.sort });
   return publicFetch(`/api/products?${query}`, ProductListResponseSchema);
+}
+
+/** 장바구니 조회(배송 그룹별). */
+export function getCart() {
+  return privateFetch('/api/cart', CartResponseSchema);
+}
+
+/** 장바구니 상품 수량 변경 — api-convention §7 유일한 Optimistic Update 예외 대상. */
+export function updateCartItemQuantity(cartItemId: number, body: UpdateCartItemQuantityRequest) {
+  return privateFetch(`/api/cart/items/${cartItemId}`, UpdateCartItemQuantityResponseSchema, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
+/** 장바구니 상품 삭제(단일·다건 공통). */
+export function removeCartItems(body: RemoveCartItemsRequest) {
+  return privateFetch('/api/cart/items', RemoveCartItemsResponseSchema, {
+    method: 'DELETE',
+    body: JSON.stringify(body),
+  });
+}
+
+/** 배송지 목록 조회. */
+export function getAddresses() {
+  return privateFetch('/api/addresses', AddressListResponseSchema);
+}
+
+/** 배송지 추가. */
+export function createAddress(body: SaveAddressRequest) {
+  return privateFetch('/api/addresses', AddressSchema, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+/** 배송지 수정. */
+export function updateAddress(addressId: number, body: SaveAddressRequest) {
+  return privateFetch(`/api/addresses/${addressId}`, AddressSchema, {
+    method: 'PUT',
+    body: JSON.stringify(body),
+  });
+}
+
+/** 배송지 삭제. */
+export function deleteAddress(addressId: number) {
+  return privateFetch(`/api/addresses/${addressId}`, DeleteAddressResponseSchema, {
+    method: 'DELETE',
+  });
 }
 
 /**
