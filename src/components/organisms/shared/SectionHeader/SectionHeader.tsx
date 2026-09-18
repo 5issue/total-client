@@ -95,6 +95,12 @@ const LEADING_PRESET: Record<'back' | 'close', { icon: IconName; label: string }
  * 라이트/다크 둘 다 고정값이다(node 910-110970 라이트 / 1691-205512 다크, 둘 다 같은
  * `#222`/`white` 바인딩) — 시맨틱 `bg-fg`/`text-fg-inverse` 를 쓰면 다크에서 반전돼
  * 버린다. `size-5`(20px) 원, 아이콘 44px 터치 영역 우상단에 겹친다.
+ *
+ * (코드래빗 리뷰) `bg-black`/`text-white` 를 시맨틱 토큰으로 바꾸라는 제안은 여기선
+ * 적용하지 않는다 — Figma 가 실제로 "Static"(테마 무관 고정) 으로 바인딩해 뒀고, 값이
+ * 절대 안 바뀌므로 별도 토큰을 만들어도 `--badge-bg: var(--color-black)` 처럼 이 프리미티브를
+ * 한 번 더 감싸는 것뿐이다 — 이 저장소에서 Static/Black 값은 이미 프리미티브를 직접 쓰는
+ * 게 확립된 패턴(예: `PromoSummarySection`·`My_Summary_Card` 의 `text-black`).
  */
 function IconBadge({ count }: { count: number }) {
   return (

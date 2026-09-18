@@ -114,6 +114,7 @@
   --color-surface-secondary: var(--surface-secondary); /* Surface/Secondary */
   --color-overlay: var(--overlay); /* Surface/Overlay_gray */
   --color-overlay-blue: var(--overlay-blue); /* Surface/Overlay_blue */
+  --color-overlay-orange: var(--overlay-orange); /* Surface/Overlay_orange */
   --color-surface-tag: var(
     --surface-tag
   ); /* Chip(removable) 채움 — Figma 변수 미바인딩, 아래 :root 주석 참고 */
@@ -154,6 +155,7 @@
   --surface-secondary: #f0f5f8; /* Surface/Secondary */
   --overlay: #22222299; /* Surface/Overlay_gray (alpha 0.6) */
   --overlay-blue: #a1b3be66; /* Surface/Overlay_blue (alpha 0.4) */
+  --overlay-orange: #fa622f0a; /* Surface/Overlay_orange (alpha 0.04) — Secondary/orange 기준 */
 
   /* Chip(removable, "샐러드 ×") 채움 — Figma 컴포넌트 노드(2563:3023 default, 2603:3297 pressed)의
      로컬 fill 이라 get_variable_defs 로도 안 잡힌다(변수 바인딩 자체가 없음). 노드 스크린샷을
@@ -208,6 +210,7 @@
   --surface: #323a40; /* Surface/base */
   --surface-secondary: #7e8f9b; /* Surface/Secondary */
   --overlay-blue: #a1b3beb2; /* Surface/Overlay_blue — 라이트 40% -> 70% */
+  --overlay-orange: #fa622f1a; /* Surface/Overlay_orange — 라이트 4% -> 10% (StatusLabel owned/rewards, node 1691-205422 실측) */
 
   --fg: #ffffff; /* Text/primary */
   --fg-secondary: #f0f5f8; /* Text/Secondary */

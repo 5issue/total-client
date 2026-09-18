@@ -19,6 +19,10 @@ import { useThemeStore } from '@/hooks/useThemeStore';
  *
  * 실제 테마 전환은 `useThemeStore`(전역 Zustand, `<html data-theme>` 직접 반영) — 이
  * 컴포넌트는 상태만 읽고 클릭을 스토어에 위임한다.
+ *
+ * 시각 트랙(56×28)과 실제 터치 영역을 분리했다 — 트랙 그대로를 `button` 크기로 쓰면
+ * 세로가 28px라 최소 터치 타깃 44px(code-style §5)에 못 미친다(코드래빗 리뷰).
+ * `button` 은 56×44 로 두고 트랙(가운데 정렬된 `span`)은 Figma 실측 크기 그대로 유지한다.
  */
 export function ThemeToggle({ className }: { className?: string }) {
   const theme = useThemeStore((s) => s.theme);
@@ -32,21 +36,22 @@ export function ThemeToggle({ className }: { className?: string }) {
       aria-checked={isDark}
       aria-label={isDark ? '라이트 모드로 전환' : '다크 모드로 전환'}
       onClick={toggleTheme}
-      className={[
-        'flex h-7 w-14 items-center rounded-full px-1 transition-colors duration-200 motion-reduce:transition-none',
-        isDark ? 'justify-end bg-neutral-900' : 'justify-start bg-neutral-400',
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
+      className={['flex h-11 w-14 items-center', className].filter(Boolean).join(' ')}
     >
-      <span className="bg-bg flex size-6 items-center justify-center rounded-full">
-        <Icon
-          name={isDark ? 'moon' : 'sun'}
-          size={20}
-          aria-hidden
-          className={isDark ? undefined : 'text-primary'}
-        />
+      <span
+        className={[
+          'flex h-7 w-14 items-center rounded-full px-1 transition-colors duration-200 motion-reduce:transition-none',
+          isDark ? 'justify-end bg-neutral-900' : 'justify-start bg-neutral-400',
+        ].join(' ')}
+      >
+        <span className="bg-bg flex size-6 items-center justify-center rounded-full">
+          <Icon
+            name={isDark ? 'moon' : 'sun'}
+            size={20}
+            aria-hidden
+            className={isDark ? undefined : 'text-primary'}
+          />
+        </span>
       </span>
     </button>
   );

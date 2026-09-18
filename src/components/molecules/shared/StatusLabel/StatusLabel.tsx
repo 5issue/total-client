@@ -45,13 +45,15 @@ export interface StatusLabelProps {
  * 없어 Pretendard(`--font-sans`) 그대로 간다.
  */
 const STYLE_BY_TYPE: Record<StatusLabelType, string> = {
-  // dark:bg-orange/10 — 다크모드 Overlay_orange 실측(4%→10%, 마이컬리 node 1691-205422).
-  owned: 'bg-orange/4 dark:bg-orange/10 text-orange rounded-sm p-1 text-caption-s font-bold',
+  // bg-overlay-orange: Surface/Overlay_orange 시맨틱 토큰(라이트 4%/다크 10%, tokens/color.css) —
+  // bg-orange/4 dark:bg-orange/10 처럼 유틸리티에 직접 알파를 박지 않고 overlay-blue 와 같은
+  // 패턴으로 토큰화했다(코드래빗 리뷰: 상태색은 시맨틱 토큰으로).
+  owned: 'bg-overlay-orange text-orange rounded-sm p-1 text-caption-s font-bold',
   subscribed: 'bg-brand-50 text-primary rounded-sm px-2 py-1 text-label-m',
   inactive: 'bg-overlay-blue text-fg rounded-sm h-5 px-2 text-caption-s font-bold',
   notice: 'bg-overlay-blue text-fg rounded-sm px-2 py-1 text-caption-s font-bold',
   rewards:
-    'bg-orange/4 dark:bg-orange/10 text-fg-danger rounded-full h-status-label-rewards px-2 text-caption-s font-bold',
+    'bg-overlay-orange text-fg-danger rounded-full h-status-label-rewards px-2 text-caption-s font-bold',
   defaultAddress: 'bg-surface-secondary text-fg-secondary rounded-full h-6 px-2 text-caption-m',
   kurlyOnly: 'bg-overlay-blue text-primary rounded-sm px-2 py-1 text-numeric-s',
   adLabelS: 'bg-overlay text-fg-inverse rounded-sm px-1 text-caption-s font-bold',
