@@ -4,6 +4,13 @@ import { ApiError } from '@/errors/ApiError';
 import type { ApiEnvelope } from '@/lib/apiResponse';
 import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/authTokenRef';
 import { SpringLoginUrlDataSchema, type OAuthProvider } from '@/types/auth';
+import {
+  CheckoutPaymentRequestSchema,
+  CheckoutPaymentResponseSchema,
+  ConfirmPaymentRequestSchema,
+  PaymentReceiptSchema,
+  type ConfirmPaymentRequest,
+} from '@/types/checkout';
 import { ProductListResponseSchema, type ProductListParams } from '@/types/product';
 
 /**
@@ -102,6 +109,25 @@ export function requestSocialLoginUrl(provider: OAuthProvider) {
 export function searchProducts(params: ProductListParams) {
   const query = new URLSearchParams({ query: params.query, sort: params.sort });
   return publicFetch(`/api/products?${query}`, ProductListResponseSchema);
+}
+
+/** Toss successUrl 착지 후 결제 승인. Spring `POST /api/v1/payments/checkout`. */
+export function confirmPayment(body: ConfirmPaymentRequest) {
+  const parsed = ConfirmPaymentRequestSchema.parse(body);
+  const { idempotencyKey, ...checkoutBody } = parsed;
+  return privateFetch('/api/payments/checkout', CheckoutPaymentResponseSchema, {
+    method: 'POST',
+    headers: { 'Idempotency-Key': idempotencyKey },
+    body: JSON.stringify(CheckoutPaymentRequestSchema.parse(checkoutBody)),
+  });
+}
+
+/** 영수증 조회. `GET /api/v1/payments/{payment_id}/receipt`. */
+export function getPaymentReceipt(paymentId: number) {
+  return privateFetch(
+    `/api/payments/${encodeURIComponent(String(paymentId))}/receipt`,
+    PaymentReceiptSchema,
+  );
 }
 
 /**
