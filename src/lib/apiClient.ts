@@ -4,6 +4,20 @@ import { ApiError } from '@/errors/ApiError';
 import type { ApiEnvelope } from '@/lib/apiResponse';
 import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/authTokenRef';
 import { SpringLoginUrlDataSchema, type OAuthProvider } from '@/types/auth';
+import {
+  CancellationReturnHistoryResponseSchema,
+  OrderCancelRequestSchema,
+  OrderCancelResponseSchema,
+  OrderDetailResponseSchema,
+  OrderListResponseSchema,
+  OrderReturnRequestSchema,
+  OrderReturnResponseSchema,
+  ReturnPreviewResponseSchema,
+  type CancellationReturnParams,
+  type OrderCancelRequest,
+  type OrderListParams,
+  type OrderReturnRequest,
+} from '@/types/order';
 import { ProductListResponseSchema, type ProductListParams } from '@/types/product';
 
 /**
@@ -102,6 +116,57 @@ export function requestSocialLoginUrl(provider: OAuthProvider) {
 export function searchProducts(params: ProductListParams) {
   const query = new URLSearchParams({ query: params.query, sort: params.sort });
   return publicFetch(`/api/products?${query}`, ProductListResponseSchema);
+}
+
+/** 내 주문 목록(주문 이력) 조회. `range` 는 Spring 이 대문자(3M/6M/1Y/3Y)만 받는다. */
+export function getOrders(params: OrderListParams) {
+  const query = new URLSearchParams();
+  if (params.range) query.set('range', params.range);
+  if (params.productName) query.set('productName', params.productName);
+  if (params.page) query.set('page', String(params.page));
+  if (params.size) query.set('size', String(params.size));
+  const qs = query.toString();
+  return privateFetch(`/api/orders${qs ? `?${qs}` : ''}`, OrderListResponseSchema);
+}
+
+/** 주문 상세(주문 추적) 조회 — 배송·결제 스냅샷 + 자체 취소 가능 여부(`selfCancelable`) 포함. */
+export function getOrderDetail(orderId: number) {
+  return privateFetch(`/api/orders/${orderId}`, OrderDetailResponseSchema);
+}
+
+/** 주문 취소(배송 전) 신청. */
+export function cancelOrder(orderId: number, body: OrderCancelRequest) {
+  return privateFetch(`/api/orders/${orderId}/cancel`, OrderCancelResponseSchema, {
+    method: 'POST',
+    body: JSON.stringify(OrderCancelRequestSchema.parse(body)),
+  });
+}
+
+/** 취소·반품 통합 내역 조회. */
+export function getCancellationsReturns(params: CancellationReturnParams) {
+  const query = new URLSearchParams();
+  if (params.requestType) query.set('requestType', params.requestType);
+  if (params.requestStatus) query.set('requestStatus', params.requestStatus);
+  if (params.page) query.set('page', String(params.page));
+  if (params.size) query.set('size', String(params.size));
+  const qs = query.toString();
+  return privateFetch(
+    `/api/orders/cancellations-returns${qs ? `?${qs}` : ''}`,
+    CancellationReturnHistoryResponseSchema,
+  );
+}
+
+/** 반품 접수 사전조회 — 반품 접수 화면 진입 시 사유 옵션·예상 환불액을 먼저 받는다. */
+export function getReturnPreview(orderId: number) {
+  return privateFetch(`/api/orders/${orderId}/returns/preview`, ReturnPreviewResponseSchema);
+}
+
+/** 전체 주문 반품(환불) 신청(배송 완료 후). */
+export function submitOrderReturn(orderId: number, body: OrderReturnRequest) {
+  return privateFetch(`/api/orders/${orderId}/returns`, OrderReturnResponseSchema, {
+    method: 'POST',
+    body: JSON.stringify(OrderReturnRequestSchema.parse(body)),
+  });
 }
 
 /**
