@@ -7,7 +7,11 @@ import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/atoms/Button';
 import { Toast } from '@/components/atoms/Toast';
-import { OrderBreakdownRow } from '@/components/molecules/order/OrderBreakdownRow';
+import {
+  OrderBreakdownRow,
+  type OrderBreakdownDetail,
+  type OrderBreakdownValueTone,
+} from '@/components/molecules/order/OrderBreakdownRow';
 import { OrderProductItem } from '@/components/molecules/order/OrderProductItem';
 import { Modal } from '@/components/molecules/shared/Modal';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
@@ -24,6 +28,7 @@ import {
   MOCK_PARTIAL_RETURN_GROUPS,
   MOCK_PAYMENT_ROWS,
   MOCK_PAYMENT_TOTAL,
+  type MockOrderProduct,
 } from './mock';
 
 /**
@@ -109,13 +114,58 @@ export type OrderStatus =
  */
 const CANCEL_ALLOWED_STATUSES: OrderStatus[] = ['주문완료', '배송중', '배송완료'];
 
+/** 요약 카드(주문번호·결제일시·배송지 등) — 실API 연동 시 컨테이너가 이 모양으로 매핑한다. */
+export interface OrderDetailSummary {
+  orderNumber: string;
+  paidAt: string;
+  address: string;
+  status: string;
+  arrival: string;
+  deliveredAt: string;
+  receiver: string;
+  phone: string;
+}
+
+/** 브레이크다운 카드(결제/주문/배송/배송요청) 한 줄. */
+export interface OrderBreakdownRowData {
+  label: string;
+  value: string;
+  valueTone?: OrderBreakdownValueTone;
+  details?: OrderBreakdownDetail[];
+}
+
 export interface OrderDetailViewProps {
-  /** 스토리·QA 용 초기 주문 상태. 생략 시 `MOCK_ORDER_DETAIL.status`(node 666-28077). */
+  /** 스토리·QA 용 초기 주문 상태. 생략 시 `orderDetail.status`(node 666-28077). */
   initialStatus?: OrderStatus;
+  /** 실API 연동 시 컨테이너가 매핑해 내린다. 생략 시 목데이터 폴백(직접 진입·스토리북). */
+  orderDetail?: OrderDetailSummary;
+  products?: MockOrderProduct[];
+  paymentTotal?: string;
+  paymentRows?: OrderBreakdownRowData[];
+  orderInfoRows?: OrderBreakdownRowData[];
+  deliveryInfoRows?: OrderBreakdownRowData[];
+  deliveryRequestRows?: OrderBreakdownRowData[];
+  cancelNotice?: readonly string[];
+  /**
+   * 실제 취소 API 연동 시 컨테이너가 넘긴다. 있으면 모달 "주문 취소" 확정 시 이 콜백을
+   * 부르고(성공/실패는 컨테이너 쪽 뮤테이션이 처리), 없으면 기존처럼 로컬 상태만 바꾼다.
+   */
+  onCancelConfirm?: () => void;
 }
 
 export function OrderDetailView({
-  initialStatus = MOCK_ORDER_DETAIL.status,
+  orderDetail = MOCK_ORDER_DETAIL,
+  // orderDetail.status 는 일반 string(컨테이너가 API 값을 자유롭게 매핑) — 실제로는 항상
+  // OrderStatus 값이라는 전제로 기본값에서만 단언한다(명시 initialStatus 를 안 넘겼을 때).
+  initialStatus = orderDetail.status as OrderStatus,
+  products: orderProducts = MOCK_ORDER_PRODUCTS,
+  paymentTotal = MOCK_PAYMENT_TOTAL,
+  paymentRows = MOCK_PAYMENT_ROWS,
+  orderInfoRows = MOCK_ORDER_INFO_ROWS,
+  deliveryInfoRows = MOCK_DELIVERY_INFO_ROWS,
+  deliveryRequestRows = MOCK_DELIVERY_REQUEST_ROWS,
+  cancelNotice = MOCK_CANCEL_NOTICE,
+  onCancelConfirm,
 }: OrderDetailViewProps) {
   const router = useRouter();
   const [cancelOpen, setCancelOpen] = useState(false);
@@ -128,9 +178,9 @@ export function OrderDetailView({
   const canCancel = CANCEL_ALLOWED_STATUSES.includes(status);
   const rightText =
     status === '배송완료'
-      ? MOCK_ORDER_DETAIL.deliveredAt
+      ? orderDetail.deliveredAt
       : status === '주문완료' || status === '배송중'
-        ? MOCK_ORDER_DETAIL.arrival
+        ? orderDetail.arrival
         : null;
 
   return (
@@ -143,8 +193,8 @@ export function OrderDetailView({
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 flex-col gap-1">
-                <p className="text-heading-6 text-fg-tertiary">{MOCK_ORDER_DETAIL.paidAt}</p>
-                <p className="text-heading-0 text-fg">주문번호 {MOCK_ORDER_DETAIL.orderNumber}</p>
+                <p className="text-heading-6 text-fg-tertiary">{orderDetail.paidAt}</p>
+                <p className="text-heading-0 text-fg">주문번호 {orderDetail.orderNumber}</p>
               </div>
               {/* Figma 고정 높이는 38px 지만 최소 터치 타깃 44px(code-style §5) 에 못 미쳐
                   44px(`h-11`)로 올린다(CodeRabbit 리뷰로 발견, OrderCompleteView 와 동일). */}
@@ -152,13 +202,13 @@ export function OrderDetailView({
                 size="s"
                 variant="outlineBlack"
                 className="h-11 w-13 shrink-0"
-                onClick={() => copyOrderNumber(MOCK_ORDER_DETAIL.orderNumber)}
+                onClick={() => copyOrderNumber(orderDetail.orderNumber)}
               >
                 복사
               </Button>
             </div>
             <CardDivider />
-            <p className="text-heading-3 text-fg-tertiary">{MOCK_ORDER_DETAIL.address}</p>
+            <p className="text-heading-3 text-fg-tertiary">{orderDetail.address}</p>
           </div>
         </SectionCard>
 
@@ -205,7 +255,7 @@ export function OrderDetailView({
                 <CardDivider />
 
                 <ul className="flex flex-col gap-4">
-                  {MOCK_ORDER_PRODUCTS.map((product) => (
+                  {orderProducts.map((product) => (
                     <li key={product.id}>
                       <OrderProductItem
                         deliveryType={product.deliveryType}
@@ -279,10 +329,10 @@ export function OrderDetailView({
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between gap-3">
               <p className="text-heading-2 text-fg">상품 금액</p>
-              <p className="text-heading-2 text-fg">{MOCK_PAYMENT_TOTAL}</p>
+              <p className="text-heading-2 text-fg">{paymentTotal}</p>
             </div>
             <div className="flex flex-col gap-3">
-              {MOCK_PAYMENT_ROWS.map((row) => (
+              {paymentRows.map((row) => (
                 <OrderBreakdownRow
                   key={row.label}
                   label={row.label}
@@ -300,10 +350,10 @@ export function OrderDetailView({
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between gap-3">
               <p className="text-heading-2 text-fg">주문 번호</p>
-              <p className="text-heading-2 text-fg">{MOCK_ORDER_DETAIL.orderNumber}</p>
+              <p className="text-heading-2 text-fg">{orderDetail.orderNumber}</p>
             </div>
             <div className="flex flex-col gap-3">
-              {MOCK_ORDER_INFO_ROWS.map((row) => (
+              {orderInfoRows.map((row) => (
                 <OrderBreakdownRow key={row.label} label={row.label} value={row.value} />
               ))}
             </div>
@@ -314,12 +364,12 @@ export function OrderDetailView({
         <Section title="배송 정보">
           <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-1">
-              <p className="text-heading-2 text-fg">{MOCK_ORDER_DETAIL.receiver}</p>
-              <p className="text-heading-5 text-fg-quaternary">{MOCK_ORDER_DETAIL.phone}</p>
-              <p className="text-heading-3 text-fg-tertiary">{MOCK_ORDER_DETAIL.address}</p>
+              <p className="text-heading-2 text-fg">{orderDetail.receiver}</p>
+              <p className="text-heading-5 text-fg-quaternary">{orderDetail.phone}</p>
+              <p className="text-heading-3 text-fg-tertiary">{orderDetail.address}</p>
             </div>
             <div className="flex flex-col gap-3">
-              {MOCK_DELIVERY_INFO_ROWS.map((row) => (
+              {deliveryInfoRows.map((row) => (
                 <OrderBreakdownRow
                   key={row.label}
                   label={row.label}
@@ -334,7 +384,7 @@ export function OrderDetailView({
         {/* 배송 요청사항 */}
         <Section title="배송 요청사항">
           <div className="flex flex-col gap-3">
-            {MOCK_DELIVERY_REQUEST_ROWS.map((row) => (
+            {deliveryRequestRows.map((row) => (
               <OrderBreakdownRow
                 key={row.label}
                 label={row.label}
@@ -349,7 +399,7 @@ export function OrderDetailView({
         <SectionCard>
           <div className="flex flex-col gap-3">
             <ul className="text-label-m text-fg-tertiary list-disc pl-5">
-              {MOCK_CANCEL_NOTICE.map((notice) => (
+              {cancelNotice.map((notice) => (
                 <li key={notice}>{notice}</li>
               ))}
             </ul>
@@ -436,6 +486,7 @@ export function OrderDetailView({
               onClick={() => {
                 setCancelOpen(false);
                 setStatus('주문취소');
+                onCancelConfirm?.();
               }}
             >
               주문 취소
