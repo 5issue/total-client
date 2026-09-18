@@ -1,6 +1,5 @@
 'use client';
 
-import { Badge } from '@/components/atoms/Badge';
 import { QuantityStepper } from '@/components/molecules/shared/QuantityStepper';
 
 /**
@@ -10,9 +9,14 @@ import { QuantityStepper } from '@/components/molecules/shared/QuantityStepper';
  * 가격/스테퍼는 Figma 원본이 스테퍼를 절대 위치로 겹쳐뒀지만, `flex justify-between`
  * 로 대체해도 시각 결과가 동일하고 더 견고하다.
  *
- * `QuantityStepper`(84px pill, node 2429-3870)를 그대로 재사용 — 이 노드의 스테퍼와
- * 동일 컴포넌트다. 담기 시트 맥락이라 `min={1}` — 0개를 담을 순 없다(기본 min=0인
- * 범용 스테퍼와 다르게, 삭제는 별도 동작이지 감소로 0까지 가는 게 아니다).
+ * `QuantityStepper`(84px pill, node 2429-3870) 기본 `min=1` — 0개를 담을 순 없다.
+ * 다중 옵션 시트(node 665:43562)나 나의 냉장고 "채워넣기"(node 1206-109860)처럼
+ * 옵션별 수량이 미선택(0)에서 시작해야 하는 화면은 `min={0}` 으로 override 한다.
+ *
+ * "멤버스" 뱃지는 `atoms/Badge`(cyan/small ≈22px)가 아니라 이 노드 전용
+ * `PromoBadge`(node 2461-7209, 18px 고정)를 직접 그린다 — `Badge` 는 실측보다 커
+ * 보였다(#111 QA). 단위가(`unitPriceLabel`)는 화면에 따라 없을 수 있어(나의 냉장고
+ * "채워넣기") 있을 때만 렌더한다.
  */
 export type CartQuantityRowProps = {
   /** 있으면 상품명 위에 뱃지를 렌더한다(예: "멤버스"). */
@@ -20,10 +24,10 @@ export type CartQuantityRowProps = {
   name: string;
   /** 최종가 표기(예: "2,520원"). */
   priceLabel: string;
-  /** 정가 표기(취소선). */
+  /** 정가 표기(취소선) — 있을 때만 렌더. */
   originalPriceLabel?: string;
-  /** 단위가(예: "100g 당 360원"). */
-  unitPriceLabel: string;
+  /** 단위가(예: "100g 당 360원") — 있을 때만 렌더. */
+  unitPriceLabel?: string;
   quantity: number;
   onQuantityChange: (value: number) => void;
   /** 기본 1(담기 시트 — 0개를 담을 순 없다). 다중 옵션 시트(node 665:43562)처럼 옵션별
@@ -51,9 +55,9 @@ export function CartQuantityRow({
       className={['flex w-full flex-col items-start gap-1', className].filter(Boolean).join(' ')}
     >
       {badgeLabel ? (
-        <Badge color="cyan" size="small">
-          <span className="font-bold">{badgeLabel}</span>
-        </Badge>
+        <span className="bg-cyan inline-flex h-4.5 shrink-0 items-center justify-center rounded-sm px-2">
+          <span className="text-caption-s font-bold text-white">{badgeLabel}</span>
+        </span>
       ) : null}
       <p className="text-body-m text-fg w-full">{name}</p>
       <div className="flex w-full items-center justify-between gap-2">
@@ -72,7 +76,9 @@ export function CartQuantityRow({
           label={`${name} 수량`}
         />
       </div>
-      <p className="text-caption-m font-numeric text-fg-secondary w-full">{unitPriceLabel}</p>
+      {unitPriceLabel ? (
+        <p className="text-caption-m font-numeric text-fg-secondary w-full">{unitPriceLabel}</p>
+      ) : null}
     </div>
   );
 }

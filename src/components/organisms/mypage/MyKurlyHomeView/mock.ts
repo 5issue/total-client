@@ -35,6 +35,7 @@ export const MOCK_KITCHEN_CARDS: KitchenCardData[] = [
     iconSrc: '/mypage/kitchen-fridge.png',
     iconWidth: 22,
     iconHeight: 26,
+    href: '/mypage/fridge',
   },
   {
     id: 'recipe',
