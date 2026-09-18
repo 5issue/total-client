@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/atoms/Button';
 import { BottomSheet } from '@/components/molecules/shared/BottomSheet';
+import { useThemeStore } from '@/hooks/useThemeStore';
 
 /**
  * PromoBannerBottomSheet(node 1233-114124) — 혜택 알림(마케팅 수신) 동의 유도 바텀시트.
@@ -11,6 +12,11 @@ import { BottomSheet } from '@/components/molecules/shared/BottomSheet';
  * 안 맞아 다른 컴포넌트 재사용 중 복붙된 것으로 보여 "혜택 알림 동의하기"로 바꿨다
  * (코드래빗 리뷰 — 최종 문구는 디자인 확인 후 Figma 코멘트로 갱신 예정, issue #106).
  * API 연동 전이라 두 버튼 다 시트를 닫기만 한다.
+ *
+ * `BottomSheet` 는 `document.body` 포털이라 `ThemeScope`(마이컬리 다크 스코프) 밖으로
+ * 나간다 — 이 화면 전용 테마를 `theme` prop 으로 넘겨 포털 루트에서 스코프를 복원한다
+ * (Figma 다크 프레임엔 이 바텀시트 자체가 없어 별도 스펙은 없고, 화면 나머지와 같은
+ * 시맨틱 토큰을 그대로 재사용).
  */
 export interface BenefitPromoBottomSheetProps {
   open: boolean;
@@ -18,10 +24,13 @@ export interface BenefitPromoBottomSheetProps {
 }
 
 export function BenefitPromoBottomSheet({ open, onClose }: BenefitPromoBottomSheetProps) {
+  const theme = useThemeStore((s) => s.theme);
+
   return (
     <BottomSheet
       open={open}
       onClose={onClose}
+      theme={theme}
       ariaLabel="혜택 알림 받고 저렴하게 구매하세요"
       footer={
         <div className="flex flex-col items-center px-4 pb-4">
