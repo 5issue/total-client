@@ -77,8 +77,12 @@ export async function svgFileToJsx(svgPath) {
     inner = inner.replace(re, `$1="var(${varName})"`);
   }
 
-  // themable: fill/stroke 값이 전부 currentColor 인가 (var()/hex 남아있으면 false)
-  const colorValues = [...inner.matchAll(/(?:fill|stroke)="([^"]+)"/g)]
+  // themable: 실제로 눈에 보이는 fill/stroke 가 전부 currentColor 인가 (var()/hex 남아있으면 false).
+  // <mask> 내부의 fill="white"/"black" 은 실루엣 알파를 정의하는 헬퍼일 뿐 렌더되는 색이
+  // 아니다(위 HEX_TO_VAR 치환도 같은 이유로 이걸 건드리지 않는다) — 안 걸러내면 마스크를
+  // 쓰는 아이콘은 본문이 전부 currentColor 여도 themable 이 항상 false 로 오판된다.
+  const withoutMasks = inner.replace(/<mask[\s\S]*?<\/mask>/g, '');
+  const colorValues = [...withoutMasks.matchAll(/(?:fill|stroke)="([^"]+)"/g)]
     .map((m) => m[1])
     .filter((v) => v !== 'none');
   const themable = colorValues.length > 0 && colorValues.every((v) => v === 'currentColor');
