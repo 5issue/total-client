@@ -4,6 +4,13 @@ import { ApiError } from '@/errors/ApiError';
 import type { ApiEnvelope } from '@/lib/apiResponse';
 import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/authTokenRef';
 import { SpringLoginUrlDataSchema, type OAuthProvider } from '@/types/auth';
+import {
+  CartResponseSchema,
+  RemoveCartItemsResponseSchema,
+  UpdateCartItemQuantityResponseSchema,
+  type RemoveCartItemsRequest,
+  type UpdateCartItemQuantityRequest,
+} from '@/types/cart';
 import { ProductListResponseSchema, type ProductListParams } from '@/types/product';
 
 /**
@@ -102,6 +109,27 @@ export function requestSocialLoginUrl(provider: OAuthProvider) {
 export function searchProducts(params: ProductListParams) {
   const query = new URLSearchParams({ query: params.query, sort: params.sort });
   return publicFetch(`/api/products?${query}`, ProductListResponseSchema);
+}
+
+/** 장바구니 조회(배송 그룹별). */
+export function getCart() {
+  return privateFetch('/api/cart', CartResponseSchema);
+}
+
+/** 장바구니 상품 수량 변경 — api-convention §7 유일한 Optimistic Update 예외 대상. */
+export function updateCartItemQuantity(cartItemId: number, body: UpdateCartItemQuantityRequest) {
+  return privateFetch(`/api/cart/items/${cartItemId}`, UpdateCartItemQuantityResponseSchema, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
+/** 장바구니 상품 삭제(단일·다건 공통). */
+export function removeCartItems(body: RemoveCartItemsRequest) {
+  return privateFetch('/api/cart/items', RemoveCartItemsResponseSchema, {
+    method: 'DELETE',
+    body: JSON.stringify(body),
+  });
 }
 
 /**
