@@ -16,10 +16,12 @@ import { Icon, type IconName } from '@/components/atoms/Icon';
  * - 가운데: `center` 노드(예: `<SearchBar/>`)가 있으면 그대로, 없고 `title` 이 있으면 `<h1>`.
  * - `actions`: 우측 아이콘 배열. 각 항목은 `label`(aria-label) + `href`/`onClick` 중 하나 필수.
  *   없으면 우측 비움.
+ * - `extra`: actions 앞에 끼우는 임의 노드(아이콘 프리셋에 안 맞는 컨트롤용, 예: `KurlyHeader`
+ *   의 다크모드 토글).
  *
  * 홈 섹션 구획 헤더(제목 + 부제 + 전체보기)는 `molecules/shared/HomeSectionHeader` 로 별개다.
  *
- * 토큰(`get_variable_defs` node 2438-1743): 배경 `Bg/default` → `bg-surface`,
+ * 토큰(`get_variable_defs` node 2438-1743): 배경 `Bg/default` → `bg-bg`,
  * 제목 `Heading/H0_SemiBold` + `Text/Primary` → `text-heading-0 text-fg`,
  * 터치 타깃 `Icon Height/XL` 44 → `size-11`, 여백 `Gap/XS`·`Margin/Default` → `pl-2 pr-4`.
  * 아이콘 글리프는 기본 28(Figma 실측 그대로) — 필요하면 `iconSize` prop 으로 override.
@@ -35,6 +37,8 @@ interface SectionHeaderActionBase {
   icon: IconName;
   /** aria-label — 아이콘 버튼은 목적지/동작을 서술해야 한다 (code-style §5). */
   label: string;
+  /** 우측 상단 알림 배지(예: 장바구니 담긴 개수). 0 이하/미지정이면 숨긴다. */
+  badge?: number;
 }
 
 /**
@@ -67,6 +71,9 @@ export interface SectionHeaderProps {
   /** 가운데 커스텀 노드(예: `<SearchBar/>`). `title` 보다 우선. */
   center?: ReactNode;
 
+  /** 액션 아이콘 앞에 끼워 넣을 커스텀 노드(예: 다크모드 토글). 생략 시 렌더 안 함. */
+  extra?: ReactNode;
+
   /** 오른쪽 액션 아이콘 목록. 생략 시 우측 비움. */
   actions?: SectionHeaderAction[];
 
@@ -83,6 +90,23 @@ const LEADING_PRESET: Record<'back' | 'close', { icon: IconName; label: string }
   close: { icon: 'close', label: '닫기' },
 };
 
+/**
+ * 알림 배지(장바구니 개수 등) — Figma 실측 `Static/Black` 배경 + `Static/White` 글자로
+ * 라이트/다크 둘 다 고정값이다(node 910-110970 라이트 / 1691-205512 다크, 둘 다 같은
+ * `#222`/`white` 바인딩) — 시맨틱 `bg-fg`/`text-fg-inverse` 를 쓰면 다크에서 반전돼
+ * 버린다. `size-5`(20px) 원, 아이콘 44px 터치 영역 우상단에 겹친다.
+ */
+function IconBadge({ count }: { count: number }) {
+  return (
+    <span
+      aria-hidden
+      className="text-caption-m absolute top-0 right-0 flex size-5 items-center justify-center rounded-full bg-black leading-none font-black text-white"
+    >
+      {count}
+    </span>
+  );
+}
+
 /** 아이콘 하나짜리 링크 / 버튼 / (pending) 비배선 표시 (44px 터치 타깃). */
 function IconControl({
   icon,
@@ -90,6 +114,7 @@ function IconControl({
   href,
   onClick,
   pending,
+  badge,
   iconSize,
 }: {
   icon: IconName;
@@ -97,24 +122,36 @@ function IconControl({
   href?: string;
   onClick?: () => void;
   pending?: boolean;
+  badge?: number;
   iconSize: number;
 }) {
   const glyph = <Icon name={icon} size={iconSize} aria-hidden />;
+  const hasBadge = (badge ?? 0) > 0;
+  const badgeLabel = hasBadge ? `${label}, ${badge}개` : label;
+
   if (pending) {
     // 목적지 화면이 아직 없어 클릭 불가 — 시각적으로만 노출한다(스크린리더 대상 아님).
     return (
-      <span aria-hidden className={ICON_BUTTON}>
+      <span aria-hidden className={`${ICON_BUTTON} relative`}>
         {glyph}
+        {hasBadge ? <IconBadge count={badge!} /> : null}
       </span>
     );
   }
   return href !== undefined ? (
-    <Link href={href} aria-label={label} className={ICON_BUTTON}>
+    <Link href={href} aria-label={badgeLabel} className={`${ICON_BUTTON} relative`}>
       {glyph}
+      {hasBadge ? <IconBadge count={badge!} /> : null}
     </Link>
   ) : (
-    <button type="button" onClick={onClick} aria-label={label} className={ICON_BUTTON}>
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={badgeLabel}
+      className={`${ICON_BUTTON} relative`}
+    >
       {glyph}
+      {hasBadge ? <IconBadge count={badge!} /> : null}
     </button>
   );
 }
@@ -127,6 +164,7 @@ export function SectionHeader({
   title,
   titleClassName,
   center,
+  extra,
   actions,
   iconSize = 28,
   className,
@@ -146,7 +184,7 @@ export function SectionHeader({
         // py-1 대신 pb-1 + pt-header-safe-top 으로 쪼갰다 — py-1 과 pt-* 를 같이 쓰면
         // 같은 우선순위(단일 클래스)라 Tailwind 가 생성한 스타일시트 순서에 따라
         // padding-top 이 뒤엉킨다(DisplaySectionList 의 font-bold! 와 같은 함정).
-        'bg-surface pt-header-safe-top flex items-center pr-4 pb-1 pl-2',
+        'bg-bg pt-header-safe-top flex items-center pr-4 pb-1 pl-2',
         className,
       ]
         .filter(Boolean)
@@ -166,6 +204,8 @@ export function SectionHeader({
           디자인 시스템 파일) 의 "Logo Container" 자체 패딩 — 행의 gap 이 아니라
           center 슬롯 고유 스펙이라 leading/actions 유무와 무관하게 항상 유지한다. */}
       <div className="flex min-w-0 flex-1 items-center px-2">{centerNode}</div>
+
+      {extra}
 
       {actions && actions.length > 0 ? (
         <nav aria-label="바로가기" className="flex shrink-0 items-center">
