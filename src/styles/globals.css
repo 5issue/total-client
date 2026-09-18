@@ -155,8 +155,8 @@
 @layer base {
   html,
   body {
-    /* --color-surface 아니라 --color-bg — 페이지 배경은 Bg/default 시맨틱(다크에서
-       카드 배경 --color-surface 보다 한 톤 어둡다, tokens/color.css 참고). */
+    /* --color-surface 아니라 --color-bg — 페이지 배경은 Bg/default 시맨틱(라이트에선
+       카드 배경 --color-surface 와 값이 같지만 의미가 다르다, tokens/color.css 참고). */
     background-color: var(--color-bg);
     color: var(--color-fg);
     font-family: var(--font-sans);
