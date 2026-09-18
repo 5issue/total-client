@@ -37,6 +37,10 @@ export function ShoppingLinksSection() {
  * 배경 `--color-sky`(Figma Semantic/Banner) 위에 "100원" 일러스트. 원본은 카드보다
  * 훨씬 큰 소스를 퍼센트 크롭한 것이라, 그 좌표 대신 오른쪽 절반에 `object-cover`로
  * 채워 같은 인상만 유지한다. 목적지 화면이 없어 `Link`로 감싸지 않는다.
+ *
+ * 텍스트·아이콘은 `text-fg`(시맨틱, 다크에서 흰색) 대신 `text-black`(고정) — 배경이
+ * `--color-sky` 하늘색으로 테마 무관하게 항상 밝아서, 다크모드에도 글자는 계속 검정이어야
+ * 한다(node 1691-205422 실측: `Static/Black` 바인딩, `Text/Primary` 아님).
  */
 function SubscriptionBannerCard() {
   return (
@@ -50,10 +54,10 @@ function SubscriptionBannerCard() {
           className="object-cover"
         />
       </div>
-      <div className="relative flex flex-col gap-1">
-        <p className="text-heading-4 text-fg">2개월 내내 구독료 100원!</p>
+      <div className="relative flex flex-col gap-1 text-black">
+        <p className="text-heading-4">2개월 내내 구독료 100원!</p>
         <div className="flex items-center gap-1">
-          <p className="text-label-m text-fg">지금이 기회! 멤버스 구독하기</p>
+          <p className="text-label-m">지금이 기회! 멤버스 구독하기</p>
           <Icon name="arrow-right" size={20} aria-hidden />
         </div>
       </div>

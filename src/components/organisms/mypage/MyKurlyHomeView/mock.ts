@@ -29,14 +29,41 @@ export const MOCK_QUICK_MENU: QuickMenuEntry[] = [
 ];
 
 export const MOCK_KITCHEN_CARDS: KitchenCardData[] = [
-  { id: 'fridge', title: 'MY 냉장고', iconSrc: '/mypage/fridge.png' },
-  { id: 'recipe', title: 'MY 레시피', iconSrc: '/mypage/recipe.png' },
+  {
+    id: 'fridge',
+    title: 'MY 냉장고',
+    iconSrc: '/mypage/kitchen-fridge.png',
+    iconWidth: 22,
+    iconHeight: 26,
+  },
+  {
+    id: 'recipe',
+    title: 'MY 레시피',
+    iconSrc: '/mypage/kitchen-recipe.png',
+    iconWidth: 32,
+    iconHeight: 32,
+  },
 ];
 
 export const MOCK_CURATOR_CARDS: CuratorCardData[] = [
-  { id: 'curator', title: '컬리 큐레이터', subtitle: '시작하기', graphic: 'event-default' },
-  { id: 'reward', title: '내 리워드', subtitle: '수익 확인하기', graphic: 'event-point' },
-  { id: 'guide', title: '활동 가이드', subtitle: '혜택 확인하기', graphic: 'event-attendance' },
+  {
+    id: 'curator',
+    title: '컬리 큐레이터',
+    subtitle: '시작하기',
+    iconSrc: '/mypage/curator-event.png',
+  },
+  {
+    id: 'reward',
+    title: '내 리워드',
+    subtitle: '수익 확인하기',
+    iconSrc: '/mypage/curator-point.png',
+  },
+  {
+    id: 'guide',
+    title: '활동 가이드',
+    subtitle: '혜택 확인하기',
+    iconSrc: '/mypage/curator-attendance.png',
+  },
 ];
 
 /** 링크 대다수는 목적지 화면이 아직 없어 `href` 를 비워 비상호작용으로 둔다(model.ts 참고). */

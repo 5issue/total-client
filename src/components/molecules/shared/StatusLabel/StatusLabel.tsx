@@ -45,12 +45,13 @@ export interface StatusLabelProps {
  * 없어 Pretendard(`--font-sans`) 그대로 간다.
  */
 const STYLE_BY_TYPE: Record<StatusLabelType, string> = {
-  owned: 'bg-orange/4 text-orange rounded-sm p-1 text-caption-s font-bold',
+  // dark:bg-orange/10 — 다크모드 Overlay_orange 실측(4%→10%, 마이컬리 node 1691-205422).
+  owned: 'bg-orange/4 dark:bg-orange/10 text-orange rounded-sm p-1 text-caption-s font-bold',
   subscribed: 'bg-brand-50 text-primary rounded-sm px-2 py-1 text-label-m',
   inactive: 'bg-overlay-blue text-fg rounded-sm h-5 px-2 text-caption-s font-bold',
   notice: 'bg-overlay-blue text-fg rounded-sm px-2 py-1 text-caption-s font-bold',
   rewards:
-    'bg-orange/4 text-fg-danger rounded-full h-status-label-rewards px-2 text-caption-s font-bold',
+    'bg-orange/4 dark:bg-orange/10 text-fg-danger rounded-full h-status-label-rewards px-2 text-caption-s font-bold',
   defaultAddress: 'bg-surface-secondary text-fg-secondary rounded-full h-6 px-2 text-caption-m',
   kurlyOnly: 'bg-overlay-blue text-primary rounded-sm px-2 py-1 text-numeric-s',
   adLabelS: 'bg-overlay text-fg-inverse rounded-sm px-1 text-caption-s font-bold',

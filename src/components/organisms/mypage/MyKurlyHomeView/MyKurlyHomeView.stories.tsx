@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { expect, userEvent, within } from 'storybook/test';
 
+import { ThemeStoreProvider } from '@/providers/ThemeStoreProvider';
+
 import { MyKurlyHomeView } from './MyKurlyHomeView';
 
 const meta = {
@@ -13,6 +15,16 @@ const meta = {
     layout: 'fullscreen',
     nextjs: { appDirectory: true, navigation: { pathname: '/mypage' } },
   },
+  // KurlyHeader 의 ThemeToggle 이 useThemeStore(전역 Zustand)를 읽는다 — 실제 앱은
+  // app/providers.tsx 가 항상 감싸지만 Storybook 은 그 트리 바깥이라 여기서 직접 제공한다
+  // (BottomNav.stories.tsx 의 UIStoreProvider 래핑과 같은 패턴).
+  decorators: [
+    (Story) => (
+      <ThemeStoreProvider>
+        <Story />
+      </ThemeStoreProvider>
+    ),
+  ],
 } satisfies Meta<typeof MyKurlyHomeView>;
 
 export default meta;

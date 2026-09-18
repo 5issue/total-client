@@ -27,13 +27,21 @@ export interface CuratorCardData {
   id: string;
   title: string;
   subtitle: string;
-  graphic: 'event-default' | 'event-point' | 'event-attendance';
+  /** 원(36px) 안에 넣을 글리프. 라이트/다크 공용 — Figma sprite 실측 결과 두 테마 인스턴스가
+   * 완전히 같은 이미지(md5 동일)라 아이콘 자체는 테마 무관 고정색이고, 원 배경(`bg-bg`)만
+   * 테마에 따라 달라진다. */
+  iconSrc: string;
 }
 
 export interface KitchenCardData {
   id: string;
   title: string;
+  /** 투명 배경 글리프 — 라이트/다크 공용(Figma sprite 실측 md5 동일). 원 배경은 `bg-bg`
+   * (`Icon/White_Inverse`, 라이트 흰색/다크 #222222)로 감싸는 쪽에서 테마 처리한다. */
   iconSrc: string;
+  /** 글리프 원본 비율(Figma 실측) — 냉장고 22×26, 레시피 32×32 로 서로 다르다. */
+  iconWidth: number;
+  iconHeight: number;
 }
 
 /**
