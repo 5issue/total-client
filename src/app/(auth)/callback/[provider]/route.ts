@@ -9,15 +9,23 @@ import {
 } from '@/lib/oauthTransactionCookies';
 import { safeRedirect } from '@/lib/safeRedirect';
 import { extractRefreshTokenCookie } from '@/lib/springCookie';
-import { SpringEnvelopeSchema, SpringOAuthCallbackDataSchema } from '@/types/auth';
+
+const LOGIN_RESULT_PARAM = 'login';
+const LOGIN_RESULT_SUCCESS = 'success';
+const RETURN_TO_PARAM = 'returnTo';
 
 /**
  * OAuth 콜백 — 카카오/네이버가 로그인 동의 후 브라우저를 이 경로로 리다이렉트한다
  * (GET, `?code=&state=`). Spring 콜백 엔드포인트(`GET .../callback?code=&state=`)에
  * 서버사이드로 그대로 넘기되, 로그인 URL 발급 때 심어둔 인가 트랜잭션 쿠키(`oauth_state` 등)를
  * `Cookie` 헤더로 함께 실어 보낸다 — Spring 의 인가 코드 가로채기 방지 검증이 그 쿠키를 읽는다
- * (`oauthTransactionCookies.ts`). 세션을 발급받으면 우리 자신의 `refresh_token` 쿠키를 새로
- * 구운 뒤 302 리다이렉트한다.
+ * (`oauthTransactionCookies.ts`).
+ *
+ * Spring 은 이 호출에 JSON이 아니라 **302 리다이렉트**로 응답한다
+ * (`Location: <frontend-redirect-uri>?login=success|failed[&returnTo=...]`,
+ * 성공 시 `Set-Cookie: refresh_token=...`도 함께 내려온다). `redirect: 'manual'`로 자동
+ * 추적을 막고 그 `Location`을 직접 해석해야 한다 — 그냥 따라가면 최종 페이지의 HTML을
+ * JSON으로 파싱하려다 깨진다.
  *
  * accessToken(JSON body)은 여기서 브라우저로 옮기지 않는다 — 메모리 전용 저장(FE-05,
  * `useAuthTokenStore`)이라 리다이렉트만으로는 전달할 수단이 없다. 착지 페이지가 로드되면
@@ -45,11 +53,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prov
   const springRes = await fetch(callbackUrl, {
     method: 'GET',
     headers: { Cookie: transactionCookieHeader },
+    redirect: 'manual',
   });
 
-  const raw = SpringEnvelopeSchema(SpringOAuthCallbackDataSchema).parse(await springRes.json());
+  const location = springRes.headers.get('location');
+  const loginResult = location ? new URL(location).searchParams.get(LOGIN_RESULT_PARAM) : null;
 
-  if (raw.status === 'ERROR' || !raw.data) {
+  if (loginResult !== LOGIN_RESULT_SUCCESS) {
     const failRes = NextResponse.redirect(new URL('/login?error=oauth_failed', req.nextUrl.origin));
     clearOAuthTransactionCookies(failRes);
     return failRes;
@@ -64,7 +74,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prov
     return failRes;
   }
 
-  const redirectRes = NextResponse.redirect(new URL(redirectTarget, req.nextUrl.origin));
+  // Spring 이 돌려준 returnTo 는 이미 내부 상대경로로 검증된 값이지만, 우리 자신의
+  // 리다이렉트에 쓰기 전에 safeRedirect 를 한 번 더 통과시킨다(FE-09, 방어적 이중 검증).
+  const returnTo = new URL(location!).searchParams.get(RETURN_TO_PARAM);
+  const finalTarget = returnTo ? safeRedirect(returnTo) : redirectTarget;
+
+  const redirectRes = NextResponse.redirect(new URL(finalTarget, req.nextUrl.origin));
   setRefreshTokenCookie(redirectRes, rotated.value, rotated.maxAge);
   clearOAuthTransactionCookies(redirectRes);
 
