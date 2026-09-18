@@ -31,6 +31,11 @@ import { MOCK_CART_GROUPS, MOCK_RECOMMEND } from './mock';
  *
  * 배송지는 로컬 state 가 아니라 `deliveryAddressStore` 공유 상태를 읽는다 — "추가"/"변경" 은
  * `/mypage/addresses` 로 실제 이동하고, 거기서 고른 배송지가 돌아왔을 때 그대로 보인다.
+ *
+ * `groups`/`onQuantityChange`/`onRemoveItems` 생략 시(스토리북·직접 진입) mock 데이터 +
+ * 로컬 state 로 전과 동일하게 동작한다. `CartContainer` 가 실데이터를 넘기면 그 prop 이
+ * 갱신될 때마다 로컬 `groups` 를 다시 동기화한다(렌더 중 비교+setState) — 수량 변경은 쿼리
+ * 캐시 낙관적 갱신이 곧바로 새 prop 으로 흘러들어오므로 이 컴포넌트가 따로 낙관 처리하지 않는다.
  */
 type DeleteTarget = { kind: 'item'; id: string } | { kind: 'selected' } | null;
 
@@ -38,13 +43,34 @@ function allItemIds(groups: CartDeliveryGroup[]) {
   return groups.flatMap((g) => g.items.filter((i) => !i.soldOut).map((i) => i.id));
 }
 
-export function CartView() {
+export interface CartViewProps {
+  /** 실제 주문 상품 목록(`CartContainer` 가 `useCart` 로 채운다). 생략 시 목데이터. */
+  groups?: CartDeliveryGroup[];
+  /** 수량 변경(`useUpdateCartItemQuantity`). 생략 시 로컬 state 로만 반영(스토리북). */
+  onQuantityChange?: (itemId: string, quantity: number) => void;
+  /** 상품 삭제(단일·다건 공통, `useRemoveCartItems`). 생략 시 로컬 state 로만 반영(스토리북). */
+  onRemoveItems?: (itemIds: string[]) => void;
+}
+
+export function CartView({
+  groups: groupsProp = MOCK_CART_GROUPS,
+  onQuantityChange,
+  onRemoveItems,
+}: CartViewProps = {}) {
   const router = useRouter();
 
   const [tab, setTab] = useState('items');
-  const [groups, setGroups] = useState<CartDeliveryGroup[]>(MOCK_CART_GROUPS);
+  const [groups, setGroups] = useState<CartDeliveryGroup[]>(groupsProp);
+  // prop 이 바뀌면(실데이터 갱신) 로컬 state 를 다시 맞춘다 — 렌더 중 비교+setState 로,
+  // 이펙트 안에서 곧바로 setState 하지 않는다(react-hooks/set-state-in-effect, React 공식
+  // "Adjusting state when a prop changes" 패턴).
+  const [prevGroupsProp, setPrevGroupsProp] = useState(groupsProp);
+  if (groupsProp !== prevGroupsProp) {
+    setPrevGroupsProp(groupsProp);
+    setGroups(groupsProp);
+  }
   const [selectedIds, setSelectedIds] = useState<Set<string>>(
-    () => new Set(allItemIds(MOCK_CART_GROUPS)),
+    () => new Set(allItemIds(groupsProp)),
   );
   const addresses = useDeliveryAddressStore((s) => s.addresses);
   const selectedAddressId = useDeliveryAddressStore((s) => s.selectedId);
@@ -107,6 +133,10 @@ export function CartView() {
   }
 
   function changeQuantity(id: string, quantity: number) {
+    if (onQuantityChange) {
+      onQuantityChange(id, quantity);
+      return;
+    }
     setGroups((prev) =>
       prev.map((g) => ({
         ...g,
@@ -116,12 +146,16 @@ export function CartView() {
   }
 
   function removeItems(ids: string[]) {
-    const remove = new Set(ids);
-    setGroups((prev) =>
-      prev
-        .map((g) => ({ ...g, items: g.items.filter((i) => !remove.has(i.id)) }))
-        .filter((g) => g.items.length > 0),
-    );
+    if (onRemoveItems) {
+      onRemoveItems(ids);
+    } else {
+      const remove = new Set(ids);
+      setGroups((prev) =>
+        prev
+          .map((g) => ({ ...g, items: g.items.filter((i) => !remove.has(i.id)) }))
+          .filter((g) => g.items.length > 0),
+      );
+    }
     setSelectedIds((prev) => {
       const next = new Set(prev);
       for (const id of ids) next.delete(id);
