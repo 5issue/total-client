@@ -15,6 +15,7 @@ import { Radio, type RadioProps } from '@/components/atoms/Radio';
 import { Textarea } from '@/components/atoms/Textarea';
 import { Modal } from '@/components/molecules/shared/Modal';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
+import { useDeliveryDetailStore } from '@/hooks/useDeliveryDetailStore';
 import { PHONE_DIGITS_REGEX } from '@/types/address';
 import { DeliveryDetailFormSchema, type DeliveryDetailFormFields } from '@/types/deliveryDetail';
 
@@ -24,10 +25,8 @@ import { DeliveryDetailFormSchema, type DeliveryDetailFormFields } from '@/types
  * '문 앞' 공동현관 출입방법(1315-107775 비밀번호 / 1331-53140 자유출입 / 1331-53415 경비실
  * 호출 / 1331-53560 기타).
  *
- * 체크아웃 '수정' 버튼 → 이 라우트 연결은 이미 끝났다(`CheckoutView`). 다만 저장값을
- * 체크아웃 상태(`canPay` 등)로 되돌려주는 연동은 아직 없어, 값은 전부 이 화면 로컬
- * 상태고 저장은 `router.back()` 으로 되돌아가는 것까지만 한다(체크아웃 반영은 별도 진행,
- * dew2314 리뷰 #95).
+ * "동의하고 저장" 은 `deliveryDetailStore` 에 확정값을 넣은 뒤 `router.back()` 으로
+ * 주문서에 돌아간다. 서버 API 가 아니라 세션 한정 클라 상태다.
  *
  * - 라디오 그룹은 전부 첫 번째 옵션이 기본 선택(사용자 확인, 2026-09-14): 받으실 장소
  *   '문 앞', 기타장소 세부사항 '기타', 메시지 전송 '배송 직후'.
@@ -136,8 +135,24 @@ function RadioOption({
   );
 }
 
+const EMPTY_FORM_VALUES: DeliveryDetailFormFields = {
+  receiverName: RECEIVER_NAME_DEFAULT,
+  phone: '',
+  location: 'front-door',
+  otherLocationType: 'etc',
+  etcLocationDetail: '',
+  lockerLocationDetail: '',
+  frontDoorAccessType: 'password',
+  frontDoorPassword: '',
+  frontDoorSecurityDetail: '',
+  frontDoorEtcDetail: '',
+  messageTiming: 'immediately',
+};
+
 export function DeliveryDetailEditView() {
   const router = useRouter();
+  const savedDetail = useDeliveryDetailStore((s) => s.detail);
+  const setDetail = useDeliveryDetailStore((s) => s.setDetail);
 
   const {
     register,
@@ -149,19 +164,7 @@ export function DeliveryDetailEditView() {
   } = useForm<DeliveryDetailFormFields>({
     resolver: zodResolver(DeliveryDetailFormSchema),
     mode: 'onTouched',
-    defaultValues: {
-      receiverName: RECEIVER_NAME_DEFAULT,
-      phone: '',
-      location: 'front-door',
-      otherLocationType: 'etc',
-      etcLocationDetail: '',
-      lockerLocationDetail: '',
-      frontDoorAccessType: 'password',
-      frontDoorPassword: '',
-      frontDoorSecurityDetail: '',
-      frontDoorEtcDetail: '',
-      messageTiming: 'immediately',
-    },
+    defaultValues: savedDetail ?? EMPTY_FORM_VALUES,
   });
 
   const location = useWatch({ control, name: 'location' });
@@ -197,8 +200,8 @@ export function DeliveryDetailEditView() {
           ? FRONT_DOOR_ACCESS_REQUIRED_MESSAGE[frontDoorAccessType]
           : '';
 
-  function onValid() {
-    // 백엔드/상위 상태 없음(#92 범위: 화면만) — 값 확정 후 원래 화면(체크아웃)으로 복귀.
+  function onValid(values: DeliveryDetailFormFields) {
+    setDetail(values);
     router.back();
   }
 
