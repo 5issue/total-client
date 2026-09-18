@@ -59,3 +59,53 @@ export type AddressDetailFormFields = z.infer<typeof AddressDetailFormSchema>;
 
 /** 폼이 검증을 통과한 값에서 저장용 값을 뽑을 때 쓰는 정규화 헬퍼. */
 export const normalizePhone = toDigits;
+
+// ── 서버 계약 (데이터 연동, 이슈 #119) ──────────────────────────────────────
+//
+// - GET    /api/v1/addresses               배송지 목록 조회
+// - POST   /api/v1/addresses               배송지 추가
+// - PUT    /api/v1/addresses/{addressId}   배송지 수정
+// - DELETE /api/v1/addresses/{addressId}   배송지 삭제
+//
+// `deliveryType`(배송 유형 라벨)은 서버가 주소로 판정해 응답에만 실어준다 — 저장 요청엔 없다.
+
+export const AddressAliasTypeSchema = z.enum(['HOME', 'COMPANY']);
+export type AddressAliasType = z.infer<typeof AddressAliasTypeSchema>;
+
+export const AddressSchema = z.object({
+  addressId: z.number().int().positive(),
+  /** 유형칩. `직접입력`이면 null — 이땐 `customAlias` 가 배송지 이름을 대신한다. */
+  aliasType: AddressAliasTypeSchema.nullable(),
+  customAlias: z.string().nullable(),
+  zonecode: z.string().min(1),
+  roadAddress: z.string().min(1),
+  detailAddress: z.string().nullable(),
+  recipient: z.string().min(1),
+  phone: z.string().min(1),
+  deliveryType: z.string().min(1),
+  isDefault: z.boolean(),
+});
+export type Address = z.infer<typeof AddressSchema>;
+
+export const AddressListResponseSchema = z.object({
+  addresses: z.array(AddressSchema),
+});
+export type AddressListResponse = z.infer<typeof AddressListResponseSchema>;
+
+/** 추가·수정 공용 요청 바디. */
+export const SaveAddressRequestSchema = z.object({
+  aliasType: AddressAliasTypeSchema.nullable(),
+  customAlias: z.string().nullable(),
+  zonecode: z.string().min(1),
+  roadAddress: z.string().min(1),
+  detailAddress: z.string().nullable(),
+  recipient: z.string().min(1),
+  phone: z.string().min(1),
+  isDefault: z.boolean(),
+});
+export type SaveAddressRequest = z.infer<typeof SaveAddressRequestSchema>;
+
+export const DeleteAddressResponseSchema = z.object({
+  addressId: z.number().int().positive(),
+});
+export type DeleteAddressResponse = z.infer<typeof DeleteAddressResponseSchema>;
