@@ -2,29 +2,35 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 
 import { RefundReasonView } from '@/components/organisms/mypage/RefundReasonView';
-import { resolveSelectedRefundItems } from '@/components/organisms/mypage/RefundReasonView/resolveSelectedItems';
+import { RefundReasonContainer } from '@/components/organisms/mypage/RefundReasonView/RefundReasonContainer';
 
 export const metadata: Metadata = { title: '반품사유' };
 
 /**
  * 반품 사유 (`/mypage/orders/return/reason`).
  * Figma "5팀 UI 공유용" node 666-29306 · 666-29905 · 666-30033 · 848-82875(다건).
- * 퍼블리싱 단계: `/mypage/orders/return` 에서 체크한 상품 id(`?items=id1,id2`)를
- * `resolveSelectedRefundItems`(organism 쪽 입력 어댑터)로 목데이터와 매칭해 넘긴다 —
- * 라우트 파일에는 파싱·필터링 로직을 두지 않는다. 유효한 상품이 하나도 없으면
- * 상품 선택 화면으로 되돌린다. 사유 선택은 로컬 state. API 없음.
+ * `/mypage/orders/return` 에서 체크한 상품 id(`?items=id1,id2`) + 주문 id(`?orderId=`)를
+ * `RefundReasonContainer` 가 `useOrderDetail`/`useReturnPreview` 로 실데이터와 매칭한다.
+ * `orderId` 가 없으면(직접 진입·스토리북) 목데이터 화면으로 폴백. `orderId` 는 있는데
+ * `items` 가 없으면(단계 건너뛰기) 상품 선택 화면으로 되돌린다.
  */
 export default async function RefundReturnReasonPage({
   searchParams,
 }: {
-  searchParams: Promise<{ items?: string }>;
+  searchParams: Promise<{ orderId?: string; items?: string }>;
 }) {
-  const { items: itemsParam } = await searchParams;
-  const items = resolveSelectedRefundItems(itemsParam);
+  const { orderId: orderIdParam, items: itemsParam } = await searchParams;
 
-  if (items === null) {
-    redirect('/mypage/orders/return');
+  if (!orderIdParam) {
+    return <RefundReasonView />;
   }
 
-  return <RefundReasonView items={items} />;
+  const orderId = Number(orderIdParam);
+  const itemIds = itemsParam?.split(',').filter(Boolean) ?? [];
+
+  if (!Number.isInteger(orderId) || orderId <= 0 || itemIds.length === 0) {
+    redirect(`/mypage/orders/return?orderId=${orderIdParam}`);
+  }
+
+  return <RefundReasonContainer orderId={orderId} itemIds={itemIds} />;
 }

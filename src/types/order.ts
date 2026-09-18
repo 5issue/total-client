@@ -217,6 +217,7 @@ export const ReturnReasonOptionSchema = z.object({
   displayName: z.string().min(1),
   attachmentRequired: z.boolean(),
 });
+export type ReturnReasonOption = z.infer<typeof ReturnReasonOptionSchema>;
 
 export const ReturnPreviewResponseSchema = z.object({
   orderId: z.number().int().positive(),
