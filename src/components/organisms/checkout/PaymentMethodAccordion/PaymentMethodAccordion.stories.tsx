@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { expect, fn, userEvent, within } from 'storybook/test';
+import { expect, fn, screen, userEvent, waitFor, within } from 'storybook/test';
 
 import type { OtherPaymentMethodId, PaymentMethodId } from '@/components/organisms/checkout/model';
 
@@ -61,7 +61,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** 기본 — "다른 결제수단" 펼침 + 신용카드 선택(카드사 드롭다운 노출). Figma 666-23284. */
+/** 기본 — "다른 결제수단" 펼침 + 신용카드 선택(카드사 선택 트리거 노출). Figma 666-23284. */
 export const Default: Story = {};
 
 /** 컬리캐시 충전결제 선택 — 계좌 등록 유도 카드 노출(node 666-23086). */
@@ -108,15 +108,20 @@ export const ExpandsOtherMethodGrid: Story = {
   },
 };
 
-/** 카드사 드롭다운 — 목록에서 고르면 트리거에 선택한 카드사명이 표시된다. */
+/** 카드사 선택 시트 — 목록에서 고르면 시트가 닫히고 트리거에 선택한 카드사명이 표시된다. */
 export const SelectsCardIssuer: Story = {
   tags: ['!autodocs'],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const trigger = canvas.getByRole('combobox', { name: '카드사' });
+    const trigger = canvas.getByRole('button', { name: '카드를 선택해 주세요' });
 
     await userEvent.click(trigger);
-    await userEvent.click(canvas.getByRole('option', { name: '신한' }));
-    await expect(trigger).toHaveTextContent('신한');
+    const dialog = await screen.findByRole('dialog', { name: '카드사를 선택해주세요' });
+    // BottomSheet 백드롭은 opacity 전환이라 직후 toBeVisible 이 실패한다.
+    await waitFor(() => expect(dialog).toBeVisible());
+    await userEvent.click(within(dialog).getByRole('radio', { name: '신한' }));
+
+    await expect(canvas.getByRole('button', { name: '신한' })).toBeVisible();
+    await waitFor(() => expect(dialog).not.toBeVisible());
   },
 };
