@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { expect, within } from 'storybook/test';
 
+import { ThemeStoreProvider } from '@/providers/ThemeStoreProvider';
 import { UIStoreProvider } from '@/providers/UIStoreProvider';
 
 import { BottomNav } from './BottomNav';
@@ -37,11 +38,14 @@ const meta = {
         <Story />
       </div>
     ),
-    // BottomNav 가 isSearchInputFocused(uiStore)를 읽는다 — 실제 앱은 app/providers.tsx
-    // 가 항상 감싸지만 Storybook 은 그 트리 바깥이라 이 스토리에서 직접 제공해야 한다.
+    // BottomNav 가 isSearchInputFocused(uiStore)·theme(themeStore)를 읽는다 — 실제 앱은
+    // app/providers.tsx 가 항상 감싸지만 Storybook 은 그 트리 바깥이라 이 스토리에서 직접
+    // 제공해야 한다(마이컬리 다크 스코프 지원 추가, 2026-09-18).
     (Story) => (
       <UIStoreProvider>
-        <Story />
+        <ThemeStoreProvider>
+          <Story />
+        </ThemeStoreProvider>
       </UIStoreProvider>
     ),
   ],

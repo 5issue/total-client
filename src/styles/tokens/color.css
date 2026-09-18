@@ -10,9 +10,13 @@
  *   바로 추출한다 — 주석에 출처 노드를 남길 것. (radius 스와치 카드 20px 오추출 사례:
  *   globals.css 참고)
  *
- * 다크 모드: 디자인 시스템에 다크 팔레트가 없다(라이트 전용).
- *   시맨틱 색은 `@theme inline` + `:root` 캐스케이드 구조라, 다크 팔레트가
- *   확정되면 `:root[data-theme="dark"]` 블록만 추가하면 된다.
+ * 다크 모드: 마이컬리 다크모드 파운데이션 확정(2026-09-17, node 1691-205422 +
+ *   디자인 시스템 파일 색상 파운데이션 4종) — `:root[data-theme="dark"]` 블록에 실제
+ *   값을 채웠다. 값은 전부 그 화면에서 직접 바인딩된 변수를 get_variable_defs 로
+ *   추출한 것(스와치 전시 보드 아님). 마이컬리 밖 다른 화면은 이 팔레트로 아직
+ *   검증 전이라, 토큰을 안 쓰거나 body 배경에만 의존하는 화면은 다크 전환 시
+ *   "어둡지만 카드 구분이 약한" 정도로만 보일 수 있다(깨지지는 않음) — 그 화면들의
+ *   다크 검증은 각자 작업 시 진행.
  * ========================================================================== */
 
 /* ── 프리미티브 (raw 팔레트) ─────────────────────────────────
@@ -54,6 +58,8 @@
   --color-cyan: #00c0da; /* Secondary/cyan */
   --color-banner: #a500f6; /* Secondary/Banner-Purple */
   --color-blue: #69a3e1; /* Secondary/Blue — node 2674-4482 그라데이션에서 확인 */
+  --color-sky: #aadce7; /* Semantic/Banner (node 1233-113360 BannerCard 배경) — 위 --color-banner
+    (Secondary/Banner-Purple)와는 이름만 비슷한 별개의 Figma 변수, 값도 다르다(퍼플 vs 하늘색) */
 
   /* 소셜 로그인 브랜드색 — Figma "Secondary/Brand-*" */
   --color-naver: #00cb48;
@@ -98,11 +104,17 @@
 
 /* ── 시맨틱 토큰 (테마 인식) — 값은 아래 :root 에서 ──────────── */
 @theme inline {
+  /* Bg — Figma "Bg" (페이지 배경). Surface 와 라이트·다크 둘 다 값이 같다(둘 다 흰색 /
+     둘 다 #222222) — 그래도 의미가 달라(페이지 배경 vs 카드 배경) 별도 토큰으로 둔다.
+     다크에서 카드와 페이지 배경이 같은 색이라, 카드 구분은 Border 가 담당한다. */
+  --color-bg: var(--bg); /* Bg/default */
+
   /* Surface — Figma "Surface" */
   --color-surface: var(--surface); /* Surface/base */
   --color-surface-secondary: var(--surface-secondary); /* Surface/Secondary */
   --color-overlay: var(--overlay); /* Surface/Overlay_gray */
   --color-overlay-blue: var(--overlay-blue); /* Surface/Overlay_blue */
+  --color-overlay-orange: var(--overlay-orange); /* Surface/Overlay_orange */
   --color-surface-tag: var(
     --surface-tag
   ); /* Chip(removable) 채움 — Figma 변수 미바인딩, 아래 :root 주석 참고 */
@@ -131,15 +143,19 @@
   --color-brand-secondary: var(--brand-secondary);
 }
 
-/* 라이트 (기본, 현재 유일한 테마) */
+/* 라이트 (기본) */
 :root {
   color-scheme: light;
+
+  /* Bg */
+  --bg: #ffffff; /* Bg/default */
 
   /* Surface */
   --surface: #ffffff; /* Surface/base */
   --surface-secondary: #f0f5f8; /* Surface/Secondary */
   --overlay: #22222299; /* Surface/Overlay_gray (alpha 0.6) */
   --overlay-blue: #a1b3be66; /* Surface/Overlay_blue (alpha 0.4) */
+  --overlay-orange: #fa622f0a; /* Surface/Overlay_orange (alpha 0.04) — Secondary/orange 기준 */
 
   /* Chip(removable, "샐러드 ×") 채움 — Figma 컴포넌트 노드(2563:3023 default, 2603:3297 pressed)의
      로컬 fill 이라 get_variable_defs 로도 안 잡힌다(변수 바인딩 자체가 없음). 노드 스크린샷을
@@ -176,4 +192,41 @@
 
   /* Secondary */
   --brand-secondary: #50006b; /* Brand/Secondary = Brand/600 */
+}
+
+/* 다크 — 마이컬리 화면(node 1691-205422)에서 직접 바인딩 값 추출(2026-09-17) +
+ * "5팀 디자인 시스템" 파일 컬러 파운데이션 Before/After 대조표로 확정(2026-09-18).
+ * 화면에서 직접 뽑은 값과 파운데이션 표(After, 최신)가 갈리는 지점(Surface 3종·
+ * Border·Overlay_gray)은 표 기준으로 맞췄다 — 화면이 그 시점 기준 최신 파운데이션을
+ * 아직 다 반영 못 한 상태였던 것으로 보인다(사용자 확인 완료).
+ *
+ * 여기 없는 토큰은 라이트 값을 그대로 물려받는다(캐스케이드) — 파운데이션 대조 결과
+ * 값이 라이트와 같아 명시적으로 안 둔 것(Text/Quaternary 등).
+ *
+ * `:root[data-theme]` 뿐 아니라 `[data-theme]`(비-root 요소)도 매칭한다 — 다크가
+ * 아직 마이컬리 화면에서만 검증돼(2026-09-18, "우선 마이컬리만" 결정) `<html>` 전역이
+ * 아니라 `ThemeScope`(마이컬리 서브트리 wrapper)의 `data-theme` 속성이 실제 스코프다.
+ * 나중에 다른 화면도 검증되면 `<html>` 에 다시 달기만 하면 전역 전환된다. */
+:root[data-theme='dark'],
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #222222; /* Bg/default */
+  /* Surface/base — 파운데이션 표 After: Normal/Black(#222222), Bg/default 와 같은 값으로
+     갱신됐다(예전엔 #323a40 로 갈라져 있었다 — 화면에서 뽑은 값은 그 이전 상태). 카드가
+     페이지와 같은 배경이 되므로 구분은 테두리(Border)가 담당한다. */
+  --surface: #222222;
+  --surface-secondary: #515e69; /* Surface/Secondary — 파운데이션 표 After: Neutral/900 */
+  --surface-tertiary: #515e69; /* Surface/Tertiary — 파운데이션 표 After: Neutral/900 */
+  --overlay: #00000080; /* Surface/Overlay_gray — 파운데이션 표 After: 000000 50% (라이트는 222222 60%) */
+  --overlay-blue: #a1b3beb2; /* Surface/Overlay_blue — 라이트 40% -> 70% */
+  --overlay-orange: #fa622f1a; /* Surface/Overlay_orange — 라이트 4% -> 10% (StatusLabel owned/rewards, node 1691-205422 실측) */
+
+  --fg: #ffffff; /* Text/primary */
+  --fg-secondary: #f0f5f8; /* Text/Secondary */
+  --fg-tertiary: #b5c4cf; /* Text/Tertiary */
+
+  --border: #7e8f9b; /* Border/200(Common_Default) — 파운데이션 표 After: Neutral/800 */
+
+  --primary: #aa49d8; /* Brand/Primary — 파운데이션 표 After: DarkBrand/400 */
 }

@@ -22,6 +22,13 @@ for (const file of files) {
   }
   const [, name, state] = match;
   const jsx = await svgFileToJsx(path.join(SVG_DIR, file));
+  // TabIcon 전용 색 치환: HEX_TO_VAR 는 고정 프리미티브(--color-black/--color-brand-500)로만
+  // 매핑하는데, 탭 아이콘은 default/active 각각 Text/Primary·Brand/Primary 시맨틱 의미라
+  // 다크모드에서 값이 갈라져야 한다(마이컬리 BottomNav 다크 지원, 2026-09-18) — 이 빌드에서만
+  // 시맨틱 토큰으로 한 번 더 치환한다(다른 아이콘 세트의 HEX_TO_VAR 동작에는 영향 없음).
+  jsx.inner = jsx.inner
+    .replace(/var\(--color-black\)/g, 'var(--color-fg)')
+    .replace(/var\(--color-brand-500\)/g, 'var(--color-primary)');
   const fnName = `render_tab_${name}_${state}`;
   fnCodes.push(renderFnCode(fnName, jsx));
   if (!byName.has(name)) byName.set(name, {});

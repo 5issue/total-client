@@ -9,17 +9,15 @@
  *   - 아래: 다크 변형 선언 · 그 외 파운데이션(radius) · 기본 요소 스타일
  * ========================================================================== */
 
-/* 다크 모드: 디자인 시스템에 다크 팔레트 없음(라이트 전용).
- * 아래 변형(OS 다크 + data-theme override)은 선언만 해두고, 팔레트가 확정되면
- * tokens/color.css 에 :root[data-theme="dark"] 블록만 추가하면 된다. */
+/* 다크 모드: 아직 마이컬리 화면에서만 검증돼(2026-09-18) `[data-theme='dark']`
+ * 속성이 붙은 요소(와 그 하위)에서만 켜진다 — `<html>` 전역이 아니라 `ThemeScope`
+ * (마이컬리 서브트리 wrapper)가 이 속성을 직접 들고 있다. OS `prefers-color-scheme`
+ * 자동 전환은 지금은 없다(붙이면 다크 미검증 화면까지 전역으로 켜져 버린다) — 최초
+ * 진입 시 OS 선호는 `ThemeStoreProvider` 가 JS 로만 초기값에 반영한다. 다른 화면도
+ * 검증되면 이 속성을 `<html>` 에 달기만 하면 전역 전환된다(선택자는 이미 root 도 매칭). */
 @custom-variant dark {
   &:where([data-theme='dark'], [data-theme='dark'] *) {
     @slot;
-  }
-  @media (prefers-color-scheme: dark) {
-    &:where(:root:not([data-theme='light']), :root:not([data-theme='light']) *) {
-      @slot;
-    }
   }
 }
 
@@ -157,7 +155,9 @@
 @layer base {
   html,
   body {
-    background-color: var(--color-surface);
+    /* --color-surface 아니라 --color-bg — 페이지 배경은 Bg/default 시맨틱(라이트에선
+       카드 배경 --color-surface 와 값이 같지만 의미가 다르다, tokens/color.css 참고). */
+    background-color: var(--color-bg);
     color: var(--color-fg);
     font-family: var(--font-sans);
   }

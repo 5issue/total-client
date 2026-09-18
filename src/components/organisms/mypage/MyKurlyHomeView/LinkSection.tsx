@@ -1,0 +1,89 @@
+import type { ReactNode } from 'react';
+
+import Link from 'next/link';
+
+import { Card } from '@/components/atoms/Card';
+import { Icon } from '@/components/atoms/Icon';
+
+import type { LinkItem, LinkSectionData } from './model';
+
+/**
+ * "쇼핑"/"혜택"/"내 정보관리"/"서비스 안내"/"고객 지원"/"법적정보 및 기타"/"계정" —
+ * 제목 + flex-wrap 링크 목록 패턴이 Shopping Section(node 910-110918)에 8번 반복돼
+ * 하나로 통합했다(structure-convention §3).
+ *
+ * 각 링크는 `atoms/Card`의 `variant="plain"`을 그대로 쓴다 — 부제 색만 링크마다 달라
+ * `subtitle`을 ReactNode로 구성해 넘긴다(Card 문서의 의도된 확장 지점).
+ * `href` 없는 링크는 목적지 화면이 아직 없다는 뜻이라 `Link`로 감싸지 않는다(가짜 링크 방지).
+ *
+ * `GRID_ITEM`: Figma 실측 행 높이는 32px지만 최소 터치 타깃 44px(code-style §5)에
+ * 못 미쳐 `min-h-11`로 히트 영역을 넓힌다 — `li`뿐 아니라 실제 클릭 요소인 `Link`
+ * 자체에도 같은 높이를 줘야 한다(코드래빗 리뷰: `li`만 늘리면 `Card`가 콘텐츠 높이만
+ * 차지해 남는 세로 영역이 클릭 불가 상태로 남는다).
+ */
+const GRID_ITEM = 'flex min-h-11 w-37.5 items-center';
+
+function LinkCard({ link }: { link: LinkItem }) {
+  const card = (
+    <Card
+      variant="plain"
+      title={
+        <span className="inline-flex items-center gap-1">
+          {link.label}
+          {link.badge === 'new' ? <Icon name="new" size={14} aria-hidden /> : null}
+        </span>
+      }
+      subtitle={
+        link.subtitle ? (
+          <span className="text-body-m text-primary">{link.subtitle}</span>
+        ) : undefined
+      }
+      className="w-full"
+    />
+  );
+
+  return (
+    <li className={GRID_ITEM}>
+      {link.href ? (
+        <Link href={link.href} className="flex min-h-11 w-full items-center">
+          {card}
+        </Link>
+      ) : (
+        card
+      )}
+    </li>
+  );
+}
+
+export interface LinkSectionProps {
+  section: LinkSectionData;
+  /** App Info 섹션처럼 링크 목록 앞에 추가로 끼워 넣을 카드(앱 버전 등). */
+  leadingCard?: ReactNode;
+  /** 마지막 섹션(계정)은 Figma 상 하단 구분선이 없다. 기본 true. */
+  divider?: boolean;
+  className?: string;
+}
+
+export function LinkSection({ section, leadingCard, divider = true, className }: LinkSectionProps) {
+  return (
+    <section
+      className={[
+        'flex flex-col gap-5 px-1 py-8',
+        divider ? 'border-border border-b' : '',
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      {section.title ? (
+        <h2 className="text-label-m text-fg-tertiary font-bold">{section.title}</h2>
+      ) : null}
+      <ul className="flex flex-wrap gap-x-7 gap-y-3">
+        {leadingCard ? <li className={GRID_ITEM}>{leadingCard}</li> : null}
+        {section.links.map((link) => (
+          <LinkCard key={link.label} link={link} />
+        ))}
+      </ul>
+    </section>
+  );
+}

@@ -40,6 +40,12 @@ export interface BottomSheetProps {
   height?: string;
   /** 백드롭 클릭으로 닫기. 기본 true. */
   closeOnBackdrop?: boolean;
+  /**
+   * `document.body` 포털이라 호출부의 `ThemeScope`(다크모드 스코프) DOM 밖으로 나간다 —
+   * 다크 대응이 필요한 호출부만 현재 테마를 넘기면 포털 루트에 `data-theme` 를 직접 달아
+   * 스코프를 복원한다. 생략하면 기존과 동일(속성 없음, 항상 라이트 토큰).
+   */
+  theme?: 'light' | 'dark';
   className?: string;
 }
 
@@ -60,6 +66,7 @@ export function BottomSheet({
   maxHeight = '85dvh',
   height,
   closeOnBackdrop = true,
+  theme,
   className,
 }: BottomSheetProps) {
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -145,9 +152,10 @@ export function BottomSheet({
     // 는 포인터만 막고 키보드 포커스는 못 막으므로, React 19 `inert` 로 닫힌 시트의 포커스 가능
     // 요소(CartOrderBar 주문 버튼 등)를 Tab 순서에서 완전히 빼고 aria-hidden 내부 포커스도 없앤다.
     <div
+      data-theme={theme}
       aria-hidden={!open}
       inert={!open}
-      className={`bg-overlay fixed inset-0 z-50 flex items-end justify-center transition-opacity duration-200 ${
+      className={`bg-overlay text-fg fixed inset-0 z-50 flex items-end justify-center transition-opacity duration-200 ${
         open ? 'opacity-100' : 'pointer-events-none opacity-0'
       }`}
       onMouseDown={handleBackdrop}
