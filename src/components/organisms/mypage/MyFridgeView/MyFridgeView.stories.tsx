@@ -25,12 +25,12 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-export const RecipeTabStub: Story = {
-  name: 'MY 레시피 탭(스텁)',
+export const RecipeTab: Story = {
+  name: 'MY 레시피 탭',
   args: { initialTab: 'recipe' },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByText('MY 레시피 (구현 예정)')).toBeInTheDocument();
+    await expect(canvas.getByText('최근 본 레시피')).toBeInTheDocument();
   },
 };
 
@@ -41,7 +41,7 @@ export const SwitchToRecipeTab: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole('tab', { name: 'MY 레시피' }));
-    await expect(canvas.getByText('MY 레시피 (구현 예정)')).toBeInTheDocument();
+    await expect(canvas.getByText('최근 본 레시피')).toBeInTheDocument();
   },
 };
 
