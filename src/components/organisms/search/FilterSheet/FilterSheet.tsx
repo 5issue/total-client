@@ -6,7 +6,8 @@ import { Checkbox } from '@/components/atoms/Checkbox';
 import { Icon } from '@/components/atoms/Icon';
 import { Radio } from '@/components/atoms/Radio';
 import { BottomSheet } from '@/components/molecules/shared/BottomSheet';
-import { useProductFilters } from '@/hooks/product/useProducts';
+import { filterProducts, useProductFilters, useProducts } from '@/hooks/product/useProducts';
+import type { ProductQuickFilters } from '@/hooks/product/useProducts';
 import type { ProductListParams } from '@/types/product';
 
 /**
@@ -496,6 +497,10 @@ export interface FilterSheetProps {
     price: ProductListParams['price'];
     storageType: ProductListParams['storageType'];
   }) => void;
+  /** 현재 검색 결과의 정렬값 — 미리보기 개수 조회 시 쓴다(#128, 아래 `previewCount` 참고). */
+  sort: ProductListParams['sort'];
+  /** Kurly Only/쿠폰/멤버스혜택 퀵필터 — 미리보기 개수에도 같이 반영해야 상위와 숫자가 맞다. */
+  quickFilters: ProductQuickFilters;
 }
 
 export function FilterSheet({
@@ -504,6 +509,8 @@ export function FilterSheet({
   resultCount,
   keyword,
   onApplyFilters,
+  sort,
+  quickFilters,
 }: FilterSheetProps) {
   const [activeTab, setActiveTab] = useState<FilterTab>('카테고리');
 
@@ -520,6 +527,31 @@ export function FilterSheet({
   const priceOptions = filters?.price ?? [];
   const brandOptions = filters?.brand ?? [];
   const storageTypeOptions = filters?.storageType ?? [];
+
+  /**
+   * 아직 "N개 상품보기"를 누르기 전, 지금 시트에서 고른 값 그대로 미리 반영했을 때의 개수.
+   * `GET /products`의 brand/storageType은 단일값이라(#128) 여기서도 첫 번째 선택만 쓴다 —
+   * 실제 적용(`handleSubmit`)과 반드시 같은 값이어야 버튼 숫자와 실제 결과가 어긋나지 않는다.
+   */
+  const pendingBrand = selectedBrands[0] ?? undefined;
+  const pendingPrice = (priceSelection ?? undefined) as ProductListParams['price'];
+  const pendingStorageType = (simpleSelections['유형']?.[0] ??
+    undefined) as ProductListParams['storageType'];
+
+  // #128: 아무 선택도 안 했으면 SearchResultSection이 이미 띄워둔 쿼리와 키가 같아 캐시를
+  // 그대로 재사용한다 — 열자마자 다시 fetch 하지 않는다. Kurly Only/쿠폰/멤버스혜택 퀵필터는
+  // 서버가 모르는 클라 전용 필터라 여기서도 같은 `filterProducts`로 한 번 더 걸러야 상위
+  // `resultCount`(초기값)와 정확히 맞는다.
+  const { data: previewData } = useProducts({
+    query: keyword,
+    sort,
+    brand: pendingBrand,
+    price: pendingPrice,
+    storageType: pendingStorageType,
+  });
+  const previewCount = previewData
+    ? filterProducts(previewData.items, quickFilters).length
+    : resultCount;
 
   function resetAll() {
     setExpandedCategory(null);
@@ -583,13 +615,7 @@ export function FilterSheet({
    * 카테고리/혜택/출시/포장타입은 대응 파라미터가 없어 아예 보고하지 않는다.
    */
   function handleSubmit() {
-    onApplyFilters({
-      brand: selectedBrands[0] ?? undefined,
-      // 둘 다 실제로는 `priceOptions`/`storageTypeOptions`(우리 백엔드 응답)에서 나온 값이라
-      // 리터럴 유니언과 항상 맞는다 — 여기서만 좁혀서(as) 상위에 정확한 타입으로 넘긴다.
-      price: (priceSelection ?? undefined) as ProductListParams['price'],
-      storageType: (simpleSelections['유형']?.[0] ?? undefined) as ProductListParams['storageType'],
-    });
+    onApplyFilters({ brand: pendingBrand, price: pendingPrice, storageType: pendingStorageType });
     onClose();
   }
 
@@ -608,7 +634,7 @@ export function FilterSheet({
           chips={selectedChips}
           hasSelection={hasSelection}
           onReset={resetAll}
-          resultCount={resultCount}
+          resultCount={previewCount}
           onSubmit={handleSubmit}
         />
       }

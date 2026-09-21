@@ -181,6 +181,8 @@ export function SearchResultSection({ query }: SearchResultSectionProps) {
         onClose={() => setFilterSheetOpen(false)}
         resultCount={filteredCount}
         keyword={query}
+        sort={sort}
+        quickFilters={filters}
         onApplyFilters={setAppliedFilters}
       />
     </div>
