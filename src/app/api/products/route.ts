@@ -3,14 +3,25 @@ import { type NextRequest } from 'next/server';
 import { fail, ok } from '@/lib/apiResponse';
 import { env } from '@/lib/env';
 import { SpringEnvelopeSchema } from '@/types/auth';
-import { ProductListParamsSchema, SpringProductListDataSchema } from '@/types/product';
+import {
+  mapSpringProductListResponse,
+  ProductListParamsSchema,
+  SPRING_SORT_MAP,
+  SpringProductListDataSchema,
+} from '@/types/product';
 
 /**
  * 검색 결과 상품 목록 조회 — `useProducts` 가 호출. 인증 불필요(`publicFetch`).
- * Spring 백엔드 명세가 아직 없어 `mocks/handlers/product.ts` 가 이 fetch 를 가로챈다
- * (로컬에서 `API_MOCKING=enabled` 일 때만). 실제 명세가 나오면 이 파일의 fetch URL/쿼리
- * 매핑과 `types/product.ts` 의 필드만 맞추면 되고, 상위 레이어(apiClient·hooks·컴포넌트)는
- * 변경이 필요 없다.
+ * 요청/응답 계약은 백엔드 레포(`5issue/total-backend`,
+ * `services/product-service/api-spec/{routes/client/products.api.tsp,models/products.dto.tsp}`)
+ * 로 확인함(#128) — 배포 Swagger(dev.cloudyim.store)는 여전히 다운 상태라 TypeSpec 소스를
+ * 대신 읽었다. 로컬 백엔드가 뜨기 전까지는 `mocks/handlers/product.ts` 가 이 fetch 를 계속
+ * 가로챈다(`API_MOCKING=enabled`일 때만) — 로컬 백엔드 확인되면 그 mock 을 끄고 아래 매핑이
+ * 맞는지(특히 `SliceResponse` 모양은 백엔드도 "미검증"이라고 명시함) 실응답으로 재검증할 것.
+ *
+ * 알려진 갭(#128, 디자인/백엔드 협의 필요): `ProductSummaryResponse`엔 리뷰 수·쿠폰 뱃지·
+ * 배송 타입·Kurly Only·멤버스 여부가 없다 — `mapSpringProductListResponse`가 안전한 기본값을
+ * 채우는 중이라, 실제 서버 데이터로 붙이면 검색 결과 카드에서 이 정보들이 당장은 안 보인다.
  */
 /** upstream 실패는 원인을 가리지 않고 같은 메시지로 내린다 — 구현 세부 노출 방지. */
 const UPSTREAM_FAILURE_MESSAGE = '상품 정보를 불러오지 못했습니다.';
@@ -24,8 +35,9 @@ export async function GET(req: NextRequest) {
 
   const { query, sort } = parsed.data;
   const springUrl = new URL(`${env.API_INTERNAL_URL}/api/v1/products`);
-  springUrl.searchParams.set('query', query);
-  springUrl.searchParams.set('sort', sort);
+  // Spring 쪽 파라미터명은 keyword(우리 query 아님) + 대문자 ProductSortType(#128).
+  springUrl.searchParams.set('keyword', query);
+  springUrl.searchParams.set('sort', SPRING_SORT_MAP[sort]);
 
   let raw;
   try {
@@ -45,5 +57,5 @@ export async function GET(req: NextRequest) {
     return fail(502, UPSTREAM_FAILURE_MESSAGE);
   }
 
-  return ok(raw.data);
+  return ok(mapSpringProductListResponse(raw.data));
 }

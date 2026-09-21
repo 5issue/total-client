@@ -1,11 +1,17 @@
 import { z } from 'zod';
 
-import { MoneySchema, PaginationSchema } from './common';
+import { MoneySchema } from './common';
 
 /**
  * 상품 도메인 스키마 — 검색 결과(`/search`) 상품 그리드(Figma "Item_V_XL", node
  * 882-60583)가 1차 소비처다. 상세/카테고리 등 다른 화면에서 필드가 더 필요해지면
  * 이 스키마를 확장한다(별도 파일로 쪼개지 않는다 — api-convention §5, 도메인당 1파일).
+ *
+ * ⚠️ `product-service`(백엔드 레포 `services/product-service/api-spec`)의 실제
+ * `ProductSummaryResponse`엔 `reviewCount`/`couponBadgeLabel`/`deliveryType`/`kurlyOnly`/
+ * `membershipBenefit`이 전혀 없다(백엔드는 `likeCount`만 준다) — 전부 Figma 목업(#90) 기준
+ * 필드였다. `mapSpringProductListResponse`가 안전한 기본값(null/false/빈 문자열)으로
+ * 채우고 있고, 실제로 이 정보를 어디서 가져올지는 디자인/백엔드와 별도 협의가 필요하다.
  */
 export const ProductSchema = z.object({
   id: z.string(),
@@ -34,7 +40,14 @@ export const ProductSchema = z.object({
 });
 export type Product = z.infer<typeof ProductSchema>;
 
-/** `GET /api/products` 요청 파라미터 — 검색 결과 조회. */
+/**
+ * `GET /api/products`(우리 Route Handler) 요청 파라미터.
+ *
+ * 백엔드 레포(`5issue/total-backend`, `services/product-service/api-spec`)의
+ * TypeSpec 명세로 확인 완료. Spring 쪽 실제 쿼리 파라미터명은 `keyword`(우리 `query`가
+ * 아님) — 매핑은 route.ts 에서 처리한다. `categoryId`/`keyword` 중 최소 하나가 필요하고
+ * (우리는 항상 keyword만 사용), sort 는 `ProductSortType` 6종과 1:1 대응(§SPRING_SORT_MAP).
+ */
 export const ProductListParamsSchema = z.object({
   query: z.string().min(1),
   sort: z
@@ -43,11 +56,105 @@ export const ProductListParamsSchema = z.object({
 });
 export type ProductListParams = z.infer<typeof ProductListParamsSchema>;
 
+/** 우리 내부 sort 값 → Spring `ProductSortType`(대문자 상수). route.ts 가 전송 직전 변환에 사용(#128). */
+export const SPRING_SORT_MAP: Record<ProductListParams['sort'], string> = {
+  recommend: 'RECOMMENDED',
+  new: 'LATEST',
+  sales: 'POPULAR',
+  benefit: 'BENEFIT',
+  priceAsc: 'PRICE_ASC',
+  priceDesc: 'PRICE_DESC',
+};
+
 export const ProductListResponseSchema = z.object({
   items: z.array(ProductSchema),
-  pagination: PaginationSchema,
+  /**
+   * Spring 이 `Slice`(무한스크롤 전제, `Page`가 아님)를 쓰기 때문에 총 개수를 안 준다 —
+   * 그래서 공용 `PaginationSchema`(totalCount 필수)를 그대로 쓰지 않고 이 모양으로 둔다(#128).
+   * 검색 결과 화면은 아직 페이지네이션/무한스크롤을 소비하지 않는다(`useProducts` 확인) —
+   * 나중에 붙일 때 이 필드를 쓰면 된다.
+   */
+  pagination: z.object({
+    hasNext: z.boolean(),
+    /** 다음 요청 시 보낼 `page` 값. 마지막 페이지면 null. */
+    nextPage: z.number().int().nullable(),
+  }),
 });
 export type ProductListResponse = z.infer<typeof ProductListResponseSchema>;
 
-/** Spring `GET /api/v1/products` 성공 응답의 data. Route Handler 내부에서만 사용. */
-export const SpringProductListDataSchema = ProductListResponseSchema;
+/**
+ * Spring `GET /api/v1/products` 실제 응답 원본(`ProductSummaryResponse`/`SliceResponse<T>`,
+ * `product-service` 레포 `api-spec/models/products.dto.tsp` 기준).
+ *
+ * ⚠️ `SliceResponse` 필드 구성은 백엔드 팀 스스로도 "Jackson 기본 직렬화 규칙으로 추정,
+ * 실행 중인 서버로 미검증"이라 명시한 값이다 — 로컬 백엔드가 뜨면 실제 응답으로 재확인할 것.
+ */
+const SpringProductSummarySchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  brand: z.string(),
+  /** 정가. 우리 `ProductSchema.originalPrice`에 대응(우리 `price`가 아니다 — 이름이 반대). */
+  price: z.number(),
+  /** 판매가(최종가). 우리 `ProductSchema.price`에 대응. */
+  salePrice: z.number(),
+  discountRate: z.number().int(),
+  /** 찜(좋아요) 수. 우리 `ProductSchema.reviewCount`(리뷰 수)와 다른 지표 — 대응 없음. */
+  likeCount: z.number().int(),
+  thumbnailUrl: z.string(),
+});
+
+const SpringSliceResponseSchema = z.object({
+  content: z.array(SpringProductSummarySchema),
+  last: z.boolean(),
+  first: z.boolean(),
+  size: z.number().int(),
+  number: z.number().int(),
+  numberOfElements: z.number().int(),
+  empty: z.boolean(),
+});
+export const SpringProductListDataSchema = SpringSliceResponseSchema;
+
+/**
+ * Spring 원본 응답 → 우리 UI 모델 매핑(route.ts 에서 호출).
+ *
+ * 이번 이슈는 전체 재구현이 아니라 백엔드가 실제로 구현한 부분(이름/가격/할인율/
+ * 썸네일)만 실데이터로 교체하는 범위다. `ProductSummaryResponse`에 아예 없는 나머지 필드
+ * (리뷰 수·쿠폰·배송타입·Kurly Only·멤버스혜택)는 백엔드 미구현 상태이므로 기존 #90 Figma
+ * 목업 값을 그대로 mock 으로 남겨둔다 — 백엔드가 필드를 추가하면 그때 이 자리들만 실데이터로
+ * 바꾸면 된다.
+ */
+const MOCK_REVIEW_COUNT = 9999;
+const MOCK_COUPON_BADGE_LABEL = '+25%쿠폰';
+const MOCK_DELIVERY_TYPE = '샛별배송';
+
+export function mapSpringProductListResponse(
+  raw: z.infer<typeof SpringSliceResponseSchema>,
+): ProductListResponse {
+  return {
+    items: raw.content.map((p) => ({
+      id: String(p.id),
+      // Spring은 brand/name을 분리해서 주지만 우리 카드(SearchResultProductCard)는
+      // 이름 한 줄만 표시한다 — 기존 Figma 목업(#90)의 "[브랜드] 상품명" 표기를 유지.
+      name: `[${p.brand}] ${p.name}`,
+      thumbnailUrl: p.thumbnailUrl,
+      price: p.salePrice,
+      originalPrice: p.price !== p.salePrice ? p.price : null,
+      discountRate: p.discountRate || null,
+      reviewCount: MOCK_REVIEW_COUNT,
+      couponBadgeLabel: MOCK_COUPON_BADGE_LABEL,
+      deliveryType: MOCK_DELIVERY_TYPE,
+      // 백엔드 미구현. 검색 결과의 "Kurly Only" 퀵필터 칩(`useProducts.filterProducts`)이
+      // 실제로 이 값으로 걸러내기 때문에 전부 false로 두면 그 필터가 토글할 때마다 결과 0개가
+      // 되어버린다 — id 기반으로 갈라서 필터 데모가 계속 동작하게 둔다. 실제 상품별 Kurly
+      // Only 여부는 백엔드가 필드를 추가하기 전까지는 알 수 없다(허구 데이터).
+      kurlyOnly: p.id % 2 === 0,
+      // 백엔드 미구현. 필터 칩은 있지만(§멤버스혜택) 원래 #90 목업도 전부 false라
+      // 토글하면 0개가 되는 건 기존과 동일 — 새 회귀 아님.
+      membershipBenefit: false,
+    })),
+    pagination: {
+      hasNext: !raw.last,
+      nextPage: raw.last ? null : raw.number + 1,
+    },
+  };
+}
