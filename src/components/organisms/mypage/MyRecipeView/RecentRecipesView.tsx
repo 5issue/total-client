@@ -54,12 +54,16 @@ function RecipeSelectionToolbar({
           ({selectedCount}/{totalCount})
         </span>
       </div>
+      {/* 시각 크기(32px)는 Figma 그대로 두고 바깥 버튼을 44px 터치 영역으로 키운다
+          (코드래빗 리뷰) — 안쪽 span 이 테두리·글자를 그대로 담당. */}
       <button
         type="button"
         onClick={onDeleteSelected}
-        className="border-border text-label-l text-fg relative flex h-8 w-18.5 shrink-0 items-center justify-center gap-1 rounded-sm border px-1 py-2 before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-['']"
+        className="flex h-11 w-18.5 shrink-0 items-center justify-center"
       >
-        선택삭제
+        <span className="border-border text-label-l text-fg flex h-8 w-full items-center justify-center gap-1 rounded-sm border px-1 py-2">
+          선택삭제
+        </span>
       </button>
     </div>
   );
