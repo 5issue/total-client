@@ -15,6 +15,10 @@ import { Radio } from '@/components/atoms/Radio';
  * 받는사람·연락처 `Label/M`14 `Text/Tertiary`#7e8f9b → `text-label-m text-fg-tertiary`,
  * 배송유형 `Caption/L`12/600 `Brand/Medium`#c16edd → `text-caption-l text-brand-300`,
  * 삭제·수정 `Caption/L`12/600 `Text/Tertiary` → `text-caption-l text-fg-tertiary`.
+ *
+ * 피드백(Figma QA #129): 받는사람·연락처는 기본배송지(`isDefault`)일 때만 노출 — 그 외
+ * 배송지는 숨긴다. 굵기도 `text-label-m` 기본(500)이 진해 보인다는 지적으로 `font-normal`
+ * (400)로 한 단계 낮췄다(size/line-height/letter-spacing은 그대로).
  */
 const PLACE_CHIP: Record<'home' | 'company', { icon: IconName; label: string }> = {
   home: { icon: 'home-filled', label: '우리집' },
@@ -90,10 +94,14 @@ export function AddressListItem({
           )}
           <div className="flex flex-col gap-1">
             <p className="text-heading-4 text-fg">{fullAddress}</p>
-            <div className="text-label-m text-fg-tertiary flex gap-2">
-              <span>{recipient}</span>
-              <span>{phone}</span>
-            </div>
+            {/* 피드백(Figma QA #129): 기본배송지가 아니면 받는사람·연락처를 노출하지 않는다.
+                굵기도 text-label-m 기본(500)이 진해 보인다는 지적으로 font-normal(400)로 낮춘다. */}
+            {isDefault && (
+              <div className="text-label-m text-fg-tertiary flex gap-2 font-normal">
+                <span>{recipient}</span>
+                <span>{phone}</span>
+              </div>
+            )}
           </div>
         </div>
 

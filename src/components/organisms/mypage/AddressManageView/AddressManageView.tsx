@@ -114,8 +114,10 @@ export function AddressManageView() {
         </div>
       ) : (
         <div className="flex flex-1 flex-col gap-4 pb-4">
-          {/* node 359-15302: full-bleed 회색 안내바. */}
-          <div className="bg-surface-secondary text-label-m text-fg-tertiary flex items-center gap-1 px-4 py-3">
+          {/* node 359-15302: full-bleed 회색 안내바.
+              피드백(Figma QA #129): text-label-m 기본 굵기(500)가 진해 보인다는 지적 —
+              font-normal(400)로 한 단계 낮춘다. */}
+          <div className="bg-surface-secondary text-label-m text-fg-tertiary flex items-center gap-1 px-4 py-3 font-normal">
             <Icon name="info-line" size={20} aria-hidden />
             배송지에 따라 상품정보 및 배송유형이 달라질 수 있습니다.
           </div>
