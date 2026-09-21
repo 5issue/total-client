@@ -40,14 +40,6 @@ export const ProductSchema = z.object({
 });
 export type Product = z.infer<typeof ProductSchema>;
 
-/**
- * `GET /api/products`(우리 Route Handler) 요청 파라미터.
- *
- * 백엔드 레포(`5issue/total-backend`, `services/product-service/api-spec`)의
- * TypeSpec 명세로 확인 완료. Spring 쪽 실제 쿼리 파라미터명은 `keyword`(우리 `query`가
- * 아님) — 매핑은 route.ts 에서 처리한다. `categoryId`/`keyword` 중 최소 하나가 필요하고
- * (우리는 항상 keyword만 사용), sort 는 `ProductSortType` 6종과 1:1 대응(§SPRING_SORT_MAP).
- */
 /** Spring `PriceBand` 값(`PriceBand.java` 기준) — 이 5개 문자열만 유효하다. */
 const PRICE_BAND_VALUES = ['0-5000', '5000-10000', '10000-20000', '20000-30000', '30000-'] as const;
 /**
@@ -56,6 +48,14 @@ const PRICE_BAND_VALUES = ['0-5000', '5000-10000', '10000-20000', '20000-30000',
  */
 const STORAGE_TYPE_VALUES = ['REFRIGERATED', 'FROZEN', 'ROOM_TEMPERATURE'] as const;
 
+/**
+ * `GET /api/products`(우리 Route Handler) 요청 파라미터.
+ *
+ * 백엔드 레포(`5issue/total-backend`, `services/product-service/api-spec`)의
+ * TypeSpec 명세로 확인 완료. Spring 쪽 실제 쿼리 파라미터명은 `keyword`(우리 `query`가
+ * 아님) — 매핑은 route.ts 에서 처리한다. `categoryId`/`keyword` 중 최소 하나가 필요하고
+ * (우리는 항상 keyword만 사용), sort 는 `ProductSortType` 6종과 1:1 대응(§SPRING_SORT_MAP).
+ */
 export const ProductListParamsSchema = z.object({
   query: z.string().min(1),
   sort: z

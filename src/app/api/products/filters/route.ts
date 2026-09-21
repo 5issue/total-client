@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { fail, ok } from '@/lib/apiResponse';
 import { env } from '@/lib/env';
-import { SpringEnvelopeSchema } from '@/types/auth';
+import { fetchSpringData } from '@/lib/springApi';
 import { mapSpringProductFilters, SpringProductFilterDataSchema } from '@/types/product';
 
 /**
@@ -28,19 +28,13 @@ export async function GET(req: NextRequest) {
   const springUrl = new URL(`${env.API_INTERNAL_URL}/api/v1/products/filters`);
   springUrl.searchParams.set('keyword', parsed.data.keyword);
 
-  let raw;
+  let data;
   try {
-    const springRes = await fetch(springUrl, { headers: { 'Content-Type': 'application/json' } });
-    raw = SpringEnvelopeSchema(SpringProductFilterDataSchema).parse(await springRes.json());
+    data = await fetchSpringData(springUrl, SpringProductFilterDataSchema);
   } catch {
-    // route.ts(`/api/products`)와 동일한 이유(#99 리뷰) — 봉투 없는 500이 나가면
-    // publicFetch 가 ApiEnvelope 를 못 받아 화면이 로딩에 머문다.
+    // route.ts(`/api/products`)와 동일한 이유(springApi.ts, #99 리뷰).
     return fail(502, UPSTREAM_FAILURE_MESSAGE);
   }
 
-  if (raw.status === 'ERROR' || !raw.data) {
-    return fail(502, UPSTREAM_FAILURE_MESSAGE);
-  }
-
-  return ok(mapSpringProductFilters(raw.data));
+  return ok(mapSpringProductFilters(data));
 }

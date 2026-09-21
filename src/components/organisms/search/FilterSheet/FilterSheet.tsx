@@ -8,7 +8,7 @@ import { Radio } from '@/components/atoms/Radio';
 import { BottomSheet } from '@/components/molecules/shared/BottomSheet';
 import { filterProducts, useProductFilters, useProducts } from '@/hooks/product/useProducts';
 import type { ProductQuickFilters } from '@/hooks/product/useProducts';
-import type { ProductListParams } from '@/types/product';
+import type { ProductFilterItem, ProductListParams } from '@/types/product';
 
 /**
  * 검색 결과 화면의 필터 바텀시트 (organism). Figma node 884-59056(카테고리) /
@@ -30,6 +30,8 @@ import type { ProductListParams } from '@/types/product';
  */
 const TABS = ['카테고리', '가격', '브랜드', '유형', '혜택', '출시', '포장타입'] as const;
 type FilterTab = (typeof TABS)[number];
+/** 유형 탭만 실데이터 연동 대상이라 여러 곳에서 참조한다 — 오타 방지용 상수. */
+const STORAGE_TYPE_TAB = '유형' satisfies FilterTab;
 
 /**
  * 탭별 옵션 데이터. 실제 facet API 가 없어 Figma 목업 값을 그대로 옮겼다 — API 가 생기면
@@ -65,8 +67,13 @@ const CATEGORY_SUBOPTIONS: Partial<Record<string, string[]>> = {
   유제품: ['전체', '우유·두유', '요거트·생크림', '아이스크림', '가공치즈', '자연치즈', '버터'],
 };
 
-/** #128: 백엔드가 준 필터 옵션 한 항목 — `value`가 `GET /products`에 그대로 되돌아간다. */
-type FilterOption = { label: string; value: string; count?: number };
+/**
+ * #128: 백엔드가 준 필터 옵션 한 항목 — `value`가 `GET /products`에 그대로 되돌아간다.
+ * `ProductFilterItem`(`@/types/product`)과 label/value는 같은 모양이지만, 대응 백엔드
+ * 파라미터가 없는 혜택/출시/포장타입 탭은 count 없이 라벨 자신을 값으로 써서 이 필드만 옵션이다.
+ */
+type FilterOption = Pick<ProductFilterItem, 'label' | 'value'> &
+  Partial<Pick<ProductFilterItem, 'count'>>;
 
 const BRAND_ALPHABET = [
   'ㄱ',
@@ -535,7 +542,7 @@ export function FilterSheet({
    */
   const pendingBrand = selectedBrands[0] ?? undefined;
   const pendingPrice = (priceSelection ?? undefined) as ProductListParams['price'];
-  const pendingStorageType = (simpleSelections['유형']?.[0] ??
+  const pendingStorageType = (simpleSelections[STORAGE_TYPE_TAB]?.[0] ??
     undefined) as ProductListParams['storageType'];
 
   // #128: 아무 선택도 안 했으면 SearchResultSection이 이미 띄워둔 쿼리와 키가 같아 캐시를
@@ -587,7 +594,7 @@ export function FilterSheet({
     카테고리: categorySubCount,
     가격: priceSelection ? 1 : 0,
     브랜드: selectedBrands.length,
-    유형: simpleCount('유형'),
+    [STORAGE_TYPE_TAB]: simpleCount(STORAGE_TYPE_TAB),
     혜택: simpleCount('혜택'),
     출시: simpleCount('출시'),
     포장타입: simpleCount('포장타입'),
@@ -601,7 +608,7 @@ export function FilterSheet({
     ...Object.entries(simpleSelections).flatMap(([tab, options]) =>
       options.map((option) => ({
         key: `simple-${tab}-${option}`,
-        label: tab === '유형' ? storageTypeLabel(option) : option,
+        label: tab === STORAGE_TYPE_TAB ? storageTypeLabel(option) : option,
         onRemove: () => toggleSimpleOption(tab as FilterTab, option),
       })),
     ),
@@ -668,11 +675,11 @@ export function FilterSheet({
               selected={selectedBrands}
               onToggle={toggleBrand}
             />
-          ) : activeTab === '유형' ? (
+          ) : activeTab === STORAGE_TYPE_TAB ? (
             <SimpleOptionsPanel
               options={storageTypeOptions}
-              selected={simpleSelections['유형'] ?? []}
-              onToggle={(value) => toggleSimpleOption('유형', value)}
+              selected={simpleSelections[STORAGE_TYPE_TAB] ?? []}
+              onToggle={(value) => toggleSimpleOption(STORAGE_TYPE_TAB, value)}
             />
           ) : (
             <SimpleOptionsPanel

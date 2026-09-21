@@ -2,7 +2,7 @@ import { type NextRequest } from 'next/server';
 
 import { fail, ok } from '@/lib/apiResponse';
 import { env } from '@/lib/env';
-import { SpringEnvelopeSchema } from '@/types/auth';
+import { fetchSpringData } from '@/lib/springApi';
 import {
   mapSpringProductListResponse,
   ProductListParamsSchema,
@@ -43,23 +43,17 @@ export async function GET(req: NextRequest) {
   if (price) springUrl.searchParams.set('price', price);
   if (storageType) springUrl.searchParams.set('storageType', storageType);
 
-  let raw;
+  let data;
   try {
-    const springRes = await fetch(springUrl, { headers: { 'Content-Type': 'application/json' } });
-    raw = SpringEnvelopeSchema(SpringProductListDataSchema).parse(await springRes.json());
+    data = await fetchSpringData(springUrl, SpringProductListDataSchema);
   } catch {
-    // 연결 실패·비 JSON 응답·스키마 불일치가 전부 여기로 온다. 그대로 두면 Next 의
-    // 프레임워크 오류 응답(봉투 없는 500)이 나가 `publicFetch` 가 `ApiEnvelope` 를
-    // 못 받고, 화면은 에러 대신 로딩에 머문다(#99 리뷰).
+    // 연결 실패·비 JSON 응답·스키마 불일치·Spring ERROR 봉투가 전부 여기로 온다(springApi.ts).
+    // 상태 코드와 메시지를 upstream 그대로 흘리지 않는 이유: Spring 은 HTTP 200 + ERROR
+    // 봉투도 보낼 수 있어 브라우저가 성공으로 오해하고, 메시지엔 구현 세부가 섞일 수 있다
+    // (security-convention FE-16). 봉투 없는 500이 그대로 나가면 `publicFetch` 가
+    // `ApiEnvelope` 를 못 받아 화면이 에러 대신 로딩에 머무는 것도 막는다(#99 리뷰).
     return fail(502, UPSTREAM_FAILURE_MESSAGE);
   }
 
-  // 상태 코드와 메시지를 upstream 그대로 흘리지 않는다 — Spring 은 HTTP 200 + ERROR 봉투도
-  // 보낼 수 있어 브라우저가 성공으로 오해하고, `raw.message` 엔 구현 세부가 섞일 수 있다
-  // (security-convention FE-16).
-  if (raw.status === 'ERROR' || !raw.data) {
-    return fail(502, UPSTREAM_FAILURE_MESSAGE);
-  }
-
-  return ok(mapSpringProductListResponse(raw.data));
+  return ok(mapSpringProductListResponse(data));
 }

@@ -172,6 +172,16 @@ function sortMockProducts(products: SpringMockProduct[], sort: string): SpringMo
   }
 }
 
+/** 이름/브랜드에 검색어가 포함되는지 — 목록/필터 두 핸들러가 동일하게 쓴다. */
+function matchesKeyword(product: SpringMockProduct, keyword: string): boolean {
+  return product.name.includes(keyword) || product.brand.includes(keyword);
+}
+
+/** `PriceBand.contains(price)`(백엔드) 흉내 — 목록 필터링과 필터 개수 집계 양쪽에서 쓴다. */
+function matchesPriceBand(product: SpringMockProduct, band: (typeof PRICE_BANDS)[number]): boolean {
+  return product.salePrice >= band.min && product.salePrice < band.maxExclusive;
+}
+
 /** `ProductFilterService.buildFilterResponse`와 같은 순서/조건(빈 그룹은 생략)으로 흉내. */
 function buildMockFilters(products: SpringMockProduct[]) {
   const filterGroups: { filterId: string; title: string; items: unknown[] }[] = [];
@@ -187,8 +197,7 @@ function buildMockFilters(products: SpringMockProduct[]) {
   const priceItems = PRICE_BANDS.map((band) => ({
     label: band.label,
     value: band.value,
-    count: products.filter((p) => p.salePrice >= band.min && p.salePrice < band.maxExclusive)
-      .length,
+    count: products.filter((p) => matchesPriceBand(p, band)).length,
   })).filter((item) => item.count > 0);
   if (priceItems.length > 0)
     filterGroups.push({ filterId: 'price', title: '가격', items: priceItems });
@@ -220,15 +229,9 @@ export const productHandlers = [
     const storageType = params.get('storageType');
     const priceBand = PRICE_BANDS.find((b) => b.value === price);
 
-    let matched = keyword
-      ? MOCK_PRODUCTS.filter((p) => p.name.includes(keyword) || p.brand.includes(keyword))
-      : MOCK_PRODUCTS;
+    let matched = keyword ? MOCK_PRODUCTS.filter((p) => matchesKeyword(p, keyword)) : MOCK_PRODUCTS;
     if (brand) matched = matched.filter((p) => p.brand === brand);
-    if (priceBand) {
-      matched = matched.filter(
-        (p) => p.salePrice >= priceBand.min && p.salePrice < priceBand.maxExclusive,
-      );
-    }
+    if (priceBand) matched = matched.filter((p) => matchesPriceBand(p, priceBand));
     if (storageType) matched = matched.filter((p) => p.storageType === storageType);
 
     const content = sortMockProducts(matched, sort);
@@ -255,7 +258,7 @@ export const productHandlers = [
     const params = new URL(request.url).searchParams;
     const keyword = params.get('keyword')?.trim() ?? '';
     const matched = keyword
-      ? MOCK_PRODUCTS.filter((p) => p.name.includes(keyword) || p.brand.includes(keyword))
+      ? MOCK_PRODUCTS.filter((p) => matchesKeyword(p, keyword))
       : MOCK_PRODUCTS;
 
     return HttpResponse.json({
