@@ -100,7 +100,13 @@ export function SearchResultSection({ query }: SearchResultSectionProps) {
   const [coupon, setCoupon] = useState(false);
   const [membership, setMembership] = useState(false);
   const [isFilterSheetOpen, setFilterSheetOpen] = useState(false);
-  const { data, isPending, isError } = useProducts({ query, sort });
+  // #128: 필터 바텀시트(가격/브랜드/유형)에서 "N개 상품보기"를 눌러야 반영되는 서버 필터.
+  const [appliedFilters, setAppliedFilters] = useState<{
+    brand: ProductListParams['brand'];
+    price: ProductListParams['price'];
+    storageType: ProductListParams['storageType'];
+  }>({ brand: undefined, price: undefined, storageType: undefined });
+  const { data, isPending, isError } = useProducts({ query, sort, ...appliedFilters });
   const filters = { kurlyOnly, coupon, membershipBenefit: membership };
   const items = data ? filterProducts(data.items, filters) : [];
   const filteredCount = items.length;
@@ -174,6 +180,8 @@ export function SearchResultSection({ query }: SearchResultSectionProps) {
         open={isFilterSheetOpen}
         onClose={() => setFilterSheetOpen(false)}
         resultCount={filteredCount}
+        keyword={query}
+        onApplyFilters={setAppliedFilters}
       />
     </div>
   );

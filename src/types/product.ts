@@ -48,11 +48,26 @@ export type Product = z.infer<typeof ProductSchema>;
  * 아님) — 매핑은 route.ts 에서 처리한다. `categoryId`/`keyword` 중 최소 하나가 필요하고
  * (우리는 항상 keyword만 사용), sort 는 `ProductSortType` 6종과 1:1 대응(§SPRING_SORT_MAP).
  */
+/** Spring `PriceBand` 값(`PriceBand.java` 기준) — 이 5개 문자열만 유효하다. */
+const PRICE_BAND_VALUES = ['0-5000', '5000-10000', '10000-20000', '20000-30000', '30000-'] as const;
+/**
+ * Spring `ProductSpec.StorageType` 값 — 실제 백엔드 enum이다(TypeSpec 문서가 가리키는
+ * `domain.enums.StorageType`는 존재하지 않는 클래스 경로였다, #128).
+ */
+const STORAGE_TYPE_VALUES = ['REFRIGERATED', 'FROZEN', 'ROOM_TEMPERATURE'] as const;
+
 export const ProductListParamsSchema = z.object({
   query: z.string().min(1),
   sort: z
     .enum(['recommend', 'new', 'sales', 'benefit', 'priceAsc', 'priceDesc'])
     .default('recommend'),
+  brand: z.string().optional(),
+  /**
+   * #128: `price` 값이 이 5개 중 하나가 아니면 백엔드가 400이 아니라 500을 낸다(알려진
+   * 버그, `PriceBand.from()`). enum 으로 막아 잘못된 값이 여기서부터 못 나가게 한다.
+   */
+  price: z.enum(PRICE_BAND_VALUES).optional(),
+  storageType: z.enum(STORAGE_TYPE_VALUES).optional(),
 });
 export type ProductListParams = z.infer<typeof ProductListParamsSchema>;
 
@@ -156,5 +171,53 @@ export function mapSpringProductListResponse(
       hasNext: !raw.last,
       nextPage: raw.last ? null : raw.number + 1,
     },
+  };
+}
+
+/** 필터 옵션 한 항목(라벨/전송값/현재 검색결과 내 개수). `GET /products` 에 되돌려보낼 값이 `value`다. */
+export const ProductFilterItemSchema = z.object({
+  label: z.string(),
+  value: z.string(),
+  count: z.number().int().nonnegative(),
+});
+export type ProductFilterItem = z.infer<typeof ProductFilterItemSchema>;
+
+/**
+ * `GET /api/products/filters`(우리 Route Handler) 응답 — 우리가 실제로 쓰는 3개 그룹만
+ * 남긴다. `ProductFilterService.java` 확인 결과(#128):
+ * - `sort` 그룹도 내려주지만 우리 UI가 이미 자체 정렬 옵션을 갖고 있어 쓰지 않는다.
+ * - **카테고리 그룹은 응답에 아예 없다** — `categoryId`는 `GET /products`의 필터 파라미터로는
+ *   있지만, "지금 결과에 어떤 카테고리가 있는지" 알려주는 데이터 소스가 없다.
+ * - `storageType` 그룹의 백엔드 title은 실수로 `"포장타입"`이라 붙어 있다(코드 주석은 "보관방법
+ *   필터"). 우리 쪽에서는 이 그룹을 "유형"(냉장/냉동/실온)으로 표기한다 — `FilterSheet` 참고.
+ */
+export const ProductFiltersSchema = z.object({
+  brand: z.array(ProductFilterItemSchema),
+  price: z.array(ProductFilterItemSchema),
+  storageType: z.array(ProductFilterItemSchema),
+});
+export type ProductFilters = z.infer<typeof ProductFiltersSchema>;
+
+const SpringFilterGroupSchema = z.object({
+  filterId: z.string(),
+  title: z.string(),
+  items: z.array(ProductFilterItemSchema),
+});
+
+const SpringProductFilterResponseSchema = z.object({
+  totalCount: z.number().int().nonnegative(),
+  filterGroups: z.array(SpringFilterGroupSchema),
+});
+export const SpringProductFilterDataSchema = SpringProductFilterResponseSchema;
+
+export function mapSpringProductFilters(
+  raw: z.infer<typeof SpringProductFilterResponseSchema>,
+): ProductFilters {
+  const itemsOf = (filterId: string) =>
+    raw.filterGroups.find((g) => g.filterId === filterId)?.items ?? [];
+  return {
+    brand: itemsOf('brand'),
+    price: itemsOf('price'),
+    storageType: itemsOf('storageType'),
   };
 }

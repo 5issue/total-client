@@ -33,11 +33,15 @@ export async function GET(req: NextRequest) {
     return fail(400, '검색어가 올바르지 않습니다.');
   }
 
-  const { query, sort } = parsed.data;
+  const { query, sort, brand, price, storageType } = parsed.data;
   const springUrl = new URL(`${env.API_INTERNAL_URL}/api/v1/products`);
   // Spring 쪽 파라미터명은 keyword(우리 query 아님) + 대문자 ProductSortType(#128).
   springUrl.searchParams.set('keyword', query);
   springUrl.searchParams.set('sort', SPRING_SORT_MAP[sort]);
+  // brand/storageType은 Zod enum(#128)으로 이미 검증된 값만 여기 도달한다.
+  if (brand) springUrl.searchParams.set('brand', brand);
+  if (price) springUrl.searchParams.set('price', price);
+  if (storageType) springUrl.searchParams.set('storageType', storageType);
 
   let raw;
   try {

@@ -1,14 +1,17 @@
 import { HttpResponse, http } from 'msw';
 
 /**
- * 로컬 백엔드가 아직 안 떠 있어 상품 검색 응답을 목킹한다(auth.ts 와 동일 패턴).
- * `API_INTERNAL_URL` 기준으로 매칭 — 우리 Route Handler(`/api/products`)가 서버사이드로
- * 호출하는 요청을 가로챈다(api-convention §3). 쿼리별 매칭 로직 없이 고정 목록 하나를
- * 반환한다 — Figma 목업(node 882-60568, 검색어 "우유")도 동일하게 고정 예시라 맞춘다.
+ * 로컬 백엔드가 아직 안 떠 있어 상품 검색/필터 응답을 목킹한다(auth.ts 와 동일 패턴).
+ * `API_INTERNAL_URL` 기준으로 매칭 — 우리 Route Handler(`/api/products`, `/api/products/filters`)
+ * 가 서버사이드로 호출하는 요청을 가로챈다(api-convention §3). Figma 목업(node 882-60568,
+ * 검색어 "우유") 기준 고정 상품 8개 풀에서 `keyword`/`brand`/`price`/`storageType`으로
+ * 걸러내고 `sort`로 정렬해서 반환한다 — 로컬에서 검색/정렬/필터 UI가 실제로 동작하는 것처럼
+ * 보이게 하기 위함이다(#128). 진짜 로직은 실제 백엔드가 하는 일이고, 이건 로컬 개발 편의를
+ * 위한 목업일 뿐이다.
  *
- * 응답 모양은 실제 Spring `ProductSummaryResponse`/`SliceResponse<T>`(백엔드 레포
- * `services/product-service/api-spec/models/products.dto.tsp` 기준, #128)를 그대로
- * 따른다 — `route.ts`의 `mapSpringProductListResponse`가 이걸 우리 UI 모델로 변환한다.
+ * 응답 모양은 실제 Spring `ProductSummaryResponse`/`SliceResponse<T>`/`ProductFilterResponse`
+ * (백엔드 레포 `services/product-service` 기준, #128)를 그대로 따른다 — `route.ts`의
+ * `mapSpringProductListResponse`/`mapSpringProductFilters`가 이걸 우리 UI 모델로 변환한다.
  */
 const BASE = process.env.API_INTERNAL_URL ?? 'http://localhost:4000';
 
@@ -23,6 +26,8 @@ function nowIso() {
   return new Date().toISOString();
 }
 
+type StorageType = 'REFRIGERATED' | 'FROZEN' | 'ROOM_TEMPERATURE';
+
 type SpringMockProduct = {
   id: number;
   name: string;
@@ -32,9 +37,14 @@ type SpringMockProduct = {
   discountRate: number;
   likeCount: number;
   thumbnailUrl: string;
+  storageType: StorageType;
 };
 
-/** Figma node 882-60569 상품 그리드 8개를 Spring `ProductSummaryResponse` 모양으로 목데이터화(#128). */
+/**
+ * Figma node 882-60569 상품 그리드 8개를 Spring `ProductSummaryResponse` 모양으로
+ * 목데이터화(#128). `storageType`은 실제 백엔드 필드지만 목데이터엔 없던 값이라, 필터
+ * 데모가 의미 있게 갈리도록 임의로 섞어 배정했다(실제 상품별 진짜 값 아님).
+ */
 const MOCK_PRODUCTS: SpringMockProduct[] = [
   {
     id: 1,
@@ -45,6 +55,7 @@ const MOCK_PRODUCTS: SpringMockProduct[] = [
     discountRate: 25,
     likeCount: 9999,
     thumbnailUrl: PLACEHOLDER_THUMBNAIL,
+    storageType: 'REFRIGERATED',
   },
   {
     id: 2,
@@ -55,6 +66,7 @@ const MOCK_PRODUCTS: SpringMockProduct[] = [
     discountRate: 10,
     likeCount: 9999,
     thumbnailUrl: PLACEHOLDER_THUMBNAIL,
+    storageType: 'REFRIGERATED',
   },
   {
     id: 3,
@@ -65,6 +77,7 @@ const MOCK_PRODUCTS: SpringMockProduct[] = [
     discountRate: 10,
     likeCount: 9999,
     thumbnailUrl: PLACEHOLDER_THUMBNAIL,
+    storageType: 'REFRIGERATED',
   },
   {
     id: 4,
@@ -75,6 +88,7 @@ const MOCK_PRODUCTS: SpringMockProduct[] = [
     discountRate: 10,
     likeCount: 9999,
     thumbnailUrl: PLACEHOLDER_THUMBNAIL,
+    storageType: 'REFRIGERATED',
   },
   {
     id: 5,
@@ -85,6 +99,7 @@ const MOCK_PRODUCTS: SpringMockProduct[] = [
     discountRate: 10,
     likeCount: 9999,
     thumbnailUrl: PLACEHOLDER_THUMBNAIL,
+    storageType: 'REFRIGERATED',
   },
   {
     id: 6,
@@ -95,6 +110,7 @@ const MOCK_PRODUCTS: SpringMockProduct[] = [
     discountRate: 10,
     likeCount: 9999,
     thumbnailUrl: PLACEHOLDER_THUMBNAIL,
+    storageType: 'REFRIGERATED',
   },
   {
     id: 7,
@@ -105,6 +121,7 @@ const MOCK_PRODUCTS: SpringMockProduct[] = [
     discountRate: 10,
     likeCount: 9999,
     thumbnailUrl: PLACEHOLDER_THUMBNAIL,
+    storageType: 'FROZEN',
   },
   {
     id: 8,
@@ -115,24 +132,136 @@ const MOCK_PRODUCTS: SpringMockProduct[] = [
     discountRate: 15,
     likeCount: 9999,
     thumbnailUrl: PLACEHOLDER_THUMBNAIL,
+    storageType: 'ROOM_TEMPERATURE',
   },
 ];
 
+/** Spring `PriceBand` 5단계(`PriceBand.java` 기준) — 목업 필터 계산에도 그대로 쓴다(#128). */
+const PRICE_BANDS = [
+  { label: '5,000원 미만', value: '0-5000', min: 0, maxExclusive: 5_000 },
+  { label: '5,000원 ~ 10,000원', value: '5000-10000', min: 5_000, maxExclusive: 10_000 },
+  { label: '10,000원 ~ 20,000원', value: '10000-20000', min: 10_000, maxExclusive: 20_000 },
+  { label: '20,000원 ~ 30,000원', value: '20000-30000', min: 20_000, maxExclusive: 30_000 },
+  { label: '30,000원 이상', value: '30000-', min: 30_000, maxExclusive: Infinity },
+] as const;
+
+/** Spring `ProductSpec.StorageType` 라벨(`ProductSpec.java` 기준) — "상온"이 아니라 "실온"이다. */
+const STORAGE_TYPE_LABELS: Record<StorageType, string> = {
+  REFRIGERATED: '냉장',
+  FROZEN: '냉동',
+  ROOM_TEMPERATURE: '실온',
+};
+
+/** Spring `ProductSortType`(route.ts 의 `SPRING_SORT_MAP` 값)별 정렬 규칙 — 목업 전용. */
+function sortMockProducts(products: SpringMockProduct[], sort: string): SpringMockProduct[] {
+  const sorted = [...products];
+  switch (sort) {
+    case 'LATEST':
+      return sorted.sort((a, b) => b.id - a.id);
+    case 'POPULAR':
+      return sorted.sort((a, b) => b.likeCount - a.likeCount);
+    case 'BENEFIT':
+      return sorted.sort((a, b) => b.discountRate - a.discountRate);
+    case 'PRICE_ASC':
+      return sorted.sort((a, b) => a.salePrice - b.salePrice);
+    case 'PRICE_DESC':
+      return sorted.sort((a, b) => b.salePrice - a.salePrice);
+    case 'RECOMMENDED':
+    default:
+      return sorted.sort((a, b) => a.id - b.id);
+  }
+}
+
+/** `ProductFilterService.buildFilterResponse`와 같은 순서/조건(빈 그룹은 생략)으로 흉내. */
+function buildMockFilters(products: SpringMockProduct[]) {
+  const filterGroups: { filterId: string; title: string; items: unknown[] }[] = [];
+
+  const brandCounts = new Map<string, number>();
+  for (const p of products) brandCounts.set(p.brand, (brandCounts.get(p.brand) ?? 0) + 1);
+  const brandItems = [...brandCounts.entries()]
+    .sort(([a], [b]) => a.localeCompare(b, 'ko'))
+    .map(([brand, count]) => ({ label: brand, value: brand, count }));
+  if (brandItems.length > 0)
+    filterGroups.push({ filterId: 'brand', title: '브랜드', items: brandItems });
+
+  const priceItems = PRICE_BANDS.map((band) => ({
+    label: band.label,
+    value: band.value,
+    count: products.filter((p) => p.salePrice >= band.min && p.salePrice < band.maxExclusive)
+      .length,
+  })).filter((item) => item.count > 0);
+  if (priceItems.length > 0)
+    filterGroups.push({ filterId: 'price', title: '가격', items: priceItems });
+
+  const storageCounts = new Map<StorageType, number>();
+  for (const p of products)
+    storageCounts.set(p.storageType, (storageCounts.get(p.storageType) ?? 0) + 1);
+  const storageItems = [...storageCounts.entries()].map(([type, count]) => ({
+    label: STORAGE_TYPE_LABELS[type],
+    value: type,
+    count,
+  }));
+  // 백엔드가 실제로 이 그룹에 "포장타입"이라는 잘못된 title을 붙인다(#128) — 목업도 그대로 재현.
+  if (storageItems.length > 0) {
+    filterGroups.push({ filterId: 'storageType', title: '포장타입', items: storageItems });
+  }
+
+  return { totalCount: products.length, filterGroups };
+}
+
 export const productHandlers = [
   // GET /api/v1/products — 검색 결과 상품 목록 (Spring SliceResponse 모양, #128)
-  http.get(`${BASE}/api/v1/products`, () => {
+  http.get(`${BASE}/api/v1/products`, ({ request }) => {
+    const params = new URL(request.url).searchParams;
+    const keyword = params.get('keyword')?.trim() ?? '';
+    const sort = params.get('sort') ?? 'RECOMMENDED';
+    const brand = params.get('brand');
+    const price = params.get('price');
+    const storageType = params.get('storageType');
+    const priceBand = PRICE_BANDS.find((b) => b.value === price);
+
+    let matched = keyword
+      ? MOCK_PRODUCTS.filter((p) => p.name.includes(keyword) || p.brand.includes(keyword))
+      : MOCK_PRODUCTS;
+    if (brand) matched = matched.filter((p) => p.brand === brand);
+    if (priceBand) {
+      matched = matched.filter(
+        (p) => p.salePrice >= priceBand.min && p.salePrice < priceBand.maxExclusive,
+      );
+    }
+    if (storageType) matched = matched.filter((p) => p.storageType === storageType);
+
+    const content = sortMockProducts(matched, sort);
+
     return HttpResponse.json({
       status: 'SUCCESS',
       message: '상품 목록',
       data: {
-        content: MOCK_PRODUCTS,
+        content,
         last: true,
         first: true,
-        size: MOCK_PRODUCTS.length,
+        size: content.length,
         number: 0,
-        numberOfElements: MOCK_PRODUCTS.length,
-        empty: false,
+        numberOfElements: content.length,
+        empty: content.length === 0,
       },
+      error: null,
+      timestamp: nowIso(),
+    });
+  }),
+
+  // GET /api/v1/products/filters — 필터 바텀시트(가격/브랜드/유형) 옵션 (#128)
+  http.get(`${BASE}/api/v1/products/filters`, ({ request }) => {
+    const params = new URL(request.url).searchParams;
+    const keyword = params.get('keyword')?.trim() ?? '';
+    const matched = keyword
+      ? MOCK_PRODUCTS.filter((p) => p.name.includes(keyword) || p.brand.includes(keyword))
+      : MOCK_PRODUCTS;
+
+    return HttpResponse.json({
+      status: 'SUCCESS',
+      message: '필터 옵션',
+      data: buildMockFilters(matched),
       error: null,
       timestamp: nowIso(),
     });

@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { productKeys } from '@/hooks/product/queryKeys';
-import { searchProducts } from '@/lib/apiClient';
+import { getProductFilters, searchProducts } from '@/lib/apiClient';
 import type { Product, ProductListParams } from '@/types/product';
 
 /**
@@ -13,13 +13,32 @@ import type { Product, ProductListParams } from '@/types/product';
  * `query` 가 비어있으면 호출하지 않는다 — 결과 뷰 자체가 제출된 검색어가 있을 때만
  * 렌더되므로 방어적으로 `enabled` 를 둔다.
  */
-export function useProducts({ query, sort = 'recommend' }: Partial<ProductListParams>) {
-  const params: ProductListParams = { query: query ?? '', sort };
+export function useProducts({
+  query,
+  sort = 'recommend',
+  brand,
+  price,
+  storageType,
+}: Partial<ProductListParams>) {
+  const params: ProductListParams = { query: query ?? '', sort, brand, price, storageType };
 
   return useQuery({
     queryKey: productKeys.list(params),
     queryFn: () => searchProducts(params),
     enabled: params.query.trim().length > 0,
+  });
+}
+
+/**
+ * 필터 바텀시트(브랜드/가격/유형 탭)용 옵션 조회(#128). `keyword` 가 비어있거나 시트가
+ * 열리기 전엔 호출하지 않는다(`enabled`) — 열 때마다 새로 불러올 필요는 없으니 캐시는
+ * `productKeys.filters(keyword)` 로 검색어 단위로 공유된다.
+ */
+export function useProductFilters(keyword: string, enabled = true) {
+  return useQuery({
+    queryKey: productKeys.filters(keyword),
+    queryFn: () => getProductFilters(keyword),
+    enabled: enabled && keyword.trim().length > 0,
   });
 }
 
