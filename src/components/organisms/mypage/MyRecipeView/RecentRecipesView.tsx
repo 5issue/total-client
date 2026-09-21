@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 
 import { Checkbox } from '@/components/atoms/Checkbox';
 import { FloatingButton } from '@/components/atoms/FloatingButton';
@@ -8,6 +8,7 @@ import { Icon } from '@/components/atoms/Icon';
 import { RecipeCardL } from '@/components/molecules/mypage/RecipeCardL';
 import { ErrorState } from '@/components/molecules/shared/ErrorState';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
+import { useScrollToTopVisibility } from '@/hooks/useScrollToTopVisibility';
 
 import { findRecipe, MOCK_RECENT_RECIPE_IDS } from './mock';
 import type { RecipeCardSummary } from './model';
@@ -21,31 +22,9 @@ import { RecipeDeleteConfirmModal } from './RecipeDeleteConfirmModal';
  *
  * "전체선택(N/M)"·"선택삭제"·삭제 확인 모달은 `MyFridgeView`의 그리드 선택삭제
  * 흐름과 동일 UX다(#112가 리뷰 중이라 그 컴포넌트를 그대로 가져오지 않고 같은
- * 패턴으로 새로 둠 — 계획 검토 시 논의한 내용).
+ * 패턴으로 새로 둠 — 계획 검토 시 논의한 내용). 스크롤 상단이동 버튼 노출 조건은
+ * `useScrollToTopVisibility`(범용 훅, `src/hooks/`)를 그대로 재사용한다.
  */
-function useScrollTopButtonVisible() {
-  const [visible, setVisible] = useState(false);
-  const lastY = useRef(0);
-
-  useEffect(() => {
-    function handleScroll() {
-      const y = window.scrollY;
-      const atBottom = window.innerHeight + y >= document.documentElement.scrollHeight - 1;
-      const scrollingUp = y < lastY.current;
-
-      if (y <= 0) setVisible(false);
-      else if (atBottom || scrollingUp) setVisible(true);
-      else setVisible(false);
-
-      lastY.current = y;
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  return visible;
-}
-
 function RecipeSelectionToolbar({
   selectedCount,
   totalCount,
@@ -71,14 +50,14 @@ function RecipeSelectionToolbar({
           />
         </span>
         <span className="text-heading-5 text-fg">전체선택</span>
-        <span className="text-body-s text-fg-tertiary ml-1">
+        <span aria-live="polite" className="text-body-s text-fg-tertiary ml-1">
           ({selectedCount}/{totalCount})
         </span>
       </div>
       <button
         type="button"
         onClick={onDeleteSelected}
-        className="text-label-l text-fg flex h-8 w-18.5 shrink-0 items-center justify-center gap-1 rounded-sm border border-neutral-400 px-1 py-2"
+        className="border-border text-label-l text-fg relative flex h-8 w-18.5 shrink-0 items-center justify-center gap-1 rounded-sm border px-1 py-2 before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-['']"
       >
         선택삭제
       </button>
@@ -92,7 +71,7 @@ export function RecentRecipesView() {
   );
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const showScrollTop = useScrollTopButtonVisible();
+  const showScrollTop = useScrollToTopVisibility();
 
   const selectedCount = recipes.filter((recipe) => selectedIds.has(recipe.id)).length;
   const allSelected = recipes.length > 0 && selectedCount === recipes.length;
@@ -164,7 +143,10 @@ export function RecentRecipesView() {
           shape="icon"
           icon="scroll"
           aria-label="맨 위로 이동"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          onClick={() => {
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+          }}
           className="fixed right-4 bottom-20 z-10"
         />
       ) : null}

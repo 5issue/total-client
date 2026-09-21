@@ -58,7 +58,7 @@ function AiRecommendedRecipeCard({
         e.preventDefault();
         onSelect();
       }}
-      className={`shadow-m flex shrink-0 snap-center flex-col items-start overflow-hidden transition-[width] duration-200 ${active ? 'w-75 rounded-lg' : 'rounded-m w-68'}`}
+      className={`shadow-m flex shrink-0 snap-center flex-col items-start overflow-hidden ${active ? 'w-75 rounded-lg' : 'rounded-m w-68'}`}
     >
       <div className={`relative w-full shrink-0 ${active ? 'h-56.25' : 'h-51'}`}>
         <Image

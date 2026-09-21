@@ -61,7 +61,7 @@ export function RecipeDetailView({ recipe }: RecipeDetailViewProps) {
               type="button"
               onClick={() => setLiked((prev) => !prev)}
               aria-label={liked ? `${recipe.name} 찜 해제` : `${recipe.name} 찜하기`}
-              className="inline-flex size-10 items-center justify-center"
+              className="relative inline-flex size-10 items-center justify-center before:absolute before:-inset-0.5 before:content-['']"
             >
               <Icon
                 name={liked ? 'heart-filled' : 'heart'}
@@ -99,7 +99,7 @@ export function RecipeDetailView({ recipe }: RecipeDetailViewProps) {
             {recipe.steps.map((step, index) => (
               <li key={step} className="flex items-start gap-2 py-2">
                 <span className="flex h-7 shrink-0 items-center">
-                  <span className="text-caption-m text-fg-inverse flex size-5 items-center justify-center rounded-full bg-neutral-950">
+                  <span className="text-caption-m text-fg-inverse bg-surface-tertiary flex size-5 items-center justify-center rounded-full">
                     {index + 1}
                   </span>
                 </span>

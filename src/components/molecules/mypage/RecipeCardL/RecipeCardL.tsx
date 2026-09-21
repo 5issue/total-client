@@ -68,9 +68,11 @@ export function RecipeCardL({
           type="button"
           onClick={() => onToggleLike(!recipe.liked)}
           aria-label={recipe.liked ? `${recipe.name} 찜 해제` : `${recipe.name} 찜하기`}
-          className="absolute top-2 right-2 inline-flex size-8 items-center justify-center"
+          className="absolute top-2 right-2 inline-flex size-8 items-center justify-center before:absolute before:-inset-1.5 before:content-['']"
         >
-          {/* 찜 색상 Brand/Medium(#c16edd = brand-300) — `heart-filled`는 themable:false로
+          {/* 시각 크기(32px)는 Figma 그대로 두고 `before` 로 44px 터치 영역만 확보한다
+              (코드래빗 리뷰) — `ProductCard`의 "담기" 버튼과 같은 히트박스 확장 패턴.
+              찜 색상 Brand/Medium(#c16edd = brand-300) — `heart-filled`는 themable:false로
               SVG에 `var(--color-brand-500)`가 박혀 있어, `AddToCartActions`와 같은 방법으로
               이 서브트리에서만 그 커스텀 프로퍼티를 brand-300으로 지역 재정의한다. */}
           <Icon
@@ -92,6 +94,7 @@ export function RecipeCardL({
         </div>
         <Link
           href={`/mypage/fridge/recipes/${recipe.id}`}
+          aria-label={`${recipe.name} 레시피 보기`}
           className="text-label-m text-primary flex h-9 items-center gap-1"
         >
           레시피 보기

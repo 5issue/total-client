@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import Image from 'next/image';
 
+import { Button } from '@/components/atoms/Button';
 import { BottomSheet } from '@/components/molecules/shared/BottomSheet';
 import { QuantityStepper } from '@/components/molecules/shared/QuantityStepper';
 import { formatPrice } from '@/lib/formatters';
@@ -51,14 +52,15 @@ export function RecipeCartBottomSheet({
       ariaLabel="레시피에 필요한 재료"
       footer={
         <div className="flex items-center justify-center px-4 py-3">
-          <button
-            type="button"
+          <Button
+            variant="primary"
+            size="l"
             disabled={totalQuantity === 0}
             onClick={() => onSubmit(totalPrice)}
-            className="rounded-m bg-primary text-heading-1 text-fg-inverse disabled:bg-brand-50 disabled:text-brand-200 flex h-14 w-full items-center justify-center"
+            className="h-14 w-full"
           >
             {formatPrice(totalPrice)} 주문하기
-          </button>
+          </Button>
         </div>
       }
     >

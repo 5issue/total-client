@@ -1,3 +1,5 @@
+import { formatPrice } from '@/lib/formatters';
+
 import type { Recipe } from './model';
 
 /**
@@ -99,6 +101,12 @@ const PLACEHOLDER_DETAIL = {
   neededProducts: GRATIN_NEEDED_PRODUCTS,
 };
 
+// AI 카드의 "부족 재료 담기" 가격은 상세 장바구니에 전달되는 `neededProducts` 합계와
+// 항상 같아야 한다 — 하드코딩 문자열이 따로 있으면 어긋나기 쉽다(코드래빗 리뷰).
+const GRATIN_MISSING_INGREDIENTS_PRICE_LABEL = formatPrice(
+  GRATIN_NEEDED_PRODUCTS.reduce((sum, product) => sum + product.price, 0),
+);
+
 export const MOCK_RECIPES: Recipe[] = [
   // AI 추천 레시피 3종(메인 캐러셀, node 1281-210506) — "떡갈비 두부 그라탕"만 실제 상세 스펙.
   {
@@ -110,7 +118,7 @@ export const MOCK_RECIPES: Recipe[] = [
     neededIngredientCount: 4,
     liked: false,
     tags: ['1인분', '간단해요'],
-    missingIngredientsPriceLabel: '7,800원',
+    missingIngredientsPriceLabel: GRATIN_MISSING_INGREDIENTS_PRICE_LABEL,
     ...PLACEHOLDER_DETAIL,
   },
   {
@@ -122,7 +130,7 @@ export const MOCK_RECIPES: Recipe[] = [
     neededIngredientCount: 4,
     liked: false,
     tags: ['1인분', '간단해요'],
-    missingIngredientsPriceLabel: '29,240원',
+    missingIngredientsPriceLabel: GRATIN_MISSING_INGREDIENTS_PRICE_LABEL,
     ownedItems: GRATIN_OWNED_ITEMS,
     ingredients: GRATIN_INGREDIENTS,
     steps: GRATIN_STEPS,
@@ -138,7 +146,7 @@ export const MOCK_RECIPES: Recipe[] = [
     neededIngredientCount: 4,
     liked: false,
     tags: ['1인분', '간단해요'],
-    missingIngredientsPriceLabel: '7,800원',
+    missingIngredientsPriceLabel: GRATIN_MISSING_INGREDIENTS_PRICE_LABEL,
     ...PLACEHOLDER_DETAIL,
   },
 

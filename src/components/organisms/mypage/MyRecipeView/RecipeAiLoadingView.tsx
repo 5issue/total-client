@@ -17,14 +17,14 @@ export function RecipeAiLoadingView({ nickname }: RecipeAiLoadingViewProps) {
           src="/mypage/recipe-ai-loading-ring.svg"
           alt=""
           fill
-          className="animate-spin [animation-duration:1.2s]"
+          className="animate-recipe-ai-spin motion-reduce:animate-none"
         />
         <span className="bg-recipe-ai-loading-mark relative flex size-9.25 items-center justify-center rounded-full p-4 shadow-xl">
           <Image src="/mypage/recipe-ai-loading-mark.svg" alt="" width={33} height={33} />
         </span>
       </div>
 
-      <div className="flex flex-col items-center gap-1 text-center">
+      <div role="status" className="flex flex-col items-center gap-1 text-center">
         <p className="text-display-xs text-primary font-semibold">MY 레시피 제작 중</p>
         <p className="text-heading-6 text-fg-secondary font-normal">
           <span className="text-fg-secondary">컬리 AI</span>가 {nickname}님을 위한 레시피를 만들고

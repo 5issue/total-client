@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
@@ -23,8 +25,12 @@ export interface RecipeCartAddedBottomSheetProps {
 
 function RecommendedProductCard({
   product,
+  added,
+  onAdd,
 }: {
   product: (typeof MOCK_RECIPE_RECOMMENDED_PRODUCTS)[number];
+  added: boolean;
+  onAdd: () => void;
 }) {
   return (
     <div className="flex w-30 shrink-0 flex-col items-start gap-1">
@@ -38,7 +44,7 @@ function RecommendedProductCard({
         />
         {product.couponLabel ? (
           <span className="bg-cyan absolute top-2 left-2 inline-flex items-center justify-center rounded-sm p-1">
-            <span className="font-numeric text-caption-s font-bold text-white">
+            <span className="font-numeric text-caption-s text-fg-inverse font-bold">
               {product.couponLabel}
             </span>
           </span>
@@ -46,11 +52,16 @@ function RecommendedProductCard({
       </div>
       <button
         type="button"
+        disabled={added}
+        onClick={onAdd}
         aria-label={`${product.name} 담기`}
-        className="text-label-l text-fg active:bg-surface-secondary flex h-8 w-full items-center justify-center gap-1 rounded-sm border border-neutral-400"
+        className={[
+          'border-border text-label-l flex h-8 w-full items-center justify-center gap-1 rounded-sm border',
+          added ? 'text-fg-disabled' : 'text-fg active:bg-surface-secondary',
+        ].join(' ')}
       >
         <Icon name="cart" size={20} aria-hidden />
-        담기
+        {added ? '담음' : '담기'}
       </button>
       <div className="flex w-full flex-col">
         <p className="text-caption-m text-fg-secondary">{product.deliveryLabel}</p>
@@ -73,6 +84,7 @@ function RecommendedProductCard({
 
 export function RecipeCartAddedBottomSheet({ open, onClose }: RecipeCartAddedBottomSheetProps) {
   const router = useRouter();
+  const [addedProductIds, setAddedProductIds] = useState<Set<string>>(new Set());
 
   return (
     <BottomSheet open={open} onClose={onClose} ariaLabel="장바구니 담기 완료">
@@ -101,7 +113,12 @@ export function RecipeCartAddedBottomSheet({ open, onClose }: RecipeCartAddedBot
         <p className="text-body-l text-fg px-4 py-2.5">함께 구매하면 좋을 상품</p>
         <div className="scrollbar-hide flex items-start gap-2 overflow-x-auto pl-4">
           {MOCK_RECIPE_RECOMMENDED_PRODUCTS.map((product) => (
-            <RecommendedProductCard key={product.id} product={product} />
+            <RecommendedProductCard
+              key={product.id}
+              product={product}
+              added={addedProductIds.has(product.id)}
+              onAdd={() => setAddedProductIds((prev) => new Set(prev).add(product.id))}
+            />
           ))}
           <div className="w-2 shrink-0" aria-hidden />
         </div>

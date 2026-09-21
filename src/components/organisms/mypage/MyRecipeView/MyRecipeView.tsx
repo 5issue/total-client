@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
@@ -28,14 +28,26 @@ const AI_LOADING_DELAY_MS = 1200;
 export function MyRecipeView() {
   const router = useRouter();
   const [loadingRecipeId, setLoadingRecipeId] = useState<string | null>(null);
+  const navigateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const aiRecommendedRecipes = MOCK_AI_RECOMMENDED_RECIPE_IDS.map((id) => findRecipe(id)!);
   const recentRecipes = MOCK_RECENT_RECIPE_IDS.map((id) => findRecipe(id)!);
   const likedRecipes = recentRecipes.filter((recipe) => recipe.liked);
 
+  // 언마운트 후(예: 로딩 중 다른 라우트로 이동) 예약된 라우팅이 새 화면에서 실행되지
+  // 않도록 정리한다(코드래빗 리뷰).
+  useEffect(() => {
+    return () => {
+      if (navigateTimeoutRef.current) clearTimeout(navigateTimeoutRef.current);
+    };
+  }, []);
+
   function handleSelectAiRecipe(recipeId: string) {
     setLoadingRecipeId(recipeId);
-    setTimeout(() => router.push(`/mypage/fridge/recipes/${recipeId}`), AI_LOADING_DELAY_MS);
+    navigateTimeoutRef.current = setTimeout(
+      () => router.push(`/mypage/fridge/recipes/${recipeId}`),
+      AI_LOADING_DELAY_MS,
+    );
   }
 
   if (loadingRecipeId) return <RecipeAiLoadingView nickname={NICKNAME} />;
