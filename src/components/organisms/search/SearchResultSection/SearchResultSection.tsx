@@ -100,6 +100,11 @@ export function SearchResultSection({ query }: SearchResultSectionProps) {
   const [coupon, setCoupon] = useState(false);
   const [membership, setMembership] = useState(false);
   const [isFilterSheetOpen, setFilterSheetOpen] = useState(false);
+  // #128, CodeRabbit 리뷰 반영: `BottomSheet`는 닫혀 있어도 `FilterSheet`를 마운트 상태로
+  // 유지해서, resetFilters()가 appliedFilters만 지워선 시트 내부의 선택(브랜드/가격/유형 등)이
+  // 남아있다 — 다시 열면 지운 선택이 되살아나고 "상품보기"를 누르면 그대로 재적용된다. 리셋 시
+  // 이 키를 바꿔 `FilterSheet`를 통째로 재마운트해서 내부 상태까지 함께 초기화한다.
+  const [filterResetKey, setFilterResetKey] = useState(0);
   // #128: 필터 바텀시트(가격/브랜드/유형)에서 "N개 상품보기"를 눌러야 반영되는 서버 필터.
   const [appliedFilters, setAppliedFilters] = useState<{
     brand: ProductListParams['brand'];
@@ -118,6 +123,8 @@ export function SearchResultSection({ query }: SearchResultSectionProps) {
     // #128: 빈 상태의 "필터 초기화"는 퀵필터 칩뿐 아니라 필터 바텀시트에서 적용한
     // 가격/브랜드/유형(서버 필터)도 같이 풀어야 한다 — 0개 결과의 원인이 대부분 이쪽이다.
     setAppliedFilters({ brand: undefined, price: undefined, storageType: undefined });
+    // CodeRabbit 리뷰 반영: FilterSheet 내부 선택 상태도 같이 초기화(재마운트).
+    setFilterResetKey((key) => key + 1);
   };
 
   return (
@@ -180,6 +187,7 @@ export function SearchResultSection({ query }: SearchResultSectionProps) {
       />
 
       <FilterSheet
+        key={filterResetKey}
         open={isFilterSheetOpen}
         onClose={() => setFilterSheetOpen(false)}
         resultCount={filteredCount}

@@ -21,8 +21,8 @@ import type { ProductFilterItem, ProductListParams } from '@/types/product';
  * 나머지 3개는 `GET /products`에 대응 쿼리 파라미터가 아예 없다.
  *
  * ⚠️ `GET /products`의 `brand`/`storageType`은 둘 다 단일 문자열 파라미터다(백엔드
- * `ProductController.java` 확인) — 이 시트의 브랜드/유형 UI는 Figma대로 다중 선택 체크박스를
- * 유지하지만, 실제 서버 필터로는 **첫 번째 선택값 하나만** 전달된다(`onApplyFilters`).
+ * `ProductController.java` 확인) — 그래서 브랜드/유형은 체크박스 모양은 Figma대로 두되
+ * 선택 동작은 단일 선택(라디오처럼)으로 제한한다(CodeRabbit 리뷰 반영, #128).
  *
  * 선택 요약은 두 군데다: 탭 라벨 옆 개수 배지(Figma "TabItemBoxed")와 하단의 제거 가능한
  * 칩 목록. 단 **카테고리 선택은 칩으로 요약하지 않는다** — 디자인팀 지정(#90, "카테고리는
@@ -284,6 +284,19 @@ function CategoryPanel({
 }
 
 /**
+ * 가격/브랜드/유형 탭 공용 — 필터 옵션 조회(`useProductFilters`)가 로딩 중이거나 실패했을 때
+ * 표시. CodeRabbit 리뷰 반영: 이 상태를 "옵션이 원래 없음"과 구분하지 않으면 사용자가 필터를
+ * 못 쓰는 이유(네트워크 지연 vs 진짜 옵션 없음)를 알 수 없다.
+ */
+function FilterOptionsStatus({ status }: { status: 'pending' | 'error' }) {
+  return (
+    <p className="text-label-m text-fg-tertiary px-4 py-6">
+      {status === 'pending' ? '옵션을 불러오는 중이에요.' : '옵션을 불러오지 못했어요.'}
+    </p>
+  );
+}
+
+/**
  * 가격 탭 — 단일 선택 라디오(Figma node 884-60424: px-20 py-24, 행 간격 24). #128: 옵션은
  * `GET /products/filters`가 준 `PriceBand` 5단계 그대로다(백엔드가 이미 enum 선언 순서로
  * 정렬해서 준다 — 클라에서 재정렬하지 않는다).
@@ -316,6 +329,10 @@ function PricePanel({
  * #128: 옵션은 `GET /products/filters`가 준 실제 브랜드 목록(현재 검색결과 내 개수 포함).
  * 자음 인덱스는 원래도 스크롤 없이 하이라이트만 하는 시각적 스텁이었다(#90) — 그대로 둔다.
  * "가나다순"/"상품많은순" 토글은 이제 실제로 목록을 재정렬한다(원래는 이것도 시각 전용이었다).
+ *
+ * ⚠️ CodeRabbit 리뷰 반영: `GET /products`의 `brand`는 단일 문자열 파라미터라(#128) 체크박스
+ * 모양은 Figma를 그대로 유지하되 선택 자체는 단일 선택으로 동작한다 — 같은 항목을 다시 누르면
+ * 해제되고, 다른 항목을 누르면 이전 선택을 대체한다(라디오처럼 동작하는 체크박스).
  */
 function BrandPanel({
   options,
@@ -324,15 +341,15 @@ function BrandPanel({
   activeLetter,
   onLetterChange,
   selected,
-  onToggle,
+  onSelect,
 }: {
   options: FilterOption[];
   sort: 'alpha' | 'popular';
   onSortChange: (sort: 'alpha' | 'popular') => void;
   activeLetter: string;
   onLetterChange: (letter: string) => void;
-  selected: string[];
-  onToggle: (brand: string) => void;
+  selected: string | null;
+  onSelect: (brand: string) => void;
 }) {
   const sortedOptions = [...options].sort((a, b) =>
     sort === 'popular' ? (b.count ?? 0) - (a.count ?? 0) : a.label.localeCompare(b.label, 'ko'),
@@ -385,8 +402,8 @@ function BrandPanel({
             key={brand.value}
             label={brand.label}
             trailing={String(brand.count)}
-            checked={selected.includes(brand.value)}
-            onChange={() => onToggle(brand.value)}
+            checked={selected === brand.value}
+            onChange={() => onSelect(brand.value)}
           />
         ))}
       </div>
@@ -395,9 +412,9 @@ function BrandPanel({
 }
 
 /**
- * 유형/혜택/출시/포장타입 — 정렬·자음인덱스 없는 단순 체크박스 목록. `value`로 선택을
- * 추적한다 — 유형 탭은 백엔드 enum 값(`REFRIGERATED` 등)을, 나머지 3개는 라벨 자신을
- * value로 쓴다(#128, 대응 백엔드 파라미터가 없어 라벨=값이어도 상관없다).
+ * 혜택/출시/포장타입 — 정렬·자음인덱스 없는 다중 선택 체크박스 목록(#128, 대응하는 백엔드
+ * 파라미터가 없어 라벨을 값으로 그대로 쓴다). 유형 탭은 실제 서버 필터라 다중 선택이 아니다 —
+ * `SingleSelectOptionsPanel` 참고.
  */
 function SimpleOptionsPanel({
   options,
@@ -416,6 +433,35 @@ function SimpleOptionsPanel({
           label={option.label}
           checked={selected.includes(option.value)}
           onChange={() => onToggle(option.value)}
+        />
+      ))}
+    </div>
+  );
+}
+
+/**
+ * 유형 탭 전용 — 체크박스 모양은 다른 단순 목록과 같지만 단일 선택으로 동작한다.
+ * `GET /products`의 `storageType`이 단일 문자열 파라미터라서다(백엔드 `ProductController.java`
+ * 확인, #128, CodeRabbit 리뷰 반영) — 여러 개 체크된 것처럼 보이다 실제로는 하나만 반영되는
+ * 걸 막기 위해 `BrandPanel`과 같은 방식(같은 항목 재클릭 시 해제, 다른 항목 클릭 시 대체)으로 둔다.
+ */
+function SingleSelectOptionsPanel({
+  options,
+  selected,
+  onSelect,
+}: {
+  options: FilterOption[];
+  selected: string | null;
+  onSelect: (value: string) => void;
+}) {
+  return (
+    <div className="flex flex-col py-1">
+      {options.map((option) => (
+        <CheckboxRow
+          key={option.value}
+          label={option.label}
+          checked={selected === option.value}
+          onChange={() => onSelect(option.value)}
         />
       ))}
     </div>
@@ -526,24 +572,29 @@ export function FilterSheet({
   const [priceSelection, setPriceSelection] = useState<string | null>(null);
   const [brandSort, setBrandSort] = useState<'alpha' | 'popular'>('alpha');
   const [activeLetter, setActiveLetter] = useState('ㄱ');
-  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  // #128, CodeRabbit 리뷰 반영: brand/storageType은 서버가 단일값만 받아 단일 선택 상태로 둔다.
+  const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
+  const [selectedStorageType, setSelectedStorageType] = useState<string | null>(null);
   const [simpleSelections, setSimpleSelections] = useState<Record<string, string[]>>({});
 
-  // #128: 시트가 열려 있을 때만 불러온다 — 열릴 때의 검색어 기준 필터 옵션.
-  const { data: filters } = useProductFilters(keyword, open);
+  // #128: 시트가 열려 있을 때만 불러온다 — 열릴 때의 검색어 기준 필터 옵션. CodeRabbit 리뷰 반영:
+  // 로딩/실패를 "옵션 없음"과 구분해서 보여줘야 해서 isPending/isError도 같이 쓴다.
+  const {
+    data: filters,
+    isPending: isFiltersPending,
+    isError: isFiltersError,
+  } = useProductFilters(keyword, open);
   const priceOptions = filters?.price ?? [];
   const brandOptions = filters?.brand ?? [];
   const storageTypeOptions = filters?.storageType ?? [];
 
   /**
    * 아직 "N개 상품보기"를 누르기 전, 지금 시트에서 고른 값 그대로 미리 반영했을 때의 개수.
-   * `GET /products`의 brand/storageType은 단일값이라(#128) 여기서도 첫 번째 선택만 쓴다 —
    * 실제 적용(`handleSubmit`)과 반드시 같은 값이어야 버튼 숫자와 실제 결과가 어긋나지 않는다.
    */
-  const pendingBrand = selectedBrands[0] ?? undefined;
+  const pendingBrand = selectedBrand ?? undefined;
   const pendingPrice = (priceSelection ?? undefined) as ProductListParams['price'];
-  const pendingStorageType = (simpleSelections[STORAGE_TYPE_TAB]?.[0] ??
-    undefined) as ProductListParams['storageType'];
+  const pendingStorageType = (selectedStorageType ?? undefined) as ProductListParams['storageType'];
 
   // #128: 아무 선택도 안 했으면 SearchResultSection이 이미 띄워둔 쿼리와 키가 같아 캐시를
   // 그대로 재사용한다 — 열자마자 다시 fetch 하지 않는다. Kurly Only/쿠폰/멤버스혜택 퀵필터는
@@ -564,7 +615,8 @@ export function FilterSheet({
     setExpandedCategory(null);
     setCategorySubSelections({});
     setPriceSelection(null);
-    setSelectedBrands([]);
+    setSelectedBrand(null);
+    setSelectedStorageType(null);
     setSimpleSelections({});
   }
 
@@ -575,8 +627,14 @@ export function FilterSheet({
     }));
   }
 
-  function toggleBrand(brand: string) {
-    setSelectedBrands((prev) => toggleInList(prev, brand));
+  /** 같은 브랜드를 다시 누르면 해제, 다른 브랜드를 누르면 대체(단일 선택, #128). */
+  function selectBrand(brand: string) {
+    setSelectedBrand((prev) => (prev === brand ? null : brand));
+  }
+
+  /** 브랜드와 동일한 단일 선택 규칙(#128). */
+  function selectStorageType(value: string) {
+    setSelectedStorageType((prev) => (prev === value ? null : value));
   }
 
   function toggleSimpleOption(tab: FilterTab, option: string) {
@@ -584,17 +642,19 @@ export function FilterSheet({
   }
 
   const priceLabel = priceOptions.find((r) => r.value === priceSelection)?.label;
-  /** 유형 탭은 라벨 대신 백엔드 enum 값을 저장하므로 칩 요약 시 라벨로 되돌린다(#128). */
-  const storageTypeLabel = (value: string) =>
-    storageTypeOptions.find((o) => o.value === value)?.label ?? value;
+  /** 유형은 라벨 대신 백엔드 enum 값을 저장하므로 칩 요약 시 라벨로 되돌린다(#128). */
+  const storageTypeLabel = selectedStorageType
+    ? (storageTypeOptions.find((o) => o.value === selectedStorageType)?.label ??
+      selectedStorageType)
+    : null;
   const categorySubCount = Object.values(categorySubSelections).reduce((n, v) => n + v.length, 0);
   const simpleCount = (tab: FilterTab) => simpleSelections[tab]?.length ?? 0;
 
   const tabCounts: Record<FilterTab, number> = {
     카테고리: categorySubCount,
     가격: priceSelection ? 1 : 0,
-    브랜드: selectedBrands.length,
-    [STORAGE_TYPE_TAB]: simpleCount(STORAGE_TYPE_TAB),
+    브랜드: selectedBrand ? 1 : 0,
+    [STORAGE_TYPE_TAB]: selectedStorageType ? 1 : 0,
     혜택: simpleCount('혜택'),
     출시: simpleCount('출시'),
     포장타입: simpleCount('포장타입'),
@@ -604,11 +664,28 @@ export function FilterSheet({
     ...(priceLabel
       ? [{ key: 'price', label: priceLabel, onRemove: () => setPriceSelection(null) }]
       : []),
-    ...selectedBrands.map((b) => ({ key: `brand-${b}`, label: b, onRemove: () => toggleBrand(b) })),
+    ...(selectedBrand
+      ? [
+          {
+            key: `brand-${selectedBrand}`,
+            label: selectedBrand,
+            onRemove: () => setSelectedBrand(null),
+          },
+        ]
+      : []),
+    ...(storageTypeLabel
+      ? [
+          {
+            key: 'storageType',
+            label: storageTypeLabel,
+            onRemove: () => setSelectedStorageType(null),
+          },
+        ]
+      : []),
     ...Object.entries(simpleSelections).flatMap(([tab, options]) =>
       options.map((option) => ({
         key: `simple-${tab}-${option}`,
-        label: tab === STORAGE_TYPE_TAB ? storageTypeLabel(option) : option,
+        label: option,
         onRemove: () => toggleSimpleOption(tab as FilterTab, option),
       })),
     ),
@@ -659,28 +736,34 @@ export function FilterSheet({
               selections={categorySubSelections}
               onToggleOption={toggleCategorySub}
             />
-          ) : activeTab === '가격' ? (
-            <PricePanel
-              options={priceOptions}
-              value={priceSelection}
-              onChange={setPriceSelection}
-            />
-          ) : activeTab === '브랜드' ? (
-            <BrandPanel
-              options={brandOptions}
-              sort={brandSort}
-              onSortChange={setBrandSort}
-              activeLetter={activeLetter}
-              onLetterChange={setActiveLetter}
-              selected={selectedBrands}
-              onToggle={toggleBrand}
-            />
-          ) : activeTab === STORAGE_TYPE_TAB ? (
-            <SimpleOptionsPanel
-              options={storageTypeOptions}
-              selected={simpleSelections[STORAGE_TYPE_TAB] ?? []}
-              onToggle={(value) => toggleSimpleOption(STORAGE_TYPE_TAB, value)}
-            />
+          ) : activeTab === '가격' || activeTab === '브랜드' || activeTab === STORAGE_TYPE_TAB ? (
+            isFiltersPending ? (
+              <FilterOptionsStatus status="pending" />
+            ) : isFiltersError ? (
+              <FilterOptionsStatus status="error" />
+            ) : activeTab === '가격' ? (
+              <PricePanel
+                options={priceOptions}
+                value={priceSelection}
+                onChange={setPriceSelection}
+              />
+            ) : activeTab === '브랜드' ? (
+              <BrandPanel
+                options={brandOptions}
+                sort={brandSort}
+                onSortChange={setBrandSort}
+                activeLetter={activeLetter}
+                onLetterChange={setActiveLetter}
+                selected={selectedBrand}
+                onSelect={selectBrand}
+              />
+            ) : (
+              <SingleSelectOptionsPanel
+                options={storageTypeOptions}
+                selected={selectedStorageType}
+                onSelect={selectStorageType}
+              />
+            )
           ) : (
             <SimpleOptionsPanel
               options={(SIMPLE_TAB_OPTIONS[activeTab] ?? []).map((label) => ({
