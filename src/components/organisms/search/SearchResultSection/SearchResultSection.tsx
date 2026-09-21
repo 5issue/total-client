@@ -115,6 +115,9 @@ export function SearchResultSection({ query }: SearchResultSectionProps) {
     setKurlyOnly(false);
     setCoupon(false);
     setMembership(false);
+    // #128: 빈 상태의 "필터 초기화"는 퀵필터 칩뿐 아니라 필터 바텀시트에서 적용한
+    // 가격/브랜드/유형(서버 필터)도 같이 풀어야 한다 — 0개 결과의 원인이 대부분 이쪽이다.
+    setAppliedFilters({ brand: undefined, price: undefined, storageType: undefined });
   };
 
   return (
