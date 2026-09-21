@@ -105,15 +105,18 @@ export function AddressListItem({
           </div>
         </div>
 
+        {/* 피드백(2026-09-21): 이 행이 시각적으로 너무 커 보인다는 지적 — 원인은 삭제·수정
+            버튼의 min-h-11(44px)이 행 높이를 그대로 키우고 있어서다. 최소 44×44 터치 타깃
+            (code-style §5)은 그대로 지키되, 실제 렌더 박스는 작게 만들고 `before` 가상요소로
+            클릭 가능 영역만 44px로 확장한다(터치 타깃 확장 패턴 — 보이는 크기와 클릭 영역 분리). */}
         <div className="flex w-full items-center justify-between">
           <span className="text-caption-l text-brand-300">{deliveryType}</span>
-          {/* 삭제·수정은 짧은 텍스트라 최소 44×44 터치 타깃을 강제한다 (code-style §5). */}
           <div className="flex items-center gap-1">
             {onDelete && (
               <button
                 type="button"
                 onClick={onDelete}
-                className="text-caption-l text-fg-tertiary inline-flex min-h-11 min-w-11 items-center justify-center px-2"
+                className="text-caption-l text-fg-tertiary relative inline-flex min-w-11 items-center justify-center px-2 py-1 before:absolute before:inset-x-0 before:-inset-y-2.5 before:content-['']"
               >
                 삭제
               </button>
@@ -123,7 +126,7 @@ export function AddressListItem({
               <button
                 type="button"
                 onClick={onEdit}
-                className="text-caption-l text-fg-tertiary inline-flex min-h-11 min-w-11 items-center justify-center px-2"
+                className="text-caption-l text-fg-tertiary relative inline-flex min-w-11 items-center justify-center px-2 py-1 before:absolute before:inset-x-0 before:-inset-y-2.5 before:content-['']"
               >
                 수정
               </button>
