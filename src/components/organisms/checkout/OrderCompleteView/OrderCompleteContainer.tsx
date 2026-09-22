@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 
 import { Button } from '@/components/atoms/Button';
+import { LoadingIndicator } from '@/components/atoms/LoadingIndicator';
 import { ErrorToastBanner } from '@/components/molecules/shared/ErrorToastBanner';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 import { usePaymentReceipt } from '@/hooks/checkout/useOrderReceipt';
@@ -43,9 +44,7 @@ export function OrderCompleteContainer({
     return (
       <div className="bg-surface-secondary flex flex-1 flex-col">
         <SectionHeader leading="close" leadingHref="/" title="주문 완료" />
-        <p className="text-body-m text-fg-tertiary p-4" aria-live="polite">
-          주문 정보를 불러오는 중입니다.
-        </p>
+        <LoadingIndicator label="주문 정보를 불러오는 중입니다" className="flex-1" />
       </div>
     );
   }

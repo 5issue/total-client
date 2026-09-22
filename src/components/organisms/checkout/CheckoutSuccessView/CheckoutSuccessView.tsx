@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 
 import { useRouter, useSearchParams } from 'next/navigation';
 
+import { LoadingIndicator } from '@/components/atoms/LoadingIndicator';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 import { ApiError } from '@/errors/ApiError';
 import { useConfirmPayment } from '@/hooks/checkout/useConfirmPayment';
@@ -78,9 +79,7 @@ export function CheckoutSuccessView() {
   return (
     <div className="bg-surface flex flex-1 flex-col">
       <SectionHeader title="결제 승인" />
-      <p className="text-body-m text-fg-tertiary p-4" aria-live="polite">
-        결제를 확인하고 있습니다.
-      </p>
+      <LoadingIndicator label="결제를 확인하고 있습니다" className="flex-1" />
     </div>
   );
 }

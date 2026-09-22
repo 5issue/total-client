@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 
 import type { Metadata } from 'next';
 
+import { LoadingIndicator } from '@/components/atoms/LoadingIndicator';
 import { CheckoutSuccessView } from '@/components/organisms/checkout/CheckoutSuccessView';
 
 export const metadata: Metadata = { title: '결제 승인' };
@@ -14,13 +15,7 @@ export const dynamic = 'force-dynamic';
  */
 export default function CheckoutSuccessPage() {
   return (
-    <Suspense
-      fallback={
-        <p className="text-body-m text-fg-tertiary p-4" aria-live="polite">
-          결제를 확인하고 있습니다.
-        </p>
-      }
-    >
+    <Suspense fallback={<LoadingIndicator label="결제를 확인하고 있습니다" />}>
       <CheckoutSuccessView />
     </Suspense>
   );
