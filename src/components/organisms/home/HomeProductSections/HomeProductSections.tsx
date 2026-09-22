@@ -10,6 +10,10 @@ import {
 } from '@/components/organisms/home/DisplaySectionList';
 import { QuickMenuSection } from '@/components/organisms/home/QuickMenuSection';
 import { ProductOptionSheet } from '@/components/organisms/product/ProductOptionSheet';
+import {
+  MOCK_OPTION_PRODUCT,
+  MOCK_UNIT,
+} from '@/components/organisms/product/ProductOptionSheet/mock';
 import { useHomeRecommendations } from '@/hooks/home/useHomeRecommendations';
 import { formatPrice } from '@/lib/formatters';
 import type { HomeSectionProduct } from '@/types/home';
@@ -35,6 +39,11 @@ import type { HomeSectionProduct } from '@/types/home';
  * `MOCK_REVIEW_COUNT`/`MOCK_COUPON_BADGE_LABEL`/`MOCK_DELIVERY_TYPE`과 동일하게 맞췄다
  * (#131이 아직 develop에 병합되지 않아 상수를 직접 import하지 못하고 리터럴로 중복해뒀다 —
  * 병합되면 공용 상수로 옮기는 걸 고려).
+ *
+ * "담기" 클릭 핸들러(`DisplaySectionList`의 `onAddToCart`)는 아직 어떤 카드를 눌렀는지
+ * 넘기지 않는다(섹션 리스트 쪽 별도 개선 필요) — 그래서 `ProductOptionSheet`(이슈 #134로
+ * productName/productTagline/unit 필수 prop이 됨)는 어느 카드를 눌렀든 `mock.ts` 기본
+ * 픽스처로 고정 렌더한다. 클릭한 상품 식별이 가능해지면 실 SKU로 교체.
  */
 const MOCK_DELIVERY_LABEL = '샛별배송';
 const MOCK_REVIEW_COUNT_LABEL = '9,999+';
@@ -100,7 +109,13 @@ export function HomeProductSections() {
         />
       ))}
 
-      <ProductOptionSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
+      <ProductOptionSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        productName={MOCK_OPTION_PRODUCT.name}
+        productTagline={MOCK_OPTION_PRODUCT.tagline}
+        unit={MOCK_UNIT}
+      />
     </>
   );
 }
