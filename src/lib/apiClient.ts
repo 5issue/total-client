@@ -107,9 +107,17 @@ async function tryRefresh(): Promise<boolean> {
 
 // --- 엔드포인트 함수 (api-convention §1·§8 — 훅은 이 함수를 호출, publicFetch 직접 호출 금지) ---
 
-/** 소셜 로그인 URL 발급 (카카오/네이버). 로그인 전 단계라 인증 불필요. */
-export function requestSocialLoginUrl(provider: OAuthProvider) {
-  return publicFetch(`/api/auth/oauth/${provider}`, SpringLoginUrlDataSchema, { method: 'POST' });
+/**
+ * 소셜 로그인 URL 발급 (카카오/네이버). 로그인 전 단계라 인증 불필요.
+ * `returnTo` — 로그인 완료 후 되돌아갈 내부 상대경로(선택). Spring 이 쿠키에 담아두고
+ * 콜백 리다이렉트 쿼리로 되돌려준다(BE-16 검증 대상 — 여기서도 validate 되지만 값이
+ * 이상하다고 로그인 자체를 막지는 않는다).
+ */
+export function requestSocialLoginUrl(provider: OAuthProvider, returnTo?: string) {
+  return publicFetch(`/api/auth/oauth/${provider}`, SpringLoginUrlDataSchema, {
+    method: 'POST',
+    body: JSON.stringify(returnTo ? { returnTo } : {}),
+  });
 }
 
 /** 검색 결과 상품 목록 조회. 로그인 여부와 무관하게 노출되는 공개 데이터. */

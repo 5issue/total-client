@@ -10,19 +10,7 @@ import { type NextRequest, NextResponse } from 'next/server';
  */
 const REFRESH_TOKEN_COOKIE = 'refresh_token';
 
-/**
- * 임시(#86): 소셜 로그인이 배포 환경(Vercel Preview 등)에서 아직 엔드투엔드로 검증되지
- * 않아, 그 전까지 보호 라우트 가드를 전부 비활성화한다 — 리뷰어·팀원이 로그인 없이
- * `/checkout`, `/mypage/**` 화면을 볼 수 있어야 하기 때문. 배포 환경에서 소셜 로그인이
- * 실제로 동작하는 걸 확인하면 이 상수만 지우면 아래 원래 가드 로직이 그대로 복원된다.
- */
-const ROUTE_GUARD_DISABLED = true;
-
 export function middleware(req: NextRequest) {
-  if (ROUTE_GUARD_DISABLED) {
-    return NextResponse.next();
-  }
-
   if (req.cookies.get(REFRESH_TOKEN_COOKIE)?.value) {
     return NextResponse.next();
   }

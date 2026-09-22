@@ -24,3 +24,13 @@ export function extractRefreshTokenCookie(
   }
   return null;
 }
+
+/** 이름으로 지정한 쿠키의 값만 뽑는 범용 버전(`oauthTransactionCookies.ts` 등에서 재사용). */
+export function extractCookieValue(setCookieHeaders: string[], name: string): string | null {
+  const pattern = new RegExp(`(?:^|;\\s*)${name}=([^;]+)`);
+  for (const header of setCookieHeaders) {
+    const match = pattern.exec(header);
+    if (match?.[1]) return decodeURIComponent(match[1]);
+  }
+  return null;
+}

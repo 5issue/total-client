@@ -1,0 +1,1 @@
+export { MyFridgeView } from './MyFridgeView';

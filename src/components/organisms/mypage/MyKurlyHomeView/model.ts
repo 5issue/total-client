@@ -42,6 +42,8 @@ export interface KitchenCardData {
   /** 글리프 원본 비율(Figma 실측) — 냉장고 22×26, 레시피 32×32 로 서로 다르다. */
   iconWidth: number;
   iconHeight: number;
+  /** 없으면 목적지 화면이 아직 없다는 뜻 — 비상호작용으로 렌더한다(`LinkItem` 과 동일 원칙). */
+  href?: string;
 }
 
 /**
