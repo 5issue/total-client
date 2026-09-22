@@ -93,16 +93,32 @@ export async function privateFetch<T>(
   return schema.parse(unwrap(json));
 }
 
-async function tryRefresh(): Promise<boolean> {
-  try {
-    const res = await fetch('/api/auth/refresh', { method: 'POST' });
-    if (!res.ok) return false;
-    const json = (await res.json()) as ApiEnvelope<{ accessToken: string }>;
-    setAccessToken(json.data.accessToken);
-    return true;
-  } catch {
-    return false;
-  }
+// SessionBootstrap(부팅 시 무음 재발급)과 privateFetch 의 401 인터셉터가 페이지 진입 직후
+// 동시에 이 함수를 부를 수 있다(예: /cart — useSession 마운트 + useCart 의 첫 401 이 같은
+// 틱에 몰림). refresh_token 은 서버에서 1회용으로 회전되므로, 중복 호출하면 먼저 도착한
+// 요청은 성공하고 뒤따라온 요청은 "이미 쓴 토큰"으로 거부당해 방금 심어진 새 쿠키를
+// clearRefreshTokenCookie 로 지워버린다(2026-09-22 실제 재현·확인). in-flight 프로미스를
+// 공유해 동시 호출을 네트워크 요청 1개로 합친다.
+let refreshPromise: Promise<boolean> | null = null;
+
+function tryRefresh(): Promise<boolean> {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    try {
+      const res = await fetch('/api/auth/refresh', { method: 'POST' });
+      if (!res.ok) return false;
+      const json = (await res.json()) as ApiEnvelope<{ accessToken: string }>;
+      setAccessToken(json.data.accessToken);
+      return true;
+    } catch {
+      return false;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
 }
 
 // --- 엔드포인트 함수 (api-convention §1·§8 — 훅은 이 함수를 호출, publicFetch 직접 호출 금지) ---
