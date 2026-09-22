@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 
 import { Icon } from '@/components/atoms/Icon';
 import { StatusLabel } from '@/components/molecules/shared/StatusLabel';
@@ -106,23 +107,38 @@ export function PromoSummarySection() {
       <div className="flex flex-col gap-3 pt-3">
         <h2 className="text-label-xl text-fg">컬리키친</h2>
         <div className="flex items-center gap-2">
-          {MOCK_KITCHEN_CARDS.map((card) => (
-            <div
-              key={card.id}
-              className="bg-surface-secondary rounded-m flex h-13 flex-1 items-center justify-center gap-2 px-4 py-3"
-            >
-              <p className="text-label-xl text-fg flex-1 text-center">{card.title}</p>
-              {/* 원 배경은 `bg-bg`(Icon/White_Inverse, 라이트 흰색/다크 #222222)로 테마 처리
-                  — 이전엔 원 자체를 이미지에 베이크드해 export 했더니 캔버스 모서리에
-                  당시 Figma 배경색(#515e69)이 불투명하게 같이 구워져, 실제 카드 배경
-                  (bg-surface-secondary, 다크 #7e8f9b)과 색이 달라 사각형 회색 테두리가
-                  비쳐 보이는 문제가 있었다(스크린샷 피드백, 2026-09-18) — 투명 배경
-                  글리프만 export 해 해결. */}
-              <span className="bg-bg flex size-10 items-center justify-center rounded-full">
-                <Image src={card.iconSrc} alt="" width={card.iconWidth} height={card.iconHeight} />
-              </span>
-            </div>
-          ))}
+          {MOCK_KITCHEN_CARDS.map((card) => {
+            const content = (
+              <>
+                <p className="text-label-xl text-fg flex-1 text-center">{card.title}</p>
+                {/* 원 배경은 `bg-bg`(Icon/White_Inverse, 라이트 흰색/다크 #222222)로 테마
+                    처리 — 이전엔 원 자체를 이미지에 베이크드해 export 했더니 캔버스 모서리에
+                    당시 Figma 배경색(#515e69)이 불투명하게 같이 구워져, 실제 카드 배경
+                    (bg-surface-secondary, 다크 #7e8f9b)과 색이 달라 사각형 회색 테두리가
+                    비쳐 보이는 문제가 있었다(스크린샷 피드백, 2026-09-18) — 투명 배경
+                    글리프만 export 해 해결. */}
+                <span className="bg-bg flex size-10 items-center justify-center rounded-full">
+                  <Image
+                    src={card.iconSrc}
+                    alt=""
+                    width={card.iconWidth}
+                    height={card.iconHeight}
+                  />
+                </span>
+              </>
+            );
+            const className =
+              'bg-surface-secondary rounded-m flex h-13 flex-1 items-center justify-center gap-2 px-4 py-3';
+            return card.href ? (
+              <Link key={card.id} href={card.href} className={className}>
+                {content}
+              </Link>
+            ) : (
+              <div key={card.id} className={className}>
+                {content}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

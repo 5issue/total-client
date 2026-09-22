@@ -208,7 +208,9 @@ export function AddressDetailForm({
             variant="inline"
             icon={<Icon name="info-line" size={20} className="text-fg-tertiary" aria-hidden />}
           >
-            <span className="tracking-[0.01em]">
+            {/* 피드백(Figma QA #129): 굵기 500(text-body-m 기본)이 진해 보인다는 지적 —
+                font-normal(400)로 한 단계 낮춘다. */}
+            <span className="font-normal tracking-[0.01em]">
               일부 관공서, 학교, 병원, 시장, 공단지역, 산간지역, 백화점 등은 현장 상황에 따라
               샛별배송이 불가능할 수 있습니다.
             </span>

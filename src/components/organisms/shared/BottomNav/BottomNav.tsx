@@ -64,6 +64,7 @@ export function BottomNav({ badges, className }: BottomNavProps) {
               href={item.href}
               active={isNavItemActive(pathname, item.href)}
               badge={badges?.[item.tab]}
+              disabled={item.disabled}
               className="flex-1"
             />
           ))}
