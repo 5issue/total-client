@@ -8,12 +8,14 @@ export type NavItem = {
   tab: TabName;
   label: string;
   href: string;
+  /** Figma QA(이슈 #129) — 화면 미구현 상태라 탭을 비활성화한다. 페이지 자체도 삭제. */
+  disabled?: boolean;
 };
 
 export const NAV_ITEMS: NavItem[] = [
   { tab: 'home', label: '홈', href: '/' },
-  { tab: 'lounge', label: '라운지', href: '/lounge' },
-  { tab: 'category', label: '카테고리', href: '/category' },
+  { tab: 'lounge', label: '라운지', href: '/lounge', disabled: true },
+  { tab: 'category', label: '카테고리', href: '/category', disabled: true },
   { tab: 'search', label: '검색', href: '/search' },
   { tab: 'my', label: '마이컬리', href: '/mypage' },
 ];

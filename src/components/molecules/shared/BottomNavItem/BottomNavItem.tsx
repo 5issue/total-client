@@ -22,6 +22,8 @@ export type BottomNavItemProps = {
   active?: boolean;
   /** 알림 등 강조 표시가 있을 때만 true — 상시 노출 아님 (구현 예정: 알림 도메인 훅 연동) */
   badge?: boolean;
+  /** 화면 미구현 등으로 탭을 비활성화 — 이동 불가 + 톤다운(이슈 #129). */
+  disabled?: boolean;
   className?: string;
 };
 
@@ -31,35 +33,49 @@ export function BottomNavItem({
   href,
   active = false,
   badge = false,
+  disabled = false,
   className,
 }: BottomNavItemProps) {
+  const content = (
+    <span className="relative flex w-14 flex-col items-center gap-0.5">
+      {active && (
+        <span
+          aria-hidden="true"
+          className="bg-overlay-blue h-nav-capsule-y w-nav-capsule-x absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+        />
+      )}
+      {badge && (
+        <span
+          aria-hidden="true"
+          className="bg-orange absolute top-0 right-2 size-1.5 rounded-full"
+        />
+      )}
+      <TabIcon tab={tab} active={active} aria-hidden className="relative z-10" />
+      <span className={`text-caption-s relative font-bold ${active ? 'text-primary' : 'text-fg'}`}>
+        {label}
+        {badge && <span className="sr-only"> (새 알림 있음)</span>}
+      </span>
+    </span>
+  );
+
+  if (disabled) {
+    return (
+      <span
+        aria-disabled="true"
+        className={`h-nav-item flex min-w-14 items-center justify-center opacity-40 ${className ?? ''}`.trim()}
+      >
+        {content}
+      </span>
+    );
+  }
+
   return (
     <Link
       href={href}
       aria-current={active ? 'page' : undefined}
       className={`h-nav-item flex min-w-14 items-center justify-center ${className ?? ''}`.trim()}
     >
-      <span className="relative flex w-14 flex-col items-center gap-0.5">
-        {active && (
-          <span
-            aria-hidden="true"
-            className="bg-overlay-blue h-nav-capsule-y w-nav-capsule-x absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
-          />
-        )}
-        {badge && (
-          <span
-            aria-hidden="true"
-            className="bg-orange absolute top-0 right-2 size-1.5 rounded-full"
-          />
-        )}
-        <TabIcon tab={tab} active={active} aria-hidden className="relative z-10" />
-        <span
-          className={`text-caption-s relative font-bold ${active ? 'text-primary' : 'text-fg'}`}
-        >
-          {label}
-          {badge && <span className="sr-only"> (새 알림 있음)</span>}
-        </span>
-      </span>
+      {content}
     </Link>
   );
 }
