@@ -99,6 +99,7 @@ export function ProductDetailInteractiveShell({
 
   const hasPurchaseInfo = overview?.recentRepurchaseCount !== undefined;
   const isSoldOut = detail?.status === 'SOLDOUT';
+  const unitCount = detail?.units.length ?? 0;
 
   useEffect(() => {
     if (!hasPurchaseInfo) return;
@@ -303,23 +304,34 @@ export function ProductDetailInteractiveShell({
         liked={liked}
         onToggleLike={() => setLiked((prev) => !prev)}
         showTerms={false}
-        // 멤버스특가(overview.memberDeal) 상품은 다중 옵션 시트, 일반 상품은 단일 옵션
-        // 시트를 연다(사용자 확인 2026-09-16). 멤버십 전용 옵션 가입 유도 모달 분기는
-        // 계약에 그 여부 필드가 없어 이슈 #134에서 뗐다 — MultiOptionSelectBottomSheet 참고.
-        onAddToCart={() =>
-          overview?.memberDeal ? setMultiOptionSheetOpen(true) : setOptionSheetOpen(true)
-        }
-        // 상품 데이터 로딩/에러 중엔 무엇을 담는지 알 수 없어, 품절 상품은 담을 수 없어
-        // 담기 자체를 막는다(이슈 #134 — `status` 연동).
-        addToCartDisabled={!overview || isSoldOut}
+        // SKU(units)가 정확히 1개면 단일 옵션 시트, 2개 이상이면 다중 옵션 시트를 연다
+        // (코드래빗 리뷰 반영 — 전엔 mock뿐인 memberDeal로 분기해 0개 상품도 단일 시트가
+        // 열려 수량 1로 가상 담기가 될 수 있었다). 0개면 담을 옵션이 없어 아무것도 안 한다.
+        onAddToCart={() => {
+          if (unitCount === 0) return;
+          if (unitCount > 1) {
+            setMultiOptionSheetOpen(true);
+          } else {
+            setOptionSheetOpen(true);
+          }
+        }}
+        // 상품 데이터 로딩/에러 중엔 무엇을 담는지 알 수 없고, 품절 상품·옵션이 하나도
+        // 없는 상품은 담을 수 없어 담기 자체를 막는다(이슈 #134 — `status`/`units` 연동).
+        addToCartDisabled={!overview || isSoldOut || unitCount === 0}
         className={`bg-surface sticky bottom-0 z-30 ${inquiryModalOpen ? 'pointer-events-none' : ''}`}
       />
 
-      <ProductOptionSheet
-        open={optionSheetOpen}
-        onClose={() => setOptionSheetOpen(false)}
-        onAddToCart={handleAddedToCart}
-      />
+      {detail?.units[0] ? (
+        <ProductOptionSheet
+          open={optionSheetOpen}
+          onClose={() => setOptionSheetOpen(false)}
+          onAddToCart={handleAddedToCart}
+          productName={overview?.name ?? ''}
+          productTagline={detail.shortDescription}
+          productImageSrc={overview?.imageSrc}
+          unit={detail.units[0]}
+        />
+      ) : null}
       <MultiOptionSelectBottomSheet
         open={multiOptionSheetOpen}
         onClose={() => setMultiOptionSheetOpen(false)}

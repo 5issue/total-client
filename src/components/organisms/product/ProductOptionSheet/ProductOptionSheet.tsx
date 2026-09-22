@@ -6,8 +6,10 @@ import { AddToCartActions } from '@/components/molecules/product/AddToCartAction
 import { CartItemPreview } from '@/components/molecules/product/CartItemPreview';
 import { CartQuantityRow } from '@/components/molecules/product/CartQuantityRow';
 import { BottomSheet } from '@/components/molecules/shared/BottomSheet';
+import { formatPrice } from '@/lib/formatters';
+import type { ProductUnit } from '@/types/product';
 
-import { MOCK_ADD_TO_CART_PRODUCT, MOCK_ADD_TO_CART_PROMOTION } from './mock';
+import { MOCK_ADD_TO_CART_PROMOTION } from './mock';
 
 /**
  * 장바구니 담기 바텀시트 (organism). Figma `BottomSheet`(node 2888:2738) —
@@ -23,17 +25,34 @@ import { MOCK_ADD_TO_CART_PRODUCT, MOCK_ADD_TO_CART_PROMOTION } from './mock';
  * 로컬 state로 실제 동작하지만, 장바구니 담기/신선구독/찜은 뮤테이션 API가 아직
  * 없어 실제 담기는 없다 — "담기" 클릭 시 시트를 닫고 `onAddToCart` 로 성공을 알린다
  * (호출부가 `CartAddedProductsBottomSheet` 를 잇달아 여는 데 쓴다, node 665:43409).
+ *
+ * `unit`(이슈 #134) — 상품 상세 응답의 SKU가 정확히 1개일 때 셸이 이 시트를 연다(2개
+ * 이상이면 `MultiOptionSelectBottomSheet`). 단위가(`unitPriceLabel`)는 계약에 없어
+ * 렌더하지 않는다.
  */
 export type ProductOptionSheetProps = {
   open: boolean;
   onClose: () => void;
   /** 담기 성공 직후(시트가 닫히는 시점) 호출 — 완료 시트 등 다음 단계 트리거용. */
   onAddToCart?: () => void;
+  productName: string;
+  productTagline: string;
+  productImageSrc?: string;
+  unit: ProductUnit;
 };
 
-export function ProductOptionSheet({ open, onClose, onAddToCart }: ProductOptionSheetProps) {
+export function ProductOptionSheet({
+  open,
+  onClose,
+  onAddToCart,
+  productName,
+  productTagline,
+  productImageSrc,
+  unit,
+}: ProductOptionSheetProps) {
   const [quantity, setQuantity] = useState(1);
   const [liked, setLiked] = useState(false);
+  const hasDiscount = unit.price !== unit.salePrice;
 
   function handleAddToCart() {
     onClose();
@@ -60,9 +79,10 @@ export function ProductOptionSheet({ open, onClose, onAddToCart }: ProductOption
       }
     >
       <CartItemPreview
+        imageSrc={productImageSrc}
         imageAlt=""
-        name={MOCK_ADD_TO_CART_PRODUCT.name}
-        tagline={MOCK_ADD_TO_CART_PRODUCT.tagline}
+        name={productName}
+        tagline={productTagline}
       />
       {/* mt-3: OptionSelectBottomSheet(node 665:43255)는 직계 자식 전부를 gap-s(12px)로
           쌓는데, 이 구분선 앞에서만 그 12px이 비어 있었다(실측 재확인, 버그) —
@@ -70,10 +90,9 @@ export function ProductOptionSheet({ open, onClose, onAddToCart }: ProductOption
       <div className="border-border mx-4 mt-3 border-t" />
       <div className="px-4 py-3">
         <CartQuantityRow
-          name={MOCK_ADD_TO_CART_PRODUCT.name}
-          priceLabel={MOCK_ADD_TO_CART_PRODUCT.priceLabel}
-          originalPriceLabel={MOCK_ADD_TO_CART_PRODUCT.originalPriceLabel}
-          unitPriceLabel={MOCK_ADD_TO_CART_PRODUCT.unitPriceLabel}
+          name={unit.name}
+          priceLabel={formatPrice(unit.salePrice)}
+          originalPriceLabel={hasDiscount ? formatPrice(unit.price) : undefined}
           quantity={quantity}
           onQuantityChange={setQuantity}
         />
