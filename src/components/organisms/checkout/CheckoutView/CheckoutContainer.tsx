@@ -38,24 +38,26 @@ export function CheckoutContainer({ itemIds }: { itemIds: string[] }) {
 
   if (cartQuery.isError || addressesQuery.isError || !cartQuery.data || !addressesQuery.data) {
     return (
-      <div className="bg-surface-secondary flex flex-1 flex-col items-center justify-center">
+      <div className="bg-surface-secondary flex flex-1 flex-col">
         <SectionHeader leading="back" leadingHref="/cart" title="주문서" />
-        <ErrorState
-          icon={<Icon name="alert" size={56} aria-hidden />}
-          title="주문 정보를 불러오지 못했어요"
-          description="잠시 후 다시 시도해주세요"
-          action={
-            <FloatingButton
-              icon="refresh"
-              onClick={() => {
-                void cartQuery.refetch();
-                void addressesQuery.refetch();
-              }}
-            >
-              다시 시도
-            </FloatingButton>
-          }
-        />
+        <div className="flex flex-1 flex-col items-center justify-center">
+          <ErrorState
+            icon={<Icon name="alert" size={56} aria-hidden />}
+            title="주문 정보를 불러오지 못했어요"
+            description="잠시 후 다시 시도해주세요"
+            action={
+              <FloatingButton
+                icon="refresh"
+                onClick={() => {
+                  void cartQuery.refetch();
+                  void addressesQuery.refetch();
+                }}
+              >
+                다시 시도
+              </FloatingButton>
+            }
+          />
+        </div>
       </div>
     );
   }
@@ -64,18 +66,20 @@ export function CheckoutContainer({ itemIds }: { itemIds: string[] }) {
 
   if (items.length === 0) {
     return (
-      <div className="bg-surface-secondary flex flex-1 flex-col items-center justify-center">
+      <div className="bg-surface-secondary flex flex-1 flex-col">
         <SectionHeader leading="back" leadingHref="/cart" title="주문서" />
-        <ErrorState
-          icon={<Icon name="alert" size={56} aria-hidden />}
-          title="선택한 상품을 찾을 수 없어요"
-          description="장바구니에서 다시 선택해주세요"
-          action={
-            <FloatingButton icon="arrow-right" onClick={() => router.push('/cart')}>
-              장바구니로 이동
-            </FloatingButton>
-          }
-        />
+        <div className="flex flex-1 flex-col items-center justify-center">
+          <ErrorState
+            icon={<Icon name="alert" size={56} aria-hidden />}
+            title="선택한 상품을 찾을 수 없어요"
+            description="장바구니에서 다시 선택해주세요"
+            action={
+              <FloatingButton icon="arrow-right" onClick={() => router.push('/cart')}>
+                장바구니로 이동
+              </FloatingButton>
+            }
+          />
+        </div>
       </div>
     );
   }

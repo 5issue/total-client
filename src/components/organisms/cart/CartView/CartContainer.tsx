@@ -38,23 +38,25 @@ export function CartContainer() {
 
   if (cartQuery.isError || !cartQuery.data) {
     return (
-      <div className="bg-surface-secondary flex flex-1 flex-col items-center justify-center">
+      <div className="bg-surface-secondary flex flex-1 flex-col">
         <SectionHeader
           leading="close"
           leadingHref="/"
           leadingLabel="장바구니 닫기"
           title="장바구니"
         />
-        <ErrorState
-          icon={<Icon name="alert" size={56} aria-hidden />}
-          title="장바구니를 불러오지 못했어요"
-          description="잠시 후 다시 시도해주세요"
-          action={
-            <FloatingButton icon="refresh" onClick={() => void cartQuery.refetch()}>
-              다시 시도
-            </FloatingButton>
-          }
-        />
+        <div className="flex flex-1 flex-col items-center justify-center">
+          <ErrorState
+            icon={<Icon name="alert" size={56} aria-hidden />}
+            title="장바구니를 불러오지 못했어요"
+            description="잠시 후 다시 시도해주세요"
+            action={
+              <FloatingButton icon="refresh" onClick={() => void cartQuery.refetch()}>
+                다시 시도
+              </FloatingButton>
+            }
+          />
+        </div>
       </div>
     );
   }
