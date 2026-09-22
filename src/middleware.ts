@@ -10,7 +10,20 @@ import { type NextRequest, NextResponse } from 'next/server';
  */
 const REFRESH_TOKEN_COOKIE = 'refresh_token';
 
+/**
+ * 임시(#113 PR 리뷰): Vercel Preview 는 실제 백엔드 세션이 없어 `refresh_token` 쿠키가
+ * 절대 안 생기므로, 가드가 켜져 있으면 리뷰어가 `/mypage/**` UI 자체를 볼 수 없다(항상
+ * `/login` 으로 튕김) — 백엔드가 붙은 로컬/스테이징에서만 리뷰가 가능해지는 문제.
+ * PR #113(#86 와 같은 패턴) 리뷰 기간에만 켜 두고, 리뷰 끝나면 이 상수만 지우면 아래
+ * 원래 가드 로직이 그대로 복원된다.
+ */
+const ROUTE_GUARD_DISABLED = true;
+
 export function middleware(req: NextRequest) {
+  if (ROUTE_GUARD_DISABLED) {
+    return NextResponse.next();
+  }
+
   if (req.cookies.get(REFRESH_TOKEN_COOKIE)?.value) {
     return NextResponse.next();
   }

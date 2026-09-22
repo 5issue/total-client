@@ -68,14 +68,14 @@ function AiRecommendedRecipeCard({
           <span
             className={
               active
-                ? 'bg-overlay text-caption-m inline-flex h-7 items-center rounded-full px-3 text-white opacity-80'
-                : 'bg-overlay text-caption-s inline-flex h-6 w-22 items-center justify-center rounded-full text-white opacity-80'
+                ? 'bg-overlay text-caption-m text-fg-inverse inline-flex h-7 items-center rounded-full px-3 opacity-80'
+                : 'bg-overlay text-caption-s text-fg-inverse inline-flex h-6 w-22 items-center justify-center rounded-full opacity-80'
             }
           >
             보유 식재료 {recipe.ownedIngredientCount}/{totalIngredientCount}
           </span>
           <span className="inline-flex size-8 items-center justify-center">
-            <Icon name="heart" size={28} aria-hidden className="text-white" />
+            <Icon name="heart" size={28} aria-hidden className="text-fg-inverse" />
           </span>
         </div>
       </div>
