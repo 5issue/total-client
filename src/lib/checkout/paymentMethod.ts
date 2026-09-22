@@ -37,11 +37,6 @@ export function toSpringPaymentMethodFromTossCode(code: string): SpringPaymentMe
   return 'CARD';
 }
 
-/** Toss `orderId` — 영문/숫자/`-_`, 64자 이내. 주문서 생성 API 가 명세에 없어 클라가 발급. */
-export function createTossOrderId() {
-  return `ord_${crypto.randomUUID().replace(/-/g, '')}`;
-}
-
 export function createIdempotencyKey() {
   return crypto.randomUUID();
 }

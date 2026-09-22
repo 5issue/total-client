@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -8,9 +8,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/atoms/Button';
 import { Icon } from '@/components/atoms/Icon';
 import { InfoBox } from '@/components/atoms/InfoBox';
-import { Toast } from '@/components/atoms/Toast';
 import { CartAmountRow } from '@/components/molecules/cart/CartAmountRow';
 import { Accordion } from '@/components/molecules/shared/Accordion';
+import { ErrorToastBanner } from '@/components/molecules/shared/ErrorToastBanner';
 import { Modal } from '@/components/molecules/shared/Modal';
 import { StatusLabel } from '@/components/molecules/shared/StatusLabel';
 import type { OtherPaymentMethodId, PaymentMethodId } from '@/components/organisms/checkout/model';
@@ -19,16 +19,19 @@ import { PaymentMethodAccordion } from '@/components/organisms/checkout/PaymentM
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 import { ApiError } from '@/errors/ApiError';
 import { useDeliveryDetailStore } from '@/hooks/useDeliveryDetailStore';
+import { useTimedToast } from '@/hooks/useTimedToast';
 import { toDeliveryDetailSummary } from '@/lib/checkout/deliveryDetailSummary';
-import {
-  createTossOrderId,
-  isKurlyOwnedPaymentMethod,
-  isTossPgMethod,
-} from '@/lib/checkout/paymentMethod';
+import { isKurlyOwnedPaymentMethod, isTossPgMethod } from '@/lib/checkout/paymentMethod';
 import { requestTossCheckoutPayment } from '@/lib/checkout/requestTossPayment';
 import { env } from '@/lib/env';
 
-import { MOCK_AMOUNTS, MOCK_CUSTOMER, MOCK_DEFAULT_ADDRESS, MOCK_ORDER_ITEMS } from './mock';
+import {
+  MOCK_AMOUNTS,
+  MOCK_CUSTOMER,
+  MOCK_DEFAULT_ADDRESS,
+  MOCK_ORDER_ID,
+  MOCK_ORDER_ITEMS,
+} from './mock';
 
 /**
  * 주문서(체크아웃) 화면 컨테이너 (organism). Figma "5팀 UI 공유용" —
@@ -57,6 +60,14 @@ import { MOCK_AMOUNTS, MOCK_CUSTOMER, MOCK_DEFAULT_ADDRESS, MOCK_ORDER_ITEMS } f
  * 결제하기는 퍼블 '다른 결제수단' 선택값을 토스 결제창 `requestPayment` 로 넘긴 뒤
  * success/fail URL → `POST /api/v1/payments/checkout` 흐름이다(#109).
  * 컬리페이·충전결제는 PG 범위 밖이라 토스트로 막는다.
+ *
+ * `orderId` prop — payment-service 가 실제로 요구하는 숫자 주문 ID(2026-09-23 확인, 타입
+ * 계약 노트 참고). 장바구니/주문서 실연동(이슈 #120, 백엔드 이슈로 지연 중)이 끝나면 그
+ * 컨테이너가 order-service 에서 발급받은 진짜 값을 여기로 내려준다 — 그 전까지, 그리고
+ * 이 컴포넌트를 목데이터로 직접 띄울 때(props 없음)는 `MOCK_ORDER_ID` 로 대체한다. Toss
+ * 위젯엔 이 값을 문자열화해서 넘기고(휴먼 리더블 접두어 없이 숫자 그대로 — successUrl 이
+ * 그대로 돌려주므로 승인 호출 때 다시 숫자로 파싱한다), 실제 주문 생성 자체는 이 컴포넌트
+ * 책임이 아니다.
  */
 /** 배송 상세정보 편집은 `/checkout/delivery-detail`. 확정값은 `deliveryDetailStore`. */
 type TermsModal = 'privacy' | 'payment' | null;
@@ -82,8 +93,9 @@ function tossPayErrorMessage(error: unknown): string | null {
   return '결제를 시작하지 못했습니다.';
 }
 
-export function CheckoutView() {
+export function CheckoutView({ orderId }: { orderId?: number } = {}) {
   const router = useRouter();
+  const realOrderId = orderId ?? MOCK_ORDER_ID;
   const searchParams = useSearchParams();
 
   // 기본값은 "다른 결제수단" 선택 상태 — Figma 스크린샷 그대로(사용자 확인, 2026-09-11).
@@ -102,8 +114,9 @@ export function CheckoutView() {
   const [pointsInfoOpen, setPointsInfoOpen] = useState(false);
   const [orderExpired, setOrderExpired] = useState(false);
   const [toastMessage, setToastMessage] = useState('배송 상세정보를 입력해주세요.');
-  const [showValidationToast, setShowValidationToast] = useState(false);
-  const validationToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { visible: showValidationToast, trigger: triggerValidationToast } = useTimedToast(
+    VALIDATION_TOAST_DURATION_MS,
+  );
 
   const payError = searchParams.get('payError');
   const isToastVisible = showValidationToast || Boolean(payError);
@@ -114,23 +127,12 @@ export function CheckoutView() {
   function showErrorToast(message: string) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setToastMessage(message);
-    setShowValidationToast(true);
-    if (validationToastTimer.current) clearTimeout(validationToastTimer.current);
-    validationToastTimer.current = setTimeout(
-      () => setShowValidationToast(false),
-      VALIDATION_TOAST_DURATION_MS,
-    );
+    triggerValidationToast();
   }
 
   useEffect(() => {
     const timer = setTimeout(() => setOrderExpired(true), ORDER_TIME_LIMIT_MS);
     return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (validationToastTimer.current) clearTimeout(validationToastTimer.current);
-    };
   }, []);
 
   useEffect(() => {
@@ -165,7 +167,7 @@ export function CheckoutView() {
       await requestTossCheckoutPayment({
         clientKey: env.NEXT_PUBLIC_TOSS_CLIENT_KEY,
         amount: MOCK_AMOUNTS.total,
-        orderId: createTossOrderId(),
+        orderId: String(realOrderId),
         orderName,
         method: otherPaymentMethod,
         cardIssuer,
@@ -183,24 +185,10 @@ export function CheckoutView() {
     <>
       <SectionHeader leading="back" onLeadingClick={() => router.back()} title="주문서" />
 
-      {/* node 666-23688: [주문하기] 눌렀는데 필수값이 비어있을 때 상단에 뜨는 에러 토스트.
-          화면 스크롤과 무관하게 계속 보이도록 fixed, 화면 상단과의 간격은 실측 84px(top-21,
-          Tailwind 스케일 21*4px=84px — 코드리뷰 지적대로 임의값 대신 스케일 값 사용).
-          피드백: 위에서 아래로 슬라이드해 내려오고 5초 뒤 다시 위로 슬라이드해 사라진다 —
-          `{cond ? <Toast/> : null}` 로 마운트/언마운트하면 사라질 때 트랜지션이 안 걸리므로,
-          항상 마운트해두고 translate-y 만 토글한다(OrderItemsSection 과 같은 원칙).
-          -translate-y-50(50*4px=200px, 토스트 자체 높이보다 넉넉히 큰 값)도 같은 이유로
-          스케일 값. */}
-      <div
-        aria-hidden={!isToastVisible}
-        className={[
-          'pointer-events-none fixed inset-x-0 top-21 z-50 flex justify-center px-4',
-          'transition-transform duration-300 ease-out motion-reduce:transition-none',
-          isToastVisible ? 'translate-y-0' : '-translate-y-50',
-        ].join(' ')}
-      >
-        <Toast variant="error">{displayedToastMessage}</Toast>
-      </div>
+      {/* node 666-23688: [주문하기] 눌렀는데 필수값이 비어있을 때, 그리고 결제 승인 실패
+          (`/checkout?payError=`, CheckoutSuccessView) 때 상단에 뜨는 에러 토스트 —
+          `ErrorToastBanner` 참고(항상 마운트해두고 translate-y 만 토글하는 이유 등). */}
+      <ErrorToastBanner visible={isToastVisible}>{displayedToastMessage}</ErrorToastBanner>
 
       <div className="bg-surface-secondary flex flex-1 flex-col gap-2">
         {/* 주문자 정보 — Figma "Accordion_Orderinfo"(node 666-25643, property1=on). 접힘일

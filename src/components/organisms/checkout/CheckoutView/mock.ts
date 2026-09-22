@@ -41,6 +41,13 @@ export const MOCK_ORDER_ITEMS: OrderLineItemView[] = [
   },
 ];
 
+/**
+ * `CheckoutView` 를 props 없이(목데이터) 띄울 때 쓰는 가짜 주문 ID — 실제 payment-service
+ * 승인 호출은 이 값으로 항상 실패한다(존재하지 않는 주문이라 백엔드가 거부). 실제 주문
+ * ID 는 장바구니/주문서 실연동(이슈 #120)이 끝나면 컨테이너가 `orderId` prop 으로 내려준다.
+ */
+export const MOCK_ORDER_ID = 999999999;
+
 export const MOCK_CUSTOMER = {
   name: '이준호',
   phone: '010-1234-1234',

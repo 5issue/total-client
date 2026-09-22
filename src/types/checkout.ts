@@ -7,7 +7,14 @@ import { z } from 'zod';
  * - GET  `/api/v1/payments/{payment_id}/receipt`  영수증 (본인 소유 검증은 Spring, FE-15)
  * - POST `/internal/v1/payments/{payment_id}/cancel`  는 내부 API + 이슈 범위 밖(환불/취소)
  *
- * 주문서 생성·주문 확정 전용 엔드포인트는 명세에 없다. Toss `orderId` 는 클라가 발급한다.
+ * ⚠️ 2026-09-23 재확인: payment-service 실제 스펙(`CheckoutRequest`)은 `orderId`(Long)가
+ * 필수다 — order-service 가 발급한 실제 주문 ID 를 요구한다("orderId: 주문 ID는 필수입니다"
+ * 400 으로 실측 확인). "주문서 생성 엔드포인트는 명세에 없다"는 이전 가정은 틀렸다 —
+ * `POST /api/v1/orders/checkout`/`place-order` 가 이미 있다(주문서/장바구니 실연동, 이슈
+ * #120 스코프 — 백엔드 이슈로 지연 중). 이 파일은 #120 이 실제 orderId 를 공급하기 시작하면
+ * 그대로 맞물리도록 스키마·전달 경로만 미리 갖춰둔다 — 주문 생성 자체는 여기서 만들지 않는다.
+ * Toss 쪽 `orderId`(문자열, 위젯에 넘기는 값)는 이 숫자 orderId 를 그대로 문자열화해 쓴다
+ * (CheckoutView 참고) — successUrl 이 그걸 그대로 돌려주므로 승인 호출 때 다시 숫자로 되돌릴 수 있다.
  * 주문서 '다른 결제수단' UI 는 퍼블 그리드. 결제하기에서 토스 결제창을 연다.
  */
 
@@ -17,6 +24,8 @@ export type SpringPaymentMethod = z.infer<typeof SpringPaymentMethodSchema>;
 
 /** `POST /api/v1/payments/checkout` 요청 본문. Idempotency-Key 는 헤더. */
 export const CheckoutPaymentRequestSchema = z.object({
+  /** order-service 가 발급한 실제 주문 ID(Long) — 백엔드 필수값. */
+  orderId: z.number().int().positive(),
   paymentMethod: SpringPaymentMethodSchema,
   paymentKey: z.string().min(1),
   /** 명세는 Decimal. 원화는 정수 원이지만 위변조 검증용으로 숫자만 강제한다. */
