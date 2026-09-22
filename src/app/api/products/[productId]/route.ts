@@ -12,6 +12,10 @@ import { SpringProductDetailDataSchema } from '@/types/product';
  */
 const UPSTREAM_FAILURE_MESSAGE = '상품 정보를 불러오지 못했습니다.';
 
+/** upstream 응답 헤더 대기 상한 — 없으면 Node 24 기본 fetch(Undici) 타임아웃(300초) 동안
+ * Route Handler와 클라이언트 요청이 pending 상태로 남는다(코드래빗 리뷰 반영). */
+const UPSTREAM_TIMEOUT_MS = 5000;
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ productId: string }> },
@@ -26,6 +30,7 @@ export async function GET(
   try {
     const springRes = await fetch(`${env.API_INTERNAL_URL}/api/v1/products/${productId}`, {
       headers: { 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
     });
     raw = SpringEnvelopeSchema(SpringProductDetailDataSchema).parse(await springRes.json());
   } catch {
