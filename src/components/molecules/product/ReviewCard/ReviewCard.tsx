@@ -60,7 +60,9 @@ export function ReviewCard({
             <div key={i} aria-hidden className="bg-surface-secondary size-21 shrink-0" />
           ))}
         </div>
-        <div className="text-label-l text-fg w-full">
+        {/* 디자인 QA(#132): 두꺼워보임 — text-label-l 기본 weight(600/SemiBold)에서
+            100 낮춰 500(Medium)으로. */}
+        <div className="text-label-l text-fg w-full font-medium!">
           {reviewLines.map((line, i) => (
             <p key={i} className={i < reviewLines.length - 1 ? 'mb-0' : undefined}>
               {line}
