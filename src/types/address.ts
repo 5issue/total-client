@@ -60,30 +60,31 @@ export type AddressDetailFormFields = z.infer<typeof AddressDetailFormSchema>;
 /** 폼이 검증을 통과한 값에서 저장용 값을 뽑을 때 쓰는 정규화 헬퍼. */
 export const normalizePhone = toDigits;
 
-// ── 서버 계약 (데이터 연동, 이슈 #119) ──────────────────────────────────────
+// ── 서버 계약 (데이터 연동, 2026-09-22 user-service `UserController` 기준 재확인) ──────
 //
-// - GET    /api/v1/addresses               배송지 목록 조회
-// - POST   /api/v1/addresses               배송지 추가
-// - PUT    /api/v1/addresses/{addressId}   배송지 수정
-// - DELETE /api/v1/addresses/{addressId}   배송지 삭제
+// - GET  /api/v1/users/me/addresses                 배송지 목록 조회
+// - POST /api/v1/users/me/addresses                 배송지 추가
+// - PATCH /api/v1/users/me/addresses/{id}/default   기본 배송지 설정
 //
-// `deliveryType`(배송 유형 라벨)은 서버가 주소로 판정해 응답에만 실어준다 — 저장 요청엔 없다.
-
-export const AddressAliasTypeSchema = z.enum(['HOME', 'COMPANY']);
-export type AddressAliasType = z.infer<typeof AddressAliasTypeSchema>;
+// ⚠️ PUT/DELETE 단건 수정·삭제는 백엔드에 엔드포인트 자체가 없다(2026-09-22 확인) — 이슈 #119
+// 설계 당시 문서(`/api/v1/addresses`, aliasType enum, deliveryType 응답값 포함)와 실제 구현이
+// 갈라져 있다. `aliasType`/`customAlias` 서버 필드도 없다 — 백엔드는 `addressName` 자유
+// 텍스트 하나뿐이라, '우리집'/'회사' 정확히 일치하는 문자열로 왕복한다(AddressListItem 의
+// `PLACE_CHIP` 라벨과 동일 — mapAddressResponse.ts). `deliveryType` 응답 필드도 없다 —
+// 프로젝트 전역 관례대로 '샛별배송' 고정값(organisms/mypage/model.ts 참고).
+// [addressId]/route.ts 의 PUT/DELETE 는 그대로 두되 이 문서를 참조하게 주석 처리했다.
 
 export const AddressSchema = z.object({
   addressId: z.number().int().positive(),
-  /** 유형칩. `직접입력`이면 null — 이땐 `customAlias` 가 배송지 이름을 대신한다. */
-  aliasType: AddressAliasTypeSchema.nullable(),
-  customAlias: z.string().nullable(),
-  zonecode: z.string().min(1),
-  roadAddress: z.string().min(1),
-  detailAddress: z.string().nullable(),
-  recipient: z.string().min(1),
+  addressName: z.string().min(1),
+  recipientName: z.string().min(1),
   phone: z.string().min(1),
-  deliveryType: z.string().min(1),
+  zipCode: z.string().min(1),
+  address: z.string().min(1),
+  addressDetail: z.string().nullable(),
   isDefault: z.boolean(),
+  /** 공동현관 출입방법 등 — 체크아웃 배송 상세정보(DeliveryDetailStore)와는 별개 개념. */
+  accessMethod: z.string().nullable(),
 });
 export type Address = z.infer<typeof AddressSchema>;
 
@@ -92,19 +93,27 @@ export const AddressListResponseSchema = z.object({
 });
 export type AddressListResponse = z.infer<typeof AddressListResponseSchema>;
 
-/** 추가·수정 공용 요청 바디. */
+/** 배송지 추가 요청 바디 — 백엔드 `CreateAddressRequest` 그대로. */
 export const SaveAddressRequestSchema = z.object({
-  aliasType: AddressAliasTypeSchema.nullable(),
-  customAlias: z.string().nullable(),
-  zonecode: z.string().min(1),
-  roadAddress: z.string().min(1),
-  detailAddress: z.string().nullable(),
-  recipient: z.string().min(1),
+  addressName: z.string().min(1).max(50),
+  recipientName: z.string().min(1).max(50),
   phone: z.string().min(1),
+  zipCode: z.string().min(1),
+  address: z.string().min(1).max(255),
+  addressDetail: z.string().max(255).nullable(),
   isDefault: z.boolean(),
+  accessMethod: z.string().max(255).nullable(),
 });
 export type SaveAddressRequest = z.infer<typeof SaveAddressRequestSchema>;
 
+/** 배송지 추가 응답 — 백엔드가 전체 Address 가 아니라 이 확인 객체만 돌려준다. */
+export const CreateAddressResponseSchema = z.object({
+  addressId: z.number().int().positive(),
+  success: z.boolean(),
+});
+export type CreateAddressResponse = z.infer<typeof CreateAddressResponseSchema>;
+
+/** 단건 삭제 응답 — 백엔드에 삭제 엔드포인트가 아직 없어 사용되지 않는다(위 계약 노트 참고). */
 export const DeleteAddressResponseSchema = z.object({
   addressId: z.number().int().positive(),
 });

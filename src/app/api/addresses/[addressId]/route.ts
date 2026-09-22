@@ -8,6 +8,10 @@ import {
   SaveAddressRequestSchema,
 } from '@/types/address';
 
+// ⚠️ user-service `UserController` 에 단건 수정(PUT)/삭제(DELETE) 엔드포인트가 없다
+// (types/address.ts 계약 노트, 2026-09-22 확인). 이 라우트는 항상 실패한다 — 백엔드에
+// 추가되기 전까진 목록(GET)/추가(POST)만 실데이터로 연결한다(이번 라운드 스코프).
+
 function parseAddressId(addressId: string) {
   const num = Number(addressId);
   return Number.isInteger(num) && num > 0 ? num : null;

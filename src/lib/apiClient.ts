@@ -6,6 +6,7 @@ import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/authToke
 import {
   AddressListResponseSchema,
   AddressSchema,
+  CreateAddressResponseSchema,
   DeleteAddressResponseSchema,
   type SaveAddressRequest,
 } from '@/types/address';
@@ -153,7 +154,7 @@ export function getAddresses() {
 
 /** 배송지 추가. */
 export function createAddress(body: SaveAddressRequest) {
-  return privateFetch('/api/addresses', AddressSchema, {
+  return privateFetch('/api/addresses', CreateAddressResponseSchema, {
     method: 'POST',
     body: JSON.stringify(body),
   });
