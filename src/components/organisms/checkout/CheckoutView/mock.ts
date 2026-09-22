@@ -63,13 +63,20 @@ export const MOCK_DEFAULT_ADDRESS = {
   phone: '010-1234-1234',
 };
 
-// item-4 정가 수정에 맞춰 재계산: productPrice(정가 합) = 3400+10580+13900+8980 = 36860,
-// productDiscount((정가-판매가) 합) = 620+529+3910+1001 = 6060. total 은 판매가 합
-// (2780+10051+9990+7979=30800) 그대로라 안 바뀜 — Figma 실측(주문 금액/최종 결제금액
-// 둘 다 30,800원)과도 일치.
+// item-4 정가 수정에 맞춰 재계산: productPrice(정가 합) = 3400+10580+13900+8980 = 36860.
+// Figma 실측 원안은 productDiscount 6060(아이템별 정가-판매가 합 620+529+3910+1001과
+// 일치) · total 30,800원이었다.
+//
+// ⚠️ 2026-09-23: payment-service 로컬 전용 스텁(payment.order.client=stub)이 결제
+// 금액을 정확히 32,000원(`StubOrderClient.STUB_AMOUNT`, 자바 상수라 env로 못 바꿈)만
+// 받아들여서, 로컬에서 결제 성공까지 끝까지 확인하려고 productDiscount 를
+// 4860(=36860-32000)으로 임시 조정했다 — total 이 32,000원이 되도록. 이 화면 안에서는
+// "주문 금액"(productPrice-productDiscount)과 "최종 결제금액"(total)이 여전히 서로
+// 일치하지만, 이제 아이템별 정가-판매가 합(6060, 여전히 Figma 실측값)과는 더 이상 안
+// 맞는다 — 로컬 결제 스텁 테스트 전용 타협이다. 실 데이터 연동(#120) 이후엔 의미 없어진다.
 export const MOCK_AMOUNTS: OrderAmounts = {
   productPrice: 36860,
-  productDiscount: 6060,
+  productDiscount: 4860,
   shippingFee: 0,
   couponDiscount: 0,
   productCouponDiscount: 0,
@@ -78,5 +85,5 @@ export const MOCK_AMOUNTS: OrderAmounts = {
   pointsCashUsed: 0,
   pointsUsed: 0,
   cashUsed: 0,
-  total: 30800,
+  total: 32000,
 };
