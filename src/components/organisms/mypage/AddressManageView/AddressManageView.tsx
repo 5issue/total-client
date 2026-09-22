@@ -63,18 +63,20 @@ export function AddressManageView() {
 
   if (addressesQuery.isError || !addressesQuery.data) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center">
+      <div className="flex flex-1 flex-col">
         <SectionHeader leading="back" onLeadingClick={() => router.back()} title="배송지 관리" />
-        <ErrorState
-          icon={<Icon name="alert" size={56} aria-hidden />}
-          title="배송지 목록을 불러오지 못했어요"
-          description="잠시 후 다시 시도해주세요"
-          action={
-            <FloatingButton icon="refresh" onClick={() => void addressesQuery.refetch()}>
-              다시 시도
-            </FloatingButton>
-          }
-        />
+        <div className="flex flex-1 flex-col items-center justify-center">
+          <ErrorState
+            icon={<Icon name="alert" size={56} aria-hidden />}
+            title="배송지 목록을 불러오지 못했어요"
+            description="잠시 후 다시 시도해주세요"
+            action={
+              <FloatingButton icon="refresh" onClick={() => void addressesQuery.refetch()}>
+                다시 시도
+              </FloatingButton>
+            }
+          />
+        </div>
       </div>
     );
   }
