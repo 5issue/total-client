@@ -25,10 +25,14 @@ import { isNavItemActive, NAV_ITEMS } from './nav-items';
  * 다크모드는 지금 `/mypage`(마이컬리 홈) 볼 때만 켠다 — 이 컴포넌트는 `(chrome)` 라우트
  * 전체가 공유하는 단일 인스턴스라 `MyKurlyHomeView` 의 `ThemeScope` DOM 밖에 있다(형제
  * 관계). 여기서 직접 `pathname`+테마를 보고 `data-theme` 를 스스로 단다 — 마이컬리를
- * 벗어나면 테마 상태와 무관하게 항상 라이트로 돌아온다. Figma 에 다크 BottomNav 스펙은
- * 없어(2026-09-18 확인) 화면 나머지와 같은 시맨틱 토큰을 재사용했다. 테마 초기값이
- * 항상 'light'(themeStore 문서 참고, 복원 로직 없음)라 서버/클라 첫 렌더가 항상 같다 —
+ * 벗어나면 테마 상태와 무관하게 항상 라이트로 돌아온다. 테마 초기값이 항상
+ * 'light'(themeStore 문서 참고, 복원 로직 없음)라 서버/클라 첫 렌더가 항상 같다 —
  * `suppressHydrationWarning` 불필요.
+ *
+ * pill 배경은 `bg-surface`가 아니라 `bg-surface-nav`(node 1941-89037 실측, `color.css`
+ * 참고) — `--surface`를 다크에서 그대로 썼더니 페이지 배경과 같은 색이 돼 pill이 안
+ * 보이는 버그가 있었다. 카드류와 달리 테두리 없이 배경 대비만으로 떠 있어야 하는
+ * 플로팅 pill이라 시맨틱 `--surface`를 따라갈 수 없는 예외.
  */
 export type BottomNavProps = {
   /** 탭별 알림 배지. 알림 도메인 훅이 아직 없어 상위 컨테이너가 주입하는 형태로 시작
@@ -54,7 +58,7 @@ export function BottomNav({ badges, className }: BottomNavProps) {
       {/* 흰 pill(BG)은 콘텐츠 행(352px)보다 사방 4px 더 큰 inset(-4px) 레이어다(node 2368-429
           "BG") — 실제 pill 은 360×62. 콘텐츠 행을 정확히 352px(w-88)로 고정하고 p-1(4px)
           패딩으로 감싸 그 관계를 그대로 재현한다. */}
-      <div className="bg-surface shadow-nav rounded-full p-1">
+      <div className="bg-surface-nav shadow-nav rounded-full p-1">
         <div className="flex w-88 items-start justify-center px-0.5">
           {NAV_ITEMS.map((item) => (
             <BottomNavItem
