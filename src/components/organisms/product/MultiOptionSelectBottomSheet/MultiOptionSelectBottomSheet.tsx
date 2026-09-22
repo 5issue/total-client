@@ -28,6 +28,10 @@ import { MOCK_MULTI_OPTION_PROMOTION } from './mock';
  * 계약에 멤버십 전용 옵션 여부·단위가(`unitPriceLabel`) 필드가 없어, 이전에 있던
  * "멤버스" 뱃지 + 가입 유도 모달(`MembershipPromotionModal`) 분기는 뗐다 — 그 필드가
  * 생기면 옵션별로 다시 판단해 되살리면 된다.
+ *
+ * `status === 'SOLDOUT'`인 옵션은 `CartQuantityRow`를 비활성 상태로 그려 수량을 못
+ * 바꾸게 막고, 합계(`totalQuantity`)에서도 제외한다(코드래빗 리뷰 반영) — `HIDDEN`은
+ * 별도 취급 규칙이 저장소에 없어 이번 변경에서 새로 정의하지 않는다(SALE과 동일 취급).
  */
 export type MultiOptionSelectBottomSheetProps = {
   open: boolean;
@@ -52,7 +56,9 @@ export function MultiOptionSelectBottomSheet({
   const [quantities, setQuantities] = useState<Record<number, number>>({});
   const [liked, setLiked] = useState(false);
 
-  const totalQuantity = Object.values(quantities).reduce((sum, q) => sum + q, 0);
+  const totalQuantity = units
+    .filter((unit) => unit.status !== 'SOLDOUT')
+    .reduce((sum, unit) => sum + (quantities[unit.id] ?? 0), 0);
 
   function handleAddToCart() {
     if (totalQuantity === 0) return;
@@ -89,11 +95,12 @@ export function MultiOptionSelectBottomSheet({
       <div className="border-border mx-4 mt-3 border-t" />
       {units.map((unit, i) => {
         const hasDiscount = unit.price !== unit.salePrice;
+        const isSoldOut = unit.status === 'SOLDOUT';
         return (
           <div key={unit.id}>
             <div className="px-4 py-3">
               <CartQuantityRow
-                name={unit.name}
+                name={isSoldOut ? `${unit.name} (품절)` : unit.name}
                 priceLabel={formatPrice(unit.salePrice)}
                 originalPriceLabel={hasDiscount ? formatPrice(unit.price) : undefined}
                 quantity={quantities[unit.id] ?? 0}
@@ -101,6 +108,7 @@ export function MultiOptionSelectBottomSheet({
                   setQuantities((prev) => ({ ...prev, [unit.id]: value }))
                 }
                 min={0}
+                disabled={isSoldOut}
               />
             </div>
             {i < units.length - 1 ? <div className="border-border mx-4 border-t" /> : null}
