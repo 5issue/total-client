@@ -15,6 +15,10 @@ import type { Recipe } from './model';
  * 재료·조리법·구매 상품(`PLACEHOLDER_DETAIL`)으로 채운다 — 실제 콘텐츠는 디자인/BE
  * 확정 후 교체.
  */
+// `MyFridgeView`(MY냉장고→MY레시피 탭 전환 트리거)와 `RecipeAiRecommendSection`
+// (헤드라인 "OO님을 위한 AI 추천 레시피") 둘 다 같은 값을 써야 해 여기서 공유한다.
+export const NICKNAME = '준호';
+
 const PLACEHOLDER_IMAGE = '/placeholders/product-thumbnail.webp';
 
 // storageType(냉동/냉장)은 `MyFridgeView`의 같은 상품(떡갈비=frozen, 두부·우유=refrigerated)과

@@ -41,7 +41,13 @@ export const SwitchToRecipeTab: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole('tab', { name: 'MY 레시피' }));
-    await expect(canvas.getByText('최근 본 레시피')).toBeInTheDocument();
+    // 탭 전환 순간엔 "MY 레시피 제작 중" 로딩(mock 딜레이)을 먼저 거친다 — 실제
+    // 콘텐츠는 findByText 로 그 딜레이가 끝나길 기다렸다가 확인한다.
+    await expect(canvas.getByText('MY 레시피 제작 중')).toBeInTheDocument();
+    // mock 딜레이(1200ms)보다 여유 있게 기다린다 — findByText 기본 타임아웃(1000ms)보다 길다.
+    await expect(
+      await canvas.findByText('최근 본 레시피', {}, { timeout: 3000 }),
+    ).toBeInTheDocument();
   },
 };
 

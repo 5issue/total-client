@@ -17,15 +17,14 @@ import type { Recipe } from './model';
  * 카드의 실제 DOM 위치(`offsetLeft`)를 읽어 스크롤 컨테이너 중앙에 가장 가까운
  * 카드를 `activeIndex`로 잡는다.
  *
- * 카드 자체와 카드 안 "부족 재료 담기" 버튼 모두 상세 화면으로 이동한다 — 이
+ * 카드 자체와 카드 안 "부족 재료 담기" 버튼 모두 상세 화면으로 즉시 이동한다 — 이
  * 버튼만 따로 담기를 처리하는 스펙은 Figma에 없다(디자인 확인 필요, 우선 상세
- * 이동으로 간주). 클릭 시 `onSelectRecipe`로만 알리고 실제 라우팅은 `MyRecipeView`가
- * `RecipeAiLoadingView`를 거쳐 처리한다 — "최근 본"/"찜한" 카드는 그대로 즉시 이동.
+ * 이동으로 간주). "최근 본"/"찜한" 카드와 마찬가지로 일반 `Link` 이동이다 — "MY
+ * 레시피 제작 중" 로딩은 `MyFridgeView`가 탭 전환 시점에 따로 거친다.
  */
 export interface RecipeAiRecommendSectionProps {
   nickname: string;
   recipes: Recipe[];
-  onSelectRecipe: (recipeId: string) => void;
   className?: string;
 }
 
@@ -41,12 +40,10 @@ function AiRecommendedRecipeCard({
   recipe,
   active,
   cardRef,
-  onSelect,
 }: {
   recipe: Recipe;
   active: boolean;
   cardRef: (el: HTMLAnchorElement | null) => void;
-  onSelect: () => void;
 }) {
   const totalIngredientCount = recipe.ownedIngredientCount + recipe.neededIngredientCount;
 
@@ -54,10 +51,6 @@ function AiRecommendedRecipeCard({
     <Link
       ref={cardRef}
       href={`/mypage/fridge/recipes/${recipe.id}`}
-      onClick={(e) => {
-        e.preventDefault();
-        onSelect();
-      }}
       className={`shadow-m flex shrink-0 snap-center flex-col items-start overflow-hidden ${active ? 'w-75 rounded-lg' : 'rounded-m w-68'}`}
     >
       <div className={`relative w-full shrink-0 ${active ? 'h-56.25' : 'h-51'}`}>
@@ -120,7 +113,6 @@ function AiRecommendedRecipeCard({
 export function RecipeAiRecommendSection({
   nickname,
   recipes,
-  onSelectRecipe,
   className,
 }: RecipeAiRecommendSectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -192,7 +184,6 @@ export function RecipeAiRecommendSection({
             cardRef={(el) => {
               cardRefs.current[index] = el;
             }}
-            onSelect={() => onSelectRecipe(recipe.id)}
           />
         ))}
         <div className="w-12.75 shrink-0" aria-hidden />

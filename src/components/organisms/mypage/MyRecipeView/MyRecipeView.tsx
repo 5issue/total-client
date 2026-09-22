@@ -1,64 +1,30 @@
-'use client';
-
-import { useEffect, useRef, useState } from 'react';
-
-import { useRouter } from 'next/navigation';
-
 import { RecipeCardM } from '@/components/molecules/mypage/RecipeCardM';
 import { HomeSectionHeader } from '@/components/molecules/shared/HomeSectionHeader';
 
-import { findRecipe, MOCK_AI_RECOMMENDED_RECIPE_IDS, MOCK_RECENT_RECIPE_IDS } from './mock';
-import { RecipeAiLoadingView } from './RecipeAiLoadingView';
+import {
+  findRecipe,
+  MOCK_AI_RECOMMENDED_RECIPE_IDS,
+  MOCK_RECENT_RECIPE_IDS,
+  NICKNAME,
+} from './mock';
 import { RecipeAiRecommendSection } from './RecipeAiRecommendSection';
-
-const NICKNAME = '준호';
-// 실제 AI 생성 연동 전 mock 딜레이 — 연동 후에는 고정 시간이 아니라 응답이 올 때까지
-// `RecipeAiLoadingView`를 띄워 두는 형태로 바뀐다(무한 로딩, 아래 주석 참고).
-const AI_LOADING_DELAY_MS = 1200;
 
 /**
  * `MyFridgeView`의 "MY 레시피" 탭 콘텐츠(node 1281-210501, 이슈 #113).
  * AI 추천 캐러셀 + 최근 본 레시피 + 찜한 레시피 가로 스크롤로 구성된다.
  *
- * `RecipeAiLoadingView`(node 1343-109131)는 탭 진입 화면이 아니라 "AI 추천 레시피"
- * 캐러셀에서 상세로 들어갈 때만 거치는 전환 화면이다("최근 본"/"찜한" 카드는 즉시
- * 이동) — 실제로는 레시피가 뜰 때까지 무한 로딩이지만, mock 단계라 고정 딜레이 후
- * 라우팅한다.
+ * "MY 레시피 제작 중" 로딩(`RecipeAiLoadingView`, node 1343-109131)은 이 컴포넌트가
+ * 아니라 `MyFridgeView`가 MY냉장고→MY레시피 탭 전환 시 거치는 화면이다 — AI 추천
+ * 카드를 포함해 모든 카드는 여기서 상세로 즉시 이동한다.
  */
 export function MyRecipeView() {
-  const router = useRouter();
-  const [loadingRecipeId, setLoadingRecipeId] = useState<string | null>(null);
-  const navigateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const aiRecommendedRecipes = MOCK_AI_RECOMMENDED_RECIPE_IDS.map((id) => findRecipe(id)!);
   const recentRecipes = MOCK_RECENT_RECIPE_IDS.map((id) => findRecipe(id)!);
   const likedRecipes = recentRecipes.filter((recipe) => recipe.liked);
 
-  // 언마운트 후(예: 로딩 중 다른 라우트로 이동) 예약된 라우팅이 새 화면에서 실행되지
-  // 않도록 정리한다(코드래빗 리뷰).
-  useEffect(() => {
-    return () => {
-      if (navigateTimeoutRef.current) clearTimeout(navigateTimeoutRef.current);
-    };
-  }, []);
-
-  function handleSelectAiRecipe(recipeId: string) {
-    setLoadingRecipeId(recipeId);
-    navigateTimeoutRef.current = setTimeout(
-      () => router.push(`/mypage/fridge/recipes/${recipeId}`),
-      AI_LOADING_DELAY_MS,
-    );
-  }
-
-  if (loadingRecipeId) return <RecipeAiLoadingView nickname={NICKNAME} />;
-
   return (
     <div className="flex flex-col">
-      <RecipeAiRecommendSection
-        nickname={NICKNAME}
-        recipes={aiRecommendedRecipes}
-        onSelectRecipe={handleSelectAiRecipe}
-      />
+      <RecipeAiRecommendSection nickname={NICKNAME} recipes={aiRecommendedRecipes} />
 
       <div className="flex flex-col gap-2 py-4">
         <HomeSectionHeader
