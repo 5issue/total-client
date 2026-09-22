@@ -23,7 +23,8 @@
     "build-storybook": "storybook build",
     "test-storybook": "vitest run",
     "chromatic": "chromatic",
-    "icons:build": "node scripts/icons/build-all.mjs"
+    "icons:build": "node scripts/icons/build-all.mjs",
+    "dev:gateway": "node scripts/local-gateway.mjs"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
