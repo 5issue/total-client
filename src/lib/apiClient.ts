@@ -13,8 +13,10 @@ import {
 import { SpringLoginUrlDataSchema, type OAuthProvider } from '@/types/auth';
 import {
   CartResponseSchema,
+  CartVoidResponseSchema,
+  DeliveryAddressResponseSchema,
   RemoveCartItemsResponseSchema,
-  UpdateCartItemQuantityResponseSchema,
+  type AddCartItemsRequest,
   type RemoveCartItemsRequest,
   type UpdateCartItemQuantityRequest,
 } from '@/types/cart';
@@ -167,19 +169,39 @@ export function getCart() {
   return privateFetch('/api/cart', CartResponseSchema);
 }
 
-/** 장바구니 상품 수량 변경 — api-convention §7 유일한 Optimistic Update 예외 대상. */
-export function updateCartItemQuantity(cartItemId: number, body: UpdateCartItemQuantityRequest) {
-  return privateFetch(`/api/cart/items/${cartItemId}`, UpdateCartItemQuantityResponseSchema, {
+/** 장바구니 상품 담기(다건) — 이미 담긴 상품이면 서버가 수량을 합산한다. */
+export function addCartItems(body: AddCartItemsRequest) {
+  return privateFetch('/api/cart/items', CartResponseSchema, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+/**
+ * 장바구니 상품 수량 변경 — api-convention §7 유일한 Optimistic Update 예외 대상.
+ * 경로 파라미터는 `productId` 다(`CartService.updateItemQuantity` 가 `(cartId, productId)`
+ * 로 항목을 찾는다 — `cartItemId` 를 보내면 다른 상품을 건드리거나 404 가 난다).
+ */
+export function updateCartItemQuantity(productId: number, body: UpdateCartItemQuantityRequest) {
+  return privateFetch(`/api/cart/items/${productId}`, CartVoidResponseSchema, {
     method: 'PATCH',
     body: JSON.stringify(body),
   });
 }
 
-/** 장바구니 상품 삭제(단일·다건 공통). */
+/** 장바구니 상품 삭제(단일·다건 공통) — `productIds` 배열. */
 export function removeCartItems(body: RemoveCartItemsRequest) {
   return privateFetch('/api/cart/items', RemoveCartItemsResponseSchema, {
     method: 'DELETE',
     body: JSON.stringify(body),
+  });
+}
+
+/** 장바구니 배송지 변경. */
+export function updateCartDeliveryAddress(addressId: number) {
+  return privateFetch('/api/cart/delivery-address', DeliveryAddressResponseSchema, {
+    method: 'PUT',
+    body: JSON.stringify({ addressId }),
   });
 }
 

@@ -10,7 +10,7 @@ export function useRemoveCartItems() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (cartItemIds: number[]) => removeCartItems({ cartItemIds }),
+    mutationFn: (productIds: number[]) => removeCartItems({ productIds }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: cartKeys.detail() });
     },

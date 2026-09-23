@@ -6,13 +6,14 @@ import { cartKeys } from '@/hooks/cart/queryKeys';
 import { updateCartItemQuantity } from '@/lib/apiClient';
 import type { CartResponse } from '@/types/cart';
 
-function applyQuantity(cart: CartResponse | undefined, cartItemId: number, quantity: number) {
+function applyQuantity(cart: CartResponse | undefined, productId: number, quantity: number) {
   if (!cart) return cart;
   return {
+    ...cart,
     groups: cart.groups.map((group) => ({
       ...group,
       items: group.items.map((item) =>
-        item.cartItemId === cartItemId ? { ...item, quantity } : item,
+        item.productId === productId ? { ...item, quantity } : item,
       ),
     })),
   };
@@ -28,13 +29,13 @@ export function useUpdateCartItemQuantity() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ cartItemId, quantity }: { cartItemId: number; quantity: number }) =>
-      updateCartItemQuantity(cartItemId, { quantity }),
-    onMutate: async ({ cartItemId, quantity }) => {
+    mutationFn: ({ productId, quantity }: { productId: number; quantity: number }) =>
+      updateCartItemQuantity(productId, { quantity }),
+    onMutate: async ({ productId, quantity }) => {
       await queryClient.cancelQueries({ queryKey: cartKeys.detail() });
       const prev = queryClient.getQueryData<CartResponse>(cartKeys.detail());
       queryClient.setQueryData<CartResponse>(cartKeys.detail(), (cart) =>
-        applyQuantity(cart, cartItemId, quantity),
+        applyQuantity(cart, productId, quantity),
       );
       return { prev };
     },

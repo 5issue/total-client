@@ -10,27 +10,28 @@ export function mapSelectedCartItemsToOrder(
   const selected = new Set(selectedItemIds);
   return cart.groups
     .flatMap((group) => group.items)
-    .filter((item) => selected.has(String(item.cartItemId)))
+    .filter((item) => selected.has(String(item.productId)))
     .map((item) => ({
-      id: String(item.cartItemId),
-      name: item.name,
+      id: String(item.productId),
+      name: item.title,
       imageSrc: item.thumbnailUrl ?? undefined,
-      price: item.price,
-      originalPrice: item.originalPrice ?? undefined,
+      price: item.unitPrice,
+      // API 는 정가를 따로 안 내려준다(unitPrice 하나) — 할인 표시가 필요 없는 계산이라 생략.
       quantity: item.quantity,
     }));
 }
 
 /**
  * 선택한 상품이 속한 배송 그룹들의 배송비 합.
- * 배송비는 그룹 단위 값이라(`CartDeliveryGroupSchema.shippingFee`), 그룹 안 상품이 하나라도
- * 선택됐으면 그 그룹 배송비를 1회만 더한다(같은 그룹 상품을 여러 개 선택해도 중복 합산 안 함).
+ * 배송비는 그룹 단위 값이라(`CartDeliveryGroupSchema.groupDeliveryFee`), 그룹 안 상품이
+ * 하나라도 선택됐으면 그 그룹 배송비를 1회만 더한다(같은 그룹 상품을 여러 개 선택해도
+ * 중복 합산 안 함).
  */
 function shippingFeeOf(cart: CartResponse, selectedItemIds: string[]): number {
   const selected = new Set(selectedItemIds);
   return cart.groups
-    .filter((group) => group.items.some((item) => selected.has(String(item.cartItemId))))
-    .reduce((sum, group) => sum + group.shippingFee, 0);
+    .filter((group) => group.items.some((item) => selected.has(String(item.productId))))
+    .reduce((sum, group) => sum + group.groupDeliveryFee, 0);
 }
 
 /** 주문상품 목록 → 결제금액. `CartView` 의 amounts 계산과 같은 규칙(쿠폰·적립금 등은 아직 0). */
