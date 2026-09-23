@@ -1,9 +1,23 @@
-import type { ZodType } from 'zod';
+import { ZodError, type ZodType } from 'zod';
 
 import { ApiError } from '@/errors/ApiError';
 import type { ApiEnvelope } from '@/lib/apiResponse';
 import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/authTokenRef';
+import {
+  AddressListResponseSchema,
+  AddressSchema,
+  CreateAddressResponseSchema,
+  DeleteAddressResponseSchema,
+  type SaveAddressRequest,
+} from '@/types/address';
 import { SpringLoginUrlDataSchema, type OAuthProvider } from '@/types/auth';
+import {
+  CartResponseSchema,
+  RemoveCartItemsResponseSchema,
+  UpdateCartItemQuantityResponseSchema,
+  type RemoveCartItemsRequest,
+  type UpdateCartItemQuantityRequest,
+} from '@/types/cart';
 import { ProductListResponseSchema, type ProductListParams } from '@/types/product';
 
 /**
@@ -19,6 +33,9 @@ import { ProductListResponseSchema, type ProductListParams } from '@/types/produ
  * 이 도메인(auth)은 아직 그 경로를 안 타므로 이번 구현 범위에서는 다루지 않는다.
  */
 
+/** 네트워크가 멈춰도 Query/Mutation 이 무한 대기하지 않도록 두 래퍼 공통으로 적용한다. */
+const REQUEST_TIMEOUT_MS = 10_000;
+
 function baseHeaders(init?: RequestInit): HeadersInit {
   return {
     'Content-Type': 'application/json',
@@ -30,16 +47,32 @@ function unwrap<T>(envelope: ApiEnvelope<T>): T {
   return envelope.data;
 }
 
+/** Zod 검증 실패를 사용자 친화적인 `ApiError` 로 정규화한다(api-convention §6). */
+function parseOrThrow<T>(schema: ZodType<T>, data: unknown): T {
+  try {
+    return schema.parse(data);
+  } catch (e) {
+    if (e instanceof ZodError) {
+      throw new ApiError(502, '요청 처리 중 오류가 발생했습니다.');
+    }
+    throw e;
+  }
+}
+
 /** 인증 불필요 — 우리 `/api/**` 호출. */
 export async function publicFetch<T>(
   path: string,
   schema: ZodType<T>,
   init?: RequestInit,
 ): Promise<T> {
-  const res = await fetch(path, { ...init, headers: baseHeaders(init) });
+  const res = await fetch(path, {
+    ...init,
+    headers: baseHeaders(init),
+    signal: init?.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  });
   const json = (await res.json()) as ApiEnvelope<T>;
   if (!res.ok) throw ApiError.fromResponse(res.status, json);
-  return schema.parse(unwrap(json));
+  return parseOrThrow(schema, unwrap(json));
 }
 
 /**
@@ -60,6 +93,7 @@ export async function privateFetch<T>(
         ...baseHeaders(init),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
+      signal: init?.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
   };
 
@@ -76,19 +110,35 @@ export async function privateFetch<T>(
 
   const json = (await res.json()) as ApiEnvelope<T>;
   if (!res.ok) throw ApiError.fromResponse(res.status, json);
-  return schema.parse(unwrap(json));
+  return parseOrThrow(schema, unwrap(json));
 }
 
-async function tryRefresh(): Promise<boolean> {
-  try {
-    const res = await fetch('/api/auth/refresh', { method: 'POST' });
-    if (!res.ok) return false;
-    const json = (await res.json()) as ApiEnvelope<{ accessToken: string }>;
-    setAccessToken(json.data.accessToken);
-    return true;
-  } catch {
-    return false;
-  }
+// SessionBootstrap(부팅 시 무음 재발급)과 privateFetch 의 401 인터셉터가 페이지 진입 직후
+// 동시에 이 함수를 부를 수 있다(예: /cart — useSession 마운트 + useCart 의 첫 401 이 같은
+// 틱에 몰림). refresh_token 은 서버에서 1회용으로 회전되므로, 중복 호출하면 먼저 도착한
+// 요청은 성공하고 뒤따라온 요청은 "이미 쓴 토큰"으로 거부당해 방금 심어진 새 쿠키를
+// clearRefreshTokenCookie 로 지워버린다(2026-09-22 실제 재현·확인). in-flight 프로미스를
+// 공유해 동시 호출을 네트워크 요청 1개로 합친다.
+let refreshPromise: Promise<boolean> | null = null;
+
+function tryRefresh(): Promise<boolean> {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    try {
+      const res = await fetch('/api/auth/refresh', { method: 'POST' });
+      if (!res.ok) return false;
+      const json = (await res.json()) as ApiEnvelope<{ accessToken: string }>;
+      setAccessToken(json.data.accessToken);
+      return true;
+    } catch {
+      return false;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
 }
 
 // --- 엔드포인트 함수 (api-convention §1·§8 — 훅은 이 함수를 호출, publicFetch 직접 호출 금지) ---
@@ -110,6 +160,55 @@ export function requestSocialLoginUrl(provider: OAuthProvider, returnTo?: string
 export function searchProducts(params: ProductListParams) {
   const query = new URLSearchParams({ query: params.query, sort: params.sort });
   return publicFetch(`/api/products?${query}`, ProductListResponseSchema);
+}
+
+/** 장바구니 조회(배송 그룹별). */
+export function getCart() {
+  return privateFetch('/api/cart', CartResponseSchema);
+}
+
+/** 장바구니 상품 수량 변경 — api-convention §7 유일한 Optimistic Update 예외 대상. */
+export function updateCartItemQuantity(cartItemId: number, body: UpdateCartItemQuantityRequest) {
+  return privateFetch(`/api/cart/items/${cartItemId}`, UpdateCartItemQuantityResponseSchema, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
+/** 장바구니 상품 삭제(단일·다건 공통). */
+export function removeCartItems(body: RemoveCartItemsRequest) {
+  return privateFetch('/api/cart/items', RemoveCartItemsResponseSchema, {
+    method: 'DELETE',
+    body: JSON.stringify(body),
+  });
+}
+
+/** 배송지 목록 조회. */
+export function getAddresses() {
+  return privateFetch('/api/addresses', AddressListResponseSchema);
+}
+
+/** 배송지 추가. */
+export function createAddress(body: SaveAddressRequest) {
+  return privateFetch('/api/addresses', CreateAddressResponseSchema, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+/** 배송지 수정. */
+export function updateAddress(addressId: number, body: SaveAddressRequest) {
+  return privateFetch(`/api/addresses/${addressId}`, AddressSchema, {
+    method: 'PUT',
+    body: JSON.stringify(body),
+  });
+}
+
+/** 배송지 삭제. */
+export function deleteAddress(addressId: number) {
+  return privateFetch(`/api/addresses/${addressId}`, DeleteAddressResponseSchema, {
+    method: 'DELETE',
+  });
 }
 
 /**
