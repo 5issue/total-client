@@ -4,7 +4,11 @@ import { ApiError } from '@/errors/ApiError';
 import type { ApiEnvelope } from '@/lib/apiResponse';
 import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/authTokenRef';
 import { SpringLoginUrlDataSchema, type OAuthProvider } from '@/types/auth';
-import { ProductListResponseSchema, type ProductListParams } from '@/types/product';
+import {
+  ProductFiltersSchema,
+  ProductListResponseSchema,
+  type ProductListParams,
+} from '@/types/product';
 
 /**
  * HTTP 클라이언트 — publicFetch / privateFetch (api-convention §3).
@@ -109,7 +113,16 @@ export function requestSocialLoginUrl(provider: OAuthProvider, returnTo?: string
 /** 검색 결과 상품 목록 조회. 로그인 여부와 무관하게 노출되는 공개 데이터. */
 export function searchProducts(params: ProductListParams) {
   const query = new URLSearchParams({ query: params.query, sort: params.sort });
+  if (params.brand) query.set('brand', params.brand);
+  if (params.price) query.set('price', params.price);
+  if (params.storageType) query.set('storageType', params.storageType);
   return publicFetch(`/api/products?${query}`, ProductListResponseSchema);
+}
+
+/** 검색 결과 필터 바텀시트(브랜드/가격/유형)용 옵션 조회(#128). */
+export function getProductFilters(keyword: string) {
+  const query = new URLSearchParams({ keyword });
+  return publicFetch(`/api/products/filters?${query}`, ProductFiltersSchema);
 }
 
 /**
