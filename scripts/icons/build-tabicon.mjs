@@ -26,9 +26,16 @@ for (const file of files) {
   // 매핑하는데, 탭 아이콘은 default/active 각각 Text/Primary·Brand/Primary 시맨틱 의미라
   // 다크모드에서 값이 갈라져야 한다(마이컬리 BottomNav 다크 지원, 2026-09-18) — 이 빌드에서만
   // 시맨틱 토큰으로 한 번 더 치환한다(다른 아이콘 세트의 HEX_TO_VAR 동작에는 영향 없음).
+  //
+  // `--color-fg`/`--color-primary`(별칭, `@theme inline`)가 아니라 `--fg`/`--primary`
+  // (프리미티브)를 직접 참조한다 — Tailwind 클래스(`text-fg` 등)는 별칭을 프리미티브로
+  // "inline" 해서 생성되지만, SVG `fill="var(--color-fg)"`처럼 raw CSS var 로 직접 쓰면
+  // 그 inline 최적화를 안 타서 `[data-theme='dark']` 로컬 오버라이드를 못 따라가고 루트
+  // (라이트) 값에 고정돼 버린다 — 다크모드에서 탭 아이콘이 계속 검게 보이던 버그의 원인
+  // (BottomNav 다크 QA, 2026-09-22). 프리미티브는 이 간접 단계가 없어 정상 캐스케이드된다.
   jsx.inner = jsx.inner
-    .replace(/var\(--color-black\)/g, 'var(--color-fg)')
-    .replace(/var\(--color-brand-500\)/g, 'var(--color-primary)');
+    .replace(/var\(--color-black\)/g, 'var(--fg)')
+    .replace(/var\(--color-brand-500\)/g, 'var(--primary)');
   const fnName = `render_tab_${name}_${state}`;
   fnCodes.push(renderFnCode(fnName, jsx));
   if (!byName.has(name)) byName.set(name, {});

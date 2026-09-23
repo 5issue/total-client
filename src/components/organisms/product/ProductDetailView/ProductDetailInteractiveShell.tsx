@@ -82,6 +82,15 @@ export function ProductDetailInteractiveShell({
 
   const hasPurchaseInfo = overview.recentRepurchaseCount !== undefined;
 
+  // 디자인 QA(#132): 상품설명을 스크롤한 채 다른 탭으로 전환하면 전환된 콘텐츠가
+  // 이전 스크롤 위치 그대로 보였다 — 탭 전환 시 최상단(헤더 바로 아래)부터 보이도록
+  // 스크롤을 되돌린다. 헤더+탭바가 이 셸의 첫 자식(sticky top-0)이라 top:0 이 곧
+  // "헤더 아래에서 콘텐츠 시작" 위치와 같다.
+  function handleTabChange(id: string) {
+    setActiveTab(id);
+    window.scrollTo({ top: 0 });
+  }
+
   useEffect(() => {
     if (!hasPurchaseInfo) return;
     const timer = setTimeout(
@@ -132,7 +141,7 @@ export function ProductDetailInteractiveShell({
           size="md"
           fitted
           activeId={activeTab}
-          onChange={setActiveTab}
+          onChange={handleTabChange}
           items={TABS}
         />
       </div>

@@ -1,0 +1,11 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="130" height="130" viewBox="0 0 130 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="loadingbar">
+<path id="Ellipse 1" d="M6.57528 65C2.94386 65 -0.0345043 62.0485 0.332117 58.4356C1.83679 43.6079 8.40537 29.6708 19.0381 19.0381C31.2279 6.8482 47.7609 9.37073e-06 65 9.57631e-06C82.2391 9.78188e-06 98.7721 6.8482 110.962 19.0381C121.595 29.6708 128.163 43.6079 129.668 58.4357C130.035 62.0485 127.056 65 123.425 65V65C119.793 65 116.892 62.0443 116.433 58.4421C114.989 47.1094 109.828 36.5018 101.663 28.3369C91.9394 18.6133 78.7513 13.1506 65 13.1506C51.2487 13.1506 38.0606 18.6133 28.3369 28.3369C20.172 36.5018 15.0115 47.1094 13.5668 58.442C13.1075 62.0443 10.2067 65 6.57528 65V65Z" fill="url(#paint0_linear_0_31)"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_31" x1="7.00001" y1="65" x2="122" y2="65" gradientUnits="userSpaceOnUse">
+<stop stop-color="#74BEFD" stop-opacity="0"/>
+<stop offset="1" stop-color="#AC89FF"/>
+</linearGradient>
+</defs>
+</svg>

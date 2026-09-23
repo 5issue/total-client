@@ -20,18 +20,11 @@ import { MOCK_ORDER_NUMBER, MOCK_ORDER_RECOMMEND, MOCK_ORDER_TOTAL } from './moc
  * (`CheckoutView` 와 같은 화면 단위 organism 패턴). 복사→토스트 로직은 `useCopyToast` —
  * 같은 패턴이 필요한 `OrderDetailView` 와 공유한다.
  *
- * 이번 작업 범위는 **퍼블리싱만**이다(사용자 확정, 2026-09-15). 결제 연동(토스페이먼츠)은
- * 별도 진행하고, 지금은 체크아웃의 "결제하기"가 이 경로로 넘어오는 더미 흐름만 있다.
- * 주문번호·금액·추천 상품은 전부 `mock.ts` 스텁이다.
+ * 영수증 값은 `/checkout/complete` 가 SSR 로 읽어 props 로 넘긴다(#109). 스토리·퍼블
+ * 회귀는 mock 기본값을 쓴다. 추천 상품은 아직 별도 API 가 없어 stub 을 유지한다.
  *
  * 하단 CTA: "주문 상세보기" → `/mypage/orders/{주문번호}` (#94), "쇼핑 계속하기" → `/search`
  * (피드백 반영, 2026-09-15 — 기존 `/` 에서 변경).
- * 추천 상품 "담기" / "전체보기" 는 무동작(`OrderRecommendCarousel` 주석 참고).
- *
- * 토큰(실측): 배경 `Bg/secondary`(#f0f5f8) → `bg-surface-secondary`, 카드 `Surface/Base`
- * `Radius/XL`16, 타이틀 `Display/Display_S`(28/600) + `Brand/Primary` → `text-display-s
- * text-primary`, 체크 아이콘은 28px 전용 컷 `check-brand`. 헤더 아래 여백 40px(`pt-10`),
- * 블록 간격 `Gap/XXXL`32 → `gap-8`, 카드 간격 `Gap/M`16 → `gap-4`.
  */
 const NOTICE_ITEMS = [
   '• [주문완료], [배송준비중] 상태일 경우에만 주문내역 상세페이지에서 주문 취소가 가능합니다.',
@@ -39,7 +32,13 @@ const NOTICE_ITEMS = [
   '• 주문 / 배송 및 기타 문의가 있을 경우, 1:1 문의에 남겨주시면 신속히 해결해드리겠습니다.',
 ] as const;
 
-export function OrderCompleteView() {
+export function OrderCompleteView({
+  orderNumber = MOCK_ORDER_NUMBER,
+  total = MOCK_ORDER_TOTAL,
+}: {
+  orderNumber?: string;
+  total?: number;
+}) {
   const router = useRouter();
   const { visible: copyToastVisible, copy: copyOrderNumber } = useCopyToast();
 
@@ -56,7 +55,7 @@ export function OrderCompleteView() {
 
         <div className="flex flex-col gap-4">
           <div className="bg-surface flex items-center justify-between rounded-xl px-4 py-3">
-            <p className="text-heading-5 text-fg-tertiary">주문번호 {MOCK_ORDER_NUMBER}</p>
+            <p className="text-heading-5 text-fg-tertiary">주문번호 {orderNumber}</p>
             {/* Button `s` 는 높이가 콘텐츠로 결정돼 Figma 고정 38×52 와 다르다 — 다만 38px 는
                 최소 터치 타깃 44px(code-style §5) 에 못 미쳐 44px(`h-11`)로 올린다(CodeRabbit
                 리뷰로 발견). */}
@@ -64,7 +63,7 @@ export function OrderCompleteView() {
               size="s"
               variant="outlineBlack"
               className="h-11 w-13"
-              onClick={() => copyOrderNumber(MOCK_ORDER_NUMBER)}
+              onClick={() => copyOrderNumber(orderNumber)}
             >
               복사
             </Button>
@@ -73,7 +72,7 @@ export function OrderCompleteView() {
           <div className="bg-surface flex items-start justify-between rounded-xl px-4 py-6">
             <p className="text-heading-0 text-fg">주문 금액</p>
             <p className="text-fg">
-              <span className="text-heading-0">{MOCK_ORDER_TOTAL.toLocaleString('ko-KR')} </span>
+              <span className="text-heading-0">{total.toLocaleString('ko-KR')} </span>
               <span className="text-heading-5">원</span>
             </p>
           </div>
@@ -116,7 +115,7 @@ export function OrderCompleteView() {
             variant="tertiary"
             size="l"
             className="h-14 flex-1"
-            onClick={() => router.push(`/mypage/orders/${MOCK_ORDER_NUMBER}`)}
+            onClick={() => router.push(`/mypage/orders/${orderNumber}`)}
           >
             주문 상세보기
           </Button>

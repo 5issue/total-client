@@ -28,6 +28,11 @@ export const WithoutDiscount: Story = {
   args: { discountLabel: undefined, originalPriceLabel: undefined },
 };
 
+export const Disabled: Story = {
+  name: '담기 비활성 (mock, 장바구니 미연동)',
+  args: { disabled: true },
+};
+
 export const ClickAddToCart: Story = {
   name: '담기 클릭 시 핸들러 호출',
   play: async ({ canvasElement, args }) => {

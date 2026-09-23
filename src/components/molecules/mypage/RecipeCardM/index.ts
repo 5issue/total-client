@@ -1,0 +1,1 @@
+export { RecipeCardM } from './RecipeCardM';
