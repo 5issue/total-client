@@ -1,4 +1,4 @@
-import type { ZodType } from 'zod';
+import { ZodError, type ZodType } from 'zod';
 
 import { ApiError } from '@/errors/ApiError';
 import type { ApiEnvelope } from '@/lib/apiResponse';
@@ -33,6 +33,9 @@ import { ProductListResponseSchema, type ProductListParams } from '@/types/produ
  * 이 도메인(auth)은 아직 그 경로를 안 타므로 이번 구현 범위에서는 다루지 않는다.
  */
 
+/** 네트워크가 멈춰도 Query/Mutation 이 무한 대기하지 않도록 두 래퍼 공통으로 적용한다. */
+const REQUEST_TIMEOUT_MS = 10_000;
+
 function baseHeaders(init?: RequestInit): HeadersInit {
   return {
     'Content-Type': 'application/json',
@@ -44,16 +47,32 @@ function unwrap<T>(envelope: ApiEnvelope<T>): T {
   return envelope.data;
 }
 
+/** Zod 검증 실패를 사용자 친화적인 `ApiError` 로 정규화한다(api-convention §6). */
+function parseOrThrow<T>(schema: ZodType<T>, data: unknown): T {
+  try {
+    return schema.parse(data);
+  } catch (e) {
+    if (e instanceof ZodError) {
+      throw new ApiError(502, '요청 처리 중 오류가 발생했습니다.');
+    }
+    throw e;
+  }
+}
+
 /** 인증 불필요 — 우리 `/api/**` 호출. */
 export async function publicFetch<T>(
   path: string,
   schema: ZodType<T>,
   init?: RequestInit,
 ): Promise<T> {
-  const res = await fetch(path, { ...init, headers: baseHeaders(init) });
+  const res = await fetch(path, {
+    ...init,
+    headers: baseHeaders(init),
+    signal: init?.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  });
   const json = (await res.json()) as ApiEnvelope<T>;
   if (!res.ok) throw ApiError.fromResponse(res.status, json);
-  return schema.parse(unwrap(json));
+  return parseOrThrow(schema, unwrap(json));
 }
 
 /**
@@ -74,6 +93,7 @@ export async function privateFetch<T>(
         ...baseHeaders(init),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
+      signal: init?.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
   };
 
@@ -90,7 +110,7 @@ export async function privateFetch<T>(
 
   const json = (await res.json()) as ApiEnvelope<T>;
   if (!res.ok) throw ApiError.fromResponse(res.status, json);
-  return schema.parse(unwrap(json));
+  return parseOrThrow(schema, unwrap(json));
 }
 
 // SessionBootstrap(부팅 시 무음 재발급)과 privateFetch 의 401 인터셉터가 페이지 진입 직후

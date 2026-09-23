@@ -9,6 +9,9 @@ import { SpringEnvelopeSchema } from '@/types/auth';
 /** 스키마/네트워크 붕괴 시에만 쓰는 폴백. Spring `message` 가 있으면 그걸 우선한다(FE-16). */
 export const ADDRESS_UPSTREAM_FAILURE_MESSAGE = '배송지 정보를 불러오는 중 오류가 발생했습니다.';
 
+/** Spring 이 응답하지 않아도 Route Handler 가 무한 대기하지 않도록 상한을 둔다. */
+const SPRING_REQUEST_TIMEOUT_MS = 10_000;
+
 export function springAddressHeaders(req: NextRequest): HeadersInit {
   const authorization = req.headers.get('authorization');
   const refresh = getRefreshTokenCookie(req);
@@ -39,6 +42,7 @@ export async function proxySpringAddress<T>(
       headers: springAddressHeaders(req),
       body: init.body === undefined ? undefined : JSON.stringify(init.body),
       cache: 'no-store',
+      signal: AbortSignal.timeout(SPRING_REQUEST_TIMEOUT_MS),
     });
     raw = SpringEnvelopeSchema(dataSchema).parse(await springRes.json());
   } catch {
