@@ -5,6 +5,10 @@ import { useState } from 'react';
 import { DisplaySectionList } from '@/components/organisms/home/DisplaySectionList';
 import type { MockDisplaySection } from '@/components/organisms/home/DisplaySectionList/mock';
 import { ProductOptionSheet } from '@/components/organisms/product/ProductOptionSheet';
+import {
+  MOCK_OPTION_PRODUCT,
+  MOCK_UNIT,
+} from '@/components/organisms/product/ProductOptionSheet/mock';
 
 /**
  * 홈 진열 섹션 전체 + 장바구니 담기 바텀시트를 함께 소유하는 클라이언트 경계.
@@ -14,6 +18,10 @@ import { ProductOptionSheet } from '@/components/organisms/product/ProductOption
  * 모든 섹션이 같은 시트 인스턴스 하나를 공유한다 — 어느 카드의 "담기"를 눌러도
  * `ProductOptionSheet` 하나가 열린다(node 838:65977 확인, 상품마다 다른 시트가
  * 아니라 화면에 시트 오버레이가 하나 뜨는 구조).
+ *
+ * 홈 화면 자체가 아직 mock 데이터(`DisplaySectionList/mock.ts`)라 어느 카드를
+ * 눌렀는지와 무관하게 `ProductOptionSheet`(node 665:43255 기본 예시 상품, `mock.ts`
+ * 픽스처)로 고정 렌더한다 — 홈 API 연동 시 클릭한 상품의 실 SKU로 교체.
  */
 export type HomeProductSectionsProps = {
   sections: MockDisplaySection[];
@@ -34,7 +42,13 @@ export function HomeProductSections({ sections }: HomeProductSectionsProps) {
           onAddToCart={() => setSheetOpen(true)}
         />
       ))}
-      <ProductOptionSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
+      <ProductOptionSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        productName={MOCK_OPTION_PRODUCT.name}
+        productTagline={MOCK_OPTION_PRODUCT.tagline}
+        unit={MOCK_UNIT}
+      />
     </>
   );
 }
