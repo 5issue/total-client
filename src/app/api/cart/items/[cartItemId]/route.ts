@@ -1,6 +1,7 @@
 import { type NextRequest } from 'next/server';
 
 import { fail } from '@/lib/apiResponse';
+import { isSameOrigin } from '@/lib/assertSameOrigin';
 import { proxySpringCart } from '@/lib/cart/springProxy';
 import {
   UpdateCartItemQuantityRequestSchema,
@@ -12,6 +13,10 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ cartItemId: string }> },
 ) {
+  if (!isSameOrigin(req)) {
+    return fail(403, '요청을 처리할 수 없습니다.');
+  }
+
   const { cartItemId } = await params;
   const cartItemIdNum = Number(cartItemId);
   if (!Number.isInteger(cartItemIdNum) || cartItemIdNum <= 0) {

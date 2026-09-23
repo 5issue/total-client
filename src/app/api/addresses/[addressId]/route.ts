@@ -2,6 +2,7 @@ import { type NextRequest } from 'next/server';
 
 import { proxySpringAddress } from '@/lib/address/springProxy';
 import { fail } from '@/lib/apiResponse';
+import { isSameOrigin } from '@/lib/assertSameOrigin';
 import {
   AddressSchema,
   DeleteAddressResponseSchema,
@@ -22,6 +23,10 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ addressId: string }> },
 ) {
+  if (!isSameOrigin(req)) {
+    return fail(403, '요청을 처리할 수 없습니다.');
+  }
+
   const { addressId } = await params;
   const addressIdNum = parseAddressId(addressId);
   if (addressIdNum === null) {
@@ -45,6 +50,10 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ addressId: string }> },
 ) {
+  if (!isSameOrigin(req)) {
+    return fail(403, '요청을 처리할 수 없습니다.');
+  }
+
   const { addressId } = await params;
   const addressIdNum = parseAddressId(addressId);
   if (addressIdNum === null) {
