@@ -12,11 +12,14 @@ import localFont from 'next/font/local';
  * 정의하고 있어서, 그 값 맨 앞에 `var(--font-pretendard)` 를 끼워 넣는 방식이 두 선언이
  * 서로를 덮어쓰는 특이도(specificity) 문제 없이 안전하다.
  *
- * `weight: '45 920'` 은 Pretendard Variable 실제 가변축 범위(패키지 자체 CSS 실측) 그대로.
+ * `weight: '45 930'` 은 Pretendard Variable 실제 가변축 범위(TTF `fvar` 테이블 실측, wght
+ * min=45/max=930) 그대로. 패키지에 `dist/web/variable/woff2/...` 서브셋 파일은 있지만
+ * `next/font/local` 이 곧바로 쓸 단일 가변폰트 파일은 `dist/public/variable/` 의 TTF뿐이다
+ * (CodeRabbit 지적 — 원래 지정한 woff2 경로는 패키지에 존재하지 않아 빌드가 깨졌다).
  */
 export const pretendard = localFont({
-  src: '../../node_modules/pretendard/dist/web/variable/woff2/PretendardVariable.woff2',
+  src: '../../node_modules/pretendard/dist/public/variable/PretendardVariable.ttf',
   variable: '--font-pretendard',
   display: 'swap',
-  weight: '45 920',
+  weight: '45 930',
 });
