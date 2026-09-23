@@ -45,7 +45,9 @@ const BASIC_VARIANT_CLASSNAME: Record<
     selected: 'bg-brand-50 border-brand-200 text-primary',
   },
   neutral: {
-    default: 'bg-surface border-neutral-700 text-fg-tertiary',
+    // 디자인 QA(#132): 미선택 칩 텍스트가 두꺼워보임 — text-label-m 기본 weight
+    // (500/Medium)를 400(Regular)으로 낮춤. 선택 상태는 QA 대상이 아니라 그대로.
+    default: 'bg-surface border-neutral-700 text-fg-tertiary font-normal!',
     selected: 'bg-brand-50 border-brand-200 text-primary',
   },
 };

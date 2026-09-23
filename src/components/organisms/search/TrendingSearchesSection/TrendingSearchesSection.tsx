@@ -25,7 +25,10 @@ export function TrendingSearchesSection() {
       <HomeSectionHeader
         title="급상승 검색어"
         subtitle="최근 1시간 동안 검색 횟수가 급상승했어요"
-        titleClassName="font-bold!"
+        // 디자인 QA(#132): 두꺼워보임 — 둘 다 700(Bold)에서 100 낮춰 600(SemiBold)으로.
+        // (부제 기본 text-label-xl 도 weight 700 — 처음 반영 때 제목만 고치고 놓쳤던 부분)
+        titleClassName="font-semibold!"
+        subtitleClassName="font-semibold!"
         className="pl-0!"
       />
       <div className="grid grid-cols-2 gap-x-3">

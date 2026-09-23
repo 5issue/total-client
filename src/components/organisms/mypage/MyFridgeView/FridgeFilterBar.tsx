@@ -9,10 +9,10 @@ import { FRIDGE_FILTERS, type FridgeFilterId } from './model';
  * 필터 칩 행 (organism). Figma node 1120-56214.
  *
  * 헤더+탭바와 함께 스크롤 중에도 붙어 있어야 해서(#111 QA) `MyFridgeView`가 이걸
- * 헤더+탭바와 같은 `sticky` 컨테이너 안에 두지만, 뒤 배경은 없다 — 칩 자체의 배경
- * (`FilterChip`)만 보이고 행 컨테이너는 투명해 스크롤되는 그리드가 칩 사이로 그대로
- * 비친다. "전체선택/선택삭제" 툴바(`FridgeSelectionToolbar`)는 이 스크롤 고정
- * 대상이 아니라 별도 컴포넌트로 뺐다.
+ * 헤더+탭바와 같은 `sticky` 컨테이너 안에 둔다. 행 컨테이너에 `bg-surface` 를 채워
+ * 스크롤되는 그리드가 칩 사이·둘레로 비치지 않게 한다(디자인 QA #132 — 예전엔 칩
+ * 자체 배경만 보이고 행은 투명해 뒷콘텐츠와 겹쳐 보였다). "전체선택/선택삭제" 툴바
+ * (`FridgeSelectionToolbar`)는 이 스크롤 고정 대상이 아니라 별도 컴포넌트로 뺐다.
  */
 export interface FridgeFilterBarProps {
   activeFilter: FridgeFilterId;
@@ -24,7 +24,8 @@ export function FridgeFilterBar({ activeFilter, onFilterChange, className }: Fri
   return (
     <div
       className={[
-        'scrollbar-hide flex items-center gap-3 overflow-x-auto px-4 pt-3 pb-2',
+        // 디자인 QA(#132): 칩간 간격 12px(gap-3)가 넓어보임 — gap-2(8px)로 조정.
+        'bg-surface scrollbar-hide flex items-center gap-2 overflow-x-auto px-4 pt-3 pb-2',
         className,
       ]
         .filter(Boolean)

@@ -42,7 +42,9 @@ export function FridgeAiNoticeBanner({ title, description, className }: FridgeAi
           ))}
         </p>
       </div>
-      <p className="text-label-m text-fg">{description}</p>
+      {/* 디자인 QA(#132): 두꺼워보임 — text-label-m 기본 weight(500/Medium)를
+          400(Regular)으로 낮춤. */}
+      <p className="text-label-m text-fg font-normal!">{description}</p>
     </div>
   );
 }
