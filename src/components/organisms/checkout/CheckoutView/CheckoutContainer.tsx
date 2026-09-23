@@ -85,21 +85,46 @@ export function CheckoutContainer({ itemIds }: { itemIds: string[] }) {
   }
 
   const addresses = addressesQuery.data.addresses.map(mapAddressToView);
+
+  if (addresses.length === 0) {
+    return (
+      <div className="bg-surface-secondary flex flex-1 flex-col">
+        <SectionHeader leading="back" leadingHref="/cart" title="주문서" />
+        <div className="flex flex-1 flex-col items-center justify-center">
+          <ErrorState
+            icon={<Icon name="alert" size={56} aria-hidden />}
+            title="등록된 배송지가 없어요"
+            description="배송지를 먼저 등록해주세요"
+            action={
+              <FloatingButton icon="arrow-right" onClick={() => router.push('/mypage/addresses')}>
+                배송지 등록하기
+              </FloatingButton>
+            }
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // 선택된(또는 기본) 배송지가 없으면(예: 기본 배송지 미지정) 첫 배송지로 대체한다 —
+  // `undefined`를 넘기면 CheckoutView가 목데이터(MOCK_DEFAULT_ADDRESS)로 대체해
+  // 실제 결제 화면에 가짜 주소가 노출된다(CodeRabbit).
+  // addresses[0] 은 위 length===0 얼리리턴으로 항상 존재가 보장된다.
   const selected =
-    addresses.find((a) => a.id === selectedAddressId) ?? addresses.find((a) => a.isDefault);
-  const deliveryAddress = selected
-    ? {
-        isDefault: selected.isDefault,
-        addressLine: addressLineOf(selected),
-        recipient: selected.recipient,
-        phone: selected.phone,
-      }
-    : undefined;
+    addresses.find((a) => a.id === selectedAddressId) ??
+    addresses.find((a) => a.isDefault) ??
+    addresses[0]!;
+  const deliveryAddress = {
+    isDefault: selected.isDefault,
+    addressLine: addressLineOf(selected),
+    recipient: selected.recipient,
+    phone: selected.phone,
+  };
 
   return (
     <CheckoutView
       items={items}
-      amounts={computeOrderAmounts(items)}
+      amounts={computeOrderAmounts(cartQuery.data, itemIds)}
       deliveryAddress={deliveryAddress}
     />
   );
