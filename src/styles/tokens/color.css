@@ -86,6 +86,11 @@
   --shadow-xl: 0 16px 32px 0 #5f008029; /* 브랜드 퍼플 틴트 */
   --shadow-nav: 0 8px 40px 0 #0000001f; /* 플로팅 하단 네비게이션 바 전용 (node 2368-429 "BG > Fill + Shadow") */
 
+  /* `filter: drop-shadow(...)` 전용 — box-shadow(`--shadow-*`)와 CSS 속성 자체가 달라
+     별도 네임스페이스로 둔다(`--drop-shadow-*` → `drop-shadow-*` 유틸리티). MY 레시피
+     AI 로딩 마크의 브랜드 퍼플 글로우(node 1343-109142) 전용, Figma 실측 그대로. */
+  --drop-shadow-recipe-ai-mark: 0 4px 27.15px var(--color-brand-200);
+
   /* Gradient — Figma 변수 미바인딩, 컴포넌트 노드에서 직접 실측(node 2424-1468/1470).
      `--background-image-*` 네임스페이스라 `bg-filter-chip-gradient` 유틸리티로 생성된다. */
   --background-image-filter-chip-gradient: linear-gradient(90deg, #d665ff 0%, #00e3ff 100%);
@@ -116,6 +121,26 @@
     color-mix(in srgb, var(--color-blue) 40%, transparent) 0%,
     color-mix(in srgb, var(--color-brand-200) 40%, transparent) 100%
   );
+  /* MY 레시피 AI 로딩 화면(node 1343-109131) — 전체 배경의 옅은 보라 방사형
+     그라데이션과, 중앙 컬리 AI 마크 배지의 원형 그라데이션. 배경은 node 1343-109132
+     실측(SVG radialGradient, 우측 전체에 걸쳐 퍼지는 타원 + rotate 180 + opacity 0.7) —
+     CSS `radial-gradient`엔 행렬 회전이 없어 근사 재현, 색 stop과 최종 알파(stop
+     알파 × 0.7)는 실측 그대로. */
+  --background-image-recipe-ai-loading-bg: radial-gradient(
+    ellipse 75% 130% at 100% 10%,
+    rgba(162, 146, 254, 0.35) 0%,
+    rgba(209, 201, 255, 0.53) 45%,
+    transparent 80%
+  );
+  --background-image-recipe-ai-loading-mark: linear-gradient(126deg, #ac89ff 0.56%, #74befd 95.9%);
+  /* MY 레시피 메인 "AI 추천 레시피" 섹션(제목+캐러셀) 배경 — node 1281-210506 원본은
+     radial-gradient SVG, 근사 CSS 그라데이션으로 재현. */
+  --background-image-recipe-ai-recommend-bg: radial-gradient(
+    120% 90% at 100% 0%,
+    color-mix(in srgb, var(--color-primary) 22%, transparent) 0%,
+    color-mix(in srgb, var(--color-primary) 10%, transparent) 45%,
+    transparent 75%
+  );
 }
 
 /* ── 시맨틱 토큰 (테마 인식) — 값은 아래 :root 에서 ──────────── */
@@ -137,6 +162,7 @@
   --color-surface-tag-active: var(--surface-tag-active); /* 위와 동일, pressed */
   --color-surface-subtle: var(--surface-subtle); /* Surface/Neutral_subtle */
   --color-surface-tertiary: var(--surface-tertiary); /* Surface/Tertiary */
+  --color-surface-nav: var(--surface-nav); /* BottomNav pill 전용 — 아래 :root/다크 블록 참고 */
 
   /* Text (foreground) — Figma "Text" */
   --color-fg: var(--fg); /* Text/primary */
@@ -189,6 +215,10 @@
      직접 실측. neutral-950 과 값이 같지만 시맨틱 의미가 달라 별도 토큰으로 뒀다(#104 코드래빗 리뷰). */
   --surface-tertiary: #323a40; /* Surface/Tertiary = Neutral/950 */
 
+  /* BottomNav 플로팅 pill 전용 — 라이트는 `--surface`(흰색)와 같다. 다크에서는 분리해야
+     해서(아래 다크 블록 참고) 별도 토큰. */
+  --surface-nav: #ffffff;
+
   /* Text — Figma "Text/*" → 프리미티브 */
   --fg: #222222; /* Text/primary    = Normal/Black */
   --fg-secondary: #515e69; /* Text/Secondary  = Neutral/900 */
@@ -234,6 +264,14 @@
   --surface: #222222;
   --surface-secondary: #515e69; /* Surface/Secondary — 파운데이션 표 After: Neutral/900 */
   --surface-tertiary: #515e69; /* Surface/Tertiary — 파운데이션 표 After: Neutral/900 */
+  /* BottomNav pill(node 1941-89037 "NavigationBar" > "BG", 2026-09-22 실측, Figma 변수
+     미바인딩 리터럴 값) — `--surface`를 그대로 썼더니 다크에서 페이지 배경(#222)과 같은
+     색이 돼 pill 이 통째로 안 보이는 버그였다(마이컬리 다크모드 QA). 카드류는 Border 로
+     페이지와 구분하지만, 테두리 없이 배경 대비만으로 떠 있어야 하는 플로팅 pill이라
+     `--surface`를 따라가면 안 되는 예외 케이스 — 그래서 별도 토큰으로 분리.
+     (코드래빗 리뷰) "Figma 다크 스펙 미확정 상태에서 팔레트 확장 금지" 우려는 이 케이스엔
+     해당 없음 — 위 node 1941-89037이 바로 그 미확정 상태를 해소한 실제 확정 스펙. */
+  --surface-nav: #323a40;
   --overlay: #00000080; /* Surface/Overlay_gray — 파운데이션 표 After: 000000 50% (라이트는 222222 60%) */
   --overlay-blue: #a1b3beb2; /* Surface/Overlay_blue — 라이트 40% -> 70% */
   --overlay-orange: #fa622f1a; /* Surface/Overlay_orange — 라이트 4% -> 10% (StatusLabel owned/rewards, node 1691-205422 실측) */

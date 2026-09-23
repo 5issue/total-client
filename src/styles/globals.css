@@ -113,6 +113,15 @@
     }
   }
 
+  /* RecipeAiLoadingView 회전 링(node 1343-109131) — Figma 실측 1.2초 회전(기본
+   * `animate-spin`의 1s와 다름)이라 대괄호 임의값 대신 생성 유틸리티로 별도 토큰화. */
+  --animate-recipe-ai-spin: recipe-ai-spin 1.2s linear infinite;
+  @keyframes recipe-ai-spin {
+    to {
+      rotate: 360deg;
+    }
+  }
+
   /* 화면 하단 안전영역 — 디자인팀 핸드오프 기준값(2026-09-09, 단말기 내비게이션바/CTA
    * 유무 조합별 4종): BottomNav만 112px · CTA 1줄 124px · CTA 2줄 208px · 없음 80px.
    * 지금은 BottomNav만 있는 화면(홈/라운지/카테고리/검색/마이컬리)에 필요한 112px만
