@@ -24,6 +24,24 @@ const HEADER_ACTIONS: SectionHeaderAction[] = [{ icon: 'home', label: '홈으로
 
 type TermsModal = 'privacy' | 'payment' | null;
 
+/** `returns/preview` 의 `refundPreview` — 실데이터로 채워지는 3개 금액만 다룬다. */
+export interface RefundDetailRefundPreview {
+  paymentAmount: number;
+  deductionAmount: number;
+  expectedRefundAmount: number;
+}
+
+export interface RefundDetailViewProps {
+  /** 실데이터 환불 예상액(`RefundDetailContainer` 가 `useReturnPreview` 로 채운다). 생략 시 목데이터. */
+  refundPreview?: RefundDetailRefundPreview;
+  /** [반품 접수] 클릭 시 실제 제출(`useSubmitReturn`). 생략하면 기존처럼 `/mypage` 로만 이동. */
+  onSubmit?: () => void;
+  /** 제출 진행 중 — CTA 비활성 + 라벨 변경. */
+  isSubmitting?: boolean;
+  /** 제출 실패 안내 문구 노출. */
+  submitError?: boolean;
+}
+
 /**
  * 반품 내역 상세 (organism). Figma "5팀 UI 공유용" —
  * "반품 사유 다음 화면"(node 795-64058) + 하단 sticky CTA(node 795-64232 `HorizontalCtaBar`).
@@ -43,9 +61,18 @@ type TermsModal = 'privacy' | 'payment' | null;
  * RefundReasonView 의 하단 CTA 바와 동일 패턴(크롬리스 풀스크린 뷰, 문서 자체가 스크롤).
  * [반품 접수] 다음 화면은 미정(완료 화면 백엔드 명세 대기) — 임시로 마이컬리 홈으로 이동.
  */
-export function RefundDetailView() {
+export function RefundDetailView({
+  refundPreview,
+  onSubmit,
+  isSubmitting = false,
+  submitError = false,
+}: RefundDetailViewProps) {
   const router = useRouter();
   const [termsModal, setTermsModal] = useState<TermsModal>(null);
+
+  const paymentAmount = refundPreview?.paymentAmount ?? MOCK_AMOUNTS.paymentAmount;
+  const refundDeduction = refundPreview?.deductionAmount ?? MOCK_AMOUNTS.refundDeduction;
+  const refundExpected = refundPreview?.expectedRefundAmount ?? MOCK_AMOUNTS.refundExpected;
 
   return (
     <>
@@ -122,13 +149,9 @@ export function RefundDetailView() {
                   <AmountDetailRow label="컬리캐시" value={won(MOCK_AMOUNTS.cashUsed)} />
                 </div>
 
-                <AmountRow emphasis label="결제금액" value={won(MOCK_AMOUNTS.paymentAmount)} />
+                <AmountRow emphasis label="결제금액" value={won(paymentAmount)} />
                 <AmountRow emphasis label="환불 수단" value={MOCK_AMOUNTS.refundMethod} />
-                <AmountRow
-                  emphasis
-                  label="환불 차감금액"
-                  value={won(MOCK_AMOUNTS.refundDeduction)}
-                />
+                <AmountRow emphasis label="환불 차감금액" value={won(refundDeduction)} />
               </div>
 
               <hr className="border-border" />
@@ -136,7 +159,7 @@ export function RefundDetailView() {
               <div className="flex flex-col gap-1">
                 <div className="text-primary flex items-center justify-between">
                   <span className="text-heading-4">환불 예정 금액</span>
-                  <span className="text-display-xs">{won(MOCK_AMOUNTS.refundExpected)}</span>
+                  <span className="text-display-xs">{won(refundExpected)}</span>
                 </div>
                 <div className="text-fg-quaternary flex items-center justify-between">
                   <span className="flex items-center gap-1">
@@ -203,14 +226,20 @@ export function RefundDetailView() {
           </div>
         </div>
 
-        <div className="bg-surface sticky bottom-0 mt-auto px-4 py-3">
+        <div className="bg-surface sticky bottom-0 mt-auto flex flex-col gap-2 px-4 py-3">
+          {submitError ? (
+            <p role="alert" className="text-fg-danger text-label-m text-center">
+              반품 접수에 실패했어요. 다시 시도해주세요.
+            </p>
+          ) : null}
           <Button
             variant="black"
             size="l"
             className="h-14 w-full"
-            onClick={() => router.push('/mypage')}
+            disabled={isSubmitting}
+            onClick={onSubmit ?? (() => router.push('/mypage'))}
           >
-            반품 접수
+            {isSubmitting ? '접수 중...' : '반품 접수'}
           </Button>
         </div>
       </div>

@@ -16,7 +16,7 @@ import {
   type SectionHeaderAction,
 } from '@/components/organisms/shared/SectionHeader';
 
-import { MOCK_REFUND_REASON_ITEMS, REFUND_REASON_OPTIONS } from './mock';
+import { MOCK_REFUND_REASON_ITEMS, REFUND_REASON_OPTIONS, type RefundReasonOption } from './mock';
 import type { RefundReasonItemInput } from './model';
 
 /**
@@ -53,6 +53,10 @@ import type { RefundReasonItemInput } from './model';
 export interface RefundReasonViewProps {
   /** `/mypage/orders/return` 에서 체크한 상품들. 생략 시 목데이터 1건으로 폴백(직접 진입·스토리북). */
   items?: RefundReasonItemInput[];
+  /** 실데이터 사유 목록(`returns/preview` 의 `reasonOptions`). 생략 시 목데이터 9건. */
+  reasonOptions?: RefundReasonOption[];
+  /** 다음 화면(반품 상세)에 쿼리로 넘길 주문 id. 생략하면 쿼리에 안 실린다(스토리북 경유). */
+  orderId?: number;
   /** 스토리용 — 첫 번째 상품의 사유 초기값. */
   defaultReasonId?: string | null;
   /** 스토리용 — 첫 번째 상품의 사유 선택 시트를 열어둔 채 시작. */
@@ -81,12 +85,14 @@ function createDraft(reasonId: string | null = null): ItemDraft {
 }
 
 /** 선택 가능한 사유만 반환한다. 비활성(단순변심 등)은 제외. */
-function getSelectedReason(draft: ItemDraft | undefined) {
-  return REFUND_REASON_OPTIONS.find((o) => o.id === draft?.reasonId && !o.disabled);
+function getSelectedReason(draft: ItemDraft | undefined, reasonOptions: RefundReasonOption[]) {
+  return reasonOptions.find((o) => o.id === draft?.reasonId && !o.disabled);
 }
 
 export function RefundReasonView({
   items = MOCK_REFUND_REASON_ITEMS,
+  reasonOptions = REFUND_REASON_OPTIONS,
+  orderId,
   defaultReasonId = null,
   defaultSheetOpen = false,
 }: RefundReasonViewProps) {
@@ -127,7 +133,7 @@ export function RefundReasonView({
     items.every((item) => {
       const draft = drafts[item.id];
       return (
-        Boolean(getSelectedReason(draft)) &&
+        Boolean(getSelectedReason(draft, reasonOptions)) &&
         (draft?.detail.trim().length ?? 0) >= MIN_DETAIL_LENGTH &&
         (draft?.photos.length ?? 0) >= 1
       );
@@ -164,6 +170,24 @@ export function RefundReasonView({
     URL.revokeObjectURL(url);
   }
 
+  /**
+   * 반품 상세 화면으로 이동한다. 실제 반품 신청 API(`POST .../returns`)는 주문 전체에 사유
+   * 하나만 받는다 — 이 화면은 항목마다 독립된 사유를 받지만(node 848-82875), 백엔드가
+   * 항목별 사유를 지원하지 않아 첫 번째 항목의 사유·상세 사유를 대표값으로 전달한다
+   * (알려진 제약 — 후속 이슈 필요, 2026-09-18).
+   */
+  function goToDetailStep() {
+    const firstDraft = firstItemId ? drafts[firstItemId] : undefined;
+    const reasonCode = firstDraft?.reasonId ?? '';
+    const reasonDetail = firstDraft?.detail ?? '';
+    const query = new URLSearchParams({
+      reasonCode,
+      reasonDetail,
+      ...(orderId ? { orderId: String(orderId) } : {}),
+    }).toString();
+    router.push(`/mypage/orders/return/detail?${query}`);
+  }
+
   return (
     <>
       <SectionHeader
@@ -177,7 +201,7 @@ export function RefundReasonView({
         <div className="mx-4 mt-7 flex flex-col gap-8">
           {items.map((item) => {
             const draft = drafts[item.id];
-            const selected = getSelectedReason(draft);
+            const selected = getSelectedReason(draft, reasonOptions);
             const showPhotoHint = !draft?.photoHintDismissed && draft?.photos.length === 0;
 
             return (
@@ -330,7 +354,7 @@ export function RefundReasonView({
             size="l"
             disabled={!canNext}
             className="h-14 w-full"
-            onClick={() => router.push('/mypage/orders/return/detail')}
+            onClick={goToDetailStep}
           >
             다음
           </Button>
@@ -348,7 +372,7 @@ export function RefundReasonView({
           </h2>
           <fieldset className="mt-5 flex flex-col gap-3 pb-4">
             <legend className="sr-only">반품 사유</legend>
-            {REFUND_REASON_OPTIONS.map((option) => {
+            {reasonOptions.map((option) => {
               const inputId = `refund-reason-${openItemId}-${option.id}`;
               return (
                 <div key={option.id} className="flex h-10 items-center gap-0.5 px-4">
