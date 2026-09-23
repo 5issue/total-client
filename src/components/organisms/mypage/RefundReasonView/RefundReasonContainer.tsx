@@ -36,7 +36,7 @@ export function RefundReasonContainer({
     detailQuery.isError || previewQuery.isError || !detailQuery.data || !previewQuery.data;
 
   const selectedItems = detailQuery.data
-    ? detailQuery.data.items
+    ? detailQuery.data.order.items
         .map(mapOrderItemToRefundItem)
         .filter((item) => itemIds.includes(item.id))
     : [];

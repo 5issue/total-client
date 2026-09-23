@@ -38,14 +38,21 @@ export const FulfillmentStatusSchema = z.enum([
 /** 배송 진행 상태. */
 export const DeliveryStatusSchema = z.enum(['READY', 'IN_TRANSIT', 'DELIVERED']);
 
-/** 주문 상품 1건 — 목록/상세 공통. */
+/**
+ * 주문 상품 1건 — 목록/상세 공통.
+ *
+ * `deliveryType`/`thumbnailUrl` 은 원래 스펙(이슈 #115) 기준으로 필수였으나, 실제
+ * order-service 응답(`OrderItemResponseDto`)에는 없는 필드로 확인됐다(2026-09-23,
+ * 실 백엔드 연동 검증). 백엔드가 아직 내려주지 않는 값이라 임시로 optional 처리 —
+ * 백엔드에 필드가 추가되면 다시 필수로 되돌릴 것.
+ */
 export const OrderItemSchema = z.object({
   orderItemId: z.number().int().positive(),
   productId: z.number().int().positive(),
   skuId: z.number().int().positive(),
-  deliveryType: z.string().min(1),
+  deliveryType: z.string().optional(),
   title: z.string().min(1),
-  thumbnailUrl: z.string().url().nullable(),
+  thumbnailUrl: z.string().url().nullable().optional(),
   unitPrice: z.number().nonnegative(),
   quantity: z.number().int().positive(),
   totalPrice: z.number().nonnegative(),
@@ -66,16 +73,25 @@ export const OrderListParamsSchema = z.object({
 });
 export type OrderListParams = z.infer<typeof OrderListParamsSchema>;
 
+/**
+ * `fulfillmentStatus`/`deliveryStatus`/`expectedDeliveryAt`/`deliveredAt` 는 원래 스펙
+ * 기준 필수였으나, 실제 `GET /api/v1/orders` 응답(`OrderResponseDto`)에는 없는 필드로
+ * 확인됐다(2026-09-23) — order-service 엔티티엔 이미 있는 값이라 백엔드가 노출만 하면
+ * 되지만, 지금은 FE 단독으로 optional 처리해 근사치(`orderStatus` 기반)로 상태를
+ * 표시한다. `totalPrice` 도 응답에 없어 제거 — 목록 화면은 상품별 가격만 쓴다.
+ */
 export const OrderListEntrySchema = z.object({
   orderId: z.number().int().positive(),
   orderNo: z.string().min(1),
   orderedAt: z.string().min(1),
   orderStatus: OrderStatusSchema,
-  fulfillmentStatus: FulfillmentStatusSchema,
-  deliveryStatus: DeliveryStatusSchema,
-  expectedDeliveryAt: z.string().nullable(),
-  deliveredAt: z.string().nullable(),
-  totalPrice: z.number().nonnegative(),
+  fulfillmentStatus: FulfillmentStatusSchema.optional(),
+  deliveryStatus: DeliveryStatusSchema.optional(),
+  expectedDeliveryAt: z.string().nullable().optional(),
+  deliveredAt: z.string().nullable().optional(),
+  /** 목록 화면은 안 쓰지만, 상세(`OrderDetailResponseSchema.order`)가 같은 DTO를
+   * 재사용해서 여기 있어야 한다. */
+  paymentAmount: z.number().nonnegative(),
   totalQuantity: z.number().int().nonnegative(),
   items: z.array(OrderItemSchema),
 });
@@ -91,43 +107,21 @@ export type OrderListResponse = z.infer<typeof OrderListResponseSchema>;
 
 // ── 주문 상세 (GET /api/v1/orders/{orderId}) — 주문 추적 ───────────────────
 
-export const OrderDetailInfoSchema = z.object({
-  orderId: z.number().int().positive(),
-  orderNo: z.string().min(1),
-  orderedAt: z.string().min(1),
-  orderStatus: OrderStatusSchema,
-  sender: z.object({ name: z.string().min(1), phoneNumber: z.string().min(1) }),
-});
-
-export const OrderDeliveryInfoSchema = z.object({
-  fulfillmentStatus: FulfillmentStatusSchema,
-  deliveryStatus: DeliveryStatusSchema,
-  expectedDeliveryAt: z.string().nullable(),
-  deliveredAt: z.string().nullable(),
-  receiver: z.object({ name: z.string().min(1), phoneNumber: z.string().min(1) }),
-  address: z.object({
-    postalCode: z.string().min(1),
-    roadAddress: z.string().min(1),
-    detailAddress: z.string().nullable(),
-  }),
-  pickupType: z.string().min(1),
-  accessMethod: z.string().min(1),
-  packingType: z.string().min(1),
-  deliveryMessage: z.string().nullable(),
-});
-
-/** 결제 스냅샷만 — 영수증 상세는 결제 도메인(`types/checkout.ts`)에서 별도 조회. */
-export const OrderPaymentSummarySchema = z.object({
-  paymentId: z.number().int().positive(),
-  paymentAmount: z.number().nonnegative(),
-  paymentStatus: z.string().min(1),
-});
-
+/**
+ * 원래 스펙(이슈 #115)은 `orderInfo`/`items`/`deliveryInfo`(수령인·주소·배송메시지)/
+ * `paymentSummary` 중첩 구조를 기대했으나, 실제 백엔드 `OrderDetailResponseDto`
+ * (`order-service` 소스 확인)는 훨씬 납작하다 — `order`(목록과 동일한 `OrderResponseDto`,
+ * `OrderListEntrySchema` 재사용) + `paymentId`/`fulfillmentStatus`/`deliveryStatus`/
+ * `selfCancelable` 뿐이다. 게다가 `getById()`는 배송지·수령인 정보(`order_delivery_info`)
+ * 를 아예 조회하지 않아 그 데이터는 백엔드에 소스 자체가 없다(2026-09-23 확인, 백엔드
+ * `OrderApi`/`OrderController` 파라미터 제약 불일치로 500 나던 것과는 별개 이슈).
+ * 주소/수령인/배송메시지가 필요해지면 백엔드가 그 리포지토리 조회를 추가해야 한다.
+ */
 export const OrderDetailResponseSchema = z.object({
-  orderInfo: OrderDetailInfoSchema,
-  items: z.array(OrderItemSchema),
-  deliveryInfo: OrderDeliveryInfoSchema,
-  paymentSummary: OrderPaymentSummarySchema,
+  order: OrderListEntrySchema,
+  paymentId: z.number().int().positive(),
+  fulfillmentStatus: FulfillmentStatusSchema.optional(),
+  deliveryStatus: DeliveryStatusSchema.optional(),
   /** PAID + 출고 지시 이전 단계일 때만 true — 이 값으로 취소 버튼 노출 여부를 결정한다. */
   selfCancelable: z.boolean(),
 });

@@ -50,7 +50,8 @@ export function mapCancellationReturnEntry(
     completedAt: entry.completedAt ?? undefined,
     products: entry.items.map((item) => ({
       name: item.title,
-      deliveryType: item.deliveryType,
+      // 백엔드가 아직 배송 타입을 안 내려준다(2026-09-23 확인) — 빈 문자열이면 화면에서 숨겨진다.
+      deliveryType: item.deliveryType ?? '',
       // API 는 정가/판매가를 따로 안 내려준다(unitPrice 하나) — 취소선 비교용 정가가
       // 필요 없는 화면이라 둘 다 같은 값으로 채운다.
       price: item.unitPrice,

@@ -18,5 +18,5 @@ export function mapOrderItemToRefundItem(item: OrderItem): RefundReturnItemView 
 }
 
 export function mapReturnItems(detail: OrderDetailResponse): RefundReturnItemView[] {
-  return detail.items.map(mapOrderItemToRefundItem);
+  return detail.order.items.map(mapOrderItemToRefundItem);
 }

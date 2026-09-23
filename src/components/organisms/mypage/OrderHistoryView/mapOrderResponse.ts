@@ -43,7 +43,8 @@ export function mapOrderListEntry(entry: OrderListEntry): OrderHistoryOrder {
     returnPeriodEnded: false,
     products: entry.items.map((item) => ({
       id: String(item.orderItemId),
-      deliveryType: item.deliveryType,
+      // 백엔드가 아직 배송 타입을 안 내려준다(2026-09-23 확인) — 빈 문자열이면 화면에서 숨겨진다.
+      deliveryType: item.deliveryType ?? '',
       name: item.title,
       price: item.unitPrice,
       originalPrice: item.unitPrice,
