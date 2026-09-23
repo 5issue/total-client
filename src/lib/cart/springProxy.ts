@@ -49,7 +49,9 @@ export async function proxySpringCart<T>(
     return fail(502, failureMessage);
   }
 
-  if (raw.status === 'ERROR' || !raw.data) {
+  // 수량변경·단건삭제는 성공해도 Spring 이 data: null(Void)을 내려준다 — `!raw.data`로
+  // 걸러내면 정상 성공까지 에러로 오판하게 되니 status 만으로 판정한다(실제 재현, 2026-09-24).
+  if (raw.status === 'ERROR') {
     const status = springRes.status >= 400 ? springRes.status : 400;
     return fail(status, raw.message || failureMessage);
   }
