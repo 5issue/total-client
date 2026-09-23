@@ -34,9 +34,10 @@ export function RefundReturnContainer({ orderId }: { orderId: number }) {
 
   if (detailQuery.isError || previewQuery.isError || !detailQuery.data || !previewQuery.data) {
     return (
-      <div className="bg-surface-secondary flex flex-1 flex-col items-center justify-center">
+      <div className="bg-surface-secondary flex flex-1 flex-col">
         <SectionHeader leading="back" leadingHref="/mypage/orders" title="반품 접수" />
         <ErrorState
+          className="flex-1"
           icon={<Icon name="alert" size={56} aria-hidden />}
           title="주문 정보를 불러오지 못했어요"
           description="잠시 후 다시 시도해주세요"
@@ -58,9 +59,10 @@ export function RefundReturnContainer({ orderId }: { orderId: number }) {
 
   if (!previewQuery.data.returnable) {
     return (
-      <div className="bg-surface-secondary flex flex-1 flex-col items-center justify-center">
+      <div className="bg-surface-secondary flex flex-1 flex-col">
         <SectionHeader leading="back" leadingHref="/mypage/orders" title="반품 접수" />
         <ErrorState
+          className="flex-1"
           icon={<Icon name="alert" size={56} aria-hidden />}
           title="반품할 수 없는 주문이에요"
           description={previewQuery.data.returnPolicy.guideMessage}

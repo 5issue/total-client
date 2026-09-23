@@ -59,9 +59,10 @@ export function RefundReasonContainer({
 
   if (isError) {
     return (
-      <div className="bg-surface flex flex-1 flex-col items-center justify-center">
+      <div className="bg-surface flex flex-1 flex-col">
         <SectionHeader leading="back" leadingHref="/mypage/orders" title="반품사유" />
         <ErrorState
+          className="flex-1"
           icon={<Icon name="alert" size={56} aria-hidden />}
           title="주문 정보를 불러오지 못했어요"
           description="잠시 후 다시 시도해주세요"

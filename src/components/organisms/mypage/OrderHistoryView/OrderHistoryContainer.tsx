@@ -29,9 +29,10 @@ export function OrderHistoryContainer() {
 
   if (ordersQuery.isError || !ordersQuery.data) {
     return (
-      <div className="bg-surface-secondary flex flex-1 flex-col items-center justify-center">
+      <div className="bg-surface-secondary flex flex-1 flex-col">
         <SectionHeader leading="back" leadingHref="/mypage" title="주문 내역" />
         <ErrorState
+          className="flex-1"
           icon={<Icon name="alert" size={56} aria-hidden />}
           title="주문 내역을 불러오지 못했어요"
           description="잠시 후 다시 시도해주세요"
