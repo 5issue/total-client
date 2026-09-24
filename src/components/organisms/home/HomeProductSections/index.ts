@@ -1,1 +1,1 @@
-export { HomeProductSections, type HomeProductSectionsProps } from './HomeProductSections';
+export { HomeProductSections } from './HomeProductSections';
