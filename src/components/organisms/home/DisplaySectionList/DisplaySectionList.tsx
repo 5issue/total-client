@@ -11,9 +11,9 @@ import { HomeSectionHeader } from '@/components/molecules/shared/HomeSectionHead
  * `molecules/shared/HomeSectionHeader`(`titleClassName="font-bold!"` — 이 화면은
  * 바인딩된 Medium 대신 수동 Bold 오버라이드, 최우선 순위가 필요해 `!` 필수 — 그냥
  * `font-bold` 는 `text-heading-2` 자체 font-weight 유틸리티에 밀려 적용되지 않는다)와
- * `molecules/product/ProductCard`를 그대로 조립한다. 실제 데이터는
- * `/products/home-recommendations` API 미확정(structure-convention §6-2)이라
- * `mock.ts` 정적 배열만 쓴다.
+ * `molecules/product/ProductCard`를 그대로 조립한다. 순수 표현 컴포넌트 — 실 데이터
+ * 조회(`useHomeRecommendations`)와 원시 응답→`DisplaySectionProduct` 매핑은 `HomeProductSections`가
+ * 소유한다(#136).
  */
 export type DisplaySectionProduct = Omit<ProductCardProps, 'onAddToCart' | 'className' | 'href'> & {
   id: string;
