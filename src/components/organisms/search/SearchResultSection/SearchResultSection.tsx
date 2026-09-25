@@ -105,12 +105,13 @@ export function SearchResultSection({ query }: SearchResultSectionProps) {
   // 남아있다 — 다시 열면 지운 선택이 되살아나고 "상품보기"를 누르면 그대로 재적용된다. 리셋 시
   // 이 키를 바꿔 `FilterSheet`를 통째로 재마운트해서 내부 상태까지 함께 초기화한다.
   const [filterResetKey, setFilterResetKey] = useState(0);
-  // #128: 필터 바텀시트(가격/브랜드/유형)에서 "N개 상품보기"를 눌러야 반영되는 서버 필터.
+  // #128: 필터 바텀시트(카테고리/가격/브랜드/유형)에서 "N개 상품보기"를 눌러야 반영되는 서버 필터.
   const [appliedFilters, setAppliedFilters] = useState<{
     brand: ProductListParams['brand'];
     price: ProductListParams['price'];
     storageType: ProductListParams['storageType'];
-  }>({ brand: undefined, price: undefined, storageType: undefined });
+    categoryId: ProductListParams['categoryId'];
+  }>({ brand: undefined, price: undefined, storageType: undefined, categoryId: undefined });
   const { data, isPending, isError } = useProducts({ query, sort, ...appliedFilters });
   const filters = { kurlyOnly, coupon, membershipBenefit: membership };
   const items = data ? filterProducts(data.items, filters) : [];
@@ -121,8 +122,13 @@ export function SearchResultSection({ query }: SearchResultSectionProps) {
     setCoupon(false);
     setMembership(false);
     // #128: 빈 상태의 "필터 초기화"는 퀵필터 칩뿐 아니라 필터 바텀시트에서 적용한
-    // 가격/브랜드/유형(서버 필터)도 같이 풀어야 한다 — 0개 결과의 원인이 대부분 이쪽이다.
-    setAppliedFilters({ brand: undefined, price: undefined, storageType: undefined });
+    // 카테고리/가격/브랜드/유형(서버 필터)도 같이 풀어야 한다 — 0개 결과의 원인이 대부분 이쪽이다.
+    setAppliedFilters({
+      brand: undefined,
+      price: undefined,
+      storageType: undefined,
+      categoryId: undefined,
+    });
     // CodeRabbit 리뷰 반영: FilterSheet 내부 선택 상태도 같이 초기화(재마운트).
     setFilterResetKey((key) => key + 1);
   };

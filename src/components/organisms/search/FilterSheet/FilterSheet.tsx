@@ -6,7 +6,12 @@ import { Checkbox } from '@/components/atoms/Checkbox';
 import { Icon } from '@/components/atoms/Icon';
 import { Radio } from '@/components/atoms/Radio';
 import { BottomSheet } from '@/components/molecules/shared/BottomSheet';
-import { filterProducts, useProductFilters, useProducts } from '@/hooks/product/useProducts';
+import {
+  filterProducts,
+  useProductCategories,
+  useProductFilters,
+  useProducts,
+} from '@/hooks/product/useProducts';
 import type { ProductQuickFilters } from '@/hooks/product/useProducts';
 import type { ProductFilterItem, ProductListParams } from '@/types/product';
 
@@ -15,57 +20,26 @@ import type { ProductFilterItem, ProductListParams } from '@/types/product';
  * 884-60424(가격) / 884-61068(브랜드 선택완료), 시트 본문은 node 968:111659.
  *
  * #128: 가격/브랜드/유형 3개 탭은 `GET /api/v1/products/filters`(백엔드 레포
- * `ProductFilterService.java` 확인) 실데이터로 연동해 실제 목록도 걸러낸다. 나머지
- * 카테고리/혜택/출시/포장타입 4개 탭은 그대로 시각 상태만 토글한다 — 백엔드 응답에 카테고리
- * 그룹 자체가 없고(`categoryId`는 필터 파라미터일 뿐 "현재 결과의 카테고리 목록"을 안 줌),
- * 나머지 3개는 `GET /products`에 대응 쿼리 파라미터가 아예 없다.
+ * `ProductFilterService.java` 확인) 실데이터로 연동해 실제 목록도 걸러낸다. 카테고리 탭은
+ * 별도 엔드포인트 `GET /api/v1/products/categories`(`CategoryController.java` 확인)로
+ * 최상위 STANDARD 카테고리만 받아 단일선택으로 연동한다 — 나머지 혜택/출시/포장타입 3개
+ * 탭만 `GET /products`에 대응 쿼리 파라미터가 없어 시각 상태만 토글한다.
  *
- * ⚠️ `GET /products`의 `brand`/`storageType`은 둘 다 단일 문자열 파라미터다(백엔드
- * `ProductController.java` 확인) — 그래서 브랜드/유형은 체크박스 모양은 Figma대로 두되
- * 선택 동작은 단일 선택(라디오처럼)으로 제한한다(CodeRabbit 리뷰 반영, #128).
+ * ⚠️ `GET /products`의 `brand`/`storageType`/`categoryId`는 전부 단일 값 파라미터다(백엔드
+ * `ProductController.java` 확인) — 그래서 브랜드/유형/카테고리는 체크박스 모양은 Figma대로
+ * 두되 선택 동작은 단일 선택(라디오처럼)으로 제한한다(브랜드/유형은 CodeRabbit 리뷰 반영,
+ * #128; 카테고리는 같은 제약이라 처음부터 단일선택으로 구현).
  *
  * 선택 요약은 두 군데다: 탭 라벨 옆 개수 배지(Figma "TabItemBoxed")와 하단의 제거 가능한
- * 칩 목록. 단 **카테고리 선택은 칩으로 요약하지 않는다** — 디자인팀 지정(#90, "카테고리는
- * 드롭다운만 되면 됨"). Figma 카테고리 탭도 아코디언 19개 + 하단 바뿐이다.
+ * 칩 목록. **카테고리도 이제 칩으로 요약한다** — #90 당시엔 아코디언 다중선택이라 "드롭다운만
+ * 되면 됨"으로 칩을 뺐지만, 브랜드/유형과 같은 단일선택 파라미터로 밝혀져 그 근거가 더 이상
+ * 성립하지 않는다. 디자인 스펙과 어긋나는 변경이라 해당 Figma 노드에 코멘트로 공유 예정
+ * (structure-convention §6-1).
  */
 const TABS = ['카테고리', '가격', '브랜드', '유형', '혜택', '출시', '포장타입'] as const;
 type FilterTab = (typeof TABS)[number];
 /** 유형 탭만 실데이터 연동 대상이라 여러 곳에서 참조한다 — 오타 방지용 상수. */
 const STORAGE_TYPE_TAB = '유형' satisfies FilterTab;
-
-/**
- * 탭별 옵션 데이터. 실제 facet API 가 없어 Figma 목업 값을 그대로 옮겼다 — API 가 생기면
- * 이 상수들만 응답으로 교체한다.
- * - 카테고리 19개는 실제 라벨이지만, 하위 옵션은 Figma 에 "유제품"만 있다.
- * - 브랜드는 Figma 자체가 모든 행에 같은 더미("가보팜스")를 써서 대표 예시로 대체했다.
- * - 유형/혜택/출시/포장타입은 Figma 가 브랜드 탭 컴포넌트를 그대로 재사용하고 있었으나
- *   이 4개 탭엔 정렬·자음인덱스가 안 맞아 단순 목록으로 구현하기로 했다(#90).
- */
-const CATEGORIES = [
-  '유제품',
-  '베이커리',
-  '간식·과자·떡',
-  '반려동물',
-  '가구·인테리어',
-  '건강식품',
-  '간편식·밀키트·샐러드',
-  '유아동',
-  '가전제품',
-  '커피·차',
-  '생수·음료',
-  '주방용품',
-  '면·양념·오일',
-  '스킨케어·메이크업',
-  '헤어·바디·구강',
-  '과일·견과·쌀',
-  '키즈웨어',
-  '정육·가공육·달걀',
-  '패션잡화',
-];
-
-const CATEGORY_SUBOPTIONS: Partial<Record<string, string[]>> = {
-  유제품: ['전체', '우유·두유', '요거트·생크림', '아이스크림', '가공치즈', '자연치즈', '버터'],
-};
 
 /**
  * #128: 백엔드가 준 필터 옵션 한 항목 — `value`가 `GET /products`에 그대로 되돌아간다.
@@ -222,64 +196,6 @@ function FilterTabBar({
         );
       })}
     </div>
-  );
-}
-
-/**
- * 카테고리 탭 — 아코디언(Figma "FilterAccordion" node 1233-117618: h-48, pl-16 pr-12).
- * 대분류 행은 펼침/접힘만 하고 "선택" 상태가 없다(#90) — 실제 선택은 하위 체크박스다.
- */
-function CategoryPanel({
-  expanded,
-  onToggleExpand,
-  selections,
-  onToggleOption,
-}: {
-  expanded: string | null;
-  onToggleExpand: (category: string | null) => void;
-  selections: Record<string, string[]>;
-  onToggleOption: (category: string, option: string) => void;
-}) {
-  return (
-    <ul className="flex flex-col">
-      {CATEGORIES.map((category) => {
-        const isOpen = expanded === category;
-        const subOptions = CATEGORY_SUBOPTIONS[category];
-        return (
-          <li key={category}>
-            <button
-              type="button"
-              aria-expanded={isOpen}
-              onClick={() => onToggleExpand(isOpen ? null : category)}
-              className="text-heading-4 text-fg flex h-12 w-full items-center justify-between pr-3 pl-4"
-            >
-              {category}
-              <Icon
-                name="arrow-down"
-                size={24}
-                aria-hidden
-                className={`text-fg-secondary transition-transform ${isOpen ? 'rotate-180' : ''}`}
-              />
-            </button>
-            {!isOpen ? null : subOptions ? (
-              <div className="flex flex-col pb-1">
-                {subOptions.map((option) => (
-                  <CheckboxRow
-                    key={option}
-                    label={option}
-                    indented
-                    checked={selections[category]?.includes(option) ?? false}
-                    onChange={() => onToggleOption(category, option)}
-                  />
-                ))}
-              </div>
-            ) : (
-              <p className="text-label-m text-fg-tertiary px-4 pb-3">하위 카테고리 준비 중이에요</p>
-            )}
-          </li>
-        );
-      })}
-    </ul>
   );
 }
 
@@ -542,13 +458,14 @@ export interface FilterSheetProps {
   /** 브랜드/가격/유형 실데이터 조회용 현재 검색어(#128). */
   keyword: string;
   /**
-   * "N개 상품보기"를 눌렀을 때 브랜드/가격/유형 선택을 상위(`SearchResultSection`)로
-   * 보고한다 — 카테고리/혜택/출시/포장타입은 대응 백엔드 파라미터가 없어 보고하지 않는다(#128).
+   * "N개 상품보기"를 눌렀을 때 브랜드/가격/유형/카테고리 선택을 상위(`SearchResultSection`)로
+   * 보고한다 — 혜택/출시/포장타입은 대응 백엔드 파라미터가 없어 보고하지 않는다(#128).
    */
   onApplyFilters: (selection: {
     brand: string | undefined;
     price: ProductListParams['price'];
     storageType: ProductListParams['storageType'];
+    categoryId: string | undefined;
   }) => void;
   /** 현재 검색 결과의 정렬값 — 미리보기 개수 조회 시 쓴다(#128, 아래 `previewCount` 참고). */
   sort: ProductListParams['sort'];
@@ -567,14 +484,14 @@ export function FilterSheet({
 }: FilterSheetProps) {
   const [activeTab, setActiveTab] = useState<FilterTab>('카테고리');
 
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
-  const [categorySubSelections, setCategorySubSelections] = useState<Record<string, string[]>>({});
   const [priceSelection, setPriceSelection] = useState<string | null>(null);
   const [brandSort, setBrandSort] = useState<'alpha' | 'popular'>('alpha');
   const [activeLetter, setActiveLetter] = useState('ㄱ');
   // #128, CodeRabbit 리뷰 반영: brand/storageType은 서버가 단일값만 받아 단일 선택 상태로 둔다.
+  // 카테고리도 `categoryId`가 단일 값 파라미터라 같은 규칙이다.
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
   const [selectedStorageType, setSelectedStorageType] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [simpleSelections, setSimpleSelections] = useState<Record<string, string[]>>({});
 
   // #128: 시트가 열려 있을 때만 불러온다 — 열릴 때의 검색어 기준 필터 옵션. CodeRabbit 리뷰 반영:
@@ -588,6 +505,13 @@ export function FilterSheet({
   const brandOptions = filters?.brand ?? [];
   const storageTypeOptions = filters?.storageType ?? [];
 
+  // #128: 카테고리는 검색어와 무관한 전체 트리라 별도 쿼리 — 독립된 로딩/에러 상태를 갖는다.
+  const {
+    data: categoryOptions = [],
+    isPending: isCategoriesPending,
+    isError: isCategoriesError,
+  } = useProductCategories(open);
+
   /**
    * 아직 "N개 상품보기"를 누르기 전, 지금 시트에서 고른 값 그대로 미리 반영했을 때의 개수.
    * 실제 적용(`handleSubmit`)과 반드시 같은 값이어야 버튼 숫자와 실제 결과가 어긋나지 않는다.
@@ -595,6 +519,7 @@ export function FilterSheet({
   const pendingBrand = selectedBrand ?? undefined;
   const pendingPrice = (priceSelection ?? undefined) as ProductListParams['price'];
   const pendingStorageType = (selectedStorageType ?? undefined) as ProductListParams['storageType'];
+  const pendingCategoryId = selectedCategory ?? undefined;
 
   // #128: 아무 선택도 안 했으면 SearchResultSection이 이미 띄워둔 쿼리와 키가 같아 캐시를
   // 그대로 재사용한다 — 열자마자 다시 fetch 하지 않는다. Kurly Only/쿠폰/멤버스혜택 퀵필터는
@@ -606,25 +531,18 @@ export function FilterSheet({
     brand: pendingBrand,
     price: pendingPrice,
     storageType: pendingStorageType,
+    categoryId: pendingCategoryId,
   });
   const previewCount = previewData
     ? filterProducts(previewData.items, quickFilters).length
     : resultCount;
 
   function resetAll() {
-    setExpandedCategory(null);
-    setCategorySubSelections({});
     setPriceSelection(null);
     setSelectedBrand(null);
     setSelectedStorageType(null);
+    setSelectedCategory(null);
     setSimpleSelections({});
-  }
-
-  function toggleCategorySub(category: string, option: string) {
-    setCategorySubSelections((prev) => ({
-      ...prev,
-      [category]: toggleInList(prev[category] ?? [], option),
-    }));
   }
 
   /** 같은 브랜드를 다시 누르면 해제, 다른 브랜드를 누르면 대체(단일 선택, #128). */
@@ -637,6 +555,11 @@ export function FilterSheet({
     setSelectedStorageType((prev) => (prev === value ? null : value));
   }
 
+  /** 브랜드/유형과 동일한 단일 선택 규칙(#128) — `categoryId`도 단일 값 파라미터다. */
+  function selectCategory(value: string) {
+    setSelectedCategory((prev) => (prev === value ? null : value));
+  }
+
   function toggleSimpleOption(tab: FilterTab, option: string) {
     setSimpleSelections((prev) => ({ ...prev, [tab]: toggleInList(prev[tab] ?? [], option) }));
   }
@@ -647,11 +570,14 @@ export function FilterSheet({
     ? (storageTypeOptions.find((o) => o.value === selectedStorageType)?.label ??
       selectedStorageType)
     : null;
-  const categorySubCount = Object.values(categorySubSelections).reduce((n, v) => n + v.length, 0);
+  /** 카테고리도 값으로 id를 저장하므로 칩 요약 시 라벨로 되돌린다(#128). */
+  const categoryLabel = selectedCategory
+    ? (categoryOptions.find((o) => o.value === selectedCategory)?.label ?? selectedCategory)
+    : null;
   const simpleCount = (tab: FilterTab) => simpleSelections[tab]?.length ?? 0;
 
   const tabCounts: Record<FilterTab, number> = {
-    카테고리: categorySubCount,
+    카테고리: selectedCategory ? 1 : 0,
     가격: priceSelection ? 1 : 0,
     브랜드: selectedBrand ? 1 : 0,
     [STORAGE_TYPE_TAB]: selectedStorageType ? 1 : 0,
@@ -661,6 +587,9 @@ export function FilterSheet({
   };
 
   const selectedChips: SelectedChip[] = [
+    ...(categoryLabel
+      ? [{ key: 'category', label: categoryLabel, onRemove: () => setSelectedCategory(null) }]
+      : []),
     ...(priceLabel
       ? [{ key: 'price', label: priceLabel, onRemove: () => setPriceSelection(null) }]
       : []),
@@ -690,16 +619,20 @@ export function FilterSheet({
       })),
     ),
   ];
-  // 칩 줄 노출 조건과 일부러 다르다 — 칩으로 요약하지 않는 카테고리 선택도 "선택된 필터"다.
-  const hasSelection = selectedChips.length > 0 || categorySubCount > 0;
+  const hasSelection = selectedChips.length > 0;
 
   /**
-   * #128: `GET /products`의 brand/storageType은 단일 값 파라미터라(백엔드
+   * #128: `GET /products`의 brand/storageType/categoryId는 단일 값 파라미터라(백엔드
    * `ProductController.java` 확인) 다중 선택 중 첫 번째만 실제 서버 필터로 전달한다.
-   * 카테고리/혜택/출시/포장타입은 대응 파라미터가 없어 아예 보고하지 않는다.
+   * 혜택/출시/포장타입은 대응 파라미터가 없어 아예 보고하지 않는다.
    */
   function handleSubmit() {
-    onApplyFilters({ brand: pendingBrand, price: pendingPrice, storageType: pendingStorageType });
+    onApplyFilters({
+      brand: pendingBrand,
+      price: pendingPrice,
+      storageType: pendingStorageType,
+      categoryId: pendingCategoryId,
+    });
     onClose();
   }
 
@@ -730,12 +663,17 @@ export function FilterSheet({
         {/* `min-h-0 flex-1` — 고정 높이 시트에서 남는 공간만 채우고 자체 스크롤한다. */}
         <div className="min-h-0 flex-1 overflow-y-auto">
           {activeTab === '카테고리' ? (
-            <CategoryPanel
-              expanded={expandedCategory}
-              onToggleExpand={setExpandedCategory}
-              selections={categorySubSelections}
-              onToggleOption={toggleCategorySub}
-            />
+            isCategoriesPending ? (
+              <FilterOptionsStatus status="pending" />
+            ) : isCategoriesError ? (
+              <FilterOptionsStatus status="error" />
+            ) : (
+              <SingleSelectOptionsPanel
+                options={categoryOptions}
+                selected={selectedCategory}
+                onSelect={selectCategory}
+              />
+            )
           ) : activeTab === '가격' || activeTab === '브랜드' || activeTab === STORAGE_TYPE_TAB ? (
             isFiltersPending ? (
               <FilterOptionsStatus status="pending" />

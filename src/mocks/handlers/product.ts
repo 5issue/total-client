@@ -1,17 +1,18 @@
 import { HttpResponse, http } from 'msw';
 
 /**
- * 로컬 백엔드가 아직 안 떠 있어 상품 검색/필터 응답을 목킹한다(auth.ts 와 동일 패턴).
- * `API_INTERNAL_URL` 기준으로 매칭 — 우리 Route Handler(`/api/products`, `/api/products/filters`)
- * 가 서버사이드로 호출하는 요청을 가로챈다(api-convention §3). Figma 목업(node 882-60568,
- * 검색어 "우유") 기준 고정 상품 8개 풀에서 `keyword`/`brand`/`price`/`storageType`으로
- * 걸러내고 `sort`로 정렬해서 반환한다 — 로컬에서 검색/정렬/필터 UI가 실제로 동작하는 것처럼
- * 보이게 하기 위함이다(#128). 진짜 로직은 실제 백엔드가 하는 일이고, 이건 로컬 개발 편의를
- * 위한 목업일 뿐이다.
+ * 로컬 백엔드가 아직 안 떠 있어 상품 검색/필터/카테고리 응답을 목킹한다(auth.ts 와 동일 패턴).
+ * `API_INTERNAL_URL` 기준으로 매칭 — 우리 Route Handler(`/api/products`, `/api/products/filters`,
+ * `/api/products/categories`)가 서버사이드로 호출하는 요청을 가로챈다(api-convention §3).
+ * Figma 목업(node 882-60568, 검색어 "우유") 기준 고정 상품 8개 풀에서
+ * `keyword`/`brand`/`price`/`storageType`/`categoryId`으로 걸러내고 `sort`로 정렬해서
+ * 반환한다 — 로컬에서 검색/정렬/필터 UI가 실제로 동작하는 것처럼 보이게 하기 위함이다(#128).
+ * 진짜 로직은 실제 백엔드가 하는 일이고, 이건 로컬 개발 편의를 위한 목업일 뿐이다.
  *
- * 응답 모양은 실제 Spring `ProductSummaryResponse`/`SliceResponse<T>`/`ProductFilterResponse`
- * (백엔드 레포 `services/product-service` 기준, #128)를 그대로 따른다 — `route.ts`의
- * `mapSpringProductListResponse`/`mapSpringProductFilters`가 이걸 우리 UI 모델로 변환한다.
+ * 응답 모양은 실제 Spring `ProductSummaryResponse`/`SliceResponse<T>`/`ProductFilterResponse`/
+ * `CategoryResponse`(백엔드 레포 `services/product-service` 기준, #128)를 그대로 따른다 —
+ * `route.ts`의 `mapSpringProductListResponse`/`mapSpringProductFilters`/`mapSpringCategories`가
+ * 이걸 우리 UI 모델로 변환한다.
  */
 const BASE = process.env.API_INTERNAL_URL ?? 'http://localhost:4000';
 
@@ -38,103 +39,113 @@ type SpringMockProduct = {
   likeCount: number;
   thumbnailUrl: string;
   storageType: StorageType;
+  categoryId: number;
 };
+
+/**
+ * 최상위 STANDARD 카테고리 목업(#128). 실제 백엔드 시드(`5issue/total-backend`,
+ * `seed_product_service.sql`)의 이름을 그대로 가져왔다 — id 값 자체는 로컬 목업 전용이라
+ * 실제 백엔드 id와 일치할 필요는 없다. 8개 목업 상품이 전부 우유라 `유제품`에 묶는다.
+ */
+const MOCK_CATEGORIES = [
+  { id: 1, name: '채소' },
+  { id: 2, name: '과일·견과·쌀' },
+  { id: 3, name: '수산·해산·건어물' },
+  { id: 4, name: '정육·가공육·달걀' },
+  { id: 12, name: '유제품' },
+] as const;
+const DAIRY_CATEGORY_ID = 12;
 
 /**
  * Figma node 882-60569 상품 그리드 8개를 Spring `ProductSummaryResponse` 모양으로
  * 목데이터화(#128). `storageType`은 실제 백엔드 필드지만 목데이터엔 없던 값이라, 필터
- * 데모가 의미 있게 갈리도록 임의로 섞어 배정했다(실제 상품별 진짜 값 아님).
+ * 데모가 의미 있게 갈리도록 임의로 섞어 배정했다(실제 상품별 진짜 값 아님). 8개 전부
+ * 우유라 `categoryId`는 개별 지정 대신 `유제품` 하나로 일괄 부여한다.
  */
-const MOCK_PRODUCTS: SpringMockProduct[] = [
-  {
-    id: 1,
-    name: '전용목장우유 900mL',
-    brand: '연세우유 x 마켓컬리',
-    price: 3400,
-    salePrice: 2780,
-    discountRate: 25,
-    likeCount: 5188,
-    thumbnailUrl: PLACEHOLDER_THUMBNAIL,
-    storageType: 'REFRIGERATED',
-  },
-  {
-    id: 2,
-    name: '전용목장우유 1.8L',
-    brand: '연세우유 x 마켓컬리',
-    price: 5280,
-    salePrice: 4752,
-    discountRate: 10,
-    likeCount: 9999,
-    thumbnailUrl: PLACEHOLDER_THUMBNAIL,
-    storageType: 'REFRIGERATED',
-  },
-  {
-    id: 3,
-    name: '나 100% 우유 1000mL',
-    brand: '서울우유',
-    price: 2980,
-    salePrice: 2682,
-    discountRate: 10,
-    likeCount: 4092,
-    thumbnailUrl: PLACEHOLDER_THUMBNAIL,
-    storageType: 'REFRIGERATED',
-  },
-  {
-    id: 4,
-    name: '제주 목초 우유 무항생제 750mL',
-    brand: '제주우유',
-    price: 3280,
-    salePrice: 2952,
-    discountRate: 10,
-    likeCount: 7305,
-    thumbnailUrl: PLACEHOLDER_THUMBNAIL,
-    storageType: 'REFRIGERATED',
-  },
-  {
-    id: 5,
-    name: '저지우유 750mL',
-    brand: '제주우유',
-    price: 4990,
-    salePrice: 4491,
-    discountRate: 10,
-    likeCount: 2144,
-    thumbnailUrl: PLACEHOLDER_THUMBNAIL,
-    storageType: 'REFRIGERATED',
-  },
-  {
-    id: 6,
-    name: '저지방 전용목장 우유 900mL',
-    brand: '연세우유 x 마켓컬리',
-    price: 2980,
-    salePrice: 2382,
-    discountRate: 10,
-    likeCount: 8421,
-    thumbnailUrl: PLACEHOLDER_THUMBNAIL,
-    storageType: 'REFRIGERATED',
-  },
-  {
-    id: 7,
-    name: '나100% 우유 2.3L 2종 (택1)',
-    brand: '서울우유',
-    price: 7580,
-    salePrice: 6822,
-    discountRate: 10,
-    likeCount: 6210,
-    thumbnailUrl: PLACEHOLDER_THUMBNAIL,
-    storageType: 'FROZEN',
-  },
-  {
-    id: 8,
-    name: '제주목장 무항생제 목초 우유 900mL',
-    brand: '제주축산농협',
-    price: 3900,
-    salePrice: 3280,
-    discountRate: 15,
-    likeCount: 3057,
-    thumbnailUrl: PLACEHOLDER_THUMBNAIL,
-    storageType: 'ROOM_TEMPERATURE',
-  },
-];
+const MOCK_PRODUCTS: SpringMockProduct[] = (
+  [
+    {
+      id: 1,
+      name: '전용목장우유 900mL',
+      brand: '연세우유 x 마켓컬리',
+      price: 3400,
+      salePrice: 2780,
+      discountRate: 25,
+      likeCount: 5188,
+      storageType: 'REFRIGERATED',
+    },
+    {
+      id: 2,
+      name: '전용목장우유 1.8L',
+      brand: '연세우유 x 마켓컬리',
+      price: 5280,
+      salePrice: 4752,
+      discountRate: 10,
+      likeCount: 9999,
+      storageType: 'REFRIGERATED',
+    },
+    {
+      id: 3,
+      name: '나 100% 우유 1000mL',
+      brand: '서울우유',
+      price: 2980,
+      salePrice: 2682,
+      discountRate: 10,
+      likeCount: 4092,
+      storageType: 'REFRIGERATED',
+    },
+    {
+      id: 4,
+      name: '제주 목초 우유 무항생제 750mL',
+      brand: '제주우유',
+      price: 3280,
+      salePrice: 2952,
+      discountRate: 10,
+      likeCount: 7305,
+      storageType: 'REFRIGERATED',
+    },
+    {
+      id: 5,
+      name: '저지우유 750mL',
+      brand: '제주우유',
+      price: 4990,
+      salePrice: 4491,
+      discountRate: 10,
+      likeCount: 2144,
+      storageType: 'REFRIGERATED',
+    },
+    {
+      id: 6,
+      name: '저지방 전용목장 우유 900mL',
+      brand: '연세우유 x 마켓컬리',
+      price: 2980,
+      salePrice: 2382,
+      discountRate: 10,
+      likeCount: 8421,
+      storageType: 'REFRIGERATED',
+    },
+    {
+      id: 7,
+      name: '나100% 우유 2.3L 2종 (택1)',
+      brand: '서울우유',
+      price: 7580,
+      salePrice: 6822,
+      discountRate: 10,
+      likeCount: 6210,
+      storageType: 'FROZEN',
+    },
+    {
+      id: 8,
+      name: '제주목장 무항생제 목초 우유 900mL',
+      brand: '제주축산농협',
+      price: 3900,
+      salePrice: 3280,
+      discountRate: 15,
+      likeCount: 3057,
+      storageType: 'ROOM_TEMPERATURE',
+    },
+  ] satisfies Omit<SpringMockProduct, 'thumbnailUrl' | 'categoryId'>[]
+).map((p) => ({ ...p, thumbnailUrl: PLACEHOLDER_THUMBNAIL, categoryId: DAIRY_CATEGORY_ID }));
 
 /** Spring `PriceBand` 5단계(`PriceBand.java` 기준) — 목업 필터 계산에도 그대로 쓴다(#128). */
 const PRICE_BANDS = [
@@ -227,12 +238,16 @@ export const productHandlers = [
     const brand = params.get('brand');
     const price = params.get('price');
     const storageType = params.get('storageType');
+    const categoryId = params.get('categoryId');
     const priceBand = PRICE_BANDS.find((b) => b.value === price);
 
     let matched = keyword ? MOCK_PRODUCTS.filter((p) => matchesKeyword(p, keyword)) : MOCK_PRODUCTS;
     if (brand) matched = matched.filter((p) => p.brand === brand);
     if (priceBand) matched = matched.filter((p) => matchesPriceBand(p, priceBand));
     if (storageType) matched = matched.filter((p) => p.storageType === storageType);
+    // 실제 백엔드는 하위 카테고리까지 포함해 걸러주지만(`findAllSubCategoryIds`), 목업
+    // 카테고리엔 하위 트리가 없어 단순 일치로 흉내낸다(#128).
+    if (categoryId) matched = matched.filter((p) => String(p.categoryId) === categoryId);
 
     const content = sortMockProducts(matched, sort);
 
@@ -265,6 +280,26 @@ export const productHandlers = [
       status: 'SUCCESS',
       message: '필터 옵션',
       data: buildMockFilters(matched),
+      error: null,
+      timestamp: nowIso(),
+    });
+  }),
+
+  // GET /api/v1/products/categories — 필터 바텀시트 "카테고리" 탭 옵션 (#128, 파라미터 없음)
+  http.get(`${BASE}/api/v1/products/categories`, () => {
+    return HttpResponse.json({
+      status: 'SUCCESS',
+      message: '카테고리 목록',
+      data: {
+        STANDARD: MOCK_CATEGORIES.map((c, i) => ({
+          id: c.id,
+          name: c.name,
+          type: 'STANDARD',
+          sequence: i + 1,
+          children: [],
+        })),
+        DISPLAY: [],
+      },
       error: null,
       timestamp: nowIso(),
     });

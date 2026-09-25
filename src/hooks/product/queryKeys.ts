@@ -6,4 +6,5 @@ export const productKeys = {
   lists: () => [...productKeys.all, 'list'] as const,
   list: (params: ProductListParams) => [...productKeys.lists(), params] as const,
   filters: (keyword: string) => [...productKeys.all, 'filters', keyword] as const,
+  categories: () => [...productKeys.all, 'categories'] as const,
 };

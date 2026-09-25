@@ -68,6 +68,8 @@ export const ProductListParamsSchema = z.object({
    */
   price: z.enum(PRICE_BAND_VALUES).optional(),
   storageType: z.enum(STORAGE_TYPE_VALUES).optional(),
+  /** `Category.id` 문자열화(#128). 최상위 카테고리만 선택 가능한 이유는 `mapSpringCategories` 참고. */
+  categoryId: z.string().optional(),
 });
 export type ProductListParams = z.infer<typeof ProductListParamsSchema>;
 
@@ -186,8 +188,10 @@ export type ProductFilterItem = z.infer<typeof ProductFilterItemSchema>;
  * `GET /api/products/filters`(우리 Route Handler) 응답 — 우리가 실제로 쓰는 3개 그룹만
  * 남긴다. `ProductFilterService.java` 확인 결과(#128):
  * - `sort` 그룹도 내려주지만 우리 UI가 이미 자체 정렬 옵션을 갖고 있어 쓰지 않는다.
- * - **카테고리 그룹은 응답에 아예 없다** — `categoryId`는 `GET /products`의 필터 파라미터로는
- *   있지만, "지금 결과에 어떤 카테고리가 있는지" 알려주는 데이터 소스가 없다.
+ * - **카테고리 그룹은 이 응답에 없다** — "지금 검색 결과 안에 어떤 카테고리가 있는지"를
+ *   집계해주는 데이터 소스가 아니라서다. 카테고리 옵션 자체는 별도 엔드포인트
+ *   `GET /api/v1/products/categories`(전체 트리, 검색어와 무관)로 받는다 — 아래
+ *   `mapSpringCategories` 참고.
  * - `storageType` 그룹의 백엔드 title은 실수로 `"포장타입"`이라 붙어 있다(코드 주석은 "보관방법
  *   필터"). 우리 쪽에서는 이 그룹을 "유형"(냉장/냉동/실온)으로 표기한다 — `FilterSheet` 참고.
  */
@@ -220,4 +224,41 @@ export function mapSpringProductFilters(
     price: itemsOf('price'),
     storageType: itemsOf('storageType'),
   };
+}
+
+/** 필터 시트 "카테고리" 탭 옵션 한 항목. count 가 없다 — `/categories`는 개수를 안 준다. */
+export const ProductCategorySchema = z.object({
+  label: z.string(),
+  value: z.string(),
+});
+export type ProductCategory = z.infer<typeof ProductCategorySchema>;
+export const ProductCategoryListSchema = z.array(ProductCategorySchema);
+
+/**
+ * Spring `GET /api/v1/products/categories`(`CategoryController.java` 확인, #128) 응답 원본.
+ * 실제 반환 타입은 `Map<CategoryType, List<CategoryResponse>>`(`CategoryType` 은
+ * STANDARD/DISPLAY 둘뿐)이고, `CategoryResponse`는 `{id, name, type, sequence, children}`
+ * 재귀 트리다 — 하위 카테고리는 이 필터 탭 범위에서 안 쓰므로 `children`은 그냥 무시한다
+ * (Zod 가 알 수 없는 키를 기본으로 버림). `Collectors.groupingBy`라 어느 한쪽 타입 데이터가
+ * 없으면 그 키 자체가 응답에서 빠질 수 있어 둘 다 optional 이다.
+ */
+const SpringCategoryNodeSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+});
+export const SpringCategoryTreeDataSchema = z.object({
+  STANDARD: z.array(SpringCategoryNodeSchema).optional(),
+  DISPLAY: z.array(SpringCategoryNodeSchema).optional(),
+});
+
+/**
+ * 카테고리 필터 탭은 최상위 STANDARD 카테고리만 단일선택으로 노출한다(#128, 제품 결정) —
+ * DISPLAY(베스트/단독/멤버스/세일)는 홈 큐레이션 성격이라 상품 카테고리 필터와는 결이 달라
+ * 제외한다. `searchProducts`가 `findAllSubCategoryIds`로 하위까지 걸러주므로 하위 카테고리를
+ * 따로 노출하지 않아도 최상위 선택만으로 그 아래 상품 전체가 잡힌다.
+ */
+export function mapSpringCategories(
+  raw: z.infer<typeof SpringCategoryTreeDataSchema>,
+): ProductCategory[] {
+  return (raw.STANDARD ?? []).map((c) => ({ label: c.name, value: String(c.id) }));
 }

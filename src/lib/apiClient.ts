@@ -5,6 +5,7 @@ import type { ApiEnvelope } from '@/lib/apiResponse';
 import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/authTokenRef';
 import { SpringLoginUrlDataSchema, type OAuthProvider } from '@/types/auth';
 import {
+  ProductCategoryListSchema,
   ProductFiltersSchema,
   ProductListResponseSchema,
   type ProductListParams,
@@ -108,6 +109,7 @@ export function searchProducts(params: ProductListParams) {
   if (params.brand) query.set('brand', params.brand);
   if (params.price) query.set('price', params.price);
   if (params.storageType) query.set('storageType', params.storageType);
+  if (params.categoryId) query.set('categoryId', params.categoryId);
   return publicFetch(`/api/products?${query}`, ProductListResponseSchema);
 }
 
@@ -115,6 +117,11 @@ export function searchProducts(params: ProductListParams) {
 export function getProductFilters(keyword: string) {
   const query = new URLSearchParams({ keyword });
   return publicFetch(`/api/products/filters?${query}`, ProductFiltersSchema);
+}
+
+/** 필터 바텀시트 "카테고리" 탭용 최상위 카테고리 목록 조회. 검색어와 무관, 파라미터 없음(#128). */
+export function getProductCategories() {
+  return publicFetch('/api/products/categories', ProductCategoryListSchema);
 }
 
 /**

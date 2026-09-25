@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { productKeys } from '@/hooks/product/queryKeys';
-import { getProductFilters, searchProducts } from '@/lib/apiClient';
+import { getProductCategories, getProductFilters, searchProducts } from '@/lib/apiClient';
 import type { Product, ProductListParams } from '@/types/product';
 
 /**
@@ -19,8 +19,16 @@ export function useProducts({
   brand,
   price,
   storageType,
+  categoryId,
 }: Partial<ProductListParams>) {
-  const params: ProductListParams = { query: query ?? '', sort, brand, price, storageType };
+  const params: ProductListParams = {
+    query: query ?? '',
+    sort,
+    brand,
+    price,
+    storageType,
+    categoryId,
+  };
 
   return useQuery({
     queryKey: productKeys.list(params),
@@ -39,6 +47,18 @@ export function useProductFilters(keyword: string, enabled = true) {
     queryKey: productKeys.filters(keyword),
     queryFn: () => getProductFilters(keyword),
     enabled: enabled && keyword.trim().length > 0,
+  });
+}
+
+/**
+ * 필터 바텀시트 "카테고리" 탭용 최상위 카테고리 목록(#128). 검색어와 무관한 전체 트리라
+ * `keyword` 인자가 없다 — 시트가 열려 있을 때만 불러온다(`enabled`).
+ */
+export function useProductCategories(enabled = true) {
+  return useQuery({
+    queryKey: productKeys.categories(),
+    queryFn: () => getProductCategories(),
+    enabled,
   });
 }
 

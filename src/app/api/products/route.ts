@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
     return fail(400, '검색어가 올바르지 않습니다.');
   }
 
-  const { query, sort, brand, price, storageType } = parsed.data;
+  const { query, sort, brand, price, storageType, categoryId } = parsed.data;
   const springUrl = new URL(`${env.API_INTERNAL_URL}/api/v1/products`);
   // Spring 쪽 파라미터명은 keyword(우리 query 아님) + 대문자 ProductSortType(#128).
   springUrl.searchParams.set('keyword', query);
@@ -42,6 +42,9 @@ export async function GET(req: NextRequest) {
   if (brand) springUrl.searchParams.set('brand', brand);
   if (price) springUrl.searchParams.set('price', price);
   if (storageType) springUrl.searchParams.set('storageType', storageType);
+  // categoryId는 keyword와 함께 보내도 된다 — `getProducts`는 "최소 하나"만 요구한다.
+  // `/filters`(정확히 하나만 허용)와 다르니 그쪽 route.ts엔 이 파라미터를 넣지 않는다(#128).
+  if (categoryId) springUrl.searchParams.set('categoryId', categoryId);
 
   let data;
   try {
