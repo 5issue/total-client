@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FloatingButton } from '@/components/atoms/FloatingButton';
 import { Icon } from '@/components/atoms/Icon';
 import { InfoBox } from '@/components/atoms/InfoBox';
+import { LoadingIndicator } from '@/components/atoms/LoadingIndicator';
 import { KitchenInventoryCard } from '@/components/molecules/mypage/KitchenInventoryCard';
 import { ErrorState } from '@/components/molecules/shared/ErrorState';
 
@@ -20,9 +21,15 @@ import type { FridgeItem } from './model';
  * 위치가 0이 되므로 같은 로직으로) 자동으로 숨겨진다.
  * 위치는 우측 16px·하단 80px(이 화면은 하단 CTA 바·BottomNav 가 없는 chromeless
  * 스펙 — 스펙 문서의 "CTA 없을 경우" 값).
+ *
+ * `isPending`/`isError`는 부모(`MyFridgeViewContainer`, 이슈 #138)가 `useFridgeItems`
+ * 조회 상태를 그대로 내려준다 — `ProductGrid`(#90 리뷰)와 동일하게 로딩·에러·빈 상태를
+ * 전부 이 표현 컴포넌트가 렌더하되, 상태 자체는 컨테이너가 소유한다.
  */
 export interface FridgeInventoryGridProps {
   items: FridgeItem[];
+  isPending: boolean;
+  isError: boolean;
   selectedIds: Set<string>;
   onToggleItem: (id: string, checked: boolean) => void;
   onRefill: (item: FridgeItem) => void;
@@ -56,6 +63,8 @@ function useScrollTopButtonVisible() {
 
 export function FridgeInventoryGrid({
   items,
+  isPending,
+  isError,
   selectedIds,
   onToggleItem,
   onRefill,
@@ -64,6 +73,27 @@ export function FridgeInventoryGrid({
   className,
 }: FridgeInventoryGridProps) {
   const showScrollTop = useScrollTopButtonVisible();
+
+  if (isPending) {
+    return (
+      <LoadingIndicator
+        label="냉장고 품목을 불러오는 중이에요"
+        className={['py-16', className].filter(Boolean).join(' ')}
+      />
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className={['flex justify-center py-16', className].filter(Boolean).join(' ')}>
+        <ErrorState
+          icon={<Icon name="alert" size={56} aria-hidden />}
+          title="상품을 불러오지 못했어요"
+          description="잠시 후 다시 시도해주세요"
+        />
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (

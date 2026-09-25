@@ -11,7 +11,12 @@ import {
   PaymentReceiptSchema,
   type ConfirmPaymentRequest,
 } from '@/types/checkout';
+import { FridgeDeleteResponseSchema, FridgeListResponseSchema } from '@/types/fridge';
 import { ProductListResponseSchema, type ProductListParams } from '@/types/product';
+import {
+  MyRecipeRecommendationsResponseSchema,
+  type MyRecipeRecommendationParams,
+} from '@/types/recipe';
 
 /**
  * HTTP 클라이언트 — publicFetch / privateFetch (api-convention §3).
@@ -151,6 +156,33 @@ export function getPaymentReceipt(paymentId: number) {
   return privateFetch(
     `/api/payments/${encodeURIComponent(String(paymentId))}/receipt`,
     PaymentReceiptSchema,
+  );
+}
+
+/** My냉장고 품목 목록. AI 파트 FRIDGE-01(리뷰중, 이슈 #138). */
+export function fetchFridgeItems() {
+  return privateFetch('/api/fridge', FridgeListResponseSchema);
+}
+
+/** My냉장고 품목 삭제. AI 파트 FRIDGE-04(리뷰중, 이슈 #138). */
+export function deleteFridgeItem(productId: string) {
+  return privateFetch(`/api/fridge/${encodeURIComponent(productId)}`, FridgeDeleteResponseSchema, {
+    method: 'DELETE',
+  });
+}
+
+/**
+ * My냉장고 기반 AI 추천 레시피. AI 파트 RECO-02(개발완료, 이슈 #138). 데이터 계층만 —
+ * 아직 화면에 연결되지 않았다(types/recipe.ts 상단 주석 참고).
+ */
+export function fetchMyRecipeRecommendations(params: Partial<MyRecipeRecommendationParams> = {}) {
+  const query = new URLSearchParams();
+  if (params.minMatchRate != null) query.set('minMatchRate', String(params.minMatchRate));
+  if (params.limit != null) query.set('limit', String(params.limit));
+  const qs = query.toString();
+  return privateFetch(
+    `/api/recommendations/my-recipes${qs ? `?${qs}` : ''}`,
+    MyRecipeRecommendationsResponseSchema,
   );
 }
 

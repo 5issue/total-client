@@ -27,6 +27,9 @@ const clientSchema = z.object({
 
 const serverSchema = z.object({
   API_INTERNAL_URL: z.string().url(),
+  /** AI 파트 서빙(FastAPI, 별도 호스트) 내부 URL — Spring 과 다른 백엔드다(AI 파트 API
+   * 명세 v0.3 §02). 로컬은 AI 레포 `docker run` 안내대로 8000 포트. */
+  AI_SERVICE_INTERNAL_URL: z.string().url(),
 });
 
 const clientParsed = clientSchema.safeParse({
@@ -59,6 +62,7 @@ function readServerEnv(): z.infer<typeof serverSchema> {
 
   const serverParsed = serverSchema.safeParse({
     API_INTERNAL_URL: process.env.API_INTERNAL_URL,
+    AI_SERVICE_INTERNAL_URL: process.env.AI_SERVICE_INTERNAL_URL,
   });
   if (!serverParsed.success) {
     throw new Error(
@@ -76,6 +80,10 @@ export const env = {
   /** 서버 전용. 첫 접근 시 검증하고 메모이즈한다. 브라우저에서 접근하면 throw. */
   get API_INTERNAL_URL(): string {
     return readServerEnv().API_INTERNAL_URL;
+  },
+  /** 서버 전용. AI 파트 서빙(FastAPI) 내부 URL. */
+  get AI_SERVICE_INTERNAL_URL(): string {
+    return readServerEnv().AI_SERVICE_INTERNAL_URL;
   },
 } as const;
 
