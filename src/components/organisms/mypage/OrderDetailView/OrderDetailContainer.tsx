@@ -57,6 +57,7 @@ export function OrderDetailContainer({ orderId }: { orderId: number }) {
 
   return (
     <OrderDetailView
+      orderId={orderId}
       initialStatus={mapOrderStatus(detail)}
       orderDetail={mapOrderDetailSummary(detail)}
       products={mapOrderDetailProducts(detail)}

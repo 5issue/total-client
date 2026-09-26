@@ -135,6 +135,9 @@ export interface OrderBreakdownRowData {
 }
 
 export interface OrderDetailViewProps {
+  /** 반품 접수(`/mypage/orders/return?orderId=`) 진입에 쓴다. 생략 시(스토리북·직접 진입)
+   * 그 화면은 목데이터로 폴백한다. */
+  orderId?: number;
   /** 스토리·QA 용 초기 주문 상태. 생략 시 `orderDetail.status`(node 666-28077). */
   initialStatus?: OrderStatus;
   /** 실API 연동 시 컨테이너가 매핑해 내린다. 생략 시 목데이터 폴백(직접 진입·스토리북). */
@@ -154,6 +157,7 @@ export interface OrderDetailViewProps {
 }
 
 export function OrderDetailView({
+  orderId,
   orderDetail = MOCK_ORDER_DETAIL,
   // orderDetail.status 는 일반 string(컨테이너가 API 값을 자유롭게 매핑) — 실제로는 항상
   // OrderStatus 값이라는 전제로 기본값에서만 단언한다(명시 initialStatus 를 안 넘겼을 때).
@@ -293,12 +297,21 @@ export function OrderDetailView({
                 {isDelivered ? (
                   <>
                     <div className="flex w-full gap-2">
-                      {/* 반품 접수 화면 구현은 issue #97 범위 — 여기서는 라우팅만 건다. */}
+                      {/* 반품 접수 화면 구현은 issue #97 범위 — 여기서는 라우팅만 건다.
+                          orderId 가 있으면 붙여 보낸다 — 없으면(스토리북·직접 진입) 그
+                          화면이 목데이터로 폴백한다(OrderHistoryView "반품 접수"와 동일
+                          패턴, 실제로 빠져 있던 버그 — 2026-09-26 확인). */}
                       <Button
                         variant="tertiary"
                         size="l"
                         className="h-14 flex-1"
-                        onClick={() => router.push('/mypage/orders/return')}
+                        onClick={() =>
+                          router.push(
+                            orderId
+                              ? `/mypage/orders/return?orderId=${orderId}`
+                              : '/mypage/orders/return',
+                          )
+                        }
                       >
                         반품 접수
                       </Button>
