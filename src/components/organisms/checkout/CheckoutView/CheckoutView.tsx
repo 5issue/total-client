@@ -22,6 +22,8 @@ import type {
 import { OrderItemsSection } from '@/components/organisms/checkout/OrderItemsSection';
 import { PaymentMethodAccordion } from '@/components/organisms/checkout/PaymentMethodAccordion';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
+import { useCheckoutDeliveryDetailStore } from '@/hooks/useCheckoutDeliveryDetailStore';
+import type { DeliveryDetailFormFields } from '@/types/deliveryDetail';
 
 import { MOCK_AMOUNTS, MOCK_CUSTOMER, MOCK_DEFAULT_ADDRESS, MOCK_ORDER_ITEMS } from './mock';
 
@@ -61,6 +63,34 @@ interface DeliveryDetail {
   location: string;
   passcode: string;
 }
+
+/**
+ * `checkoutDeliveryDetailStore` 의 전체 폼 값 → 이 화면이 쓰는 한 줄 요약.
+ * Figma(node 666-24922)가 정의한 건 "문 앞 + 공동현관 비밀번호" 조합뿐이라, 그 조합일
+ * 때만 `passcode` 를 채우고(그대로 "공동현관 비밀번호({코드})" 로 표시된다) 그 외
+ * 조합(자유출입/경비실/기타, 기타 장소)은 위치 라벨만 보여준다 — 없는 문구를 지어내지
+ * 않는다.
+ */
+function summarizeDeliveryDetail(values: DeliveryDetailFormFields): DeliveryDetail {
+  if (values.location === 'front-door') {
+    return {
+      location: '문 앞',
+      passcode: values.frontDoorAccessType === 'password' ? values.frontDoorPassword : '',
+    };
+  }
+  const OTHER_LOCATION_LABEL: Record<
+    NonNullable<DeliveryDetailFormFields['otherLocationType']>,
+    string
+  > = {
+    entrance: '공동현관(대문) 앞',
+    locker: '택배 수령실',
+    etc: '기타 장소',
+  };
+  return {
+    location: OTHER_LOCATION_LABEL[values.otherLocationType ?? 'etc'],
+    passcode: '',
+  };
+}
 type TermsModal = 'privacy' | 'payment' | null;
 
 const won = (n: number) => `${n.toLocaleString('ko-KR')}원`;
@@ -98,10 +128,10 @@ export function CheckoutView({
   const [otherPaymentMethod, setOtherPaymentMethod] = useState<OtherPaymentMethodId>('card');
   const [cardIssuer, setCardIssuer] = useState<string | null>(null);
 
-  // 값은 이제 `/checkout/delivery-detail` 화면이 소유한다. 그 화면이 저장값을 여기로
-  // 돌려주는 배선(클라 스토어)은 아직 없어 현재는 항상 미입력 상태다 — 배선되면 이
-  // 자리를 스토어 selector 로 교체한다(이슈 #92 후속).
-  const [deliveryDetail] = useState<DeliveryDetail | null>(null);
+  // 값은 `/checkout/delivery-detail` 화면이 소유하고 `checkoutDeliveryDetailStore` 로
+  // 돌려준다(이슈 #92 후속) — 여기선 그 전체 폼 값을 화면 표시용 요약으로 derive 만 한다.
+  const savedDeliveryDetail = useCheckoutDeliveryDetailStore((s) => s.detail);
+  const deliveryDetail = savedDeliveryDetail ? summarizeDeliveryDetail(savedDeliveryDetail) : null;
   const [termsModal, setTermsModal] = useState<TermsModal>(null);
   const [ordererOpen, setOrdererOpen] = useState(false);
 
@@ -269,11 +299,15 @@ export function CheckoutView({
                   </p>
                 </div>
               ) : (
-                <span className="text-primary flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => router.push('/checkout/delivery-detail')}
+                  className="text-primary flex items-center gap-1"
+                >
                   {/* 피드백: 폰트 굵기 400(Regular) — text-heading-6. */}
                   <span className="text-heading-6">배송 상세 정보를 입력해주세요</span>
                   <Icon name="arrow-right" size={20} aria-hidden />
-                </span>
+                </button>
               )}
               <Button
                 size="s"

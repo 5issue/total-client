@@ -15,6 +15,7 @@ import { Radio, type RadioProps } from '@/components/atoms/Radio';
 import { Textarea } from '@/components/atoms/Textarea';
 import { Modal } from '@/components/molecules/shared/Modal';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
+import { useCheckoutDeliveryDetailStore } from '@/hooks/useCheckoutDeliveryDetailStore';
 import { PHONE_DIGITS_REGEX } from '@/types/address';
 import { DeliveryDetailFormSchema, type DeliveryDetailFormFields } from '@/types/deliveryDetail';
 
@@ -24,10 +25,9 @@ import { DeliveryDetailFormSchema, type DeliveryDetailFormFields } from '@/types
  * '문 앞' 공동현관 출입방법(1315-107775 비밀번호 / 1331-53140 자유출입 / 1331-53415 경비실
  * 호출 / 1331-53560 기타).
  *
- * 체크아웃 '수정' 버튼 → 이 라우트 연결은 이미 끝났다(`CheckoutView`). 다만 저장값을
- * 체크아웃 상태(`canPay` 등)로 되돌려주는 연동은 아직 없어, 값은 전부 이 화면 로컬
- * 상태고 저장은 `router.back()` 으로 되돌아가는 것까지만 한다(체크아웃 반영은 별도 진행,
- * dew2314 리뷰 #95).
+ * 체크아웃 '수정' 버튼 → 이 라우트 연결(`CheckoutView`), 저장값을 체크아웃 상태(`canPay`
+ * 등)로 되돌려주는 연동(`checkoutDeliveryDetailStore`) 모두 끝났다(이슈 #92 후속,
+ * dew2314 리뷰 #95 지적 반영, 2026-09-26). 백엔드에는 저장하지 않는다(#92 범위 그대로).
  *
  * - 라디오 그룹은 전부 첫 번째 옵션이 기본 선택(사용자 확인, 2026-09-14): 받으실 장소
  *   '문 앞', 기타장소 세부사항 '기타', 메시지 전송 '배송 직후'.
@@ -138,6 +138,11 @@ function RadioOption({
 
 export function DeliveryDetailEditView() {
   const router = useRouter();
+  const setDeliveryDetail = useCheckoutDeliveryDetailStore((s) => s.setDetail);
+  // 다시 "수정"으로 들어왔을 때 이전에 저장한 값을 그대로 보여준다 — 최초 진입(스토어
+  // 비어있음)에만 Figma 기본값을 쓴다. 폼 마운트 시점 값이라 이후 스토어 변경엔 반응할
+  // 필요 없다(이 화면을 벗어나면 언마운트되므로).
+  const savedDetail = useCheckoutDeliveryDetailStore((s) => s.detail);
 
   const {
     register,
@@ -149,7 +154,7 @@ export function DeliveryDetailEditView() {
   } = useForm<DeliveryDetailFormFields>({
     resolver: zodResolver(DeliveryDetailFormSchema),
     mode: 'onTouched',
-    defaultValues: {
+    defaultValues: savedDetail ?? {
       receiverName: RECEIVER_NAME_DEFAULT,
       phone: '',
       location: 'front-door',
@@ -197,8 +202,10 @@ export function DeliveryDetailEditView() {
           ? FRONT_DOOR_ACCESS_REQUIRED_MESSAGE[frontDoorAccessType]
           : '';
 
-  function onValid() {
-    // 백엔드/상위 상태 없음(#92 범위: 화면만) — 값 확정 후 원래 화면(체크아웃)으로 복귀.
+  function onValid(values: DeliveryDetailFormFields) {
+    // 백엔드 저장은 없음(#92 범위: 화면만) — 체크아웃과 공유하는 클라 스토어에 값을 남기고
+    // 원래 화면(체크아웃)으로 복귀한다(이슈 #92 후속, dew2314 리뷰 #95 지적 반영).
+    setDeliveryDetail(values);
     router.back();
   }
 
