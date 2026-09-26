@@ -31,10 +31,11 @@ function subtotalOf(items: CartItemView[]): number {
 export function mapCartResponse(cart: CartResponse): CartDeliveryGroup[] {
   return cart.groups.map((group) => {
     const items: CartItemView[] = group.items.map((item) => ({
-      // 수량변경·삭제 API 가 productId 로 항목을 찾는다(CartService 확인, 2026-09-24) —
-      // 화면 아이템 id도 cartItemId가 아니라 productId로 맞춘다. 한 장바구니엔 상품당
-      // 항목이 하나뿐이라(findItemByProductId) productId만으로도 유일성이 보장된다.
-      id: String(item.productId),
+      // 체크아웃 주문서 생성(POST /orders/checkout)이 cartItemId 배열을 받는다(이슈 #126)
+      // — 화면 선택·"주문하기" 핸드오프는 이 id를 그대로 쓴다. productId는 수량변경·삭제
+      // API 전용으로 따로 들고 간다(CartItemView.productId, model.ts 참고).
+      id: String(item.cartItemId),
+      productId: item.productId,
       name: item.title,
       imageSrc: item.thumbnailUrl ?? undefined,
       price: item.unitPrice,

@@ -27,6 +27,13 @@ import {
   PaymentReceiptSchema,
   type ConfirmPaymentRequest,
 } from '@/types/checkout';
+import {
+  CheckoutOrderRequestSchema,
+  CheckoutOrderResponseSchema,
+  PlaceOrderRequestSchema,
+  PlaceOrderResponseSchema,
+  type CheckoutOrderRequest,
+} from '@/types/order';
 import { ProductListResponseSchema, type ProductListParams } from '@/types/product';
 
 /**
@@ -257,6 +264,22 @@ export function getPaymentReceipt(paymentId: number) {
     `/api/payments/${encodeURIComponent(String(paymentId))}/receipt`,
     PaymentReceiptSchema,
   );
+}
+
+/** 주문서 생성(체크아웃) — 장바구니에서 선택한 상품으로 실제 주문을 만든다(#126). */
+export function checkoutOrder(body: CheckoutOrderRequest) {
+  return privateFetch('/api/orders/checkout', CheckoutOrderResponseSchema, {
+    method: 'POST',
+    body: JSON.stringify(CheckoutOrderRequestSchema.parse(body)),
+  });
+}
+
+/** 주문 결제 요청 — 결제하기 직전 주문을 결제 대기 상태로 전이시킨다(#126). */
+export function placeOrder(orderId: number) {
+  return privateFetch('/api/orders/place-order', PlaceOrderResponseSchema, {
+    method: 'POST',
+    body: JSON.stringify(PlaceOrderRequestSchema.parse({ orderId })),
+  });
 }
 
 /**

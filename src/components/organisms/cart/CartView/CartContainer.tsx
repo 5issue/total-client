@@ -89,13 +89,29 @@ export function CartContainer() {
     );
   }
 
+  // 화면 아이템 id는 cartItemId(체크아웃 핸드오프용, mapCartResponse.ts 참고)라 수량변경·
+  // 삭제 API(productId 필요)를 부르기 전에 여기서 productId로 되돌린다.
+  const productIdByCartItemId = new Map(
+    cartQuery.data.groups.flatMap((group) =>
+      group.items.map((item) => [String(item.cartItemId), item.productId] as const),
+    ),
+  );
+
   return (
     <CartView
       groups={mapCartResponse(cartQuery.data)}
-      onQuantityChange={(itemId, quantity) =>
-        updateQuantity.mutate({ productId: Number(itemId), quantity })
-      }
-      onRemoveItems={(itemIds) => removeItems.mutate(itemIds.map(Number))}
+      onQuantityChange={(itemId, quantity) => {
+        const productId = productIdByCartItemId.get(itemId);
+        if (productId === undefined) return;
+        updateQuantity.mutate({ productId, quantity });
+      }}
+      onRemoveItems={(itemIds) => {
+        const productIds = itemIds
+          .map((itemId) => productIdByCartItemId.get(itemId))
+          .filter((productId) => productId !== undefined);
+        if (productIds.length === 0) return;
+        removeItems.mutate(productIds);
+      }}
     />
   );
 }

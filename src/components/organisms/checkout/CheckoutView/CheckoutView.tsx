@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -8,42 +8,45 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/atoms/Button';
 import { Icon } from '@/components/atoms/Icon';
 import { InfoBox } from '@/components/atoms/InfoBox';
+import { Toast } from '@/components/atoms/Toast';
 import { CartAmountRow } from '@/components/molecules/cart/CartAmountRow';
 import { Accordion } from '@/components/molecules/shared/Accordion';
-import { ErrorToastBanner } from '@/components/molecules/shared/ErrorToastBanner';
 import { Modal } from '@/components/molecules/shared/Modal';
 import { StatusLabel } from '@/components/molecules/shared/StatusLabel';
-import type { OtherPaymentMethodId, PaymentMethodId } from '@/components/organisms/checkout/model';
+import type {
+  OrderAmounts,
+  OrderLineItemView,
+  OtherPaymentMethodId,
+  PaymentMethodId,
+} from '@/components/organisms/checkout/model';
 import { OrderItemsSection } from '@/components/organisms/checkout/OrderItemsSection';
 import { PaymentMethodAccordion } from '@/components/organisms/checkout/PaymentMethodAccordion';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 import { ApiError } from '@/errors/ApiError';
+import { usePlaceOrder } from '@/hooks/checkout/usePlaceOrder';
 import { useDeliveryDetailStore } from '@/hooks/useDeliveryDetailStore';
-import { useTimedToast } from '@/hooks/useTimedToast';
 import { toDeliveryDetailSummary } from '@/lib/checkout/deliveryDetailSummary';
-import { isKurlyOwnedPaymentMethod, isTossPgMethod } from '@/lib/checkout/paymentMethod';
+import {
+  createTossOrderId,
+  isKurlyOwnedPaymentMethod,
+  isTossPgMethod,
+} from '@/lib/checkout/paymentMethod';
 import { requestTossCheckoutPayment } from '@/lib/checkout/requestTossPayment';
 import { env } from '@/lib/env';
 
-import {
-  MOCK_AMOUNTS,
-  MOCK_CUSTOMER,
-  MOCK_DEFAULT_ADDRESS,
-  MOCK_ORDER_ID,
-  MOCK_ORDER_ITEMS,
-} from './mock';
+import { MOCK_AMOUNTS, MOCK_CUSTOMER, MOCK_DEFAULT_ADDRESS, MOCK_ORDER_ITEMS } from './mock';
 
 /**
  * 주문서(체크아웃) 화면 컨테이너 (organism). Figma "5팀 UI 공유용" —
  * "주문서 상세정보 입력 전 1개 구매" (node 666-23208) + "결제수단 아코디언" (node 666-22301).
  * page.tsx 는 이 컴포넌트만 렌더한다(RSC 유지).
  *
- * 바로구매(1개) 흐름 — 장바구니를 거치지 않고 상품 1건을 바로 주문서로 들여온다.
- * 데이터는 퍼블리싱 단계라 목 데이터(`mock.ts`). 백엔드 미연동 — 배송지·결제수단·약관동의는
- * 이 컴포넌트 로컬 state, 배송 상세정보는 `deliveryDetailStore`(세션 한정, 새로고침 시 초기화).
- *
- * 배송지는 `feat/#72`(배송지 관리 화면) 의 공유 스토어(`deliveryAddressStore`)가 develop 에
- * 머지되기 전이라 이 화면만의 로컬 목데이터를 쓴다 — 머지 후 그 스토어로 교체 예정(이슈 #82).
+ * 원래 "바로구매(1개)" 흐름으로 시작했지만(장바구니를 거치지 않고 상품을 바로 주문서로
+ * 들여옴), 지금은 장바구니 → 주문서 흐름이 실제로 연결돼 있다(이슈 #120) —
+ * `items`/`amounts`/`deliveryAddress` prop 을 `CheckoutContainer` 가 `useCart`/`useAddresses`
+ * 로 채워 넘긴다. prop 을 생략하면(직접 진입·스토리북) 여전히 `mock.ts` 목데이터로 동작한다.
+ * 결제수단·약관동의는 여전히 이 컴포넌트 로컬 state — 새로고침하면 초기화된다.
+ * 배송 상세정보는 `deliveryDetailStore`(세션 한정, 새로고침 시 초기화).
  *
  * "주문상품"은 상품 개수에 따라 모양이 바뀐다(node 666-23208 1건 / 666-23446·666-25396
  * 2건 이상) — 그 분기와 두 상태의 마크업은 `OrderItemsSection` 에 위임한다.
@@ -57,17 +60,10 @@ import {
  * ("배송 상세정보를 입력해주세요.")가 뜬다. 네이티브 `disabled` 버튼은 클릭 이벤트 자체가
  * 발생하지 않아 토스트를 못 띄우므로, 유효성 검사는 클릭 핸들러 안에서 직접 한다.
  *
- * 결제하기는 퍼블 '다른 결제수단' 선택값을 토스 결제창 `requestPayment` 로 넘긴 뒤
- * success/fail URL → `POST /api/v1/payments/checkout` 흐름이다(#109).
- * 컬리페이·충전결제는 PG 범위 밖이라 토스트로 막는다.
- *
- * `orderId` prop — payment-service 가 실제로 요구하는 숫자 주문 ID(2026-09-23 확인, 타입
- * 계약 노트 참고). 장바구니/주문서 실연동(이슈 #120, 백엔드 이슈로 지연 중)이 끝나면 그
- * 컨테이너가 order-service 에서 발급받은 진짜 값을 여기로 내려준다 — 그 전까지, 그리고
- * 이 컴포넌트를 목데이터로 직접 띄울 때(props 없음)는 `MOCK_ORDER_ID` 로 대체한다. Toss
- * 위젯엔 이 값을 문자열화해서 넘기고(휴먼 리더블 접두어 없이 숫자 그대로 — successUrl 이
- * 그대로 돌려주므로 승인 호출 때 다시 숫자로 파싱한다), 실제 주문 생성 자체는 이 컴포넌트
- * 책임이 아니다.
+ * 결제하기는 (실제 주문이면) 먼저 `place-order` 로 주문을 결제 대기 상태로 전이시킨 뒤(#126),
+ * 퍼블 '다른 결제수단' 선택값을 토스 결제창 `requestPayment` 로 넘기고, success/fail URL →
+ * `POST /api/v1/payments/checkout` 흐름이다(#109). 컬리페이·충전결제는 PG 범위 밖이라
+ * 토스트로 막는다.
  */
 /** 배송 상세정보 편집은 `/checkout/delivery-detail`. 확정값은 `deliveryDetailStore`. */
 type TermsModal = 'privacy' | 'payment' | null;
@@ -78,6 +74,32 @@ const won = (n: number) => `${n.toLocaleString('ko-KR')}원`;
 const ORDER_TIME_LIMIT_MS = 15 * 60 * 1000;
 /** [주문하기] 오류 토스트 노출 시간(node 666-23688, Toast atom 은 자동 소멸을 책임지지 않음). */
 const VALIDATION_TOAST_DURATION_MS = 5000;
+
+export interface CheckoutDeliveryAddressView {
+  isDefault: boolean;
+  addressLine: string;
+  recipient: string;
+  phone: string;
+}
+
+export interface CheckoutViewProps {
+  /** 주문상품(`CheckoutContainer` 가 장바구니에서 선택한 상품으로 채운다). 생략 시 목데이터. */
+  items?: OrderLineItemView[];
+  /** 결제금액. 생략 시 목데이터. */
+  amounts?: OrderAmounts;
+  /** 배송지 — `useAddresses()` 의 선택된(또는 기본) 배송지. 생략 시 목데이터. */
+  deliveryAddress?: CheckoutDeliveryAddressView;
+  /**
+   * 실제 주문 id — `CheckoutContainer` 가 `POST /api/v1/orders/checkout`(#126) 로 채운다.
+   * 생략하면(직접 진입·스토리북) 결제하기가 `place-order` 를 건너뛰고 기존처럼
+   * 클라 발급 `orderId`(`createTossOrderId`)로 토스 결제창을 연다.
+   */
+  orderId?: number;
+  /** 위 `orderId` 의 사람이 읽는 주문번호 — 토스 결제창 `orderId` 로 그대로 쓴다. */
+  orderNo?: string;
+  /** 재고 예약 만료 시각(ISO) — 있으면 `ORDER_TIME_LIMIT_MS` 대신 이 값으로 카운트다운. */
+  expiresAt?: string;
+}
 
 const KURLY_OWNED_PAY_MESSAGE = '컬리페이·충전결제는 아직 지원하지 않습니다.';
 
@@ -93,10 +115,17 @@ function tossPayErrorMessage(error: unknown): string | null {
   return '결제를 시작하지 못했습니다.';
 }
 
-export function CheckoutView({ orderId }: { orderId?: number } = {}) {
+export function CheckoutView({
+  items = MOCK_ORDER_ITEMS,
+  amounts = MOCK_AMOUNTS,
+  deliveryAddress = MOCK_DEFAULT_ADDRESS,
+  orderId,
+  orderNo,
+  expiresAt,
+}: CheckoutViewProps = {}) {
   const router = useRouter();
-  const realOrderId = orderId ?? MOCK_ORDER_ID;
   const searchParams = useSearchParams();
+  const placeOrder = usePlaceOrder();
 
   // 기본값은 "다른 결제수단" 선택 상태 — Figma 스크린샷 그대로(사용자 확인, 2026-09-11).
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | null>('other');
@@ -114,9 +143,8 @@ export function CheckoutView({ orderId }: { orderId?: number } = {}) {
   const [pointsInfoOpen, setPointsInfoOpen] = useState(false);
   const [orderExpired, setOrderExpired] = useState(false);
   const [toastMessage, setToastMessage] = useState('배송 상세정보를 입력해주세요.');
-  const { visible: showValidationToast, trigger: triggerValidationToast } = useTimedToast(
-    VALIDATION_TOAST_DURATION_MS,
-  );
+  const [showValidationToast, setShowValidationToast] = useState(false);
+  const validationToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const payError = searchParams.get('payError');
   const isToastVisible = showValidationToast || Boolean(payError);
@@ -127,12 +155,26 @@ export function CheckoutView({ orderId }: { orderId?: number } = {}) {
   function showErrorToast(message: string) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setToastMessage(message);
-    triggerValidationToast();
+    setShowValidationToast(true);
+    if (validationToastTimer.current) clearTimeout(validationToastTimer.current);
+    validationToastTimer.current = setTimeout(
+      () => setShowValidationToast(false),
+      VALIDATION_TOAST_DURATION_MS,
+    );
   }
 
   useEffect(() => {
-    const timer = setTimeout(() => setOrderExpired(true), ORDER_TIME_LIMIT_MS);
+    const remainingMs = expiresAt
+      ? new Date(expiresAt).getTime() - Date.now()
+      : ORDER_TIME_LIMIT_MS;
+    const timer = setTimeout(() => setOrderExpired(true), Math.max(remainingMs, 0));
     return () => clearTimeout(timer);
+  }, [expiresAt]);
+
+  useEffect(() => {
+    return () => {
+      if (validationToastTimer.current) clearTimeout(validationToastTimer.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -158,16 +200,25 @@ export function CheckoutView({ orderId }: { orderId?: number } = {}) {
 
     setIsPaying(true);
     try {
-      const first = MOCK_ORDER_ITEMS[0];
+      const first = items[0];
       const orderName = !first
         ? '컬리 주문'
-        : MOCK_ORDER_ITEMS.length === 1
+        : items.length === 1
           ? first.name
-          : `${first.name} 외 ${MOCK_ORDER_ITEMS.length - 1}건`;
+          : `${first.name} 외 ${items.length - 1}건`;
+
+      // 실제 주문(#126)이면 결제하기 직전 place-order 로 결제 대기 상태로 전이시키고,
+      // 그 응답의 orderNo 를 토스 orderId 로 쓴다. 목데이터/직접 진입은 그대로 클라 발급.
+      let tossOrderId = orderNo ?? createTossOrderId();
+      if (orderId != null) {
+        const placed = await placeOrder.mutateAsync(orderId);
+        tossOrderId = placed.orderNo;
+      }
+
       await requestTossCheckoutPayment({
         clientKey: env.NEXT_PUBLIC_TOSS_CLIENT_KEY,
-        amount: MOCK_AMOUNTS.total,
-        orderId: String(realOrderId),
+        amount: amounts.total,
+        orderId: tossOrderId,
         orderName,
         method: otherPaymentMethod,
         cardIssuer,
@@ -185,10 +236,24 @@ export function CheckoutView({ orderId }: { orderId?: number } = {}) {
     <>
       <SectionHeader leading="back" onLeadingClick={() => router.back()} title="주문서" />
 
-      {/* node 666-23688: [주문하기] 눌렀는데 필수값이 비어있을 때, 그리고 결제 승인 실패
-          (`/checkout?payError=`, CheckoutSuccessView) 때 상단에 뜨는 에러 토스트 —
-          `ErrorToastBanner` 참고(항상 마운트해두고 translate-y 만 토글하는 이유 등). */}
-      <ErrorToastBanner visible={isToastVisible}>{displayedToastMessage}</ErrorToastBanner>
+      {/* node 666-23688: [주문하기] 눌렀는데 필수값이 비어있을 때 상단에 뜨는 에러 토스트.
+          화면 스크롤과 무관하게 계속 보이도록 fixed, 화면 상단과의 간격은 실측 84px(top-21,
+          Tailwind 스케일 21*4px=84px — 코드리뷰 지적대로 임의값 대신 스케일 값 사용).
+          피드백: 위에서 아래로 슬라이드해 내려오고 5초 뒤 다시 위로 슬라이드해 사라진다 —
+          `{cond ? <Toast/> : null}` 로 마운트/언마운트하면 사라질 때 트랜지션이 안 걸리므로,
+          항상 마운트해두고 translate-y 만 토글한다(OrderItemsSection 과 같은 원칙).
+          -translate-y-50(50*4px=200px, 토스트 자체 높이보다 넉넉히 큰 값)도 같은 이유로
+          스케일 값. */}
+      <div
+        aria-hidden={!isToastVisible}
+        className={[
+          'pointer-events-none fixed inset-x-0 top-21 z-50 flex justify-center px-4',
+          'transition-transform duration-300 ease-out motion-reduce:transition-none',
+          isToastVisible ? 'translate-y-0' : '-translate-y-50',
+        ].join(' ')}
+      >
+        <Toast variant="error">{displayedToastMessage}</Toast>
+      </div>
 
       <div className="bg-surface-secondary flex flex-1 flex-col gap-2">
         {/* 주문자 정보 — Figma "Accordion_Orderinfo"(node 666-25643, property1=on). 접힘일
@@ -244,12 +309,12 @@ export function CheckoutView({ orderId }: { orderId?: number } = {}) {
             <p className="text-label-m text-fg-secondary">배송지</p>
             <div className="flex items-start justify-between gap-2">
               <div className="flex flex-col items-start gap-2">
-                {MOCK_DEFAULT_ADDRESS.isDefault ? (
+                {deliveryAddress.isDefault ? (
                   <StatusLabel type="defaultAddress">기본배송지</StatusLabel>
                 ) : null}
                 {/* 피드백: 이 주소 텍스트는 폰트 굵기 400(Regular) — text-heading-4(600)
                     가 아니라 text-heading-6(같은 16px, 400)이 맞다. */}
-                <p className="text-heading-6 text-fg">{MOCK_DEFAULT_ADDRESS.addressLine}</p>
+                <p className="text-heading-6 text-fg">{deliveryAddress.addressLine}</p>
               </div>
               {/* 피드백: node 666-25154 "배송지 변경" 확인 모달을 이 버튼에 연결 —
                   이 화면(바로구매)엔 배송지를 직접 바꾸는 UI가 없어 장바구니로
@@ -322,7 +387,7 @@ export function CheckoutView({ orderId }: { orderId?: number } = {}) {
         </div>
 
         {/* 주문상품 — 1건/2건 이상 분기는 OrderItemsSection 이 담당(node 666-23208 · 666-23446 · 666-25396). */}
-        <OrderItemsSection items={MOCK_ORDER_ITEMS} />
+        <OrderItemsSection items={items} />
 
         {/* 쿠폰 */}
         <div className="bg-surface flex flex-col gap-4 p-4">
@@ -438,29 +503,26 @@ export function CheckoutView({ orderId }: { orderId?: number } = {}) {
             <div className="flex flex-col gap-2">
               <CartAmountRow
                 label="주문 금액"
-                value={won(MOCK_AMOUNTS.productPrice - MOCK_AMOUNTS.productDiscount)}
+                value={won(amounts.productPrice - amounts.productDiscount)}
               />
-              <AmountDetailRow label="상품금액" value={won(MOCK_AMOUNTS.productPrice)} />
-              <AmountDetailRow
-                label="상품할인금액"
-                value={`-${won(MOCK_AMOUNTS.productDiscount)}`}
-              />
+              <AmountDetailRow label="상품금액" value={won(amounts.productPrice)} />
+              <AmountDetailRow label="상품할인금액" value={`-${won(amounts.productDiscount)}`} />
             </div>
 
-            <CartAmountRow label="배송비" value={won(MOCK_AMOUNTS.shippingFee)} />
+            <CartAmountRow label="배송비" value={won(amounts.shippingFee)} />
 
             <div className="flex flex-col gap-2">
-              <CartAmountRow label="쿠폰할인" value={won(MOCK_AMOUNTS.couponDiscount)} />
-              <AmountDetailRow label="상품 쿠폰" value={won(MOCK_AMOUNTS.productCouponDiscount)} />
-              <AmountDetailRow label="장바구니 쿠폰" value={won(MOCK_AMOUNTS.cartCouponDiscount)} />
+              <CartAmountRow label="쿠폰할인" value={won(amounts.couponDiscount)} />
+              <AmountDetailRow label="상품 쿠폰" value={won(amounts.productCouponDiscount)} />
+              <AmountDetailRow label="장바구니 쿠폰" value={won(amounts.cartCouponDiscount)} />
             </div>
 
-            <CartAmountRow label="카드즉시할인" value={won(MOCK_AMOUNTS.cardInstantDiscount)} />
+            <CartAmountRow label="카드즉시할인" value={won(amounts.cardInstantDiscount)} />
 
             <div className="flex flex-col gap-2">
-              <CartAmountRow label="적립금·컬리캐시" value={won(MOCK_AMOUNTS.pointsCashUsed)} />
-              <AmountDetailRow label="적립금" value={won(MOCK_AMOUNTS.pointsUsed)} />
-              <AmountDetailRow label="컬리캐시" value={won(MOCK_AMOUNTS.cashUsed)} />
+              <CartAmountRow label="적립금·컬리캐시" value={won(amounts.pointsCashUsed)} />
+              <AmountDetailRow label="적립금" value={won(amounts.pointsUsed)} />
+              <AmountDetailRow label="컬리캐시" value={won(amounts.cashUsed)} />
             </div>
 
             <hr className="border-border" />
@@ -473,7 +535,7 @@ export function CheckoutView({ orderId }: { orderId?: number } = {}) {
               <span className="text-heading-4 text-fg">최종 결제금액</span>
               <span className="text-fg">
                 <span className="text-numeric-xl font-numeric">
-                  {MOCK_AMOUNTS.total.toLocaleString('ko-KR')}
+                  {amounts.total.toLocaleString('ko-KR')}
                 </span>{' '}
                 <span className="text-heading-3">원</span>
               </span>
@@ -555,7 +617,7 @@ export function CheckoutView({ orderId }: { orderId?: number } = {}) {
           className="h-14 w-full"
           onClick={() => void handleSubmitOrder()}
         >
-          {won(MOCK_AMOUNTS.total)} 결제하기
+          {won(amounts.total)} 결제하기
         </Button>
         <p className="text-caption-m text-fg-tertiary text-center">
           결제 전 <span className="underline">이용약관 및 정보제공</span> 동의를 확인해 주세요

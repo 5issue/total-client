@@ -12,6 +12,7 @@ export const MOCK_CART_GROUPS: CartDeliveryGroup[] = [
     items: [
       {
         id: 'item-1',
+        productId: 1,
         name: '[연세우유 x 마켓컬리] 전용목장우유 900mL',
         price: 2780,
         originalPrice: 3400,
@@ -20,6 +21,7 @@ export const MOCK_CART_GROUPS: CartDeliveryGroup[] = [
       },
       {
         id: 'item-2',
+        productId: 2,
         name: "[Kurly's] 동물복지 유정란 20구",
         price: 10051,
         originalPrice: 10580,
@@ -28,6 +30,7 @@ export const MOCK_CART_GROUPS: CartDeliveryGroup[] = [
       },
       {
         id: 'item-3',
+        productId: 3,
         name: '바로먹는 아보카도 3입 (페루산)',
         price: 9990,
         originalPrice: 13900,
@@ -36,6 +39,7 @@ export const MOCK_CART_GROUPS: CartDeliveryGroup[] = [
       },
       {
         id: 'item-4',
+        productId: 4,
         name: '[풀무원] 동물복지 치킨 너겟 오리지널',
         price: 7979,
         originalPrice: 8980,
