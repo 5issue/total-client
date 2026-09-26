@@ -37,13 +37,6 @@ export const MOCK_FRIDGE_ITEMS: FridgeItem[] = [
     priceLabel: '2,780원',
     originalPriceLabel: '3,400원',
     memberPriceLabel: '2,670원',
-    storageTip: {
-      title: '전용목장우유',
-      steps: [
-        '개봉하지 않은 상태로 냉장실 가장 안쪽(0~2℃)에 보관하세요.',
-        '개봉 후에는 3일 이내 드시는 것을 권장해요.',
-      ],
-    },
   },
   {
     id: 'salmon',
@@ -59,13 +52,6 @@ export const MOCK_FRIDGE_ITEMS: FridgeItem[] = [
     filters: ['stored', 'expiring'],
     priceLabel: '15,900원',
     memberPriceLabel: '15,210원',
-    storageTip: {
-      title: '노르웨이 생연어',
-      steps: [
-        '밀봉된 상태로 냉장실 가장 안쪽(0~2℃)에 보관하세요.',
-        '해동 후에는 재냉동하지 말고 바로 섭취하세요.',
-      ],
-    },
   },
   {
     id: 'onion',
@@ -81,13 +67,6 @@ export const MOCK_FRIDGE_ITEMS: FridgeItem[] = [
     filters: ['stored', 'expiring'],
     priceLabel: '3,980원',
     memberPriceLabel: '3,820원',
-    storageTip: {
-      title: '친환경 양파',
-      steps: [
-        '통풍이 잘되는 서늘한 곳이나 냉장실 채소칸에 보관하세요.',
-        '자른 후에는 밀폐해 보관하세요.',
-      ],
-    },
   },
   {
     id: 'tofu',
@@ -103,10 +82,6 @@ export const MOCK_FRIDGE_ITEMS: FridgeItem[] = [
     filters: ['stored'],
     priceLabel: '3,480원',
     memberPriceLabel: '3,330원',
-    storageTip: {
-      title: '국산콩 두부',
-      steps: ['개봉 후 남은 두부는 물에 담가 냉장 보관하세요.', '물은 매일 갈아주세요.'],
-    },
   },
   {
     id: 'scallion',
@@ -122,10 +97,6 @@ export const MOCK_FRIDGE_ITEMS: FridgeItem[] = [
     filters: ['stored'],
     priceLabel: '2,180원',
     memberPriceLabel: '2,090원',
-    storageTip: {
-      title: '손질 대파',
-      steps: ['밀폐용기에 담아 냉장실에 세워서 보관하세요.'],
-    },
   },
   {
     id: 'tteokgalbi',
@@ -141,10 +112,6 @@ export const MOCK_FRIDGE_ITEMS: FridgeItem[] = [
     filters: ['stored'],
     priceLabel: '9,900원',
     memberPriceLabel: '9,480원',
-    storageTip: {
-      title: '떡갈비',
-      steps: ['냉동 상태를 유지하고, 조리 전 냉장실에서 자연 해동하세요.'],
-    },
   },
   {
     id: 'cheese',
@@ -160,10 +127,6 @@ export const MOCK_FRIDGE_ITEMS: FridgeItem[] = [
     filters: ['expired'],
     priceLabel: '5,980원',
     memberPriceLabel: '5,730원',
-    storageTip: {
-      title: '모짜렐라 슈레드 치즈',
-      steps: ['개봉 후에는 밀봉해 냉장 보관하고 최대한 빨리 드세요.'],
-    },
   },
   {
     id: 'hanwoo',
@@ -180,10 +143,6 @@ export const MOCK_FRIDGE_ITEMS: FridgeItem[] = [
     priceLabel: '145,000원',
     originalPriceLabel: '217,000원',
     memberPriceLabel: '141,050원',
-    storageTip: {
-      title: '한우 구이 세트',
-      steps: ['냉동 상태를 유지하고, 조리 전 냉장실에서 자연 해동하세요.'],
-    },
   },
 ];
 

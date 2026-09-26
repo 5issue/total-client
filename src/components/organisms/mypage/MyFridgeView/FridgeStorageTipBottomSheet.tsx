@@ -1,10 +1,23 @@
 'use client';
 
 import { Button } from '@/components/atoms/Button';
+import { LoadingIndicator } from '@/components/atoms/LoadingIndicator';
 import { CartItemPreview } from '@/components/molecules/product/CartItemPreview';
 import { BottomSheet } from '@/components/molecules/shared/BottomSheet';
+import { useStorageGuide } from '@/hooks/product/useStorageGuide';
+import type { StorageGuideItem } from '@/types/storageGuide';
 
 import type { FridgeItem } from './model';
+
+/** 여러 (보관장소×상황) 줄 중 화면에 하나만 고른다 — 구매후 우선, 없으면 일반,
+ *  그마저 없으면 첫 줄(AI팀 확정 우선순위, 이슈 #142). */
+function pickStorageGuideItem(items: StorageGuideItem[]): StorageGuideItem | undefined {
+  return (
+    items.find((item) => item.storage_context === '구매후') ??
+    items.find((item) => item.storage_context === '일반') ??
+    items[0]
+  );
+}
 
 /**
  * "보관 TIP" 바텀시트 (organism). Figma "5팀 UI 공유용" `ProductTipBottomSheet`
@@ -19,6 +32,11 @@ import type { FridgeItem } from './model';
  * 블록 사이에도 이 12px 간격이 추가로 들어간다(팀원 리뷰 반영, #111). `footer` 는
  * `BottomSheet` 가 본문과 별도 영역에 붙여서 그 gap 이 안 생기므로, CTA 자체 상단
  * 패딩(12px)에 그 몫을 더해(`pt-6`=24px) 대신 맞춘다.
+ *
+ * 보관법 목록은 이 컴포넌트가 열릴 때만 온디맨드로 조회한다(PROD-03, 이슈 #142) —
+ * 냉장고 품목 전체의 보관 가이드를 미리 다 불러오지 않는다. Figma 디자인(666-31268)
+ * 자체가 장소·상황 구분 없는 단일 목록이라, 실제 API가 주는 여러 줄 중 하나만 골라
+ * (`pickStorageGuideItem`) 그대로 넣는다 — 새 레이아웃이 필요하지 않다.
  */
 export interface FridgeStorageTipBottomSheetProps {
   open: boolean;
@@ -31,7 +49,12 @@ export function FridgeStorageTipBottomSheet({
   item,
   onClose,
 }: FridgeStorageTipBottomSheetProps) {
+  const guideQuery = useStorageGuide(item?.productId ?? '', { enabled: open && item !== null });
+
   if (!item) return null;
+
+  const picked = guideQuery.data ? pickStorageGuideItem(guideQuery.data.items) : undefined;
+  const tip = picked?.tips;
 
   return (
     <BottomSheet
@@ -59,16 +82,22 @@ export function FridgeStorageTipBottomSheet({
           tagline={item.tagline}
         />
         <div className="border-border mx-4 border-t" />
-        <div className="flex flex-col">
-          {item.storageTip.steps.map((step, i) => (
-            <div key={step} className="flex items-start gap-2 px-4 py-2">
+        {guideQuery.isPending ? (
+          <LoadingIndicator label="보관 정보를 불러오는 중이에요" />
+        ) : tip ? (
+          <div className="flex flex-col">
+            <div className="flex items-start gap-2 px-4 py-2">
               <span className="text-caption-m text-fg-inverse mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-neutral-950">
-                {i + 1}
+                1
               </span>
-              <p className="text-label-m text-fg-secondary pt-0.5">{step}</p>
+              <p className="text-label-m text-fg-secondary pt-0.5">{tip}</p>
             </div>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <p className="text-label-m text-fg-tertiary px-4 py-6 text-center">
+            아직 보관 정보가 없어요
+          </p>
+        )}
       </div>
     </BottomSheet>
   );
