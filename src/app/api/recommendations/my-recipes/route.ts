@@ -17,7 +17,6 @@ const UPSTREAM_FAILURE_MESSAGE = '추천 레시피를 불러오지 못했습니�
 export async function GET(req: NextRequest) {
   const params = req.nextUrl.searchParams;
   const parsed = MyRecipeRecommendationParamsSchema.safeParse({
-    minMatchRate: params.has('minMatchRate') ? Number(params.get('minMatchRate')) : undefined,
     limit: params.has('limit') ? Number(params.get('limit')) : undefined,
   });
   if (!parsed.success) {
@@ -29,10 +28,7 @@ export async function GET(req: NextRequest) {
     return fail(401, '로그인이 필요합니다.');
   }
 
-  const query = new URLSearchParams({
-    min_match_rate: String(parsed.data.minMatchRate),
-    limit: String(parsed.data.limit),
-  });
+  const query = new URLSearchParams({ limit: String(parsed.data.limit) });
 
   return fetchAiService(
     `/api/v1/recommendations/my-recipes?${query}`,

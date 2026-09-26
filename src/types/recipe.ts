@@ -39,9 +39,12 @@ export const MyRecipeRecommendationsResponseSchema = z.object({
 });
 export type MyRecipeRecommendationsResponse = z.infer<typeof MyRecipeRecommendationsResponseSchema>;
 
-/** GET 쿼리 파라미터 (명세 §04-1). */
+/**
+ * GET 쿼리 파라미터 (명세 §04-1). `min_match_rate`는 AI팀과 협의 후 서버 고정값
+ * 0.5로 닫혔다(조절 UI가 없어 파라미터를 열어둘 이유가 없음, 2026-09-26 확정) —
+ * 조절 UI가 생기면 그때 파라미터를 다시 연다.
+ */
 export const MyRecipeRecommendationParamsSchema = z.object({
-  minMatchRate: z.number().min(0).max(1).default(0.5),
   limit: z.number().int().min(1).max(50).default(10),
 });
 export type MyRecipeRecommendationParams = z.infer<typeof MyRecipeRecommendationParamsSchema>;

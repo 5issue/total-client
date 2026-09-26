@@ -177,7 +177,6 @@ export function deleteFridgeItem(productId: string) {
  */
 export function fetchMyRecipeRecommendations(params: Partial<MyRecipeRecommendationParams> = {}) {
   const query = new URLSearchParams();
-  if (params.minMatchRate != null) query.set('minMatchRate', String(params.minMatchRate));
   if (params.limit != null) query.set('limit', String(params.limit));
   const qs = query.toString();
   return privateFetch(
