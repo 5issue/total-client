@@ -33,10 +33,8 @@ function pickStorageGuideItem(items: StorageGuideItem[]): StorageGuideItem | und
  * `BottomSheet` 가 본문과 별도 영역에 붙여서 그 gap 이 안 생기므로, CTA 자체 상단
  * 패딩(12px)에 그 몫을 더해(`pt-6`=24px) 대신 맞춘다.
  *
- * 보관법 목록은 이 컴포넌트가 열릴 때만 온디맨드로 조회한다(PROD-03, 이슈 #142) —
- * 냉장고 품목 전체의 보관 가이드를 미리 다 불러오지 않는다. Figma 디자인(666-31268)
- * 자체가 장소·상황 구분 없는 단일 목록이라, 실제 API가 주는 여러 줄 중 하나만 골라
- * (`pickStorageGuideItem`) 그대로 넣는다 — 새 레이아웃이 필요하지 않다.
+ * 보관법은 이 컴포넌트가 열릴 때만 온디맨드로 조회한다(PROD-03, 이슈 #142) — 냉장고
+ * 품목 전체를 미리 불러오지 않는다. 픽 로직은 `pickStorageGuideItem` 참고.
  */
 export interface FridgeStorageTipBottomSheetProps {
   open: boolean;
