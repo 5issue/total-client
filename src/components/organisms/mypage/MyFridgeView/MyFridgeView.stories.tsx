@@ -1,8 +1,19 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
 import { MOCK_FRIDGE_ITEMS } from './mock';
 import { MyFridgeView } from './MyFridgeView';
+
+// "MY 레시피" 탭은 내부적으로 `MyRecipeViewContainer`(이슈 #140)를 그대로 렌더한다 —
+// `useMyRecipeRecommendations` 등 실제 쿼리 훅을 쓰므로 QueryClientProvider 없이는
+// 렌더 자체가 throw 한다(`SocialLoginPanel.stories.tsx`와 동일 이유). 스토리 환경엔
+// 실제 서버가 없어 그 쿼리는 에러로 끝나지만, 기존 스토리들은 AI 추천 카드 내용을
+// 검증하지 않으므로(최근 본/찜한 mock 헤더만 확인) 영향 없다. retry:false로 실패한
+// 쿼리가 재시도하며 테스트를 늦추지 않게 한다.
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
 
 const meta = {
   title: 'organisms/mypage/MyFridgeView',
@@ -24,6 +35,13 @@ const meta = {
       options: ['fridge', 'recipe'],
     },
   },
+  decorators: [
+    (Story) => (
+      <QueryClientProvider client={queryClient}>
+        <Story />
+      </QueryClientProvider>
+    ),
+  ],
   parameters: {
     layout: 'fullscreen',
     nextjs: { appDirectory: true, navigation: { pathname: '/mypage/fridge' } },
