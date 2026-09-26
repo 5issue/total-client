@@ -36,7 +36,7 @@ export function toFridgeItemViewModel(apiItem: FridgeStockItem, index: number): 
   // MOCK_FRIDGE_ITEMS는 고정 길이 배열이라 나머지 연산 인덱스는 항상 유효하다 —
   // noUncheckedIndexedAccess 회피용 non-null assertion.
   const extras =
-    MOCK_FRIDGE_ITEMS.find((mock) => mock.productId === apiItem.product.id) ??
+    MOCK_FRIDGE_ITEMS.find((mock) => mock.productId === apiItem.product.product_id) ??
     MOCK_FRIDGE_ITEMS[index % MOCK_FRIDGE_ITEMS.length]!;
 
   const dDayLabel = apiItem.expires_at ? formatDDayLabel(apiItem.expires_at) : extras.dDayLabel;
@@ -45,15 +45,15 @@ export function toFridgeItemViewModel(apiItem: FridgeStockItem, index: number): 
     : extras.expiryLabel;
 
   return {
-    id: apiItem.product.id,
-    productId: apiItem.product.id,
+    id: apiItem.product.product_id,
+    productId: apiItem.product.product_id,
     name: apiItem.product.name,
     tagline: extras.tagline,
     imageSrc: extras.imageSrc,
     quantityLabel: `${apiItem.quantity}${apiItem.unit}`,
     expiryLabel,
     dDayLabel,
-    storageType: mapStorageType(apiItem.product.storageType),
+    storageType: mapStorageType(apiItem.product.storage_type ?? ''),
     expired: apiItem.is_expired,
     soldOut: extras.soldOut,
     filters: deriveFilters(apiItem.is_expired, apiItem.expires_at ? dDayLabel : null),

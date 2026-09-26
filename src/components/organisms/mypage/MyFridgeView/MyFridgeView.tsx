@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
 import { TabBar, type TabBarItem } from '@/components/molecules/shared/TabBar';
-import { MyRecipeView } from '@/components/organisms/mypage/MyRecipeView';
+import { MyRecipeViewContainer } from '@/components/organisms/mypage/MyRecipeView';
 import { NICKNAME } from '@/components/organisms/mypage/MyRecipeView/mock';
 import { RecipeAiLoadingView } from '@/components/organisms/mypage/MyRecipeView/RecipeAiLoadingView';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
@@ -232,7 +232,7 @@ export function MyFridgeView({
           />
         </>
       ) : (
-        <MyRecipeView />
+        <MyRecipeViewContainer />
       )}
 
       <FridgeRefillBottomSheet

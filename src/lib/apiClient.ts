@@ -14,7 +14,10 @@ import {
 import { FridgeDeleteResponseSchema, FridgeListResponseSchema } from '@/types/fridge';
 import { ProductListResponseSchema, type ProductListParams } from '@/types/product';
 import {
+  MissingProductsResponseSchema,
   MyRecipeRecommendationsResponseSchema,
+  RecipeDetailSchema,
+  type MissingProductsParams,
   type MyRecipeRecommendationParams,
 } from '@/types/recipe';
 
@@ -182,6 +185,32 @@ export function fetchMyRecipeRecommendations(params: Partial<MyRecipeRecommendat
   return privateFetch(
     `/api/recommendations/my-recipes${qs ? `?${qs}` : ''}`,
     MyRecipeRecommendationsResponseSchema,
+  );
+}
+
+/** 레시피 상세. AI 파트 RECIPE-01(개발완료, 이슈 #140). 비로그인도 조회 가능. */
+export function fetchRecipeDetail(recipeId: string) {
+  return publicFetch(`/api/recipes/${encodeURIComponent(recipeId)}`, RecipeDetailSchema);
+}
+
+/**
+ * 부족 재료 상품 추천. AI 파트 RECIPE-03(개발완료, 이슈 #140). `privateFetch` 를 쓰지만
+ * 비로그인도 허용(우리 Route Handler 가 401 로 막지 않음) — 로그인 상태면 냉장고
+ * 보유분까지 반영된다(명세 §04-2).
+ */
+export function fetchMissingProducts(
+  recipeId: string,
+  params: Partial<MissingProductsParams> = {},
+) {
+  const query = new URLSearchParams();
+  if (params.baseProductId != null) query.set('baseProductId', String(params.baseProductId));
+  if (params.maxPerIngredient != null) {
+    query.set('maxPerIngredient', String(params.maxPerIngredient));
+  }
+  const qs = query.toString();
+  return privateFetch(
+    `/api/recipes/${encodeURIComponent(recipeId)}/missing-products${qs ? `?${qs}` : ''}`,
+    MissingProductsResponseSchema,
   );
 }
 
