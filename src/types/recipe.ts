@@ -3,10 +3,8 @@ import { z } from 'zod';
 /**
  * My냉장고 기반 레시피 추천(RECO-02) + 레시피 상세(RECIPE-01) + 부족 재료 상품
  * 추천(RECIPE-03) 스키마 — AI 서빙 레포(`KDT-2-AI-Integrated-Project-Team5-AI`)의
- * 실제 Pydantic 스키마(`serving/src/serving/schemas.py`)를 로컬 소스로 직접 확인해
- * 맞춤(2026-09-26). 이전에는 팀 문서(v0.2/v0.3) 표기만으로 추정해 필드명이 실제와
- * 달랐던 부분(`RecipeMatch`의 `required`→`required_ingredients` 등, `FridgeProductRef`의
- * `id`→`product_id`)이 있었다 — 지금은 레포 소스 기준이라 그 부분은 확정이다.
+ * 실제 Pydantic 스키마(`serving/src/serving/schemas.py`)를 소스로 직접 확인해
+ * 맞췄다(2026-09-26, 문서 표기 추정 아님).
  */
 
 export const RecipeMatchSchema = z.object({

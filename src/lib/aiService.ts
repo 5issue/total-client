@@ -10,14 +10,11 @@ import { AuthUserSchema } from '@/types/auth';
 export const AI_UPSTREAM_FAILURE_MESSAGE = '잠시 후 다시 시도해주세요.';
 
 /**
- * AI 서비스는 Spring 과 달리 Bearer 토큰이 아니라 숫자 `X-User-Id` 헤더로 사용자를
- * 식별한다(AI 파트 API 명세 v0.3 §02·§04, 공유 시크릿 방식은 협의 중). 우리 Route
- * Handler 는 브라우저가 보낸 Bearer 토큰만 갖고 있으므로, Spring 쪽에서 먼저 신원을
- * 확인한 뒤 그 userId 를 AI 서비스에 넘긴다.
+ * AI 서비스는 Bearer 토큰이 아니라 숫자 `X-User-Id` 헤더로 사용자를 식별한다 — 우리
+ * Route Handler 는 Bearer 토큰만 갖고 있으므로 Spring 에서 먼저 신원을 확인해 넘긴다.
  *
- * ⚠️ 정확한 Spring 엔드포인트 경로는 아직 BE 확인 전이다 — `AuthUserSchema`(userId/name/
- * profileImageUrl, types/auth.ts)가 이미 이 모양으로 스캐폴딩돼 있어 `/api/v1/users/me`
- * 로 가정했다. 실제 경로가 다르면 이 함수만 고치면 된다(호출부는 변경 불필요).
+ * ⚠️ 정확한 Spring 엔드포인트 경로는 BE 확인 전이다 — `AuthUserSchema`(types/auth.ts)
+ * 모양대로 `/api/v1/users/me` 로 가정했다. 다르면 이 함수만 고치면 된다.
  */
 export async function resolveUserId(req: NextRequest): Promise<number | null> {
   const authorization = req.headers.get('authorization');

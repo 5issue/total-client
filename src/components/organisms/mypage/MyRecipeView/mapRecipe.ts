@@ -56,18 +56,10 @@ function toNeededProducts(missing: MissingProductsResponse): RecipeNeededProduct
 
 /**
  * 레시피 상세(RECIPE-01) + 부족 재료 상품 추천(RECIPE-03) 응답을 화면 표시 모델
- * (`Recipe`)로 합성한다(이슈 #140).
- *
- * 실 데이터로 채우는 필드: id/name/description/ingredients(이름), 보유·부족 재료
- * 개수(전체 재료 수 − 부족 재료 수로 계산 — my-recipes 추천의 `match`를 거치지
- * 않아도 "최근 본"/"찜한" 진입 경로에서 동일하게 구할 수 있다), neededProducts,
- * missingIngredientsPriceLabel(부족 재료별 최저가 합).
- *
- * `imageSrc`·`steps`(조리 순서)도 AI 레포 소스 확인 결과 실제 필드라(명세 문서엔
- * 없었음) 이제 실 데이터다. mock으로 유지하는 필드는 `ownedItems`(냉장고 실물
- * 썸네일·유통기한 배지 — 이 두 엔드포인트 어디에도 없음)뿐이다. `liked`는 애초에
- * 서버에 없는 로컬 전용 토글이라 초기값만 시드한다(#134 "계약에 없는 필드는 mock
- * 유지" 원칙과 동일).
+ * (`Recipe`)로 합성한다(이슈 #140). 보유/부족 재료 개수는 전체 재료 수 − 부족
+ * 재료 수로 계산해, my-recipes 추천 경유 없이도 "최근 본"/"찜한"에서 동일하게
+ * 구한다. mock으로 남는 건 `ownedItems`(냉장고 실물 썸네일·유통기한 배지)뿐 —
+ * 두 엔드포인트 어디에도 없다. `liked`는 서버에 없는 로컬 전용 토글이라 초기값만 시드.
  */
 export function toRecipeViewModel(
   detail: RecipeDetail,

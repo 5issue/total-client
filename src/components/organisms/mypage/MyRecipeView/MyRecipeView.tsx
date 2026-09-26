@@ -14,9 +14,9 @@ import { RecipeAiRecommendSection } from './RecipeAiRecommendSection';
  * 카드를 포함해 모든 카드는 여기서 상세로 즉시 이동한다.
  *
  * AI 추천 목록(`aiRecommendedRecipes`)은 이 컴포넌트가 소유하지 않는다 —
- * `MyRecipeViewContainer`(이슈 #140)가 `useMyRecipeRecommendations`로 실 데이터를
- * 공급한다(api-convention §8, `MyFridgeViewContainer`와 동일 컨테이너/표현 분리
- * 원칙). "최근 본"/"찜한"은 대응 엔드포인트가 없어 이번에도 mock 그대로 유지한다.
+ * `MyRecipeViewContainer`가 실 데이터를 공급한다(`MyFridgeViewContainer`와 동일한
+ * 컨테이너/표현 분리, api-convention §8). "최근 본"/"찜한"은 대응 엔드포인트가
+ * 없어 이번에도 mock 그대로 유지한다.
  */
 export interface MyRecipeViewProps {
   aiRecommendedRecipes: Recipe[];

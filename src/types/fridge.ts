@@ -1,11 +1,9 @@
 import { z } from 'zod';
 
 /**
- * My냉장고 도메인 스키마 — AI 서빙 레포(`KDT-2-AI-Integrated-Project-Team5-AI`)의
- * 실제 Pydantic 스키마(`serving/src/serving/schemas.py` `FridgeProductRef`/
- * `FridgeIngredientRef`/`FridgeItem`/`FridgeListResponse`) 기준으로 맞춤(2026-09-26,
- * 로컬 레포 소스 직접 확인). FRIDGE-01(목록)·FRIDGE-04(삭제)만 이번 이슈(#138) 범위.
- * FRIDGE-02/03(추가·수정)은 현재 화면에 대응 UI 트리거가 없어 스키마도 아직 만들지 않는다.
+ * My냉장고 도메인 스키마 — AI 서빙 레포 소스(`serving/src/serving/schemas.py`)로
+ * 직접 확인해 맞췄다(2026-09-26). FRIDGE-01(목록)·FRIDGE-04(삭제)만 이슈 #138 범위 —
+ * FRIDGE-02/03(추가·수정)은 화면에 UI 트리거가 없어 스키마도 아직 만들지 않는다.
  */
 
 export const FridgeProductSchema = z.object({
