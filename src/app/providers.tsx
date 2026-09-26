@@ -3,8 +3,8 @@
 import type { ReactNode } from 'react';
 
 import { AuthTokenStoreProvider } from '@/providers/AuthTokenStoreProvider';
-import { CheckoutDeliveryDetailStoreProvider } from '@/providers/CheckoutDeliveryDetailStoreProvider';
 import { DeliveryAddressStoreProvider } from '@/providers/DeliveryAddressStoreProvider';
+import { DeliveryDetailStoreProvider } from '@/providers/DeliveryDetailStoreProvider';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { SessionBootstrap } from '@/providers/SessionBootstrap';
 import { ThemeStoreProvider } from '@/providers/ThemeStoreProvider';
@@ -23,9 +23,9 @@ export function Providers({ children }: { children: ReactNode }) {
         <AuthTokenStoreProvider>
           <SessionBootstrap />
           <DeliveryAddressStoreProvider>
-            <CheckoutDeliveryDetailStoreProvider>
+            <DeliveryDetailStoreProvider>
               <ThemeStoreProvider>{children}</ThemeStoreProvider>
-            </CheckoutDeliveryDetailStoreProvider>
+            </DeliveryDetailStoreProvider>
           </DeliveryAddressStoreProvider>
         </AuthTokenStoreProvider>
       </UIStoreProvider>

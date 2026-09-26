@@ -71,7 +71,11 @@ export function SearchPageHeader({ value, onQueryChange, onSubmit }: SearchPageH
     <SectionHeader
       leading="back"
       onLeadingClick={() => router.back()}
-      className="sticky top-0 z-10"
+      // 디자인 QA(#132): 서치바와 하단 AI 식단 배너 사이 간격이 좁아보임 — 8px 이상
+      // 확보. 헤더 기본 pb-1(4px)을 이 화면에서만 pb-2(8px)로 올린다. `!important` 로
+      // 확정하는 이유는 SectionHeader 문서 주석 참고(같은 우선순위 클래스는 Tailwind
+      // 생성 순서에 따라 뒤엉킨다).
+      className="sticky top-0 z-10 pb-2!"
       center={
         <div className="-ml-2 w-73">
           <SearchBar

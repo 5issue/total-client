@@ -18,6 +18,11 @@ import { z } from 'zod';
 const clientSchema = z.object({
   NEXT_PUBLIC_API_URL: z.string().url(),
   NEXT_PUBLIC_APP_ENV: z.enum(['local', 'development', 'staging', 'production']),
+  /** 토스페이먼츠 API 개별 연동 클라이언트 키(`test_ck_`/`live_ck_`) — 반드시 이 타입이어야 한다.
+   * 위젯 키(`test_gck_`)를 넣으면 `requestTossCheckoutPayment` 가 토스 결제위젯(자체 결제수단
+   * 선택 UI 포함)으로 빠져 우리 자체 그리드와 중복 렌더된다(`requestTossPayment.ts` 참고).
+   * 시크릿 키가 아니다(FE-10). */
+  NEXT_PUBLIC_TOSS_CLIENT_KEY: z.string().min(1),
 });
 
 const serverSchema = z.object({
@@ -27,6 +32,7 @@ const serverSchema = z.object({
 const clientParsed = clientSchema.safeParse({
   NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   NEXT_PUBLIC_APP_ENV: process.env.NEXT_PUBLIC_APP_ENV,
+  NEXT_PUBLIC_TOSS_CLIENT_KEY: process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY,
 });
 
 if (!clientParsed.success) {

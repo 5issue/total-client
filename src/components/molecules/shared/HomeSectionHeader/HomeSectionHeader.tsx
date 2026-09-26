@@ -17,12 +17,16 @@ import { Icon } from '@/components/atoms/Icon';
  * - 제목: 기본은 부제 유무로 자동 결정 — 있으면 `Heading/H2_Medium`(node 2429-2288)
  *   → `text-heading-2`, 없으면 `Heading/H4_SemiBold`(node 2757-2678) → `text-heading-4`.
  *   ⚠️ 화면마다 항상 맞는 규칙은 아니다 — 검색 화면(577-13977/14028)은 부제가 없어도
- *   18px/weight 700 을 쓴다(Figma CSS 실측). `text-heading-2` 토큰은 이름이 "Medium"
+ *   Figma CSS 실측 기준 18px/weight 700 을 쓴다. `text-heading-2` 토큰은 이름이 "Medium"
  *   이지만 실제 weight 는 500 이라 그대로 쓰면 더 얇게 나온다. 토큰 자체를 바꾸면
  *   이 컴포넌트를 쓰는 다른 곳(Calendar/Modal/CloseButton/TabItem)에 영향이 가므로,
  *   그런 화면은 `titleSize="h2"` + `titleClassName="font-bold!"` 로 override 한다 — 홈
  *   진열 섹션(node 577:13064 등, 바인딩된 스타일명 H2_Medium=500과 달리 레이어에서
  *   Bold(700)로 수동 오버라이드된 인스턴스)도 같은 방식으로 켠다.
+ *   단, 검색 화면(`RecentSearchesSection`/`RecommendedKeywordsSection`/`TrendingSearchesSection`)
+ *   은 디자인 QA(#132) 로 700 이 두껍다는 피드백을 받아 `font-semibold!`(600) 로 100 낮췄다 —
+ *   위 Figma 실측(700)과 달라진 지점이니 그 화면들을 만질 때는 이 주석의 "700"이 아니라
+ *   각 파일의 override 값을 기준으로 볼 것.
  *   색 `Text/Primary` → `text-fg`.
  * - 부제: `Label/XL_Bold` + `Text/Tertiary` → `text-label-xl text-fg-tertiary`.
  * - 링크: `Label/L_SemiBold` + `Brand/Primary` + arrow 20 → `text-label-l text-primary`.
@@ -47,6 +51,8 @@ export interface HomeSectionHeaderProps {
   titleSize?: 'h2' | 'h4';
   /** 제목 요소에 추가할 클래스 — font-weight 등 개별 화면 override 용. */
   titleClassName?: string;
+  /** 부제 요소에 추가할 클래스 — font-weight 등 개별 화면 override 용(titleClassName 과 동일 용도). */
+  subtitleClassName?: string;
   /** true 면 제목 옆에 "광고" 라벨을 렌더한다 (node 2757-2678). */
   ad?: boolean;
   /** 있으면 우측에 "전체보기" 링크를 렌더한다. Next 경로. */
@@ -63,6 +69,7 @@ export function HomeSectionHeader({
   subtitle,
   titleSize,
   titleClassName,
+  subtitleClassName,
   ad = false,
   href,
   linkLabel = '전체보기',
@@ -104,7 +111,15 @@ export function HomeSectionHeader({
             </span>
           ) : null}
         </div>
-        {subtitle ? <p className="text-label-xl text-fg-tertiary">{subtitle}</p> : null}
+        {subtitle ? (
+          <p
+            className={['text-label-xl text-fg-tertiary', subtitleClassName]
+              .filter(Boolean)
+              .join(' ')}
+          >
+            {subtitle}
+          </p>
+        ) : null}
       </div>
 
       {href ? (

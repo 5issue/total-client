@@ -27,7 +27,8 @@ const RECOMMENDED_KEYWORDS = [
 export function RecommendedKeywordsSection() {
   return (
     <div className="flex flex-col gap-3 py-4">
-      <HomeSectionHeader title="추천 검색어" titleSize="h2" titleClassName="font-bold!" />
+      {/* 디자인 QA(#132): 두꺼워보임 — 700(Bold)에서 100 낮춰 600(SemiBold)으로. */}
+      <HomeSectionHeader title="추천 검색어" titleSize="h2" titleClassName="font-semibold!" />
       <div
         className="scrollbar-hide flex gap-7 overflow-x-auto px-5"
         onTouchStart={(e) => e.stopPropagation()}

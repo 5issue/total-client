@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { getRouter } from '@storybook/nextjs-vite/navigation.mock';
 import { expect, screen, userEvent, waitFor, within } from 'storybook/test';
 
+import { DeliveryDetailStoreProvider } from '@/providers/DeliveryDetailStoreProvider';
+
 import { DeliveryDetailEditView } from './DeliveryDetailEditView';
 
 const meta = {
@@ -10,6 +12,13 @@ const meta = {
   args: {},
   argTypes: {},
   tags: ['autodocs'],
+  decorators: [
+    (Story) => (
+      <DeliveryDetailStoreProvider>
+        <Story />
+      </DeliveryDetailStoreProvider>
+    ),
+  ],
   parameters: {
     layout: 'fullscreen',
     nextjs: { appDirectory: true, navigation: { pathname: '/checkout/delivery-detail' } },

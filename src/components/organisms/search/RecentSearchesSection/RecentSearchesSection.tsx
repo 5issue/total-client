@@ -116,7 +116,9 @@ export function RecentSearchesSection({ className }: RecentSearchesSectionProps)
       <HomeSectionHeader
         title="최근 검색어"
         titleSize="h2"
-        titleClassName="font-bold!"
+        // 디자인 QA(#132): 검색 화면 섹션 타이틀 전반이 두꺼워보임 — 700(Bold)에서
+        // 100 낮춰 600(SemiBold)으로. 같은 화면의 다른 섹션 타이틀과 동일하게 맞춤.
+        titleClassName="font-semibold!"
         className="pl-0!"
       />
 
