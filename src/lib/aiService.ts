@@ -45,7 +45,7 @@ export async function resolveUserId(req: NextRequest): Promise<number | null> {
 export async function fetchAiService<T>(
   path: string,
   dataSchema: ZodType<T>,
-  init: { method: string; userId: number; failureMessage?: string },
+  init: { method: string; userId?: number | null; failureMessage?: string },
 ) {
   const failureMessage = init.failureMessage ?? AI_UPSTREAM_FAILURE_MESSAGE;
   let aiRes: Response;
@@ -53,7 +53,12 @@ export async function fetchAiService<T>(
   try {
     aiRes = await fetch(`${env.AI_SERVICE_INTERNAL_URL}${path}`, {
       method: init.method,
-      headers: { 'Content-Type': 'application/json', 'X-User-Id': String(init.userId) },
+      headers: {
+        'Content-Type': 'application/json',
+        // 레시피 상세·부족 재료 추천처럼 비로그인도 허용하는 엔드포인트는 userId 가
+        // 없을 수 있다(명세 §04-2 "헤더 X-User-Id 선택 — 없으면 냉장고 갈래 미사용").
+        ...(init.userId != null ? { 'X-User-Id': String(init.userId) } : {}),
+      },
       cache: 'no-store',
     });
     raw = AiEnvelopeSchema(dataSchema).parse(await aiRes.json());
