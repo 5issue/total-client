@@ -13,6 +13,7 @@ const PORT = Number(process.env.GATEWAY_PORT ?? 4000);
 // total-backend services/*/src/main/java 의 @RequestMapping 기준 (경로 접두어 → 포트).
 // 새 서비스/컨트롤러가 생기면 여기 추가한다.
 const ROUTES = [
+  ['/.well-known/jwks.json', 8081],
   ['/api/v1/auth', 8081],
   ['/api/v1/carts', 8082],
   ['/api/v1/orders', 8082],
