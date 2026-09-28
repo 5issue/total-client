@@ -2,14 +2,15 @@ import type { StaticOverviewFields } from '@/components/organisms/product/model'
 
 /**
  * product-service 상세 응답에 없는 필드용 고정값(이슈 #134 범위 밖 — 원산지·후기건수·
- * 첫구매가·배송정보·멤버딜·재구매/미션 토스트는 다른 서비스 영역으로 추정, 후속 이슈에서
+ * 첫구매가·배송정보·재구매/미션 토스트는 다른 서비스 영역으로 추정, 후속 이슈에서
  * 실 데이터로 교체). Figma node 665:43037/665:43039 실측값 그대로("연세우유" 예시 상품,
  * 담기 바텀시트 mock(`ProductOptionSheet/mock.ts`)과 동일 상품이라 두 UI를 나란히 봐도
  * 값이 어긋나지 않는다). name/brandLabel/가격/썸네일은 `useProductDetail` 실 데이터로 대체됨
- * (`toProductDetailOverview`, `model.ts`).
+ * (`toProductDetailOverview`, `model.ts`). `memberDeal`(멤버스특가 배지)은 지원 근거가
+ * 아예 없어 필드 자체를 제거했다(코드래빗 리뷰 반영) — 모든 상품에 항상 배지가 붙는
+ * 문제였다.
  */
 export const MOCK_STATIC_OVERVIEW_FIELDS: StaticOverviewFields = {
-  memberDeal: true,
   recentRepurchaseCount: 6138,
   missionReward: {
     pointsLabel: '100P',

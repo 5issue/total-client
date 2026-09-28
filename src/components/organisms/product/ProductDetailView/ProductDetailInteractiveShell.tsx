@@ -6,7 +6,6 @@ import type { ReactNode } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
-import { Badge } from '@/components/atoms/Badge';
 import { FloatingButton } from '@/components/atoms/FloatingButton';
 import { Icon } from '@/components/atoms/Icon';
 import { Toast } from '@/components/atoms/Toast';
@@ -100,6 +99,11 @@ export function ProductDetailInteractiveShell({
   const hasPurchaseInfo = overview?.recentRepurchaseCount !== undefined;
   const isSoldOut = detail?.status === 'SOLDOUT';
   const unitCount = detail?.units.length ?? 0;
+  // 상품 자체는 SALE이어도 유일한 unit이 SOLDOUT이면 담을 수 있는 옵션이 없다 — 단일
+  // 옵션 시트가 그 unit을 수량 1로 열어 담기 완료 UI까지 보여주는 걸 막는다(코드래빗 리뷰
+  // 반영). 다중 옵션 시트는 옵션별로 이미 비활성화 처리가 있어 여기선 "하나라도 선택
+  // 가능한지"만 본다.
+  const hasSelectableUnit = detail?.units.some((unit) => unit.status !== 'SOLDOUT') ?? false;
 
   // 디자인 QA(#132): 상품설명을 스크롤한 채 다른 탭으로 전환하면 전환된 콘텐츠가
   // 이전 스크롤 위치 그대로 보였다 — 탭 전환 시 최상단(헤더 바로 아래)부터 보이도록
@@ -171,11 +175,6 @@ export function ProductDetailInteractiveShell({
           // Text/disabled = neutral-500) — surface-secondary 아님.
           <div aria-hidden className="absolute inset-0 bg-neutral-500" />
         )}
-        {overview.memberDeal ? (
-          <Badge color="cyan" size="large" className="absolute top-4 left-4">
-            멤버스특가
-          </Badge>
-        ) : null}
       </div>
 
       <ProductOverviewCard
@@ -250,18 +249,24 @@ export function ProductDetailInteractiveShell({
 
       <div className="flex flex-1 flex-col">
         {activeTab === 'spec' ? (
-          <>
-            {specSection}
-            {specSlot}
-          </>
+          // 상품 조회 실패 시 정적 콘텐츠(브랜드 스토리 등)만 남아 보이지 않도록, 실
+          // 데이터가 있을 때만 렌더한다(코드래빗 리뷰 반영) — 후기 탭도 같은 이유로 동일 처리.
+          overview ? (
+            <>
+              {specSection}
+              {specSlot}
+            </>
+          ) : null
         ) : activeTab === 'review' ? (
-          reviewSlot
+          overview ? (
+            reviewSlot
+          ) : null
         ) : activeTab === 'qna' ? (
           <InquiryTab onLockedAlertOpenChange={setInquiryModalOpen} />
         ) : (
           <>
             {overviewSection}
-            {descriptionSlot}
+            {overview ? descriptionSlot : null}
           </>
         )}
       </div>
@@ -315,18 +320,20 @@ export function ProductDetailInteractiveShell({
         showTerms={false}
         // SKU(units)가 정확히 1개면 단일 옵션 시트, 2개 이상이면 다중 옵션 시트를 연다
         // (코드래빗 리뷰 반영 — 전엔 mock뿐인 memberDeal로 분기해 0개 상품도 단일 시트가
-        // 열려 수량 1로 가상 담기가 될 수 있었다). 0개면 담을 옵션이 없어 아무것도 안 한다.
+        // 열려 수량 1로 가상 담기가 될 수 있었다). 선택 가능한(품절 아닌) unit이 하나도
+        // 없으면 아무것도 안 한다 — 단일 unit이 SOLDOUT인데도 단일 옵션 시트가 수량 1로
+        // 담기 완료 UI까지 보여주던 문제도 함께 막는다(코드래빗 리뷰 반영).
         onAddToCart={() => {
-          if (unitCount === 0) return;
+          if (!hasSelectableUnit) return;
           if (unitCount > 1) {
             setMultiOptionSheetOpen(true);
           } else {
             setOptionSheetOpen(true);
           }
         }}
-        // 상품 데이터 로딩/에러 중엔 무엇을 담는지 알 수 없고, 품절 상품·옵션이 하나도
+        // 상품 데이터 로딩/에러 중엔 무엇을 담는지 알 수 없고, 품절 상품·선택 가능한 옵션이
         // 없는 상품은 담을 수 없어 담기 자체를 막는다(이슈 #134 — `status`/`units` 연동).
-        addToCartDisabled={!overview || isSoldOut || unitCount === 0}
+        addToCartDisabled={!overview || isSoldOut || !hasSelectableUnit}
         className={`bg-surface sticky bottom-0 z-30 ${inquiryModalOpen ? 'pointer-events-none' : ''}`}
       />
 
