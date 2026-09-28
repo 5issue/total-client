@@ -20,6 +20,17 @@ function pickStorageGuideItem(items: StorageGuideItem[]): StorageGuideItem | und
 }
 
 /**
+ * 실제 dev DB로 확인 결과 `tips`는 표본 전부 null이고 실제로 채워진 값은
+ * `duration_text`뿐이었다(2026-09-28) — `tips`가 있으면 그걸 쓰고, 없으면
+ * `storage_location`+`duration_text`로 문장을 만든다.
+ */
+function describeStorageGuideItem(item: StorageGuideItem): string | null {
+  if (item.tips) return item.tips;
+  if (item.duration_text) return `${item.storage_location} 보관 기준 ${item.duration_text}`;
+  return null;
+}
+
+/**
  * "보관 TIP" 바텀시트 (organism). Figma "5팀 UI 공유용" `ProductTipBottomSheet`
  * (node 666-31314) — 상품 미리보기 + 번호가 붙은 보관법 목록 + 닫기 버튼.
  *
@@ -52,7 +63,7 @@ export function FridgeStorageTipBottomSheet({
   if (!item) return null;
 
   const picked = guideQuery.data ? pickStorageGuideItem(guideQuery.data.items) : undefined;
-  const tip = picked?.tips;
+  const tip = picked ? describeStorageGuideItem(picked) : null;
 
   return (
     <BottomSheet

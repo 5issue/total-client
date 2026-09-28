@@ -7,6 +7,11 @@ import { z } from 'zod';
  *
  * `storage_location`(냉장/냉동/상온)·`storage_context`(일반/구매후/개봉후/해동후)는
  * DB 제약으로 고정된 값이지만 원문 그대로 문자열로 받는다 — 화면 매핑은 소비처 책임.
+ *
+ * ⚠️ 실 dev DB로 여러 상품을 직접 조회해본 결과(2026-09-28) `tips`는 표본 전부
+ * null이고 실제로 채워지는 값은 `duration_text`뿐이었다 — 소비처는 `tips` 단독
+ * 의존 금지, `MyFridgeView/FridgeStorageTipBottomSheet.tsx`의
+ * `describeStorageGuideItem` 참고.
  */
 export const StorageGuideItemSchema = z.object({
   storage_location: z.string(),
