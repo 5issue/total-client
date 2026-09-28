@@ -17,7 +17,7 @@ import { FridgeInventoryGrid } from './FridgeInventoryGrid';
 import { FridgeRefillBottomSheet } from './FridgeRefillBottomSheet';
 import { FridgeRefillCompleteBottomSheet } from './FridgeRefillCompleteBottomSheet';
 import { FridgeStorageTipBottomSheet } from './FridgeStorageTipBottomSheet';
-import { MOCK_FRIDGE_AI_NOTICE, MOCK_FRIDGE_ITEMS } from './mock';
+import { MOCK_FRIDGE_AI_NOTICE } from './mock';
 import {
   matchesFridgeFilter,
   type FridgeFilterId,
@@ -61,6 +61,14 @@ const TABS: TabBarItem[] = [
  * 다시 선택돼 있어야 함). 그래서 삭제 대상은 `selectedIds` 전체가 아니라 현재
  * `filteredItems` 와의 교집합(`selectedInView`)으로 제한한다 — 안 그러면 필터에 안
  * 보이는 항목까지 "선택삭제"에 같이 삭제된다(코드래빗 리뷰, #111).
+ *
+ * 품목 목록은 이 컴포넌트가 소유하지 않는다 — `fridgeItems`/`fridgeItemsPending`/
+ * `fridgeItemsError` 로 받는다(api-convention §8 — 로딩·에러는 훅을 소비하는 컨테이너
+ * 계층 책임, 표현 컴포넌트는 순수하게 렌더만 한다, #90 `ProductGrid` 리뷰와 동일 원칙).
+ * `MyFridgeViewContainer` 가 `useFridgeItems`/`useDeleteFridgeItem`(이슈 #138)로 실 데이터를
+ * 공급하고, 이 파일의 Storybook 스토리는 네트워크 없이 `fridgeItems` 목값을 직접 준다.
+ * 삭제도 로컬 state 제거가 아니라 `onDeleteItems` 콜백으로 위임한다 — 목록은 컨테이너의
+ * mutation 성공 후 invalidate 로 다시 내려온다(§7 기본 정책, optimistic 아님).
  */
 // 실제 AI 생성 연동 전 mock 딜레이 — 연동 후에는 고정 시간이 아니라 응답이 올 때까지
 // `RecipeAiLoadingView`를 띄워 두는 형태로 바뀐다(무한 로딩, 위 컴포넌트 주석 참고).
@@ -68,16 +76,25 @@ const RECIPE_TAB_LOADING_DELAY_MS = 1200;
 
 export interface MyFridgeViewProps {
   initialTab: FridgeTabId;
+  fridgeItems: FridgeItem[];
+  fridgeItemsPending?: boolean;
+  fridgeItemsError?: boolean;
+  onDeleteItems: (productIds: string[]) => void;
 }
 
-export function MyFridgeView({ initialTab }: MyFridgeViewProps) {
+export function MyFridgeView({
+  initialTab,
+  fridgeItems,
+  fridgeItemsPending = false,
+  fridgeItemsError = false,
+  onDeleteItems,
+}: MyFridgeViewProps) {
   const router = useRouter();
   const pathname = usePathname();
 
   const [activeTab, setActiveTab] = useState<FridgeTabId>(initialTab);
   const [recipeTabLoading, setRecipeTabLoading] = useState(false);
   const recipeTabLoadingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [items, setItems] = useState<FridgeItem[]>(MOCK_FRIDGE_ITEMS);
   const [activeFilter, setActiveFilter] = useState<FridgeFilterId>('all');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -89,8 +106,8 @@ export function MyFridgeView({ initialTab }: MyFridgeViewProps) {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const filteredItems = useMemo(
-    () => items.filter((item) => matchesFridgeFilter(item, activeFilter)),
-    [items, activeFilter],
+    () => fridgeItems.filter((item) => matchesFridgeFilter(item, activeFilter)),
+    [fridgeItems, activeFilter],
   );
   const selectedInView = filteredItems.filter((item) => selectedIds.has(item.id));
   const selectedCount = selectedInView.length;
@@ -138,8 +155,8 @@ export function MyFridgeView({ initialTab }: MyFridgeViewProps) {
   }
 
   function handleConfirmDelete() {
-    const idsToDelete = new Set(selectedInView.map((item) => item.id));
-    setItems((prev) => prev.filter((item) => !idsToDelete.has(item.id)));
+    const idsToDelete = selectedInView.map((item) => item.id);
+    onDeleteItems(idsToDelete);
     setSelectedIds((prev) => {
       const next = new Set(prev);
       idsToDelete.forEach((id) => next.delete(id));
@@ -205,6 +222,8 @@ export function MyFridgeView({ initialTab }: MyFridgeViewProps) {
           />
           <FridgeInventoryGrid
             items={filteredItems}
+            isPending={fridgeItemsPending}
+            isError={fridgeItemsError}
             selectedIds={selectedIds}
             onToggleItem={handleToggleItem}
             onRefill={handleRefill}

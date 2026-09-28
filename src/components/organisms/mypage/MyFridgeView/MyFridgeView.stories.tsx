@@ -1,13 +1,23 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { expect, userEvent, within } from 'storybook/test';
+import { expect, fn, userEvent, within } from 'storybook/test';
 
+import { MOCK_FRIDGE_ITEMS } from './mock';
 import { MyFridgeView } from './MyFridgeView';
 
 const meta = {
   title: 'organisms/mypage/MyFridgeView',
   component: MyFridgeView,
   tags: ['autodocs'],
-  args: { initialTab: 'fridge' },
+  // `fridgeItems` 등은 실제로는 `MyFridgeViewContainer`(이슈 #138)가 `useFridgeItems`로
+  // 공급한다 — 이 표현 컴포넌트는 네트워크 없이 목값을 직접 받는다(#90 `ProductGrid`와
+  // 동일한 컨테이너/표현 분리, api-convention §8).
+  args: {
+    initialTab: 'fridge',
+    fridgeItems: MOCK_FRIDGE_ITEMS,
+    fridgeItemsPending: false,
+    fridgeItemsError: false,
+    onDeleteItems: fn(),
+  },
   argTypes: {
     initialTab: {
       control: 'select',
@@ -24,6 +34,24 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+
+export const Loading: Story = {
+  name: '불러오는 중',
+  args: { fridgeItemsPending: true },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText('냉장고 품목을 불러오는 중이에요')).toBeInTheDocument();
+  },
+};
+
+export const LoadError: Story = {
+  name: '불러오기 실패',
+  args: { fridgeItemsError: true },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText('상품을 불러오지 못했어요')).toBeInTheDocument();
+  },
+};
 
 export const RecipeTab: Story = {
   name: 'MY 레시피 탭',
@@ -67,7 +95,7 @@ export const FilterByExpired: Story = {
 
 export const SelectAndDeleteItem: Story = {
   tags: ['!autodocs'],
-  play: async ({ canvasElement }) => {
+  play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
     // index 0 = 전체선택, index 1 = 첫 카드(우유) — 접근 가능한 이름 정규식 매칭이
     // 이 테스트 환경에서 불안정해 순서로 집는다.
@@ -84,7 +112,9 @@ export const SelectAndDeleteItem: Story = {
     await expect(
       within(canvasElement.ownerDocument.body).queryByRole('dialog'),
     ).not.toBeInTheDocument();
-    await expect(canvas.queryByText(/전용목장우유/, { selector: 'p' })).not.toBeInTheDocument();
+    // 목록에서 즉시 사라지는지가 아니라(그건 컨테이너의 invalidate 이후 몫, #138 컨테이너
+    // 분리) 올바른 품목으로 `onDeleteItems`가 호출됐는지를 이 표현 컴포넌트 레벨에서 검증한다.
+    await expect(args.onDeleteItems).toHaveBeenCalledWith(['milk']);
   },
 };
 
