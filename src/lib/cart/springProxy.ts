@@ -7,12 +7,12 @@ import { env } from '@/lib/env';
 import { SpringEnvelopeSchema } from '@/types/auth';
 
 /** 스키마/네트워크 붕괴 시에만 쓰는 폴백. Spring `message` 가 있으면 그걸 우선한다(FE-16). */
-export const ORDER_UPSTREAM_FAILURE_MESSAGE = '주문 정보를 불러오는 중 오류가 발생했습니다.';
+export const CART_UPSTREAM_FAILURE_MESSAGE = '장바구니 정보를 불러오는 중 오류가 발생했습니다.';
 
 /** Spring 이 응답하지 않아도 Route Handler 가 무한 대기하지 않도록 상한을 둔다. */
 const SPRING_REQUEST_TIMEOUT_MS = 10_000;
 
-export function springOrderHeaders(req: NextRequest): HeadersInit {
+export function springCartHeaders(req: NextRequest): HeadersInit {
   const authorization = req.headers.get('authorization');
   const refresh = getRefreshTokenCookie(req);
   return {
@@ -23,23 +23,23 @@ export function springOrderHeaders(req: NextRequest): HeadersInit {
 }
 
 /**
- * Spring 주문 API 를 우리 봉투로 재포장한다.
+ * Spring 장바구니 API 를 우리 봉투로 재포장한다.
  * HTTP 상태(400/401/403/404/409/…)는 Spring 것을 유지해 클라가 메시지를 그대로 보여준다.
- * (`lib/checkout/springProxy.ts` 와 같은 패턴 — 결제 브랜치(#109) 머지 후 공용화 검토)
+ * (`lib/order/springProxy.ts` 와 같은 패턴 — 도메인 늘어나면 공용화 검토)
  */
-export async function proxySpringOrder<T>(
+export async function proxySpringCart<T>(
   req: NextRequest,
   path: string,
   dataSchema: ZodType<T>,
   init: { method: string; body?: unknown; failureMessage?: string },
 ) {
-  const failureMessage = init.failureMessage ?? ORDER_UPSTREAM_FAILURE_MESSAGE;
+  const failureMessage = init.failureMessage ?? CART_UPSTREAM_FAILURE_MESSAGE;
   let springRes: Response;
   let raw;
   try {
     springRes = await fetch(`${env.API_INTERNAL_URL}${path}`, {
       method: init.method,
-      headers: springOrderHeaders(req),
+      headers: springCartHeaders(req),
       body: init.body === undefined ? undefined : JSON.stringify(init.body),
       cache: 'no-store',
       signal: AbortSignal.timeout(SPRING_REQUEST_TIMEOUT_MS),
@@ -49,7 +49,9 @@ export async function proxySpringOrder<T>(
     return fail(502, failureMessage);
   }
 
-  if (raw.status === 'ERROR' || !raw.data) {
+  // 수량변경·단건삭제는 성공해도 Spring 이 data: null(Void)을 내려준다 — `!raw.data`로
+  // 걸러내면 정상 성공까지 에러로 오판하게 되니 status 만으로 판정한다(실제 재현, 2026-09-24).
+  if (raw.status === 'ERROR') {
     const status = springRes.status >= 400 ? springRes.status : 400;
     return fail(status, raw.message || failureMessage);
   }

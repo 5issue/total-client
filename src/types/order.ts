@@ -1,22 +1,28 @@
 import { z } from 'zod';
 
 /**
- * 주문/반품 도메인 스키마 — BE 명세 기준(이슈 #115).
+ * 주문 도메인 스키마 — 체크아웃(#126)과 주문/반품 조회(#115)를 함께 다룬다.
  *
- * - GET  /api/v1/orders                         주문 목록(주문 이력)
- * - GET  /api/v1/orders/{orderId}                주문 상세(주문 추적)
- * - POST /api/v1/orders/{orderId}/cancel         주문 취소(배송 전, 주문 추적)
- * - GET  /api/v1/orders/cancellations-returns    취소·반품 통합 내역(주문 추적)
- * - GET  /api/v1/orders/{orderId}/returns/preview 반품 접수 사전조회(환불 요청)
- * - POST /api/v1/orders/{orderId}/returns        반품 신청(환불 요청)
+ * - POST /api/v1/orders/checkout                  주문서 생성
+ * - POST /api/v1/orders/place-order               주문 결제 요청
+ * - GET  /api/v1/orders                           주문 목록(주문 이력)
+ * - GET  /api/v1/orders/{orderId}                 주문 상세(주문 추적)
+ * - POST /api/v1/orders/{orderId}/cancel          주문 취소(배송 전)
+ * - GET  /api/v1/orders/cancellations-returns     취소·반품 통합 내역
+ * - GET  /api/v1/orders/{orderId}/returns/preview 반품 접수 사전조회
+ * - POST /api/v1/orders/{orderId}/returns         반품 신청
  *
- * 장바구니·주문서 생성·주문 결제 요청(/carts, /orders/checkout, /orders/place-order)은
- * 이번 작업 범위 밖 — 결제 자체는 #109(토스페이먼츠)가 별도로 다룬다.
+ * 장바구니(/carts)는 #118, 결제 승인·영수증(/payments/**)은 #109 — `types/checkout.ts`.
  */
 
-/** 주문 마스터 상태. `PAYMENT_PENDING` 표기 확정(백엔드 확인, 2026-09-18). */
+/**
+ * 주문 마스터 상태. order-service `OrderStatus.java` 는 `PENDING_PAYMENT`(2026-09-19),
+ * 주문 이력 연동(#115) 당시 확인값은 `PAYMENT_PENDING`(2026-09-18)이다. 둘 다 받아
+ * 어느 표기가 오더라도 502로 죽지 않게 한다.
+ */
 export const OrderStatusSchema = z.enum([
   'CHECKOUT_CREATED',
+  'PENDING_PAYMENT',
   'PAYMENT_PENDING',
   'PAID',
   'CANCEL_PROCESSING',
@@ -26,6 +32,59 @@ export const OrderStatusSchema = z.enum([
   'REFUNDED',
 ]);
 export type OrderStatus = z.infer<typeof OrderStatusSchema>;
+
+// ── 주문서 생성 (POST /api/v1/orders/checkout) — 체크아웃(#126) ────────────
+
+/** 장바구니에서 결제로 넘어갈 상품 id — 체크아웃 화면이 선택한 항목 그대로 보낸다. */
+export const CheckoutOrderRequestSchema = z.object({
+  cartItemIds: z.array(z.number().int().positive()).min(1),
+});
+export type CheckoutOrderRequest = z.infer<typeof CheckoutOrderRequestSchema>;
+
+/**
+ * 주문서 생성 응답의 상품 1건. `deliveryType`/`thumbnailUrl` 이 없다 — 백엔드
+ * `OrderItemResponseDto`(order-service) 자체가 그 두 필드를 안 내려준다.
+ */
+export const CheckoutOrderItemSchema = z.object({
+  orderItemId: z.number().int().positive(),
+  productId: z.number().int().positive(),
+  skuId: z.number().int().positive(),
+  title: z.string().min(1),
+  quantity: z.number().int().positive(),
+  unitPrice: z.number().nonnegative(),
+  totalPrice: z.number().nonnegative(),
+});
+export type CheckoutOrderItem = z.infer<typeof CheckoutOrderItemSchema>;
+
+/**
+ * `reservationToken`/`expiresAt` — 재고를 한시적으로 예약한다. 이 시간 안에 `place-order`
+ * →결제까지 끝내야 한다(화면의 `ORDER_TIME_LIMIT_MS` 로컬 타이머를 이 값으로 대체).
+ */
+export const CheckoutOrderResponseSchema = z.object({
+  orderId: z.number().int().positive(),
+  orderNo: z.string().min(1),
+  reservationToken: z.string().min(1),
+  expiresAt: z.string().min(1),
+  paymentAmount: z.number().nonnegative(),
+  items: z.array(CheckoutOrderItemSchema),
+});
+export type CheckoutOrderResponse = z.infer<typeof CheckoutOrderResponseSchema>;
+
+// ── 주문 결제 요청 (POST /api/v1/orders/place-order) — 체크아웃(#126) ──────
+
+/** 결제하기 직전 호출 — 주문을 결제 대기 상태로 전이시킨 뒤 토스 결제창을 연다. */
+export const PlaceOrderRequestSchema = z.object({
+  orderId: z.number().int().positive(),
+});
+export type PlaceOrderRequest = z.infer<typeof PlaceOrderRequestSchema>;
+
+export const PlaceOrderResponseSchema = z.object({
+  orderId: z.number().int().positive(),
+  orderNo: z.string().min(1),
+  status: OrderStatusSchema,
+  expiresAt: z.string().min(1),
+});
+export type PlaceOrderResponse = z.infer<typeof PlaceOrderResponseSchema>;
 
 /** OMS 물류 진행 상태. */
 export const FulfillmentStatusSchema = z.enum([

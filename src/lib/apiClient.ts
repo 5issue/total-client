@@ -1,9 +1,29 @@
-import type { ZodType } from 'zod';
+import { ZodError, type ZodType } from 'zod';
 
 import { ApiError } from '@/errors/ApiError';
 import type { ApiEnvelope } from '@/lib/apiResponse';
 import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/authTokenRef';
-import { SpringLoginUrlDataSchema, type OAuthProvider } from '@/types/auth';
+import {
+  AddressListResponseSchema,
+  AddressSchema,
+  CreateAddressResponseSchema,
+  DeleteAddressResponseSchema,
+  type SaveAddressRequest,
+} from '@/types/address';
+import {
+  SpringLoginUrlDataSchema,
+  SpringRefreshDataSchema,
+  type OAuthProvider,
+} from '@/types/auth';
+import {
+  CartResponseSchema,
+  CartVoidResponseSchema,
+  DeliveryAddressResponseSchema,
+  RemoveCartItemsResponseSchema,
+  type AddCartItemsRequest,
+  type RemoveCartItemsRequest,
+  type UpdateCartItemQuantityRequest,
+} from '@/types/cart';
 import {
   CheckoutPaymentRequestSchema,
   CheckoutPaymentResponseSchema,
@@ -14,14 +34,19 @@ import {
 import { HomeRecommendationsResponseSchema } from '@/types/home';
 import {
   CancellationReturnHistoryResponseSchema,
+  CheckoutOrderRequestSchema,
+  CheckoutOrderResponseSchema,
   OrderCancelRequestSchema,
   OrderCancelResponseSchema,
   OrderDetailResponseSchema,
   OrderListResponseSchema,
   OrderReturnRequestSchema,
   OrderReturnResponseSchema,
+  PlaceOrderRequestSchema,
+  PlaceOrderResponseSchema,
   ReturnPreviewResponseSchema,
   type CancellationReturnParams,
+  type CheckoutOrderRequest,
   type OrderCancelRequest,
   type OrderListParams,
   type OrderReturnRequest,
@@ -41,6 +66,9 @@ import { ProductListResponseSchema, type ProductListParams } from '@/types/produ
  * 이 도메인(auth)은 아직 그 경로를 안 타므로 이번 구현 범위에서는 다루지 않는다.
  */
 
+/** 네트워크가 멈춰도 Query/Mutation 이 무한 대기하지 않도록 두 래퍼 공통으로 적용한다. */
+const REQUEST_TIMEOUT_MS = 10_000;
+
 function baseHeaders(init?: RequestInit): HeadersInit {
   return {
     'Content-Type': 'application/json',
@@ -52,16 +80,55 @@ function unwrap<T>(envelope: ApiEnvelope<T>): T {
   return envelope.data;
 }
 
+/** Zod 검증 실패를 사용자 친화적인 `ApiError` 로 정규화한다(api-convention §6). */
+function parseOrThrow<T>(schema: ZodType<T>, data: unknown): T {
+  try {
+    return schema.parse(data);
+  } catch (e) {
+    if (e instanceof ZodError) {
+      throw new ApiError(502, '요청 처리 중 오류가 발생했습니다.');
+    }
+    throw e;
+  }
+}
+
+/**
+ * `fetch` 자체가 던지는 예외(네트워크 끊김, `AbortSignal.timeout` 만료)를 두 래퍼 공통으로
+ * `ApiError` 로 정규화한다 — 안 그러면 타임아웃·연결 실패가 `ApiError` 기반 오류 처리
+ * 계약을 우회해 호출부(Query/Mutation)가 원본 예외를 그대로 받는다.
+ */
+async function fetchEnvelope<T>(path: string, init: RequestInit): Promise<ApiEnvelope<T>> {
+  let res: Response;
+  try {
+    res = await fetch(path, init);
+  } catch (e) {
+    if (e instanceof DOMException && (e.name === 'TimeoutError' || e.name === 'AbortError')) {
+      throw new ApiError(408, '요청 시간이 초과됐어요. 다시 시도해주세요.');
+    }
+    throw new ApiError(0, '네트워크 연결을 확인해주세요.');
+  }
+  let json: ApiEnvelope<T>;
+  try {
+    json = (await res.json()) as ApiEnvelope<T>;
+  } catch {
+    throw new ApiError(res.ok ? 502 : res.status, '요청 처리 중 오류가 발생했습니다.');
+  }
+  if (!res.ok) throw ApiError.fromResponse(res.status, json);
+  return json;
+}
+
 /** 인증 불필요 — 우리 `/api/**` 호출. */
 export async function publicFetch<T>(
   path: string,
   schema: ZodType<T>,
   init?: RequestInit,
 ): Promise<T> {
-  const res = await fetch(path, { ...init, headers: baseHeaders(init) });
-  const json = (await res.json()) as ApiEnvelope<T>;
-  if (!res.ok) throw ApiError.fromResponse(res.status, json);
-  return schema.parse(unwrap(json));
+  const json = await fetchEnvelope<T>(path, {
+    ...init,
+    headers: baseHeaders(init),
+    signal: init?.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  });
+  return parseOrThrow(schema, unwrap(json));
 }
 
 /**
@@ -76,29 +143,28 @@ export async function privateFetch<T>(
 ): Promise<T> {
   const doFetch = () => {
     const token = getAccessToken();
-    return fetch(path, {
+    return fetchEnvelope<T>(path, {
       ...init,
       headers: {
         ...baseHeaders(init),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
+      signal: init?.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
   };
 
-  let res = await doFetch();
+  try {
+    return parseOrThrow(schema, unwrap(await doFetch()));
+  } catch (e) {
+    if (!(e instanceof ApiError) || e.statusCode !== 401) throw e;
 
-  if (res.status === 401) {
     const refreshed = await tryRefresh();
     if (!refreshed) {
       clearAccessToken();
       throw new ApiError(401, '로그인이 만료되었습니다. 다시 로그인해주세요.');
     }
-    res = await doFetch();
+    return parseOrThrow(schema, unwrap(await doFetch()));
   }
-
-  const json = (await res.json()) as ApiEnvelope<T>;
-  if (!res.ok) throw ApiError.fromResponse(res.status, json);
-  return schema.parse(unwrap(json));
 }
 
 // SessionBootstrap(부팅 시 무음 재발급)과 privateFetch 의 401 인터셉터가 페이지 진입 직후
@@ -116,8 +182,9 @@ function tryRefresh(): Promise<boolean> {
     try {
       const res = await fetch('/api/auth/refresh', { method: 'POST' });
       if (!res.ok) return false;
-      const json = (await res.json()) as ApiEnvelope<{ accessToken: string }>;
-      setAccessToken(json.data.accessToken);
+      const json = (await res.json()) as ApiEnvelope<unknown>;
+      const { accessToken } = SpringRefreshDataSchema.parse(json.data);
+      setAccessToken(accessToken);
       return true;
     } catch {
       return false;
@@ -155,6 +222,75 @@ export function fetchHomeRecommendations() {
   return publicFetch('/api/products/home-recommendations', HomeRecommendationsResponseSchema);
 }
 
+/** 장바구니 조회(배송 그룹별). */
+export function getCart() {
+  return privateFetch('/api/cart', CartResponseSchema);
+}
+
+/** 장바구니 상품 담기(다건) — 이미 담긴 상품이면 서버가 수량을 합산한다. */
+export function addCartItems(body: AddCartItemsRequest) {
+  return privateFetch('/api/cart/items', CartResponseSchema, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+/**
+ * 장바구니 상품 수량 변경 — api-convention §7 유일한 Optimistic Update 예외 대상.
+ * 경로 파라미터는 `productId` 다(`CartService.updateItemQuantity` 가 `(cartId, productId)`
+ * 로 항목을 찾는다 — `cartItemId` 를 보내면 다른 상품을 건드리거나 404 가 난다).
+ */
+export function updateCartItemQuantity(productId: number, body: UpdateCartItemQuantityRequest) {
+  return privateFetch(`/api/cart/items/${productId}`, CartVoidResponseSchema, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
+/** 장바구니 상품 삭제(단일·다건 공통) — `productIds` 배열. */
+export function removeCartItems(body: RemoveCartItemsRequest) {
+  return privateFetch('/api/cart/items', RemoveCartItemsResponseSchema, {
+    method: 'DELETE',
+    body: JSON.stringify(body),
+  });
+}
+
+/** 장바구니 배송지 변경. */
+export function updateCartDeliveryAddress(addressId: number) {
+  return privateFetch('/api/cart/delivery-address', DeliveryAddressResponseSchema, {
+    method: 'PUT',
+    body: JSON.stringify({ addressId }),
+  });
+}
+
+/** 배송지 목록 조회. */
+export function getAddresses() {
+  return privateFetch('/api/addresses', AddressListResponseSchema);
+}
+
+/** 배송지 추가. */
+export function createAddress(body: SaveAddressRequest) {
+  return privateFetch('/api/addresses', CreateAddressResponseSchema, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+/** 배송지 수정. */
+export function updateAddress(addressId: number, body: SaveAddressRequest) {
+  return privateFetch(`/api/addresses/${addressId}`, AddressSchema, {
+    method: 'PUT',
+    body: JSON.stringify(body),
+  });
+}
+
+/** 배송지 삭제. */
+export function deleteAddress(addressId: number) {
+  return privateFetch(`/api/addresses/${addressId}`, DeleteAddressResponseSchema, {
+    method: 'DELETE',
+  });
+}
+
 /** Toss successUrl 착지 후 결제 승인. Spring `POST /api/v1/payments/checkout`. */
 export function confirmPayment(body: ConfirmPaymentRequest) {
   const parsed = ConfirmPaymentRequestSchema.parse(body);
@@ -172,6 +308,22 @@ export function getPaymentReceipt(paymentId: number) {
     `/api/payments/${encodeURIComponent(String(paymentId))}/receipt`,
     PaymentReceiptSchema,
   );
+}
+
+/** 주문서 생성(체크아웃) — 장바구니에서 선택한 상품으로 실제 주문을 만든다(#126). */
+export function checkoutOrder(body: CheckoutOrderRequest) {
+  return privateFetch('/api/orders/checkout', CheckoutOrderResponseSchema, {
+    method: 'POST',
+    body: JSON.stringify(CheckoutOrderRequestSchema.parse(body)),
+  });
+}
+
+/** 주문 결제 요청 — 결제하기 직전 주문을 결제 대기 상태로 전이시킨다(#126). */
+export function placeOrder(orderId: number) {
+  return privateFetch('/api/orders/place-order', PlaceOrderResponseSchema, {
+    method: 'POST',
+    body: JSON.stringify(PlaceOrderRequestSchema.parse({ orderId })),
+  });
 }
 
 /** 내 주문 목록(주문 이력) 조회. `range` 는 Spring 이 대문자(3M/6M/1Y/3Y)만 받는다. */

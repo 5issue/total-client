@@ -1,6 +1,8 @@
 import { setupServer } from 'msw/node';
 
+import { addressHandlers } from './handlers/address';
 import { authHandlers } from './handlers/auth';
+import { cartHandlers } from './handlers/cart';
 import { checkoutHandlers } from './handlers/checkout';
 import { orderHandlers } from './handlers/order';
 import { productHandlers } from './handlers/product';
@@ -9,6 +11,8 @@ import { productHandlers } from './handlers/product';
 export const server = setupServer(
   ...authHandlers,
   ...productHandlers,
+  ...cartHandlers,
+  ...addressHandlers,
   ...orderHandlers,
   ...checkoutHandlers,
 );
