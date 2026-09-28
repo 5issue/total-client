@@ -1,21 +1,26 @@
 import { CategoryTabs } from '@/components/organisms/home/CategoryTabs';
-import { MOCK_DISPLAY_SECTIONS } from '@/components/organisms/home/DisplaySectionList/mock';
 import { HeroBanner } from '@/components/organisms/home/HeroBanner';
 import { HomeHeader } from '@/components/organisms/home/HomeHeader';
 import { HomeProductSections } from '@/components/organisms/home/HomeProductSections';
-import { QuickMenuSection } from '@/components/organisms/home/QuickMenuSection';
 
 /**
  * 홈 (`/`, SL-HOME 001~004, 006). Figma "HomeScreen" (node 577:20623).
- * 이번 단계는 UI 퍼블리싱만 — API 미연동, 각 organism 내부 mock 데이터로 렌더한다
- * (structure-convention §6-2, 홈 구성 API 스펙 미확정).
  *
- * 렌더링 전략: 구조 문서 기준 최종형은 "ISR 셸 + CSR 개인화 구획" 이지만, 현재는
- * 데이터가 전부 정적 mock 이라 페이지 전체가 정적(prerender) 이다 — API 연동 시
- * 개인화 구획(퀵메뉴 카운트, 진열 추천 등)만 CSR 훅으로 전환한다.
+ * `#136`부터 퀵메뉴(`QuickMenuSection`)·진열 섹션(`HomeProductSections`)이
+ * 실 API(`GET /api/v1/products/home-recommendations`, `useHomeRecommendations`)로
+ * 연동됐다 — 내부에서 훅을 호출하는 클라이언트 organism이라 이 페이지는 서버
+ * 컴포넌트로 남는다. `CategoryTabs`는 `GET /api/v1/products/categories`가 실제로는
+ * 홈 탭 용도가 아닌 것으로 확인돼(이슈 #136 논의) 여전히 퍼블리싱 mock(15개
+ * 하드코딩)이다. `HeroBanner`도 대응하는 백엔드 엔드포인트가 없어(#136 범위 밖)
+ * 여전히 정적 mock 배너 1개로 렌더한다. `HomeHeader`의 `cartCount`도 cart 도메인
+ * API가 없어 임시값(4)이다.
+ *
+ * 렌더링 전략: 구조 문서 기준 최종형은 "ISR 셸 + CSR 개인화 구획"인데, 배너/헤더/
+ * 카테고리 탭은 여전히 정적이라 페이지 골격 자체는 정적(prerender)이고 퀵메뉴·진열
+ * 섹션만 CSR 훅으로 개인화 구획을 이룬다.
  *
  * 진열 섹션 + "담기" 클릭 시 뜨는 장바구니 담기 바텀시트(node 838:65977)는
- * `HomeProductSections` 클라이언트 경계 하나로 묶었다 — 이 페이지는 서버로 남는다.
+ * `HomeProductSections` 클라이언트 경계 하나로 묶었다(퀵메뉴 포함, #136) — 이 페이지는 서버로 남는다.
  */
 export default function HomePage() {
   return (
@@ -34,8 +39,7 @@ export default function HomePage() {
           },
         ]}
       />
-      <QuickMenuSection />
-      <HomeProductSections sections={MOCK_DISPLAY_SECTIONS} />
+      <HomeProductSections />
     </div>
   );
 }
