@@ -95,57 +95,62 @@ export function MultiOptionSelectBottomSheet({
   }
 
   return (
-    <BottomSheet
-      open={open}
-      onClose={onClose}
-      ariaLabel="옵션 선택"
-      footer={
-        <>
-          <ErrorToastBanner visible={errorToastVisible}>
-            {ADD_TO_CART_ERROR_MESSAGE}
-          </ErrorToastBanner>
-          <div className="border-border mx-4 mb-3 border-t" />
-          <AddToCartActions
-            promotion={MOCK_MULTI_OPTION_PROMOTION}
-            liked={liked}
-            onToggleLike={() => setLiked((prev) => !prev)}
-            onAddToCart={handleAddToCart}
-            addToCartDisabled={totalQuantity === 0 || addCartItems.isPending}
-          />
-        </>
-      }
-    >
-      <CartItemPreview
-        imageSrc={productImageSrc}
-        imageAlt=""
-        name={productName}
-        tagline={productTagline}
-      />
-      {/* 첫 구분선만 mt-3 필요 — CartItemPreview 는 자체 하단 여백이 없다. 이후
-          구분선은 앞 옵션 줄의 py-3 하단 패딩이 이미 12px 여백을 주므로 마진 없이. */}
-      <div className="border-border mx-4 mt-3 border-t" />
-      {units.map((unit, i) => {
-        const hasDiscount = unit.price !== unit.salePrice;
-        const isSoldOut = unit.status === 'SOLDOUT';
-        return (
-          <div key={unit.id}>
-            <div className="px-4 py-3">
-              <CartQuantityRow
-                name={isSoldOut ? `${unit.name} (품절)` : unit.name}
-                priceLabel={formatPrice(unit.salePrice)}
-                originalPriceLabel={hasDiscount ? formatPrice(unit.price) : undefined}
-                quantity={quantities[unit.id] ?? 0}
-                onQuantityChange={(value) =>
-                  setQuantities((prev) => ({ ...prev, [unit.id]: value }))
-                }
-                min={0}
-                disabled={isSoldOut}
-              />
+    <>
+      {/* BottomSheet 바깥에 둔다 — footer 슬롯은 시트 슬라이드용 translate-y-* 조상
+          안이라, position:fixed인 이 토스트를 그 안에 넣으면 그 조상이 containing
+          block이 돼버려 화면 최상단이 아니라 시트 근처 좌표에 렌더된다(실패하지
+          않았는데도 시트를 열자마자 보이는 버그, MyFridgeView/FridgeRefillBottomSheet
+          에서 동일 패턴으로 먼저 발견·수정). */}
+      <ErrorToastBanner visible={errorToastVisible}>{ADD_TO_CART_ERROR_MESSAGE}</ErrorToastBanner>
+      <BottomSheet
+        open={open}
+        onClose={onClose}
+        ariaLabel="옵션 선택"
+        footer={
+          <>
+            <div className="border-border mx-4 mb-3 border-t" />
+            <AddToCartActions
+              promotion={MOCK_MULTI_OPTION_PROMOTION}
+              liked={liked}
+              onToggleLike={() => setLiked((prev) => !prev)}
+              onAddToCart={handleAddToCart}
+              addToCartDisabled={totalQuantity === 0 || addCartItems.isPending}
+            />
+          </>
+        }
+      >
+        <CartItemPreview
+          imageSrc={productImageSrc}
+          imageAlt=""
+          name={productName}
+          tagline={productTagline}
+        />
+        {/* 첫 구분선만 mt-3 필요 — CartItemPreview 는 자체 하단 여백이 없다. 이후
+            구분선은 앞 옵션 줄의 py-3 하단 패딩이 이미 12px 여백을 주므로 마진 없이. */}
+        <div className="border-border mx-4 mt-3 border-t" />
+        {units.map((unit, i) => {
+          const hasDiscount = unit.price !== unit.salePrice;
+          const isSoldOut = unit.status === 'SOLDOUT';
+          return (
+            <div key={unit.id}>
+              <div className="px-4 py-3">
+                <CartQuantityRow
+                  name={isSoldOut ? `${unit.name} (품절)` : unit.name}
+                  priceLabel={formatPrice(unit.salePrice)}
+                  originalPriceLabel={hasDiscount ? formatPrice(unit.price) : undefined}
+                  quantity={quantities[unit.id] ?? 0}
+                  onQuantityChange={(value) =>
+                    setQuantities((prev) => ({ ...prev, [unit.id]: value }))
+                  }
+                  min={0}
+                  disabled={isSoldOut}
+                />
+              </div>
+              {i < units.length - 1 ? <div className="border-border mx-4 border-t" /> : null}
             </div>
-            {i < units.length - 1 ? <div className="border-border mx-4 border-t" /> : null}
-          </div>
-        );
-      })}
-    </BottomSheet>
+          );
+        })}
+      </BottomSheet>
+    </>
   );
 }
