@@ -1,16 +1,29 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { expect, fireEvent, within } from 'storybook/test';
 
+import type { HomeQuickMenu } from '@/types/home';
+
 import { QuickMenuSection } from './QuickMenuSection';
+
+/** 실 API(`home-recommendations`)의 `QUICK_MENU` 섹션과 동일한 4개 고정값. */
+const MOCK_QUICK_MENUS: HomeQuickMenu[] = [
+  { title: '신상품', imageUrl: '/images/quickmenu/new.png', linkUrl: '/products?sort=LATEST' },
+  { title: '베스트', imageUrl: '/images/quickmenu/best.png', linkUrl: '/products?sort=BEST' },
+  { title: '알뜰쇼핑', imageUrl: '/images/quickmenu/sale.png', linkUrl: '/products?sort=SALE' },
+  { title: '특가/혜택', imageUrl: '/images/quickmenu/deal.png', linkUrl: '/products?sort=DEAL' },
+];
 
 const meta = {
   title: 'organisms/home/QuickMenuSection',
   component: QuickMenuSection,
   tags: ['autodocs'],
+  args: {
+    quickMenus: MOCK_QUICK_MENUS,
+  },
   argTypes: {
     className: { control: false },
   },
-  parameters: { layout: 'fullscreen' },
+  parameters: { layout: 'fullscreen', nextjs: { appDirectory: true } },
   decorators: [
     (Story) => (
       <div className="max-w-md">

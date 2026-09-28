@@ -11,6 +11,7 @@ import {
   PaymentReceiptSchema,
   type ConfirmPaymentRequest,
 } from '@/types/checkout';
+import { HomeRecommendationsResponseSchema } from '@/types/home';
 import { ProductListResponseSchema, type ProductListParams } from '@/types/product';
 
 /**
@@ -133,6 +134,11 @@ export function requestSocialLoginUrl(provider: OAuthProvider, returnTo?: string
 export function searchProducts(params: ProductListParams) {
   const query = new URLSearchParams({ query: params.query, sort: params.sort });
   return publicFetch(`/api/products?${query}`, ProductListResponseSchema);
+}
+
+/** 홈 화면 퀵메뉴 + 진열 섹션 조회. 로그인 여부와 무관하게 노출되는 공개 데이터. */
+export function fetchHomeRecommendations() {
+  return publicFetch('/api/products/home-recommendations', HomeRecommendationsResponseSchema);
 }
 
 /** Toss successUrl 착지 후 결제 승인. Spring `POST /api/v1/payments/checkout`. */
