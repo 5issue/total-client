@@ -232,7 +232,7 @@ export const orderHandlers = [
             deliveryStatus: 'IN_TRANSIT',
             expectedDeliveryAt: nowIso(),
             deliveredAt: null,
-            totalPrice: 41000,
+            paymentAmount: 41000,
             totalQuantity: 3,
             items: [
               {

@@ -85,8 +85,12 @@ export function CheckoutContainer({ itemIds }: { itemIds: string[] }) {
             <FloatingButton
               icon="refresh"
               onClick={() => {
-                createOrder.mutate({ cartItemIds });
-                void addressesQuery.refetch();
+                if (createOrder.isError || !createOrder.data) {
+                  createOrder.mutate({ cartItemIds });
+                }
+                if (addressesQuery.isError || !addressesQuery.data) {
+                  void addressesQuery.refetch();
+                }
               }}
             >
               다시 시도

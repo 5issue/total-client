@@ -55,7 +55,6 @@ const server = http.createServer(async (req, res) => {
   }
 
   const method = req.method ?? 'GET';
-  const body = method === 'GET' || method === 'HEAD' ? undefined : await readBody(req);
   const upstreamHeaders = { ...req.headers };
   delete upstreamHeaders.host;
   // 홉별(hop-by-hop) 헤더는 그대로 넘기면 안 된다 — 특히 transfer-encoding 이 남으면
@@ -78,6 +77,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   try {
+    const body = method === 'GET' || method === 'HEAD' ? undefined : await readBody(req);
     // manual 필수 — OAuth 콜백처럼 Spring 이 302(Location + Set-Cookie)로 응답하는 걸
     // 그대로 돌려줘야 하는 라우트가 있다(callback/[provider]/route.ts). follow(기본값)면
     // 이 fetch 가 redirect 를 자체적으로 먹어버려서 Location 이 사라진다.
@@ -88,11 +88,24 @@ const server = http.createServer(async (req, res) => {
       redirect: 'manual',
     });
 
+    const hopByHop = new Set([
+      'content-encoding',
+      'content-length',
+      'transfer-encoding',
+      'connection',
+      'keep-alive',
+      'te',
+      'trailer',
+      'upgrade',
+    ]);
+    const responseConnectionNames = (upstream.headers.get('connection') ?? '')
+      .split(',')
+      .map((name) => name.trim().toLowerCase())
+      .filter(Boolean);
     const responseHeaders = {};
     for (const [key, value] of upstream.headers) {
       const lower = key.toLowerCase();
-      if (['content-encoding', 'content-length', 'transfer-encoding', 'connection'].includes(lower))
-        continue;
+      if (hopByHop.has(lower) || responseConnectionNames.includes(lower)) continue;
       responseHeaders[key] = value;
     }
     if (typeof upstream.headers.getSetCookie === 'function') {
@@ -103,6 +116,7 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(upstream.status, responseHeaders);
     res.end(Buffer.from(await upstream.arrayBuffer()));
   } catch (err) {
+    if (res.writableEnded || res.destroyed) return;
     res.writeHead(502, { 'Content-Type': 'application/json' });
     res.end(
       errorBody(
@@ -112,8 +126,8 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, () => {
-  console.log(`[local-gateway] listening on http://localhost:${PORT}`);
+server.listen(PORT, '127.0.0.1', () => {
+  console.log(`[local-gateway] listening on http://127.0.0.1:${PORT}`);
   for (const [prefix, port] of ROUTES) {
     console.log(`  ${prefix.padEnd(24)} -> :${port}`);
   }

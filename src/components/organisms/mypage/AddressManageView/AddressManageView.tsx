@@ -95,8 +95,11 @@ export function AddressManageView() {
   function addAddress(values: AddressFormValues) {
     createAddress.mutate(mapFormValuesToSaveRequest(values), {
       onSuccess: (created) => {
-        // 첫 배송지일 때만 라디오를 잡아준다 — 그 외에는 사용자가 직접 선택(기본배송지 설정 무관).
-        setSelectedId((cur) => cur ?? String(created.addressId));
+        // 첫 배송지일 때만 라디오를 잡아준다. selectedId 가 null 이어도 기존 목록이
+        // 있으면(관리 화면 직접 진입) 새 주소로 선택을 옮기지 않는다.
+        if (addresses.length === 0) {
+          setSelectedId(String(created.addressId));
+        }
         setPanel(null);
       },
       onError: () => {

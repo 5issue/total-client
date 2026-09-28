@@ -67,6 +67,9 @@ export function CartView({
 
   const [tab, setTab] = useState('items');
   const [groups, setGroups] = useState<CartDeliveryGroup[]>(groupsProp);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(
+    () => new Set(allItemIds(groupsProp)),
+  );
   // prop 이 바뀌면(실데이터 갱신) 로컬 state 를 다시 맞춘다 — 렌더 중 비교+setState 로,
   // 이펙트 안에서 곧바로 setState 하지 않는다(react-hooks/set-state-in-effect, React 공식
   // "Adjusting state when a prop changes" 패턴).
@@ -74,10 +77,15 @@ export function CartView({
   if (groupsProp !== prevGroupsProp) {
     setPrevGroupsProp(groupsProp);
     setGroups(groupsProp);
+    const orderable = new Set(allItemIds(groupsProp));
+    setSelectedIds((prev) => {
+      const next = new Set<string>();
+      for (const id of prev) {
+        if (orderable.has(id)) next.add(id);
+      }
+      return next;
+    });
   }
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(
-    () => new Set(allItemIds(groupsProp)),
-  );
   // 배송지 목록은 `CartContainer` 가 props 로 내려준다(useAddresses 조회 실패를 "배송지
   // 없음"으로 오인하지 않도록 — 조회 자체는 컨테이너 책임, 이 컴포넌트는 표시만 한다).
   // 선택 id 만 계속 Zustand 에서 읽는다.
@@ -110,7 +118,10 @@ export function CartView({
     const productCouponDiscount = 0;
     const cartCouponDiscount = 0;
     const couponDiscount = productCouponDiscount + cartCouponDiscount;
-    const shippingFee = 0;
+    const shippingFee = groups.reduce((sum, group) => {
+      const hasSelected = group.items.some((item) => selectedIds.has(item.id) && !item.soldOut);
+      return hasSelected ? sum + group.shippingFee : sum;
+    }, 0);
     return {
       productPrice,
       productDiscount,
@@ -155,15 +166,17 @@ export function CartView({
 
   function removeItems(ids: string[]) {
     if (onRemoveItems) {
+      // 실데이터는 서버 성공 후 `groupsProp` 이 바뀌면 selectedIds 를 거기서 맞춘다.
+      // 요청 전에 선택을 빼면 삭제가 실패해도 결제금액만 사라진다.
       onRemoveItems(ids);
-    } else {
-      const remove = new Set(ids);
-      setGroups((prev) =>
-        prev
-          .map((g) => ({ ...g, items: g.items.filter((i) => !remove.has(i.id)) }))
-          .filter((g) => g.items.length > 0),
-      );
+      return;
     }
+    const remove = new Set(ids);
+    setGroups((prev) =>
+      prev
+        .map((g) => ({ ...g, items: g.items.filter((i) => !remove.has(i.id)) }))
+        .filter((g) => g.items.length > 0),
+    );
     setSelectedIds((prev) => {
       const next = new Set(prev);
       for (const id of ids) next.delete(id);

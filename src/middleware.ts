@@ -34,5 +34,13 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/checkout/:path*', '/mypage/:path*'],
+  matcher: [
+    // 파일 확장자로 끝나는 요청(정적 자산)은 제외한다 — `public/mypage/*.png` 가
+    // 라우트 `/mypage/...` 와 경로가 겹쳐, 제외 없이는 next/image 최적화 요청까지
+    // 이 가드에 걸려 /login 으로 리다이렉트되고 "not a valid image" 400 이 난다.
+    '/checkout',
+    '/checkout/((?!.*\\.[a-zA-Z0-9]+$).*)',
+    '/mypage',
+    '/mypage/((?!.*\\.[a-zA-Z0-9]+$).*)',
+  ],
 };

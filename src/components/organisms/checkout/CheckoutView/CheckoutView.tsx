@@ -222,8 +222,8 @@ export function CheckoutView({
         orderName,
         method: otherPaymentMethod,
         cardIssuer,
-        customerName: MOCK_CUSTOMER.name,
-        customerEmail: MOCK_CUSTOMER.email,
+        customerName: orderId != null ? deliveryAddress.recipient : MOCK_CUSTOMER.name,
+        customerEmail: orderId != null ? undefined : MOCK_CUSTOMER.email,
       });
     } catch (error) {
       setIsPaying(false);

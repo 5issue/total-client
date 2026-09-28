@@ -1,6 +1,7 @@
 import { type NextRequest } from 'next/server';
 
 import { fail } from '@/lib/apiResponse';
+import { isSameOrigin } from '@/lib/assertSameOrigin';
 import { proxySpringOrder } from '@/lib/order/springProxy';
 import { CheckoutOrderRequestSchema, CheckoutOrderResponseSchema } from '@/types/order';
 
@@ -10,6 +11,10 @@ import { CheckoutOrderRequestSchema, CheckoutOrderResponseSchema } from '@/types
  * →결제까지 끝내야 한다.
  */
 export async function POST(req: NextRequest) {
+  if (!isSameOrigin(req)) {
+    return fail(403, '요청을 처리할 수 없습니다.');
+  }
+
   let json: unknown;
   try {
     json = await req.json();

@@ -1,6 +1,7 @@
 import { type NextRequest } from 'next/server';
 
 import { fail } from '@/lib/apiResponse';
+import { isSameOrigin } from '@/lib/assertSameOrigin';
 import { proxySpringOrder } from '@/lib/order/springProxy';
 import { PlaceOrderRequestSchema, PlaceOrderResponseSchema } from '@/types/order';
 
@@ -9,6 +10,10 @@ import { PlaceOrderRequestSchema, PlaceOrderResponseSchema } from '@/types/order
  * 이 응답의 `orderId`/`expiresAt` 를 그대로 토스 결제창에 넘긴다.
  */
 export async function POST(req: NextRequest) {
+  if (!isSameOrigin(req)) {
+    return fail(403, '요청을 처리할 수 없습니다.');
+  }
+
   let json: unknown;
   try {
     json = await req.json();
