@@ -1,33 +1,42 @@
+import { createRemoteJWKSet, jwtVerify } from 'jose';
 import type { NextRequest } from 'next/server';
 import type { ZodType } from 'zod';
 
 import { fail, ok } from '@/lib/apiResponse';
 import { env } from '@/lib/env';
 import { AiEnvelopeSchema } from '@/types/ai';
-import { AuthUserSchema } from '@/types/auth';
 
 /** 스키마/네트워크 붕괴 시에만 쓰는 폴백. AI 서비스 `message` 가 있으면 그걸 우선한다(FE-16). */
 export const AI_UPSTREAM_FAILURE_MESSAGE = '잠시 후 다시 시도해주세요.';
 
 /**
- * AI 서비스는 Bearer 토큰이 아니라 숫자 `X-User-Id` 헤더로 사용자를 식별한다 — 우리
- * Route Handler 는 Bearer 토큰만 갖고 있으므로 Spring 에서 먼저 신원을 확인해 넘긴다.
+ * AI 서비스는 Bearer 토큰이 아니라 숫자 `X-User-Id` 헤더로 사용자를 식별한다. auth-service
+ * 확인 결과 "내 정보 조회" API는 이 아키텍처에 없다 — 각 서비스가 JWT의 `sub` 클레임을
+ * 직접 쓰는 구조라(`UserController` 주석: "대상 회원은 항상 토큰의 sub에서 온다"), 우리도
+ * Spring에 왕복하지 않고 auth-service의 JWKS(`/.well-known/jwks.json`)로 토큰 서명을
+ * 직접 검증해 `sub`를 꺼낸다(2026-09-28 확인). 서명 검증 없이 `sub`만 읽으면 위조 토큰이
+ * 통과하므로 반드시 `jwtVerify`를 거친다 — AI 서비스가 X-User-Id를 무조건 신뢰해서 더 위험하다.
  *
- * ⚠️ 정확한 Spring 엔드포인트 경로는 BE 확인 전이다 — `AuthUserSchema`(types/auth.ts)
- * 모양대로 `/api/v1/users/me` 로 가정했다. 다르면 이 함수만 고치면 된다.
+ * issuer/audience는 아직 안 맞춘다(배포 환경의 실제 값을 몰라서) — 서명 검증만으로도
+ * 위조는 막지만, 값이 확정되면 `jwtVerify`에 `issuer`/`audience` 옵션을 추가한다.
  */
+const getJwks = (() => {
+  let jwks: ReturnType<typeof createRemoteJWKSet> | null = null;
+  return () => {
+    jwks ??= createRemoteJWKSet(new URL('/.well-known/jwks.json', env.API_INTERNAL_URL));
+    return jwks;
+  };
+})();
+
 export async function resolveUserId(req: NextRequest): Promise<number | null> {
   const authorization = req.headers.get('authorization');
-  if (!authorization) return null;
+  if (!authorization?.startsWith('Bearer ')) return null;
+  const token = authorization.slice('Bearer '.length);
 
   try {
-    const res = await fetch(`${env.API_INTERNAL_URL}/api/v1/users/me`, {
-      headers: { Authorization: authorization },
-      cache: 'no-store',
-    });
-    if (!res.ok) return null;
-    const user = AuthUserSchema.parse(await res.json());
-    return user.userId;
+    const { payload } = await jwtVerify(token, getJwks());
+    const userId = Number(payload.sub);
+    return Number.isFinite(userId) && userId > 0 ? userId : null;
   } catch {
     return null;
   }
