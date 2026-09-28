@@ -67,7 +67,10 @@ export const CartAddressSchema = z.object({
   addressName: z.string().nullable(),
   recipientName: z.string().min(1),
   recipientPhone: z.string().min(1),
-  zipCode: z.string().min(1),
+  // 배송지 변경(PUT /carts/delivery-address) 응답의 DeliveryAddressResponseDto는
+  // zipCode를 항상 null로 준다(order-service 실 응답 확인, 2026-09-28) — 우편번호는
+  // 이 도메인에서 안 쓰여서 비필수로 둔다.
+  zipCode: z.string().nullable(),
   address: z.string().min(1),
   detailAddress: z.string().nullable(),
 });
