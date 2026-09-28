@@ -6,8 +6,15 @@ import { AddToCartActions } from '@/components/molecules/product/AddToCartAction
 import { CartItemPreview } from '@/components/molecules/product/CartItemPreview';
 import { CartQuantityRow } from '@/components/molecules/product/CartQuantityRow';
 import { BottomSheet } from '@/components/molecules/shared/BottomSheet';
+import { ErrorToastBanner } from '@/components/molecules/shared/ErrorToastBanner';
+import { useAddCartItems } from '@/hooks/cart/useAddCartItems';
+import { useProductDetail } from '@/hooks/product/useProductDetail';
+import { useTimedToast } from '@/hooks/useTimedToast';
 
 import type { FridgeItem } from './model';
+
+const ADD_TO_CART_ERROR_TOAST_DURATION_MS = 3000;
+const ADD_TO_CART_ERROR_MESSAGE = '장바구니 담기에 실패했어요. 다시 시도해주세요.';
 
 /**
  * "채워넣기" 담기 바텀시트 (organism). Figma "5팀 UI 공유용"
@@ -30,6 +37,12 @@ import type { FridgeItem } from './model';
  *
  * 총 수량이 0이면 "장바구니 담기"를 `addToCartDisabled` 로 비활성화한다 — 예전엔
  * 클릭이 되지만 핸들러 안에서 조용히 무시했다(코드래빗 리뷰, #111).
+ *
+ * `item.productId`는 대표상품(GROUP) id라 그대로 장바구니에 못 담는다 — 실제
+ * 구매단위(UNIT) id가 필요해 `useProductDetail`로 상세를 조회해 `units[0]`을 쓴다
+ * (product-service 계약, ProductOptionSheet와 동일 패턴). "멤버스"/일반가 두 줄은
+ * 실제로는 같은 상품의 표시 전용 분리라 수량만 합산해 하나로 담는다(멤버십 전용
+ * SKU가 따로 없음, 이슈 #145).
  */
 export interface FridgeRefillBottomSheetProps {
   open: boolean;
@@ -58,9 +71,27 @@ export function FridgeRefillBottomSheet({
     }
   }
 
+  const { data: detail } = useProductDetail(item?.productId ?? '', open && Boolean(item));
+  const addCartItems = useAddCartItems();
+  const { visible: errorToastVisible, trigger: triggerErrorToast } = useTimedToast(
+    ADD_TO_CART_ERROR_TOAST_DURATION_MS,
+  );
+
   if (!item) return null;
 
   const totalQuantity = regularQty + memberQty;
+  const unitId = detail?.units[0]?.id;
+
+  function handleAddToCart() {
+    if (unitId === undefined) return;
+    addCartItems.mutate(
+      { items: [{ productId: unitId, quantity: totalQuantity }] },
+      {
+        onSuccess: () => onAddToCart(),
+        onError: () => triggerErrorToast(),
+      },
+    );
+  }
 
   return (
     <BottomSheet
@@ -69,14 +100,19 @@ export function FridgeRefillBottomSheet({
       ariaLabel="채워넣기"
       footer={
         <>
+          <ErrorToastBanner visible={errorToastVisible}>
+            {ADD_TO_CART_ERROR_MESSAGE}
+          </ErrorToastBanner>
           <div className="border-border mx-4 mb-3 border-t" />
           <AddToCartActions
             liked={liked}
             onToggleLike={() => setLiked((prev) => !prev)}
             showSubscribeButton={false}
             showTerms={false}
-            addToCartDisabled={totalQuantity === 0}
-            onAddToCart={onAddToCart}
+            addToCartDisabled={
+              totalQuantity === 0 || unitId === undefined || addCartItems.isPending
+            }
+            onAddToCart={handleAddToCart}
           />
         </>
       }
