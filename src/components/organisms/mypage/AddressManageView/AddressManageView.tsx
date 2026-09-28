@@ -10,7 +10,7 @@ import { Icon } from '@/components/atoms/Icon';
 import { LoadingIndicator } from '@/components/atoms/LoadingIndicator';
 import { AddressListItem } from '@/components/molecules/address/AddressListItem';
 import { ErrorState } from '@/components/molecules/shared/ErrorState';
-import { Modal } from '@/components/molecules/shared/Modal';
+import { ErrorToastBanner } from '@/components/molecules/shared/ErrorToastBanner';
 import {
   AddressSearchPanel,
   type AddressFormValues,
@@ -18,11 +18,13 @@ import {
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 import { useAddresses } from '@/hooks/address/useAddresses';
 import { useCreateAddress } from '@/hooks/address/useCreateAddress';
-import { useDeleteAddress } from '@/hooks/address/useDeleteAddress';
-import { useUpdateAddress } from '@/hooks/address/useUpdateAddress';
 import { useDeliveryAddressStore } from '@/hooks/useDeliveryAddressStore';
+import { useTimedToast } from '@/hooks/useTimedToast';
 
 import { mapAddressToView, mapFormValuesToSaveRequest } from './mapAddressResponse';
+
+const ADD_ADDRESS_ERROR_TOAST_DURATION_MS = 3000;
+const ADD_ADDRESS_ERROR_MESSAGE = '배송지 추가에 실패했어요. 다시 시도해주세요.';
 
 /**
  * 배송지 관리 화면 컨테이너 (organism). Figma "5팀 UI 공유용" — node 359-15270(빈) / 359-15286·15669(목록).
@@ -34,7 +36,10 @@ import { mapAddressToView, mapFormValuesToSaveRequest } from './mapAddressRespon
  *
  * - 라디오 선택(`selectedId`)은 **사용자만 바꾼다** — 기본배송지 설정/추가가 선택을 옮기지 않는다.
  * - `우리집`·`회사` 유형칩·기본배송지 유일성은 이제 서버가 보장한다(저장 성공 후 재조회로 반영).
- * - `삭제` 는 배송지가 2개 이상이고 **기본배송지가 아닐 때만** 노출(node 359-15460). 삭제 전 확인 모달(node 359-15494).
+ * - **수정·삭제는 이번 라운드에서 노출하지 않는다** — user-service `UserController`에 단건
+ *   수정(PUT)·삭제(DELETE) 엔드포인트가 없다(types/address.ts 계약 노트, 2026-09-22 확인).
+ *   `[addressId]/route.ts`는 그대로 두었지만(백엔드 추가 대비) 호출하면 항상 실패하므로,
+ *   버튼 자체를 노출하지 않는다(CodeRabbit 리뷰 반영) — 목록 조회·추가만 이번 스코프.
  *
  * CTA 여백은 Figma `CTA_Horizontal`(node 359-15285) 실측. 상단 보더는 이 화면엔 없다.
  */
@@ -43,14 +48,13 @@ export function AddressManageView() {
 
   const addressesQuery = useAddresses();
   const createAddress = useCreateAddress();
-  const updateAddressMutation = useUpdateAddress();
-  const deleteAddressMutation = useDeleteAddress();
 
   const selectedId = useDeliveryAddressStore((s) => s.selectedId);
   const setSelectedId = useDeliveryAddressStore((s) => s.setSelectedId);
 
-  const [panel, setPanel] = useState<{ mode: 'add' } | { mode: 'edit'; id: string } | null>(null);
-  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [panel, setPanel] = useState<{ mode: 'add' } | null>(null);
+  const { visible: addAddressErrorToastVisible, trigger: triggerAddAddressErrorToast } =
+    useTimedToast(ADD_ADDRESS_ERROR_TOAST_DURATION_MS);
 
   if (addressesQuery.isLoading) {
     return (
@@ -83,44 +87,35 @@ export function AddressManageView() {
 
   const addresses = addressesQuery.data.addresses.map(mapAddressToView);
 
+  /**
+   * 뮤테이션이 성공했을 때만 패널을 닫는다 — 실패 직후 닫으면 React Hook Form 이 들고
+   * 있던 입력값이 그대로 사라진다(CodeRabbit 리뷰 반영). 실패하면 패널은 그대로 두고
+   * 토스트로만 알린다.
+   */
   function addAddress(values: AddressFormValues) {
     createAddress.mutate(mapFormValuesToSaveRequest(values), {
       onSuccess: (created) => {
         // 첫 배송지일 때만 라디오를 잡아준다 — 그 외에는 사용자가 직접 선택(기본배송지 설정 무관).
         setSelectedId((cur) => cur ?? String(created.addressId));
+        setPanel(null);
+      },
+      onError: () => {
+        triggerAddAddressErrorToast();
       },
     });
-    setPanel(null);
   }
 
-  function updateAddress(id: string, values: AddressFormValues) {
-    updateAddressMutation.mutate({
-      addressId: Number(id),
-      body: mapFormValuesToSaveRequest(values),
-    });
-    setPanel(null);
-  }
-
-  function deleteAddress(id: string) {
-    // 삭제 대상이 지금 선택돼 있었다면 null 로 비우지 않고 남은 기본 배송지로 되돌린다 —
-    // 그래야 목록엔 유효한 배송지가 남아있는데 장바구니만 "미선택"으로 보이는 어색한 상태를 피한다.
-    const fallbackId = addresses.find((a) => a.id !== id && a.isDefault)?.id ?? null;
-    deleteAddressMutation.mutate(Number(id));
-    setSelectedId((cur) => (cur === id ? fallbackId : cur));
-    setDeleteTargetId(null);
-  }
-
-  const editing = panel?.mode === 'edit' ? addresses.find((a) => a.id === panel.id) : undefined;
   const isEmpty = addresses.length === 0;
 
-  /** 편집 대상을 뺀 나머지가 쓰고 있는 유형칩 — 패널에 넘겨 변경 확인 모달용. */
   const usedAliases = addresses
-    .filter((a) => a.id !== editing?.id)
     .map((a) => a.aliasType)
     .filter((t): t is 'home' | 'company' => t === 'home' || t === 'company');
 
   return (
     <>
+      <ErrorToastBanner visible={addAddressErrorToastVisible}>
+        {ADD_ADDRESS_ERROR_MESSAGE}
+      </ErrorToastBanner>
       <SectionHeader leading="back" onLeadingClick={() => router.back()} title="배송지 관리" />
 
       {isEmpty ? (
@@ -157,13 +152,6 @@ export function AddressManageView() {
                   radioName="delivery-address"
                   selected={selectedId === address.id}
                   onSelect={() => setSelectedId(address.id)}
-                  onEdit={() => setPanel({ mode: 'edit', id: address.id })}
-                  // 삭제는 2개 이상 + 비-기본 배송지에서만(node 359-15460).
-                  onDelete={
-                    addresses.length > 1 && !address.isDefault
-                      ? () => setDeleteTargetId(address.id)
-                      : undefined
-                  }
                 />
               </li>
             ))}
@@ -190,31 +178,6 @@ export function AddressManageView() {
           willBeDefault={addresses.length === 0}
         />
       )}
-      {editing && (
-        <AddressSearchPanel
-          editing={editing}
-          usedAliases={usedAliases}
-          onClose={() => setPanel(null)}
-          onSubmit={(values) => updateAddress(editing.id, values)}
-        />
-      )}
-
-      <Modal
-        open={deleteTargetId !== null}
-        onClose={() => setDeleteTargetId(null)}
-        title="배송지를 삭제하시겠어요?"
-        description="배송지를 삭제하면 배송지 관리에서 확인할 수 없습니다."
-        footer={
-          <>
-            <Button variant="outlineBlack" onClick={() => setDeleteTargetId(null)}>
-              취소
-            </Button>
-            <Button variant="black" onClick={() => deleteTargetId && deleteAddress(deleteTargetId)}>
-              확인
-            </Button>
-          </>
-        }
-      />
     </>
   );
 }

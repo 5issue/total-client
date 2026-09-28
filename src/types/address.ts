@@ -14,6 +14,18 @@ export const PHONE_DIGITS_REGEX = /^01[016789]\d{7,8}$/;
 
 const toDigits = (value: string) => value.replace(/[^0-9]/g, '');
 
+/**
+ * `mapAddressResponse.ts` 의 HOME_LABEL/COMPANY_LABEL 과 동일한 문자열 — 백엔드에
+ * aliasType enum 이 없어 이 문자열 자체로 유형칩을 왕복시킨다. "직접입력"에 이 값을
+ * 그대로 쓰면 저장 후 재조회 시 우리집/회사로 오분류되므로(mapAddressToView), 폼
+ * 단계에서 거부한다(CodeRabbit 리뷰 반영).
+ */
+const RESERVED_ALIAS_NAMES = ['우리집', '회사'];
+
+function isReservedAliasName(name: string) {
+  return RESERVED_ALIAS_NAMES.includes(name.trim());
+}
+
 export const AddressFormSchema = z
   .object({
     /** 카카오 우편번호 위젯 결과 — 사용자가 직접 편집하지 않는다. */
@@ -36,6 +48,11 @@ export const AddressFormSchema = z
   .refine((data) => data.aliasType !== 'custom' || data.customAlias.trim() !== '', {
     message: '배송지 이름을 입력해주세요',
     path: ['customAlias'],
+  })
+  // "우리집"/"회사"를 직접입력 이름으로 그대로 쓰면 유형칩과 구분이 안 된다(위 설명 참고).
+  .refine((data) => data.aliasType !== 'custom' || !isReservedAliasName(data.customAlias), {
+    message: '"우리집"·"회사"는 유형칩으로 선택해주세요',
+    path: ['customAlias'],
   });
 
 export type AddressFormFields = z.infer<typeof AddressFormSchema>;
@@ -46,14 +63,20 @@ export type AddressFormFields = z.infer<typeof AddressFormSchema>;
  * 로그인한 사용자 기본정보로 자동 채운다). detailAddress·customAlias 둘 다 선택(빈 값 허용) —
  * "직접입력"을 골라도 이름을 안 적어도 저장된다(2026-09-14 재확인).
  */
-export const AddressDetailFormSchema = z.object({
-  zonecode: z.string().min(1),
-  roadAddress: z.string().min(1),
-  detailAddress: z.string(),
-  aliasType: z.enum(['home', 'company', 'custom']).optional(),
-  customAlias: z.string(),
-  saveAsDefault: z.boolean(),
-});
+export const AddressDetailFormSchema = z
+  .object({
+    zonecode: z.string().min(1),
+    roadAddress: z.string().min(1),
+    detailAddress: z.string(),
+    aliasType: z.enum(['home', 'company', 'custom']).optional(),
+    customAlias: z.string(),
+    saveAsDefault: z.boolean(),
+  })
+  // 이 폼은 이름을 안 적어도 저장되지만(위 설명), 적었다면 "우리집"/"회사"는 여전히 거부한다.
+  .refine((data) => data.aliasType !== 'custom' || !isReservedAliasName(data.customAlias), {
+    message: '"우리집"·"회사"는 유형칩으로 선택해주세요',
+    path: ['customAlias'],
+  });
 
 export type AddressDetailFormFields = z.infer<typeof AddressDetailFormSchema>;
 
