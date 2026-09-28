@@ -6,10 +6,16 @@ import { AddToCartActions } from '@/components/molecules/product/AddToCartAction
 import { CartItemPreview } from '@/components/molecules/product/CartItemPreview';
 import { CartQuantityRow } from '@/components/molecules/product/CartQuantityRow';
 import { BottomSheet } from '@/components/molecules/shared/BottomSheet';
+import { ErrorToastBanner } from '@/components/molecules/shared/ErrorToastBanner';
+import { useAddCartItems } from '@/hooks/cart/useAddCartItems';
+import { useTimedToast } from '@/hooks/useTimedToast';
 import { formatPrice } from '@/lib/formatters';
 import type { ProductUnit } from '@/types/product';
 
 import { MOCK_ADD_TO_CART_PROMOTION } from './mock';
+
+const ADD_TO_CART_ERROR_TOAST_DURATION_MS = 3000;
+const ADD_TO_CART_ERROR_MESSAGE = '장바구니 담기에 실패했어요. 다시 시도해주세요.';
 
 /**
  * 장바구니 담기 바텀시트 (organism). Figma `BottomSheet`(node 2888:2738) —
@@ -20,10 +26,10 @@ import { MOCK_ADD_TO_CART_PROMOTION } from './mock';
  * Figma 원본대로 2개 — 두 번째는 `footer` 슬롯 맨 위에 둬서, 본문이 길어져
  * 스크롤돼도 CTA 경계선은 고정 영역에 남게 한다.
  *
- * 수량 조절은 로컬 state로 실제 동작하지만, 장바구니 담기/신선구독/찜은 뮤테이션
- * API가 아직 없어 실제 담기는 없다 — "담기" 클릭 시 시트를 닫고 `onAddToCart` 로
- * 성공을 알린다(호출부가 `CartAddedProductsBottomSheet` 를 잇달아 여는 데 쓴다,
- * node 665:43409).
+ * 수량 조절은 로컬 state, "담기"는 `useAddCartItems`로 실제 `POST /api/cart/items`를
+ * 호출한다(신선구독/찜은 아직 뮤테이션 API가 없어 그대로 UI만). 성공해야만 시트를 닫고
+ * `onAddToCart`로 알린다(호출부가 `CartAddedProductsBottomSheet`를 잇달아 여는 데 쓴다,
+ * node 665:43409) — 실패하면 시트를 열어둔 채 에러 토스트만 띄운다(입력값 보존).
  *
  * `unit`(이슈 #134) — 상품 상세 응답의 SKU가 정확히 1개일 때 셸이 이 시트를 연다(2개
  * 이상이면 `MultiOptionSelectBottomSheet`). 홈 화면처럼 어떤 카드를 눌렀는지 아직 알 수
@@ -55,11 +61,25 @@ export function ProductOptionSheet({
   const [liked, setLiked] = useState(false);
   const hasDiscount = unit.price !== unit.salePrice;
   const isSoldOut = unit.status === 'SOLDOUT';
+  const addCartItems = useAddCartItems();
+  const { visible: errorToastVisible, trigger: triggerErrorToast } = useTimedToast(
+    ADD_TO_CART_ERROR_TOAST_DURATION_MS,
+  );
 
   function handleAddToCart() {
     if (isSoldOut) return;
-    onClose();
-    onAddToCart?.();
+    addCartItems.mutate(
+      { items: [{ productId: unit.id, quantity }] },
+      {
+        onSuccess: () => {
+          onClose();
+          onAddToCart?.();
+        },
+        onError: () => {
+          triggerErrorToast();
+        },
+      },
+    );
   }
 
   return (
@@ -69,6 +89,9 @@ export function ProductOptionSheet({
       ariaLabel="장바구니 담기"
       footer={
         <>
+          <ErrorToastBanner visible={errorToastVisible}>
+            {ADD_TO_CART_ERROR_MESSAGE}
+          </ErrorToastBanner>
           {/* 위쪽 12px은 CartQuantityRow의 py-3에서 이미 확보돼 mb-3 으로 아래쪽만 맞춘다 —
               없으면 바로 아래 PromotionBar 와 붙어 안 보인다. */}
           <div className="border-border mx-4 mb-3 border-t" />
@@ -77,7 +100,7 @@ export function ProductOptionSheet({
             liked={liked}
             onToggleLike={() => setLiked((prev) => !prev)}
             onAddToCart={handleAddToCart}
-            addToCartDisabled={isSoldOut}
+            addToCartDisabled={isSoldOut || addCartItems.isPending}
           />
         </>
       }
