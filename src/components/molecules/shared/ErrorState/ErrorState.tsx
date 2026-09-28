@@ -15,6 +15,10 @@ import type { ReactNode } from 'react';
  *   title/subtitle과 동일 원칙).
  * - 상태를 갖지 않는다(RSC 유지) — `action`에 담긴 핸들러는 소비자 책임.
  * - 동적으로 나타나는 안내이므로 `role="status"`(Toast 와 동일 패턴, code-style §5).
+ * - `LoadingIndicator`와 같은 관례: 세로 중앙 정렬은 이 컴포넌트 스스로 맡는다
+ *   (`justify-center`). 소비자는 헤더 아래 남는 공간만큼만 `className="flex-1"`을
+ *   넘기면 된다 — 바깥 래퍼 자체에 `items-center justify-center`를 주면 형제로 있는
+ *   `SectionHeader`까지 같이 가운데로 밀린다(실제 재현된 버그, 2026-09-24).
  */
 export interface ErrorStateProps {
   /** 장식용 아이콘/일러스트. 접근 가능한 이름은 `title` 이 담당하므로 `aria-hidden` 권장. */
@@ -39,7 +43,9 @@ export function ErrorState({
   return (
     <div
       role="status"
-      className={['flex w-full flex-col items-center gap-5', className].filter(Boolean).join(' ')}
+      className={['flex w-full flex-col items-center justify-center gap-5', className]
+        .filter(Boolean)
+        .join(' ')}
     >
       <div className="flex w-full flex-col items-center gap-3">
         {icon}

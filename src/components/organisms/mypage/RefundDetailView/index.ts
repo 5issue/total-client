@@ -1,1 +1,1 @@
-export { RefundDetailView } from './RefundDetailView';
+export { RefundDetailView, type RefundDetailViewProps } from './RefundDetailView';
