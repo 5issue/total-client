@@ -1,8 +1,15 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
 import { MOCK_FRIDGE_ITEMS } from './mock';
 import { MyFridgeView } from './MyFridgeView';
+
+// "MY 레시피" 탭이 실제 쿼리 훅을 쓰는 `MyRecipeViewContainer`를 렌더해서
+// QueryClientProvider 없이는 throw 한다(`SocialLoginPanel.stories.tsx`와 동일 이유).
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
 
 const meta = {
   title: 'organisms/mypage/MyFridgeView',
@@ -24,6 +31,13 @@ const meta = {
       options: ['fridge', 'recipe'],
     },
   },
+  decorators: [
+    (Story) => (
+      <QueryClientProvider client={queryClient}>
+        <Story />
+      </QueryClientProvider>
+    ),
+  ],
   parameters: {
     layout: 'fullscreen',
     nextjs: { appDirectory: true, navigation: { pathname: '/mypage/fridge' } },

@@ -98,7 +98,8 @@ const GRATIN_NEEDED_PRODUCTS = [
   },
 ];
 
-const PLACEHOLDER_DETAIL = {
+/** 실 API(RECIPE-01)에 없는 필드(ownedItems/steps 등) 대체용 — mapRecipe.ts(#140) 참고. */
+export const PLACEHOLDER_DETAIL = {
   ownedItems: GRATIN_OWNED_ITEMS,
   ingredients: GRATIN_INGREDIENTS,
   steps: GRATIN_STEPS,

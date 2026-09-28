@@ -35,7 +35,9 @@ function deriveFilters(isExpired: boolean, dDayLabel: string | null): FridgeFilt
 export function toFridgeItemViewModel(apiItem: FridgeStockItem, index: number): FridgeItem {
   // MOCK_FRIDGE_ITEMS는 고정 길이 배열이라 나머지 연산 인덱스는 항상 유효하다 —
   // noUncheckedIndexedAccess 회피용 non-null assertion.
-  const matchingMock = MOCK_FRIDGE_ITEMS.find((mock) => mock.productId === apiItem.product.id);
+  const matchingMock = MOCK_FRIDGE_ITEMS.find(
+    (mock) => mock.productId === apiItem.product.product_id,
+  );
   const extras = matchingMock ?? MOCK_FRIDGE_ITEMS[index % MOCK_FRIDGE_ITEMS.length]!;
 
   const dDayLabel = apiItem.expires_at ? formatDDayLabel(apiItem.expires_at) : extras.dDayLabel;
@@ -44,15 +46,15 @@ export function toFridgeItemViewModel(apiItem: FridgeStockItem, index: number): 
   const expiryLabel = apiItem.expires_at ? formatExpiryLabel(apiItem.expires_at) : '유통기한 없음';
 
   return {
-    id: apiItem.product.id,
-    productId: apiItem.product.id,
+    id: apiItem.product.product_id,
+    productId: apiItem.product.product_id,
     name: apiItem.product.name,
     tagline: extras.tagline,
     imageSrc: extras.imageSrc,
     quantityLabel: `${apiItem.quantity}${apiItem.unit}`,
     expiryLabel,
     dDayLabel,
-    storageType: mapStorageType(apiItem.product.storageType),
+    storageType: mapStorageType(apiItem.product.storage_type ?? ''),
     expired: apiItem.is_expired,
     // 품절 여부는 상품 상세 API 전까지 mock에서만 가져온다 — 일치하는 mock이 없는
     // 실제 품목까지 인덱스 fallback mock의 soldOut을 물려받으면 안 된다(코드래빗 리뷰).

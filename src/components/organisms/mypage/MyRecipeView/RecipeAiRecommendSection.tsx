@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { Icon } from '@/components/atoms/Icon';
+import { LoadingIndicator } from '@/components/atoms/LoadingIndicator';
 
 import type { Recipe } from './model';
 
@@ -25,6 +26,10 @@ import type { Recipe } from './model';
 export interface RecipeAiRecommendSectionProps {
   nickname: string;
   recipes: Recipe[];
+  /** `MyRecipeViewContainer`(이슈 #140)가 내려주는 `useMyRecipeRecommendations`
+   *  조회 상태 — 로딩·에러·빈 상태는 이 표현 컴포넌트가 렌더하되 소유는 컨테이너 몫. */
+  isPending?: boolean;
+  isError?: boolean;
   className?: string;
 }
 
@@ -113,6 +118,8 @@ function AiRecommendedRecipeCard({
 export function RecipeAiRecommendSection({
   nickname,
   recipes,
+  isPending = false,
+  isError = false,
   className,
 }: RecipeAiRecommendSectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -168,36 +175,50 @@ export function RecipeAiRecommendSection({
         </p>
       </div>
 
-      <div
-        ref={scrollRef}
-        onScroll={handleScroll}
-        className="scrollbar-hide flex snap-x snap-mandatory items-center gap-4 overflow-x-auto"
-      >
-        {/* 양 끝 여백(51px = (402 - L카드폭 300) / 2) — 첫/마지막 카드가 화면 가운데서
-            시작해 좌우로 살짝 걸치는 포커스 캐러셀 레이아웃을 만든다. */}
-        <div className="w-12.75 shrink-0" aria-hidden />
-        {recipes.map((recipe, index) => (
-          <AiRecommendedRecipeCard
-            key={recipe.id}
-            recipe={recipe}
-            active={index === activeIndex}
-            cardRef={(el) => {
-              cardRefs.current[index] = el;
-            }}
-          />
-        ))}
-        <div className="w-12.75 shrink-0" aria-hidden />
-      </div>
+      {isPending ? (
+        <LoadingIndicator label="추천 레시피를 불러오는 중이에요" />
+      ) : isError ? (
+        <p className="text-body-m text-fg-tertiary px-5 pb-5 text-center">
+          추천 레시피를 불러오지 못했어요
+        </p>
+      ) : recipes.length === 0 ? (
+        <p className="text-body-m text-fg-tertiary px-5 pb-5 text-center">
+          아직 추천할 레시피가 없어요
+        </p>
+      ) : (
+        <>
+          <div
+            ref={scrollRef}
+            onScroll={handleScroll}
+            className="scrollbar-hide flex snap-x snap-mandatory items-center gap-4 overflow-x-auto"
+          >
+            {/* 양 끝 여백(51px = (402 - L카드폭 300) / 2) — 첫/마지막 카드가 화면 가운데서
+                시작해 좌우로 살짝 걸치는 포커스 캐러셀 레이아웃을 만든다. */}
+            <div className="w-12.75 shrink-0" aria-hidden />
+            {recipes.map((recipe, index) => (
+              <AiRecommendedRecipeCard
+                key={recipe.id}
+                recipe={recipe}
+                active={index === activeIndex}
+                cardRef={(el) => {
+                  cardRefs.current[index] = el;
+                }}
+              />
+            ))}
+            <div className="w-12.75 shrink-0" aria-hidden />
+          </div>
 
-      <div className="flex items-center justify-center gap-2 pt-2">
-        {recipes.map((recipe, index) => (
-          <span
-            key={recipe.id}
-            aria-hidden
-            className={`size-2 rounded-full ${index === activeIndex ? 'bg-fg' : 'bg-fg/30'}`}
-          />
-        ))}
-      </div>
+          <div className="flex items-center justify-center gap-2 pt-2">
+            {recipes.map((recipe, index) => (
+              <span
+                key={recipe.id}
+                aria-hidden
+                className={`size-2 rounded-full ${index === activeIndex ? 'bg-fg' : 'bg-fg/30'}`}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
