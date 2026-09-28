@@ -94,58 +94,58 @@ export function FridgeRefillBottomSheet({
   }
 
   return (
-    <BottomSheet
-      open={open}
-      onClose={onClose}
-      ariaLabel="채워넣기"
-      footer={
-        <>
-          <ErrorToastBanner visible={errorToastVisible}>
-            {ADD_TO_CART_ERROR_MESSAGE}
-          </ErrorToastBanner>
-          <div className="border-border mx-4 mb-3 border-t" />
-          <AddToCartActions
-            liked={liked}
-            onToggleLike={() => setLiked((prev) => !prev)}
-            showSubscribeButton={false}
-            showTerms={false}
-            addToCartDisabled={
-              totalQuantity === 0 || unitId === undefined || addCartItems.isPending
-            }
-            onAddToCart={handleAddToCart}
+    <>
+      <ErrorToastBanner visible={errorToastVisible}>{ADD_TO_CART_ERROR_MESSAGE}</ErrorToastBanner>
+      <BottomSheet
+        open={open}
+        onClose={onClose}
+        ariaLabel="채워넣기"
+        footer={
+          <>
+            <div className="border-border mx-4 mb-3 border-t" />
+            <AddToCartActions
+              liked={liked}
+              onToggleLike={() => setLiked((prev) => !prev)}
+              showSubscribeButton={false}
+              showTerms={false}
+              addToCartDisabled={
+                totalQuantity === 0 || unitId === undefined || addCartItems.isPending
+              }
+              onAddToCart={handleAddToCart}
+            />
+          </>
+        }
+      >
+        <CartItemPreview
+          imageSrc={item.imageSrc}
+          imageAlt=""
+          name={item.name}
+          tagline={item.tagline}
+        />
+        <div className="border-border mx-4 border-t" />
+        <div className="px-4 py-3">
+          <CartQuantityRow
+            badgeLabel="멤버스"
+            name={item.name}
+            priceLabel={item.memberPriceLabel}
+            originalPriceLabel={item.originalPriceLabel ?? item.priceLabel}
+            quantity={memberQty}
+            onQuantityChange={setMemberQty}
+            min={0}
           />
-        </>
-      }
-    >
-      <CartItemPreview
-        imageSrc={item.imageSrc}
-        imageAlt=""
-        name={item.name}
-        tagline={item.tagline}
-      />
-      <div className="border-border mx-4 border-t" />
-      <div className="px-4 py-3">
-        <CartQuantityRow
-          badgeLabel="멤버스"
-          name={item.name}
-          priceLabel={item.memberPriceLabel}
-          originalPriceLabel={item.originalPriceLabel ?? item.priceLabel}
-          quantity={memberQty}
-          onQuantityChange={setMemberQty}
-          min={0}
-        />
-      </div>
-      <div className="border-border mx-4 border-t" />
-      <div className="px-4 py-3">
-        <CartQuantityRow
-          name={item.name}
-          priceLabel={item.priceLabel}
-          originalPriceLabel={item.originalPriceLabel}
-          quantity={regularQty}
-          onQuantityChange={setRegularQty}
-          min={0}
-        />
-      </div>
-    </BottomSheet>
+        </div>
+        <div className="border-border mx-4 border-t" />
+        <div className="px-4 py-3">
+          <CartQuantityRow
+            name={item.name}
+            priceLabel={item.priceLabel}
+            originalPriceLabel={item.originalPriceLabel}
+            quantity={regularQty}
+            onQuantityChange={setRegularQty}
+            min={0}
+          />
+        </div>
+      </BottomSheet>
+    </>
   );
 }
