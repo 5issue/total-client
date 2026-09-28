@@ -52,10 +52,6 @@ export interface FridgeItem {
   originalPriceLabel?: string;
   /** 멤버스가 — "채워넣기" 시트가 일반가/멤버스가 두 줄을 함께 보여준다(node 1206-109860). */
   memberPriceLabel: string;
-  storageTip: {
-    title: string;
-    steps: string[];
-  };
 }
 
 export function matchesFridgeFilter(item: FridgeItem, filterId: FridgeFilterId): boolean {

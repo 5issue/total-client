@@ -22,7 +22,6 @@ const BASE_ITEM: FridgeItem = {
   priceLabel: '2,780원',
   originalPriceLabel: '3,400원',
   memberPriceLabel: '2,670원',
-  storageTip: { title: '전용목장우유', steps: ['개봉하지 않은 상태로 냉장실에 보관하세요.'] },
 };
 
 const meta = {

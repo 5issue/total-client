@@ -60,6 +60,7 @@ import {
   type MissingProductsParams,
   type MyRecipeRecommendationParams,
 } from '@/types/recipe';
+import { StorageGuideResponseSchema } from '@/types/storageGuide';
 
 /**
  * HTTP 클라이언트 — publicFetch / privateFetch (api-convention §3).
@@ -434,6 +435,14 @@ export function fetchMissingProducts(
   return privateFetch(
     `/api/recipes/${encodeURIComponent(recipeId)}/missing-products${qs ? `?${qs}` : ''}`,
     MissingProductsResponseSchema,
+  );
+}
+
+/** 상품 보관 가이드. AI 파트 PROD-03(개발완료, 이슈 #142). 비로그인도 조회 가능. */
+export function fetchStorageGuide(productId: string) {
+  return publicFetch(
+    `/api/products/${encodeURIComponent(productId)}/storage-guide`,
+    StorageGuideResponseSchema,
   );
 }
 

@@ -27,10 +27,11 @@ function deriveFilters(isExpired: boolean, dDayLabel: string | null): FridgeFilt
 /**
  * FRIDGE-01 응답(`FridgeStockItem`) → 화면 표시 모델(`FridgeItem`) 변환 (이슈 #138).
  *
- * API에 없는 표시 전용 필드(태그라인·가격·보관팁·이미지)는 상품 상세(PROD-01, 역시
- * 리뷰중) 연동 전까지 기존 mock 값으로 채운다 — 같은 product_id의 mock이 있으면 그
- * 값을, 없으면 순번으로 돌려가며 기본값을 쓴다(#134 "계약에 없는 필드는 mock 유지"
- * 원칙과 동일). 수량·유통기한·보관 여부·만료 상태는 전부 실 데이터다.
+ * API에 없는 표시 전용 필드(태그라인·가격·이미지)는 상품 상세(PROD-01, 역시 리뷰중)
+ * 연동 전까지 기존 mock 값으로 채운다 — 같은 product_id의 mock이 있으면 그 값을,
+ * 없으면 순번으로 돌려가며 기본값을 쓴다(#134 "계약에 없는 필드는 mock 유지" 원칙과
+ * 동일). 수량·유통기한·보관 여부·만료 상태는 전부 실 데이터다. 보관팁은 이 모델에
+ * 더 없다 — `FridgeStorageTipBottomSheet`가 PROD-03(#142)을 온디맨드로 직접 조회한다.
  */
 export function toFridgeItemViewModel(apiItem: FridgeStockItem, index: number): FridgeItem {
   // MOCK_FRIDGE_ITEMS는 고정 길이 배열이라 나머지 연산 인덱스는 항상 유효하다 —
@@ -63,6 +64,5 @@ export function toFridgeItemViewModel(apiItem: FridgeStockItem, index: number): 
     priceLabel: extras.priceLabel,
     originalPriceLabel: extras.originalPriceLabel,
     memberPriceLabel: extras.memberPriceLabel,
-    storageTip: extras.storageTip,
   };
 }
