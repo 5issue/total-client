@@ -10,7 +10,11 @@ import {
   DeleteAddressResponseSchema,
   type SaveAddressRequest,
 } from '@/types/address';
-import { SpringLoginUrlDataSchema, type OAuthProvider } from '@/types/auth';
+import {
+  SpringLoginUrlDataSchema,
+  SpringRefreshDataSchema,
+  type OAuthProvider,
+} from '@/types/auth';
 import {
   CartResponseSchema,
   CartVoidResponseSchema,
@@ -75,19 +79,37 @@ function parseOrThrow<T>(schema: ZodType<T>, data: unknown): T {
   }
 }
 
+/**
+ * `fetch` 자체가 던지는 예외(네트워크 끊김, `AbortSignal.timeout` 만료)를 두 래퍼 공통으로
+ * `ApiError` 로 정규화한다 — 안 그러면 타임아웃·연결 실패가 `ApiError` 기반 오류 처리
+ * 계약을 우회해 호출부(Query/Mutation)가 원본 예외를 그대로 받는다.
+ */
+async function fetchEnvelope<T>(path: string, init: RequestInit): Promise<ApiEnvelope<T>> {
+  let res: Response;
+  try {
+    res = await fetch(path, init);
+  } catch (e) {
+    if (e instanceof DOMException && e.name === 'AbortError') {
+      throw new ApiError(408, '요청 시간이 초과됐어요. 다시 시도해주세요.');
+    }
+    throw new ApiError(0, '네트워크 연결을 확인해주세요.');
+  }
+  const json = (await res.json()) as ApiEnvelope<T>;
+  if (!res.ok) throw ApiError.fromResponse(res.status, json);
+  return json;
+}
+
 /** 인증 불필요 — 우리 `/api/**` 호출. */
 export async function publicFetch<T>(
   path: string,
   schema: ZodType<T>,
   init?: RequestInit,
 ): Promise<T> {
-  const res = await fetch(path, {
+  const json = await fetchEnvelope<T>(path, {
     ...init,
     headers: baseHeaders(init),
     signal: init?.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
-  const json = (await res.json()) as ApiEnvelope<T>;
-  if (!res.ok) throw ApiError.fromResponse(res.status, json);
   return parseOrThrow(schema, unwrap(json));
 }
 
@@ -103,7 +125,7 @@ export async function privateFetch<T>(
 ): Promise<T> {
   const doFetch = () => {
     const token = getAccessToken();
-    return fetch(path, {
+    return fetchEnvelope<T>(path, {
       ...init,
       headers: {
         ...baseHeaders(init),
@@ -113,20 +135,18 @@ export async function privateFetch<T>(
     });
   };
 
-  let res = await doFetch();
+  try {
+    return parseOrThrow(schema, unwrap(await doFetch()));
+  } catch (e) {
+    if (!(e instanceof ApiError) || e.statusCode !== 401) throw e;
 
-  if (res.status === 401) {
     const refreshed = await tryRefresh();
     if (!refreshed) {
       clearAccessToken();
       throw new ApiError(401, '로그인이 만료되었습니다. 다시 로그인해주세요.');
     }
-    res = await doFetch();
+    return parseOrThrow(schema, unwrap(await doFetch()));
   }
-
-  const json = (await res.json()) as ApiEnvelope<T>;
-  if (!res.ok) throw ApiError.fromResponse(res.status, json);
-  return parseOrThrow(schema, unwrap(json));
 }
 
 // SessionBootstrap(부팅 시 무음 재발급)과 privateFetch 의 401 인터셉터가 페이지 진입 직후
@@ -144,8 +164,9 @@ function tryRefresh(): Promise<boolean> {
     try {
       const res = await fetch('/api/auth/refresh', { method: 'POST' });
       if (!res.ok) return false;
-      const json = (await res.json()) as ApiEnvelope<{ accessToken: string }>;
-      setAccessToken(json.data.accessToken);
+      const json = (await res.json()) as ApiEnvelope<unknown>;
+      const { accessToken } = SpringRefreshDataSchema.parse(json.data);
+      setAccessToken(accessToken);
       return true;
     } catch {
       return false;
