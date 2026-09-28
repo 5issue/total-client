@@ -18,10 +18,8 @@ import { CartRecommendCarousel } from '@/components/organisms/cart/CartRecommend
 import { CartRecommendSheet } from '@/components/organisms/cart/CartRecommendSheet';
 import { CartSummary } from '@/components/organisms/cart/CartSummary';
 import type { CartAmounts, CartDeliveryGroup } from '@/components/organisms/cart/model';
-import { mapAddressToView } from '@/components/organisms/mypage/AddressManageView/mapAddressResponse';
-import { addressLineOf } from '@/components/organisms/mypage/model';
+import { addressLineOf, type AddressView } from '@/components/organisms/mypage/model';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
-import { useAddresses } from '@/hooks/address/useAddresses';
 import { useDeliveryAddressStore } from '@/hooks/useDeliveryAddressStore';
 
 import { MOCK_CART_GROUPS, MOCK_RECOMMEND } from './mock';
@@ -55,12 +53,15 @@ export interface CartViewProps {
   onQuantityChange?: (itemId: string, quantity: number) => void;
   /** 상품 삭제(단일·다건 공통, `useRemoveCartItems`). 생략 시 로컬 state 로만 반영(스토리북). */
   onRemoveItems?: (itemIds: string[]) => void;
+  /** 배송지 목록(`CartContainer` 가 `useAddresses` 로 채운다). 생략 시 빈 배열(미입력 상태로 렌더). */
+  addresses?: AddressView[];
 }
 
 export function CartView({
   groups: groupsProp = MOCK_CART_GROUPS,
   onQuantityChange,
   onRemoveItems,
+  addresses = [],
 }: CartViewProps = {}) {
   const router = useRouter();
 
@@ -77,10 +78,9 @@ export function CartView({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(
     () => new Set(allItemIds(groupsProp)),
   );
-  // 배송지 목록은 useAddresses(TanStack Query) 캐시가 소스 오브 트루스 — AddressManageView 와
-  // 같은 쿼리 키를 써서 캐시를 공유한다(이슈 #119). 선택 id 만 계속 Zustand 에서 읽는다.
-  const addressesQuery = useAddresses();
-  const addresses = addressesQuery.data?.addresses.map(mapAddressToView) ?? [];
+  // 배송지 목록은 `CartContainer` 가 props 로 내려준다(useAddresses 조회 실패를 "배송지
+  // 없음"으로 오인하지 않도록 — 조회 자체는 컨테이너 책임, 이 컴포넌트는 표시만 한다).
+  // 선택 id 만 계속 Zustand 에서 읽는다.
   const selectedAddressId = useDeliveryAddressStore((s) => s.selectedId);
   const selectedAddress = addresses.find((a) => a.id === selectedAddressId);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
@@ -177,8 +177,13 @@ export function CartView({
     setDeleteTarget(null);
   }
 
-  /** 추천 시트 CTA — 선택한 상품 id 를 쿼리로 실어 실제 주문서로 이동한다(이슈 #120). */
+  /**
+   * 추천 시트 CTA — 선택한 상품 id 를 쿼리로 실어 실제 주문서로 이동한다(이슈 #120).
+   * 선택 해제 중 시트가 열려 있었을 수 있어(전체 선택 해제 → 시트 그대로) 이동 직전에도
+   * 한 번 더 선택된 상품이 있는지 확인한다 — 없으면 빈 `?items=`로 주문서에 진입하게 된다.
+   */
   function goToCheckout() {
+    if (selectedIds.size === 0) return;
     const query = new URLSearchParams({ items: [...selectedIds].join(',') }).toString();
     router.push(`/checkout?${query}`);
   }
@@ -270,11 +275,18 @@ export function CartView({
         )}
       </div>
 
-      {/* 하단 주문 바는 두 탭 모두에 뜬다. "자주 산 상품"(미구현·항상 빈 상태)과 빈 장바구니는
-          비활성 "상품을 담아주세요"(Figma node 188-9295). */}
+      {/* 하단 주문 바는 두 탭 모두에 뜬다. "자주 산 상품"(미구현·항상 빈 상태)·빈 장바구니·
+          선택된 상품이 하나도 없을 때(전체 선택 해제)는 비활성 "상품을 담아주세요"
+          (Figma node 188-9295) — 선택 없이 주문서로 못 넘어가게 막는다. */}
       <CartOrderBar
         className="border-border sticky bottom-0 border-t"
-        state={tab === 'frequent' || isEmpty ? 'empty' : selectedAddress ? 'order' : 'no-address'}
+        state={
+          tab === 'frequent' || isEmpty || selectedIds.size === 0
+            ? 'empty'
+            : selectedAddress
+              ? 'order'
+              : 'no-address'
+        }
         totalPrice={amounts.total}
         onOrder={() => setSheetOpen(true)}
       />
