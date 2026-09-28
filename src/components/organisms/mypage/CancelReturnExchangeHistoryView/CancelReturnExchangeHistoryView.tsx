@@ -17,6 +17,7 @@ import {
   REFERENCE_TODAY,
   STEP_LABELS,
   shouldShowStepIndicator,
+  type CancelReturnExchangeItem,
   type CancelReturnExchangeType,
 } from './mock';
 
@@ -76,7 +77,14 @@ const EMPTY_STATE_TITLE: Record<'전체' | CancelReturnExchangeType, string> = {
   교환: '교환 내역이 없어요',
 };
 
-export function CancelReturnExchangeHistoryView() {
+export interface CancelReturnExchangeHistoryViewProps {
+  /** 생략 시 목데이터로 폴백(직접 진입·스토리북). */
+  items?: CancelReturnExchangeItem[];
+}
+
+export function CancelReturnExchangeHistoryView({
+  items: itemsProp = MOCK_CANCEL_RETURN_EXCHANGE_ITEMS,
+}: CancelReturnExchangeHistoryViewProps = {}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -95,11 +103,8 @@ export function CancelReturnExchangeHistoryView() {
   };
 
   const items = useMemo(
-    () =>
-      MOCK_CANCEL_RETURN_EXCHANGE_ITEMS.filter(
-        (item) => activeTab === '전체' || item.type === activeTab,
-      ),
-    [activeTab],
+    () => itemsProp.filter((item) => activeTab === '전체' || item.type === activeTab),
+    [itemsProp, activeTab],
   );
 
   return (
