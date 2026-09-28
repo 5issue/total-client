@@ -19,11 +19,16 @@ import type { RecipeNeededProduct } from './model';
  * `items`는 열리는 트랜지션 중에도 비우지 않는다 — `FridgeRefillBottomSheet`와 같은
  * 이유로 `open`이 true 로 바뀔 때만 수량을 기본값(1개씩)으로 재설정한다.
  */
+/** 담기 확정 시 실제로 담을 항목만(수량 0은 제외) 넘긴다 — `productId`는 `item.id`를
+ * 그대로 숫자로 바꾼 값이다(AI 추천 상품 id가 product-service UNIT id와 같다는 전제,
+ * types/recipe.ts MissingProductSchema 참고). */
+export type RecipeCartSubmitItem = { productId: string; quantity: number };
+
 export interface RecipeCartBottomSheetProps {
   open: boolean;
   items: RecipeNeededProduct[];
   onClose: () => void;
-  onSubmit: (totalPrice: number) => void;
+  onSubmit: (items: RecipeCartSubmitItem[]) => void;
 }
 
 export function RecipeCartBottomSheet({
@@ -45,6 +50,13 @@ export function RecipeCartBottomSheet({
   const totalPrice = items.reduce((sum, item) => sum + item.price * (quantities[item.id] ?? 1), 0);
   const totalQuantity = items.reduce((sum, item) => sum + (quantities[item.id] ?? 1), 0);
 
+  function handleSubmit() {
+    const submitItems = items
+      .map((item) => ({ productId: item.id, quantity: quantities[item.id] ?? 1 }))
+      .filter((item) => item.quantity > 0);
+    onSubmit(submitItems);
+  }
+
   return (
     <BottomSheet
       open={open}
@@ -56,7 +68,7 @@ export function RecipeCartBottomSheet({
             variant="primary"
             size="l"
             disabled={totalQuantity === 0}
-            onClick={() => onSubmit(totalPrice)}
+            onClick={handleSubmit}
             className="h-14 w-full"
           >
             {formatPrice(totalPrice)} 주문하기
