@@ -58,7 +58,24 @@ const server = http.createServer(async (req, res) => {
   const body = method === 'GET' || method === 'HEAD' ? undefined : await readBody(req);
   const upstreamHeaders = { ...req.headers };
   delete upstreamHeaders.host;
-  delete upstreamHeaders.connection;
+  // 홉별(hop-by-hop) 헤더는 그대로 넘기면 안 된다 — 특히 transfer-encoding 이 남으면
+  // Node fetch 가 청크 인코딩 요청을 upstream 호출 전에 거부해 항상 502가 난다.
+  // `Connection` 헤더가 추가로 지정한 헤더도 함께 제거한다(RFC 7230 §6.1).
+  const connectionHeaderNames = (upstreamHeaders.connection ?? '')
+    .split(',')
+    .map((name) => name.trim().toLowerCase())
+    .filter(Boolean);
+  for (const name of [
+    'connection',
+    'keep-alive',
+    'te',
+    'trailer',
+    'transfer-encoding',
+    'upgrade',
+    ...connectionHeaderNames,
+  ]) {
+    delete upstreamHeaders[name];
+  }
 
   try {
     // manual 필수 — OAuth 콜백처럼 Spring 이 302(Location + Set-Cookie)로 응답하는 걸
