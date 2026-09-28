@@ -6,7 +6,13 @@ import type { CartTemperature } from '@/components/molecules/cart/CartTemperatur
  */
 
 export interface CartItemView {
+  /** cartItemId(문자열화). 체크아웃 주문서 생성(`POST /orders/checkout`)이 이 값 그대로
+   * `cartItemIds` 로 받는다(이슈 #126) — 그래서 선택(`selectedIds`)·"주문하기" 핸드오프는
+   * 이 id를 그대로 쓴다. 수량변경·삭제 API는 반대로 productId가 필요해서(`CartService`
+   * 확인) 그 두 뮤테이션 호출부만 `productId` 필드로 변환해서 보낸다. */
   id: string;
+  /** 수량변경(`PATCH /cart/items/{productId}`)·삭제(`DELETE /cart/items`)에 쓴다. */
+  productId: number;
   name: string;
   imageSrc?: string;
   /** 판매가(원). */

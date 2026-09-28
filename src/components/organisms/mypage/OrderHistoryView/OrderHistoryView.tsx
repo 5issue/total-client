@@ -24,7 +24,6 @@ import {
   MOCK_ORDER,
   ORDER_STEPS,
   PERIOD_OPTIONS,
-  RETURN_DETAIL_HREF,
   TOAST_ADD_AGAIN,
   TOAST_ADD_ONCE,
 } from './mock';
@@ -146,7 +145,7 @@ function OrderCard({
           <p className="text-heading-6 text-fg-tertiary">주문번호 {order.orderNumber}</p>
         </div>
         <Link
-          href={`/mypage/orders/${order.orderNumber}`}
+          href={`/mypage/orders/${order.id}`}
           aria-label="주문 상세 내역 보기"
           className="flex size-10 shrink-0 items-center justify-center"
         >
@@ -214,6 +213,10 @@ export interface OrderHistoryViewProps {
   defaultQuery?: string;
   /** 배송완료에서 반품 접수 기간이 끝났으면 true(node 848-86519). */
   returnPeriodEnded?: boolean;
+  /** 컨트롤드로 쓰면(컨테이너가 실API 재조회를 트리거) 이 값을 조회 기간으로 쓴다. */
+  period?: OrderHistoryPeriod;
+  /** 지정하면 기간 드롭다운이 컨트롤드로 동작 — 컨테이너에서 `useOrders` 재호출용. */
+  onPeriodChange?: (period: OrderHistoryPeriod) => void;
 }
 
 export function OrderHistoryView({
@@ -222,9 +225,13 @@ export function OrderHistoryView({
   orders,
   defaultQuery = '',
   returnPeriodEnded = false,
+  period: controlledPeriod,
+  onPeriodChange,
 }: OrderHistoryViewProps) {
   const router = useRouter();
-  const [period, setPeriod] = useState<OrderHistoryPeriod>('3m');
+  const [uncontrolledPeriod, setUncontrolledPeriod] = useState<OrderHistoryPeriod>('3m');
+  const period = controlledPeriod ?? uncontrolledPeriod;
+  const setPeriod = onPeriodChange ?? setUncontrolledPeriod;
   const [query, setQuery] = useState(defaultQuery);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState(TOAST_ADD_ONCE);
@@ -325,7 +332,7 @@ export function OrderHistoryView({
               groups={groups}
               onAddToCart={handleAddToCart}
               onCancel={() => setCancelOpen(true)}
-              onReturn={() => router.push(RETURN_DETAIL_HREF)}
+              onReturn={() => router.push(`/mypage/orders/return?orderId=${order.id}`)}
             />
           ))}
         </div>
