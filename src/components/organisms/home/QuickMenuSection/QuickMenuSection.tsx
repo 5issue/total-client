@@ -2,12 +2,15 @@
 
 import { useState, type UIEvent } from 'react';
 
+import { useRouter } from 'next/navigation';
+
 import { GraphicIcon } from '@/components/atoms/GraphicIcon';
 import { ScrollIndicator, type ScrollIndicatorPosition } from '@/components/atoms/ScrollIndicator';
 import {
   QuickMenuItem,
   type QuickMenuItemIconName,
 } from '@/components/molecules/home/QuickMenuItem';
+import type { HomeQuickMenu } from '@/types/home';
 
 /**
  * 홈 퀵메뉴 섹션 — 프로모션 아이콘 2행×11개, 가로 스크롤 + 스크롤 인디케이터
@@ -22,22 +25,41 @@ import {
  * 동일 asset을 갖고 있어 그대로 재사용하고, 이 한 항목만 QuickMenuItem 대신 직접
  * 조립한다(새 webp 에셋을 만들지 않기 위함).
  *
- * Figma 원본에 11개 항목 중 뒤쪽 5~6개가 "첫구매혜택" 라벨 + 동일 아이콘으로
- * 그대로 복제돼 있다(placeholder로 보임) — 실제 스펙 그대로 옮기고, 확정 카피는
- * 디자인팀 Figma 코멘트로 갱신되면 그때 교체한다(structure-convention §6-1).
+ * `#136` 홈 API 연동: 백엔드(`HomeLayoutProvider`)는 퀵메뉴를 4개(신상품/베스트/
+ * 알뜰쇼핑/특가혜택)만 준다 — Figma 22개 목업보다 훨씬 적다. 사용자 확정(이슈 #136
+ * 논의) 대로 레이아웃(2행×11개, `ScrollIndicator`)은 그대로 유지하고, `ROW_1`의 앞
+ * 4자리만 실 데이터로 교체한다. 5번째 이후(추석선물/패션/placeholder 5개)와 `ROW_2`
+ * 11개는 백엔드가 해당 콘텐츠를 아직 안 줘서 기존 mock 그대로 둔다.
+ *
+ * 백엔드가 주는 `imageUrl`(`/images/quickmenu/*.png`)은 이 경로를 서빙하는 정적
+ * 리소스가 백엔드에 없어(product-service 소스 확인) 실제로 로드되지 않는
+ * placeholder다 — 그래서 이미지는 쓰지 않고, `linkUrl`의 `sort` 쿼리로 기존
+ * 아이콘 세트 중 의미가 가장 가까운 것을 골라 쓴다(placeholder 항목들이 이미
+ * 실제 자산 없이 근사 아이콘을 재사용하는 것과 같은 관례).
  */
 type QuickMenuData = {
   id: string;
   icon: QuickMenuItemIconName;
   label: string;
   isNew?: boolean;
+  /** 있으면 클릭 시 이 경로로 이동한다(API 로 받은 실 항목만 해당). */
+  href?: string;
 };
 
-const ROW_1: QuickMenuData[] = [
-  { id: 'first-purchase', icon: 'coupon-discount', label: '첫구매혜택' },
-  { id: 'kurly-only', icon: 'kurly-only', label: '단독특가' },
-  { id: 'lowest-price', icon: 'badge-discount', label: '최저가도전' },
-  { id: 'members-deal', icon: 'price-drop', label: '멤버스특가' },
+const QUICK_MENU_ICON_BY_SORT: Record<string, QuickMenuItemIconName> = {
+  LATEST: 'event-default',
+  BEST: 'badge-discount',
+  SALE: 'price-drop',
+  DEAL: 'coupon-discount',
+};
+
+function resolveQuickMenuIcon(linkUrl: string): QuickMenuItemIconName {
+  const sort = new URLSearchParams(linkUrl.split('?')[1] ?? '').get('sort');
+  return (sort && QUICK_MENU_ICON_BY_SORT[sort]) || 'event-default';
+}
+
+/** `ROW_1`의 5번째 이후 — 백엔드가 아직 안 주는 항목이라 mock 유지. */
+const ROW_1_REST: QuickMenuData[] = [
   { id: 'chuseok-gift', icon: 'gift-lucky', label: '추석선물', isNew: true },
   { id: 'fashion', icon: 'category-fashion', label: '패션' },
   { id: 'row1-placeholder-1', icon: 'category-fashion', label: '첫구매혜택' },
@@ -61,11 +83,22 @@ const ROW_2: QuickMenuData[] = [
 ];
 
 export type QuickMenuSectionProps = {
+  /** 홈 API(`home-recommendations`)의 `QUICK_MENU` 섹션 값. */
+  quickMenus: HomeQuickMenu[];
   className?: string;
 };
 
-export function QuickMenuSection({ className }: QuickMenuSectionProps) {
+export function QuickMenuSection({ quickMenus, className }: QuickMenuSectionProps) {
   const [scrollPosition, setScrollPosition] = useState<ScrollIndicatorPosition>('left');
+  const router = useRouter();
+
+  const liveItems: QuickMenuData[] = quickMenus.slice(0, 4).map((item) => ({
+    id: `live-${item.linkUrl}`,
+    icon: resolveQuickMenuIcon(item.linkUrl),
+    label: item.title,
+    href: item.linkUrl,
+  }));
+  const row1 = [...liveItems, ...ROW_1_REST];
 
   function handleScroll(event: UIEvent<HTMLDivElement>) {
     const el = event.currentTarget;
@@ -92,8 +125,14 @@ export function QuickMenuSection({ className }: QuickMenuSectionProps) {
         className="scrollbar-hide flex w-full flex-col gap-1 overflow-x-auto"
       >
         <div className="flex w-fit items-center gap-2 px-4">
-          {ROW_1.map((item) => (
-            <QuickMenuItem key={item.id} icon={item.icon} label={item.label} isNew={item.isNew} />
+          {row1.map((item) => (
+            <QuickMenuItem
+              key={item.id}
+              icon={item.icon}
+              label={item.label}
+              isNew={item.isNew}
+              onClick={item.href ? () => router.push(item.href!) : undefined}
+            />
           ))}
         </div>
         <div className="flex w-fit items-center gap-2 px-4">
