@@ -25,13 +25,28 @@ const nextConfig: NextConfig = {
     formats: ['image/avif', 'image/webp'],
     // AI 파트 레시피 추천/상세(`image_url`)가 식품안전나라(공공 데이터) 이미지를 그대로
     // 반환한다 — 화이트리스트에 없으면 next/image 가 렌더링 자체를 막아 화면이 깨진다
-    // (실제 재현, 2026-09-28). 상품 이미지 CDN 은 아직 없어 mock 썸네일은 여전히
-    // `public/placeholders/` 로컬 플레이스홀더를 쓴다.
+    // (실제 재현, 2026-09-28).
+    //
+    // product-service(`GET /api/v1/products`, `/home-recommendations` 등)가 내려주는
+    // 상품 이미지도 마찬가지로 화이트리스트가 없어 URI 인코딩 여부와 무관하게 항상
+    // 차단됐다(#155, 지훈님 제보) — 실제 도메인은 total-backend product-service
+    // `V5__seed_demo_products.sql` 실측으로 확인(img-cf/product-image 두 개, 리사이즈
+    // 경로가 `/hdims/...`·`/shop/...`·`/product/...` 로 다양해 pathname 은 `/**`).
     remotePatterns: [
       {
         protocol: 'http',
         hostname: 'www.foodsafetykorea.go.kr',
         pathname: '/uploadimg/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img-cf.kurly.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'product-image.kurly.com',
+        pathname: '/**',
       },
     ],
     // 기본 75 외에 90 도 허용 — 히어로 배너가 압축 열화를 줄이려 quality={90} 을 쓴다
