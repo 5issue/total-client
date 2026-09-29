@@ -54,9 +54,10 @@ export function ProductOptionSheet({
   const [quantity, setQuantity] = useState(1);
   const [liked, setLiked] = useState(false);
   const hasDiscount = unit.price !== unit.salePrice;
+  const isSoldOut = unit.status === 'SOLDOUT';
 
   function handleAddToCart() {
-    if (unit.status === 'SOLDOUT') return;
+    if (isSoldOut) return;
     onClose();
     onAddToCart?.();
   }
@@ -76,7 +77,7 @@ export function ProductOptionSheet({
             liked={liked}
             onToggleLike={() => setLiked((prev) => !prev)}
             onAddToCart={handleAddToCart}
-            addToCartDisabled={unit.status === 'SOLDOUT'}
+            addToCartDisabled={isSoldOut}
           />
         </>
       }
@@ -93,11 +94,12 @@ export function ProductOptionSheet({
       <div className="border-border mx-4 mt-3 border-t" />
       <div className="px-4 py-3">
         <CartQuantityRow
-          name={unit.name}
+          name={isSoldOut ? `${unit.name} (품절)` : unit.name}
           priceLabel={formatPrice(unit.salePrice)}
           originalPriceLabel={hasDiscount ? formatPrice(unit.price) : undefined}
           quantity={quantity}
           onQuantityChange={setQuantity}
+          disabled={isSoldOut}
         />
       </div>
     </BottomSheet>
