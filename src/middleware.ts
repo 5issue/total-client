@@ -2,7 +2,13 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 /**
  * 보호 경로 가드. `refresh_token` 쿠키가 없으면 `/login?redirect=<원래 목적지>` 로 보낸다.
- * 대상: `/checkout` 전체와 마이컬리(`/mypage` 하위 전부 — 랜딩 포함, 로그아웃 시 마이컬리는 로그인 화면).
+ * 대상: `/login` 을 제외한 모든 페이지(2026-09-29, 이전엔 `/checkout`·`/mypage` 만이었으나
+ * 범위를 확대) — #113 PR 리뷰 기간에 껐던 걸 다시 켰다(당시 임시 우회 상수는 제거).
+ *
+ * `/callback/[provider]`(OAuth 콜백)는 반드시 예외여야 한다 — 로그인 자체가 이 경로를
+ * 거쳐 `refresh_token` 쿠키를 심는데, 여기까지 가드에 걸리면 로그인을 영영 끝낼 수 없다.
+ * `/api/**` 도 예외 — Route Handler 는 이미 자체적으로 쿠키/Authorization 헤더로 인가를
+ * 검증하고(api-convention), HTML 리다이렉트가 아니라 JSON 오류를 돌려줘야 한다.
  *
  * 쿠키 "유무"만 보는 낙관적(UX) 검사다 — 실제 인가는 서버가 매 요청 검증하고, 만료·위조된
  * 쿠키는 착지 후 첫 `privateFetch` 401 → refresh 실패 시 `/api/auth/refresh` 가 정리한다
@@ -10,20 +16,7 @@ import { type NextRequest, NextResponse } from 'next/server';
  */
 const REFRESH_TOKEN_COOKIE = 'refresh_token';
 
-/**
- * 임시(#113 PR 리뷰): Vercel Preview 는 실제 백엔드 세션이 없어 `refresh_token` 쿠키가
- * 절대 안 생기므로, 가드가 켜져 있으면 리뷰어가 `/mypage/**` UI 자체를 볼 수 없다(항상
- * `/login` 으로 튕김) — 백엔드가 붙은 로컬/스테이징에서만 리뷰가 가능해지는 문제.
- * PR #113(#86 와 같은 패턴) 리뷰 기간에만 켜 두고, 리뷰 끝나면 이 상수만 지우면 아래
- * 원래 가드 로직이 그대로 복원된다.
- */
-const ROUTE_GUARD_DISABLED = true;
-
 export function middleware(req: NextRequest) {
-  if (ROUTE_GUARD_DISABLED) {
-    return NextResponse.next();
-  }
-
   if (req.cookies.get(REFRESH_TOKEN_COOKIE)?.value) {
     return NextResponse.next();
   }
@@ -35,12 +28,11 @@ export function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    // 파일 확장자로 끝나는 요청(정적 자산)은 제외한다 — `public/mypage/*.png` 가
-    // 라우트 `/mypage/...` 와 경로가 겹쳐, 제외 없이는 next/image 최적화 요청까지
-    // 이 가드에 걸려 /login 으로 리다이렉트되고 "not a valid image" 400 이 난다.
-    '/checkout',
-    '/checkout/((?!.*\\.[a-zA-Z0-9]+$).*)',
-    '/mypage',
-    '/mypage/((?!.*\\.[a-zA-Z0-9]+$).*)',
+    // "/login" 자체, "/callback/[provider]"(OAuth 콜백), "/api/**", Next 정적 자산
+    // (`_next/static`·`_next/image`), PWA 서빙 경로(`serwist`·`manifest.webmanifest`),
+    // 그리고 확장자로 끝나는 정적 파일(`favicon.ico`, `/icon-192.png` 등 — next/image
+    // 최적화 요청까지 걸려 "not a valid image" 400이 나던 문제, 기존 가드에서도 있던
+    // 제외 규칙)을 뺀 나머지 전부.
+    '/((?!login$|callback|api|_next/static|_next/image|serwist|manifest\\.webmanifest|.*\\.[a-zA-Z0-9]+$).*)',
   ],
 };
