@@ -8,20 +8,28 @@ import { useRouter } from 'next/navigation';
 import { Icon } from '@/components/atoms/Icon';
 import { ProductMiniCard } from '@/components/molecules/product/ProductMiniCard';
 import { AccordionRecipe } from '@/components/molecules/shared/AccordionRecipe';
+import { ErrorToastBanner } from '@/components/molecules/shared/ErrorToastBanner';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
+import { useAddCartItems } from '@/hooks/cart/useAddCartItems';
+import { useTimedToast } from '@/hooks/useTimedToast';
 
 import type { Recipe } from './model';
 import { RecipeCartAddedBottomSheet } from './RecipeCartAddedBottomSheet';
-import { RecipeCartBottomSheet } from './RecipeCartBottomSheet';
+import { RecipeCartBottomSheet, type RecipeCartSubmitItem } from './RecipeCartBottomSheet';
+
+const ADD_TO_CART_ERROR_TOAST_DURATION_MS = 3000;
+const ADD_TO_CART_ERROR_MESSAGE = '장바구니 담기에 실패했어요. 다시 시도해주세요.';
 
 /**
  * 레시피 상세 화면(자세히보기, node 666-31653 등). 진입 경로가 AI 추천 캐러셀·최근
  * 본 레시피·찜한 레시피로 다양해 `MyFridgeView`의 `leadingHref` 고정 패턴 대신
  * `router.back()`을 쓴다(검색 화면과 같은 이유, MyFridgeView.tsx 주석 참고).
  *
- * 재료 구매 카드의 개별 "담기" 버튼(node 666-31896)은 Figma 스펙대로 활성 상태다 —
- * 클릭하면 하단 "장바구니에 한번에 담기"와 같은 `RecipeCartAddedBottomSheet` 담기
- * 완료 시트를 띄운다(mock 단계라 실제 수량·품목 반영 없이 공용 확인 UI만 재사용).
+ * 재료 구매 카드의 개별 "담기"·하단 "장바구니에 한번에 담기" 모두 `useAddCartItems`로
+ * 실제 `POST /api/cart/items`를 호출한다(이슈 #145). `product.id`는 AI 추천 응답의
+ * `product_id`를 그대로 쓰는데 — product-service UNIT id와 같은 값이라는 전제다
+ * (types/recipe.ts `MissingProductSchema` 계약 노트 참고, 로컬에 AI 서비스가 없어
+ * 실제 값으로 검증은 못 했다). 성공해야만 `RecipeCartAddedBottomSheet`를 띄운다.
  */
 export interface RecipeDetailViewProps {
   recipe: Recipe;
@@ -32,10 +40,27 @@ export function RecipeDetailView({ recipe }: RecipeDetailViewProps) {
   const [liked, setLiked] = useState(recipe.liked);
   const [cartSheetOpen, setCartSheetOpen] = useState(false);
   const [cartAddedOpen, setCartAddedOpen] = useState(false);
+  const addCartItems = useAddCartItems();
+  const { visible: errorToastVisible, trigger: triggerErrorToast } = useTimedToast(
+    ADD_TO_CART_ERROR_TOAST_DURATION_MS,
+  );
 
-  function handleSubmitCart() {
-    setCartSheetOpen(false);
-    setCartAddedOpen(true);
+  function addToCart(items: RecipeCartSubmitItem[]) {
+    if (items.length === 0) return;
+    addCartItems.mutate(
+      {
+        items: items.map(({ productId, quantity }) => ({ productId: Number(productId), quantity })),
+      },
+      {
+        onSuccess: () => {
+          setCartSheetOpen(false);
+          setCartAddedOpen(true);
+        },
+        onError: () => {
+          triggerErrorToast();
+        },
+      },
+    );
   }
 
   return (
@@ -120,7 +145,7 @@ export function RecipeDetailView({ recipe }: RecipeDetailViewProps) {
                 priceLabel={product.priceLabel}
                 discountLabel={product.discountLabel}
                 originalPriceLabel={product.originalPriceLabel}
-                onAddToCart={() => setCartAddedOpen(true)}
+                onAddToCart={() => addToCart([{ productId: product.id, quantity: 1 }])}
               />
             ))}
           </div>
@@ -142,9 +167,10 @@ export function RecipeDetailView({ recipe }: RecipeDetailViewProps) {
         open={cartSheetOpen}
         items={recipe.neededProducts}
         onClose={() => setCartSheetOpen(false)}
-        onSubmit={handleSubmitCart}
+        onSubmit={addToCart}
       />
       <RecipeCartAddedBottomSheet open={cartAddedOpen} onClose={() => setCartAddedOpen(false)} />
+      <ErrorToastBanner visible={errorToastVisible}>{ADD_TO_CART_ERROR_MESSAGE}</ErrorToastBanner>
     </div>
   );
 }
