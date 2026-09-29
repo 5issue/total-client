@@ -305,7 +305,7 @@ export function OrderHistoryView({
             icon={<Icon name="alert" size={56} aria-hidden />}
             title="주문 내역이 없습니다."
             action={
-              <FloatingButton onClick={() => router.push('/products')}>
+              <FloatingButton onClick={() => router.push('/search')}>
                 베스트 상품 보기
               </FloatingButton>
             }
