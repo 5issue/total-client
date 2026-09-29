@@ -27,6 +27,7 @@ function Harness() {
         productName={MOCK_OPTION_PRODUCT.name}
         productTagline={MOCK_OPTION_PRODUCT.tagline}
         unit={MOCK_UNIT}
+        persistToCart={false}
       />
     </div>
   );
@@ -43,6 +44,7 @@ const meta = {
     productName: MOCK_OPTION_PRODUCT.name,
     productTagline: MOCK_OPTION_PRODUCT.tagline,
     unit: MOCK_UNIT,
+    persistToCart: false,
   },
   argTypes: {
     open: { control: false },
