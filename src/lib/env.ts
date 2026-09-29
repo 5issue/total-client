@@ -23,6 +23,12 @@ const clientSchema = z.object({
    * 선택 UI 포함)으로 빠져 우리 자체 그리드와 중복 렌더된다(`requestTossPayment.ts` 참고).
    * 시크릿 키가 아니다(FE-10). */
   NEXT_PUBLIC_TOSS_CLIENT_KEY: z.string().min(1),
+  /** 배포 공개 도메인 — OAuth `redirectUri` 계산에 쓴다(이슈 #150). 프록시/CDN 뒤에서
+   * `req.nextUrl.origin`이 실제 공개 도메인과 달라질 수 있어 우선 이 값을 쓰고, 없으면
+   * (로컬 개발 등) 기존 origin 계산으로 폴백한다. optional — 로컬은 안 정해줘도 된다.
+   * `.env.local`에 값 없이 `KEY=`만 있으면 빈 문자열로 읽혀 `.url()`을 그냥 두면
+   * 검증에서 막힌다 — 빈 문자열을 undefined로 먼저 바꿔준다. */
+  NEXT_PUBLIC_APP_URL: z.preprocess((v) => (v === '' ? undefined : v), z.string().url().optional()),
 });
 
 const serverSchema = z.object({
@@ -36,6 +42,7 @@ const clientParsed = clientSchema.safeParse({
   NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   NEXT_PUBLIC_APP_ENV: process.env.NEXT_PUBLIC_APP_ENV,
   NEXT_PUBLIC_TOSS_CLIENT_KEY: process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY,
+  NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
 });
 
 if (!clientParsed.success) {

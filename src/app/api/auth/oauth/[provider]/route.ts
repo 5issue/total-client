@@ -10,8 +10,11 @@ import { SpringEnvelopeSchema, SpringLoginUrlDataSchema } from '@/types/auth';
 
 /**
  * 카카오/네이버 로그인 URL 발급 — 로그인 버튼 클릭 시 `useSocialLogin` 이 호출.
- * `redirectUri` 는 클라이언트 입력을 신뢰하지 않고 요청 origin 에서 서버가 직접 계산한다
- * (카카오/네이버 콘솔에 등록된 값과 일치해야 하며, `/callback/[provider]` 가 그 착지 지점).
+ * `redirectUri` 는 클라이언트 입력을 신뢰하지 않고 서버가 직접 계산한다(카카오/네이버
+ * 콘솔에 등록된 값과 일치해야 하며, `/callback/[provider]` 가 그 착지 지점). 기준 origin은
+ * `NEXT_PUBLIC_APP_URL`(배포 공개 도메인)이 있으면 그걸 쓰고, 없으면(로컬 개발 등)
+ * 요청 origin(`req.nextUrl.origin`)으로 계산한다 — 프록시/CDN 뒤에서 요청 origin이
+ * 실제 공개 도메인과 달라질 수 있어서다(이슈 #150).
  *
  * `returnTo` 는 클라이언트가 보낸 값을 그대로 Spring 에 전달하기 전에 다시 한번
  * `safeRedirect` 로 검증한다(FE-09, 방어적 이중 검증) — Spring 도 동일 규칙으로 검증하지만
@@ -30,7 +33,11 @@ export async function POST(
   const { returnTo } = (await req.json().catch(() => ({}))) as { returnTo?: string };
   const validatedReturnTo = returnTo ? safeRedirect(returnTo) : undefined;
 
-  const redirectUri = new URL(`/callback/${provider}`, req.nextUrl.origin).toString();
+  // 배포 환경은 프록시/CDN 뒤에서 `req.nextUrl.origin`이 실제 공개 도메인과 달라질 수
+  // 있어(이슈 #150) `NEXT_PUBLIC_APP_URL`이 있으면 그걸 우선한다. 로컬 개발 등 값이 없는
+  // 환경은 기존처럼 요청 origin으로 계산한다.
+  const origin = env.NEXT_PUBLIC_APP_URL ?? req.nextUrl.origin;
+  const redirectUri = new URL(`/callback/${provider}`, origin).toString();
 
   const springRes = await fetch(`${env.API_INTERNAL_URL}/api/v1/auth/oauth/${provider}`, {
     method: 'POST',
