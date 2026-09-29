@@ -88,7 +88,7 @@ export function SearchPageContent({ defaultContent, urlQuery }: SearchPageConten
       {viewQuery.trim() ? (
         <SearchResultSection query={viewQuery} />
       ) : barValue.trim() ? (
-        <SearchSuggestionsSection query={barValue} onSelectKeyword={setBarValue} />
+        <SearchSuggestionsSection query={barValue} onSelectKeyword={handleSubmit} />
       ) : (
         defaultContent
       )}
