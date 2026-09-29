@@ -12,6 +12,7 @@ import {
 } from '@/types/address';
 import {
   SpringLoginUrlDataSchema,
+  SpringLogoutDataSchema,
   SpringRefreshDataSchema,
   type OAuthProvider,
 } from '@/types/auth';
@@ -226,6 +227,20 @@ export function requestSocialLoginUrl(provider: OAuthProvider, returnTo?: string
     method: 'POST',
     body: JSON.stringify(returnTo ? { returnTo } : {}),
   });
+}
+
+/**
+ * 로그아웃(마이컬리 홈 "계정" 섹션, #148). 서버 세션 정리가 실패해도 로컬 accessToken은
+ * 항상 지운다 — 로그아웃 버튼을 누른 사용자 입장에선 이 브라우저에서 로그인 상태가
+ * 남아있으면 안 되기 때문(`/api/auth/logout` 라우트 핸들러가 refresh_token 쿠키 쪽의
+ * 같은 보장을 담당한다).
+ */
+export async function logout(): Promise<void> {
+  try {
+    await privateFetch('/api/auth/logout', SpringLogoutDataSchema, { method: 'POST' });
+  } finally {
+    clearAccessToken();
+  }
 }
 
 /** 검색 결과 상품 목록 조회. 로그인 여부와 무관하게 노출되는 공개 데이터. */

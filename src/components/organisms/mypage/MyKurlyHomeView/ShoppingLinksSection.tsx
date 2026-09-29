@@ -3,31 +3,38 @@ import Image from 'next/image';
 import { Card } from '@/components/atoms/Card';
 import { Icon } from '@/components/atoms/Icon';
 
+import { AccountLinkSectionContainer } from './AccountLinkSectionContainer';
 import { LinkSection } from './LinkSection';
 import { MOCK_APP_VERSION, MOCK_LINK_SECTIONS } from './mock';
 
 /**
  * Shopping Section(node 910-110918) — 구독 프로모션 배너 + `LinkSection` 8묶음.
  * 앱 정보만 제목이 없고 "앱 버전" 카드가 앞에 끼어 `leadingCard`로 처리한다
- * (mock.ts 의 `title` 미지정 섹션). 마지막(계정) 섹션은 하단 구분선 없음.
+ * (mock.ts 의 `title` 미지정 섹션). 마지막(계정) 섹션은 하단 구분선 없고, 로그아웃
+ * 실 연동이 필요해(#148) `AccountLinkSectionContainer`로 따로 뗀다 — 나머지 7묶음은
+ * 계속 mock 그대로 `LinkSection`에 직접 넘긴다.
  */
 export function ShoppingLinksSection() {
-  const lastIndex = MOCK_LINK_SECTIONS.length - 1;
+  const accountIndex = MOCK_LINK_SECTIONS.length - 1;
 
   return (
     <div className="flex flex-col items-start px-4">
       <div className="w-full py-2">
         <SubscriptionBannerCard />
       </div>
-      {MOCK_LINK_SECTIONS.map((section, index) => (
-        <LinkSection
-          key={section.title ?? 'app-info'}
-          section={section}
-          divider={index !== lastIndex}
-          leadingCard={section.title ? undefined : <AppVersionCard />}
-          className="w-full"
-        />
-      ))}
+      {MOCK_LINK_SECTIONS.map((section, index) =>
+        index === accountIndex ? (
+          <AccountLinkSectionContainer key={section.title ?? 'account'} />
+        ) : (
+          <LinkSection
+            key={section.title ?? 'app-info'}
+            section={section}
+            divider
+            leadingCard={section.title ? undefined : <AppVersionCard />}
+            className="w-full"
+          />
+        ),
+      )}
     </div>
   );
 }

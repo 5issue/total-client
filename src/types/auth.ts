@@ -42,3 +42,7 @@ export const SpringRefreshDataSchema = z.object({
   expiresIn: z.number(),
 });
 export type SpringRefreshData = z.infer<typeof SpringRefreshDataSchema>;
+
+/** `POST /api/v1/auth/logout` 성공 응답의 data — 명세가 빈 객체로 정의(#148). */
+export const SpringLogoutDataSchema = z.object({});
+export type SpringLogoutData = z.infer<typeof SpringLogoutDataSchema>;
