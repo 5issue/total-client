@@ -1,9 +1,16 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { expect, userEvent, within } from 'storybook/test';
 
 import { ThemeStoreProvider } from '@/providers/ThemeStoreProvider';
 
 import { MyKurlyHomeView } from './MyKurlyHomeView';
+
+// `PromoSummarySectionContainer`/`AccountLinkSectionContainer`가 useQuery·useMutation을
+// 호출한다 — QueryClientProvider 없이는 throw 한다(`MyFridgeView.stories.tsx`와 동일).
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
 
 const meta = {
   title: 'organisms/mypage/MyKurlyHomeView',
@@ -20,9 +27,11 @@ const meta = {
   // (BottomNav.stories.tsx 의 UIStoreProvider 래핑과 같은 패턴).
   decorators: [
     (Story) => (
-      <ThemeStoreProvider>
-        <Story />
-      </ThemeStoreProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeStoreProvider>
+          <Story />
+        </ThemeStoreProvider>
+      </QueryClientProvider>
     ),
   ],
 } satisfies Meta<typeof MyKurlyHomeView>;
