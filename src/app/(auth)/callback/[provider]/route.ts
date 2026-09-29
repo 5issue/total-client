@@ -37,13 +37,17 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prov
   const code = req.nextUrl.searchParams.get('code');
   const state = req.nextUrl.searchParams.get('state');
   const redirectTarget = safeRedirect(req.nextUrl.searchParams.get('redirect'));
+  // 리버스 프록시가 원본 Host 헤더를 안 넘기면 req.nextUrl.origin 이 컨테이너 자체
+  // bind 주소(0.0.0.0:PORT)로 resolve 된다 — 로그인 시작 시 redirect_uri 계산(#150)과
+  // 동일한 원인, 여기서도 동일하게 배포 공개 도메인을 우선한다(#156).
+  const origin = env.NEXT_PUBLIC_APP_URL ?? req.nextUrl.origin;
 
   // 로그인 URL 발급 때 심어둔 인가 트랜잭션 쿠키 — Spring 의 인가 코드 가로채기 방지 검증에 필요.
   // 없으면(만료·직접 접근 등) code/state 가 있어도 콜백을 시도할 수 없다.
   const transactionCookieHeader = buildOAuthTransactionCookieHeader(req);
 
   if (!isOAuthProvider(provider) || !code || !state || !transactionCookieHeader) {
-    return NextResponse.redirect(new URL('/login?error=invalid_request', req.nextUrl.origin));
+    return NextResponse.redirect(new URL('/login?error=invalid_request', origin));
   }
 
   const callbackUrl = new URL(`/api/v1/auth/oauth/${provider}/callback`, env.API_INTERNAL_URL);
@@ -60,7 +64,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prov
   const loginResult = location ? new URL(location).searchParams.get(LOGIN_RESULT_PARAM) : null;
 
   if (loginResult !== LOGIN_RESULT_SUCCESS) {
-    const failRes = NextResponse.redirect(new URL('/login?error=oauth_failed', req.nextUrl.origin));
+    const failRes = NextResponse.redirect(new URL('/login?error=oauth_failed', origin));
     clearOAuthTransactionCookies(failRes);
     return failRes;
   }
@@ -69,7 +73,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prov
   // 조용히 홈으로 보내면 안 된다 — 로그인 안 된 채로 도착하는 게 더 혼란스럽다.
   const rotated = extractRefreshTokenCookie(springRes.headers.getSetCookie());
   if (!rotated) {
-    const failRes = NextResponse.redirect(new URL('/login?error=oauth_failed', req.nextUrl.origin));
+    const failRes = NextResponse.redirect(new URL('/login?error=oauth_failed', origin));
     clearOAuthTransactionCookies(failRes);
     return failRes;
   }
@@ -79,7 +83,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prov
   const returnTo = new URL(location!).searchParams.get(RETURN_TO_PARAM);
   const finalTarget = returnTo ? safeRedirect(returnTo) : redirectTarget;
 
-  const redirectRes = NextResponse.redirect(new URL(finalTarget, req.nextUrl.origin));
+  const redirectRes = NextResponse.redirect(new URL(finalTarget, origin));
   setRefreshTokenCookie(redirectRes, rotated.value, rotated.maxAge);
   clearOAuthTransactionCookies(redirectRes);
 
