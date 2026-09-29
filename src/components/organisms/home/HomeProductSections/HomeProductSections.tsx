@@ -43,7 +43,8 @@ import type { HomeSectionProduct } from '@/types/home';
  * "담기" 클릭 핸들러(`DisplaySectionList`의 `onAddToCart`)는 아직 어떤 카드를 눌렀는지
  * 넘기지 않는다(섹션 리스트 쪽 별도 개선 필요) — 그래서 `ProductOptionSheet`(이슈 #134로
  * productName/productTagline/unit 필수 prop이 됨)는 어느 카드를 눌렀든 `mock.ts` 기본
- * 픽스처로 고정 렌더한다. 클릭한 상품 식별이 가능해지면 실 SKU로 교체.
+ * 픽스처로 고정 렌더한다. 그 SKU(`id: 1`)를 실장바구니에 쓰면 안 되므로
+ * `persistToCart={false}`. 클릭한 상품 식별이 가능해지면 실 SKU로 교체.
  */
 const MOCK_DELIVERY_LABEL = '샛별배송';
 const MOCK_REVIEW_COUNT_LABEL = '9,999+';
@@ -115,6 +116,7 @@ export function HomeProductSections() {
         productName={MOCK_OPTION_PRODUCT.name}
         productTagline={MOCK_OPTION_PRODUCT.tagline}
         unit={MOCK_UNIT}
+        persistToCart={false}
       />
     </>
   );

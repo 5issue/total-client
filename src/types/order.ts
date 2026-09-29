@@ -48,7 +48,9 @@ export type CheckoutOrderRequest = z.infer<typeof CheckoutOrderRequestSchema>;
 export const CheckoutOrderItemSchema = z.object({
   orderItemId: z.number().int().positive(),
   productId: z.number().int().positive(),
-  skuId: z.number().int().positive(),
+  // SKU 미배정 상품은 0으로 내려온다(order-service 실 응답 확인, 2026-09-28) — positive()면
+  // 이 값을 거부해 주문서 생성 자체가 실패한다.
+  skuId: z.number().int().nonnegative(),
   title: z.string().min(1),
   quantity: z.number().int().positive(),
   unitPrice: z.number().nonnegative(),

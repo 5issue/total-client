@@ -209,7 +209,7 @@ export function CartView({
           icon={<Icon name="alert" size={56} aria-hidden />}
           title="담은 상품이 없어요"
           action={
-            <FloatingButton onClick={() => router.push('/products')}>구매하러 가기</FloatingButton>
+            <FloatingButton onClick={() => router.push('/search')}>구매하러 가기</FloatingButton>
           }
         />
       </div>
