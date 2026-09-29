@@ -1,10 +1,17 @@
 import { useState } from 'react';
 
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { expect, userEvent, within } from 'storybook/test';
 
 import { MOCK_OPTION_PRODUCT, MOCK_UNIT } from './mock';
 import { ProductOptionSheet } from './ProductOptionSheet';
+
+// `useAddCartItems`가 `useQueryClient`를 호출한다 — persistToCart=false여도 훅은
+// 마운트 시점에 돌아가서 Provider 없이는 throw 한다(`SocialLoginPanel.stories.tsx`와 동일).
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
 
 /** 열림 상태를 스토리가 들고, 트리거 버튼으로 연다(CartRecommendSheet 패턴). */
 function Harness() {
@@ -41,6 +48,13 @@ const meta = {
     open: { control: false },
     onClose: { control: false },
   },
+  decorators: [
+    (Story) => (
+      <QueryClientProvider client={queryClient}>
+        <Story />
+      </QueryClientProvider>
+    ),
+  ],
   render: () => <Harness />,
   tags: ['autodocs'],
 } satisfies Meta<typeof ProductOptionSheet>;
