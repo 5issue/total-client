@@ -97,13 +97,16 @@ export function ProductDetailInteractiveShell({
   const [inquiryModalOpen, setInquiryModalOpen] = useState(false);
 
   const hasPurchaseInfo = overview?.recentRepurchaseCount !== undefined;
-  const isSoldOut = detail?.status === 'SOLDOUT';
   const unitCount = detail?.units.length ?? 0;
   // 상품 자체는 SALE이어도 유일한 unit이 SOLDOUT이면 담을 수 있는 옵션이 없다 — 단일
   // 옵션 시트가 그 unit을 수량 1로 열어 담기 완료 UI까지 보여주는 걸 막는다(코드래빗 리뷰
   // 반영). 다중 옵션 시트는 옵션별로 이미 비활성화 처리가 있어 여기선 "하나라도 선택
   // 가능한지"만 본다.
   const hasSelectableUnit = detail?.units.some((unit) => unit.status !== 'SOLDOUT') ?? false;
+  // 상세 응답은 HIDDEN도 허용한다 — SOLDOUT만 보던 이전 체크는 HIDDEN 상품에 선택 가능한
+  // unit이 있으면 담기 완료 UI까지 열어줬다(코드래빗 리뷰 반영). status가 SALE일 때만
+  // 담기 핸들러/CTA를 허용한다.
+  const canAddToCart = detail?.status === 'SALE' && hasSelectableUnit;
 
   // 디자인 QA(#132): 상품설명을 스크롤한 채 다른 탭으로 전환하면 전환된 콘텐츠가
   // 이전 스크롤 위치 그대로 보였다 — 탭 전환 시 최상단(헤더 바로 아래)부터 보이도록
@@ -144,10 +147,11 @@ export function ProductDetailInteractiveShell({
     );
   }
 
-  // 대표 이미지+`ProductOverviewCard`는 실 데이터(useProductDetail)에 의존해 로딩/에러 분기가
-  // 필요하다 — 정적 콘텐츠(`descriptionSlot`)와 달리 이 컴포넌트가 직접 렌더한다.
-  // 로딩/에러 표현은 `ProductGrid`(검색 결과 그리드)의 기존 패턴을 그대로 따른다.
-  const overviewSection = isPending ? (
+  // 실 데이터(useProductDetail) 로딩/에러 상태 — 대표 이미지+`ProductOverviewCard`뿐 아니라
+  // "상세정보"·"후기" 탭도 이 데이터(overview) 없이는 보여줄 게 없어 함께 쓴다(코드래빗
+  // 리뷰 반영 — 이전엔 그 두 탭만 조회 중/실패 시 빈 영역으로 남았다). 표현은 `ProductGrid`
+  // (검색 결과 그리드)의 기존 패턴을 따른다.
+  const detailStatusView = isPending ? (
     <p className="text-label-m text-fg-tertiary w-full px-4 py-8 text-center">
       상품 정보를 불러오는 중이에요
     </p>
@@ -158,41 +162,49 @@ export function ProductDetailInteractiveShell({
       title="상품 정보를 불러오지 못했어요"
       description="잠시 후 다시 시도해주세요"
     />
-  ) : (
-    <>
-      <div className="relative aspect-square w-full overflow-hidden">
-        {overview.imageSrc ? (
-          <Image
-            src={overview.imageSrc}
-            alt={overview.name}
-            fill
-            priority
-            sizes="(max-width: 640px) 100vw, 640px"
-            className="object-cover"
-          />
-        ) : (
-          // 디자인 시스템 ImageThumbnail 실측 placeholder 색(node 2749:2149,
-          // Text/disabled = neutral-500) — surface-secondary 아님.
-          <div aria-hidden className="absolute inset-0 bg-neutral-500" />
-        )}
-      </div>
+  ) : null;
 
-      <ProductOverviewCard
-        brandLabel={overview.brandLabel}
-        shippingInfo={overview.shippingInfo}
-        name={overview.name}
-        subCopy={overview.subCopy}
-        origin={overview.origin}
-        reviewCountLabel={overview.reviewCountLabel}
-        discountRate={overview.discountRate}
-        originalPriceLabel={overview.originalPriceLabel}
-        priceLabel={overview.priceLabel}
-        specialPriceLabel={overview.specialPriceLabel}
-        specialPriceNote={overview.specialPriceNote}
-        deliveryRows={overview.deliveryRows}
-      />
-    </>
-  );
+  // `detailStatusView ?? (...)` 로는 안 됨 — `??`는 `overview`를 좁혀주지 않아 아래에서
+  // `overview.imageSrc` 등에 TS18048(possibly undefined)이 난다. 조건을 그대로 반복해야
+  // else 분기에서 `overview`가 정의됨이 좁혀진다.
+  const overviewSection =
+    isPending || isError || !overview ? (
+      detailStatusView
+    ) : (
+      <>
+        <div className="relative aspect-square w-full overflow-hidden">
+          {overview.imageSrc ? (
+            <Image
+              src={overview.imageSrc}
+              alt={overview.name}
+              fill
+              priority
+              sizes="(max-width: 640px) 100vw, 640px"
+              className="object-cover"
+            />
+          ) : (
+            // 디자인 시스템 ImageThumbnail 실측 placeholder 색(node 2749:2149,
+            // Text/disabled = neutral-500) — surface-secondary 아님.
+            <div aria-hidden className="absolute inset-0 bg-neutral-500" />
+          )}
+        </div>
+
+        <ProductOverviewCard
+          brandLabel={overview.brandLabel}
+          shippingInfo={overview.shippingInfo}
+          name={overview.name}
+          subCopy={overview.subCopy}
+          origin={overview.origin}
+          reviewCountLabel={overview.reviewCountLabel}
+          discountRate={overview.discountRate}
+          originalPriceLabel={overview.originalPriceLabel}
+          priceLabel={overview.priceLabel}
+          specialPriceLabel={overview.specialPriceLabel}
+          specialPriceNote={overview.specialPriceNote}
+          deliveryRows={overview.deliveryRows}
+        />
+      </>
+    );
 
   // "상세정보" 탭용 보관방법/포장타입(이슈 #134) — product-service 응답의 `spec`을 그대로
   // 쓴다. `ProductDetailTable`(상품정보제공고시, 법정 고지 표)과는 다른 데이터라 그 표는
@@ -250,17 +262,16 @@ export function ProductDetailInteractiveShell({
       <div className="flex flex-1 flex-col">
         {activeTab === 'spec' ? (
           // 상품 조회 실패 시 정적 콘텐츠(브랜드 스토리 등)만 남아 보이지 않도록, 실
-          // 데이터가 있을 때만 렌더한다(코드래빗 리뷰 반영) — 후기 탭도 같은 이유로 동일 처리.
-          overview ? (
+          // 데이터가 있을 때만 렌더한다(코드래빗 리뷰 반영) — 조회 중/실패 중엔 그 상태를
+          // 그대로 보여준다(후기 탭도 동일 처리, 코드래빗 리뷰 반영 — 이전엔 빈 영역).
+          (detailStatusView ?? (
             <>
               {specSection}
               {specSlot}
             </>
-          ) : null
+          ))
         ) : activeTab === 'review' ? (
-          overview ? (
-            reviewSlot
-          ) : null
+          (detailStatusView ?? reviewSlot)
         ) : activeTab === 'qna' ? (
           <InquiryTab onLockedAlertOpenChange={setInquiryModalOpen} />
         ) : (
@@ -324,16 +335,17 @@ export function ProductDetailInteractiveShell({
         // 없으면 아무것도 안 한다 — 단일 unit이 SOLDOUT인데도 단일 옵션 시트가 수량 1로
         // 담기 완료 UI까지 보여주던 문제도 함께 막는다(코드래빗 리뷰 반영).
         onAddToCart={() => {
-          if (!hasSelectableUnit) return;
+          if (!canAddToCart) return;
           if (unitCount > 1) {
             setMultiOptionSheetOpen(true);
           } else {
             setOptionSheetOpen(true);
           }
         }}
-        // 상품 데이터 로딩/에러 중엔 무엇을 담는지 알 수 없고, 품절 상품·선택 가능한 옵션이
-        // 없는 상품은 담을 수 없어 담기 자체를 막는다(이슈 #134 — `status`/`units` 연동).
-        addToCartDisabled={!overview || isSoldOut || !hasSelectableUnit}
+        // 상품 데이터 로딩/에러 중엔 무엇을 담는지 알 수 없고, SALE이 아니거나(품절·숨김)
+        // 선택 가능한 옵션이 없는 상품은 담을 수 없어 담기 자체를 막는다(이슈 #134 —
+        // `status`/`units` 연동).
+        addToCartDisabled={!overview || !canAddToCart}
         className={`bg-surface sticky bottom-0 z-30 ${inquiryModalOpen ? 'pointer-events-none' : ''}`}
       />
 
