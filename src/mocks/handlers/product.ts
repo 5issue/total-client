@@ -1,9 +1,10 @@
 import { HttpResponse, http } from 'msw';
 
 /**
- * 로컬 백엔드가 아직 안 떠 있어 상품 검색/필터/카테고리 응답을 목킹한다(auth.ts 와 동일 패턴).
- * `API_INTERNAL_URL` 기준으로 매칭 — 우리 Route Handler(`/api/products`, `/api/products/filters`,
- * `/api/products/categories`)가 서버사이드로 호출하는 요청을 가로챈다(api-convention §3).
+ * 로컬 백엔드가 아직 안 떠 있어 상품 검색/필터/카테고리/자동완성 응답을 목킹한다(auth.ts 와
+ * 동일 패턴). `API_INTERNAL_URL` 기준으로 매칭 — 우리 Route Handler(`/api/products`,
+ * `/api/products/filters`, `/api/products/categories`, `/api/products/autocomplete`)가
+ * 서버사이드로 호출하는 요청을 가로챈다(api-convention §3).
  * Figma 목업(node 882-60568, 검색어 "우유") 기준 고정 상품 8개 풀에서
  * `keyword`/`brand`/`price`/`storageType`/`categoryId`으로 걸러내고 `sort`로 정렬해서
  * 반환한다 — 로컬에서 검색/정렬/필터 UI가 실제로 동작하는 것처럼 보이게 하기 위함이다(#128).
@@ -229,6 +230,53 @@ function buildMockFilters(products: SpringMockProduct[]) {
   return { totalCount: products.length, filterGroups };
 }
 
+/**
+ * 자동완성용 정제 키워드 사전 목업 — 실제 백엔드의 `search_keyword` 테이블을 흉내낸다.
+ * "우유" 계열은 `SearchSuggestionsSection`이 예전에 쓰던 고정 목데이터를 그대로 옮긴 것이고,
+ * 그 외에는 실제 서비스처럼 여러 카테고리를 검색해도 결과가 나오도록 `MOCK_CATEGORIES` 상위
+ * 분류에 맞춰 몇 개씩 추가했다(#128 당시 10개가 전부 "우유"뿐이라 다른 검색어를 치면 항상
+ * 비어보이는 문제가 있었다).
+ */
+const MOCK_AUTOCOMPLETE_KEYWORDS = [
+  '우유',
+  '우유 락토프리',
+  '우유 저지방',
+  '우유 A2',
+  '우유 2.3L',
+  '우유 식빵',
+  '우유 200ML',
+  '우유 500',
+  '우유스틱',
+  '우육탕면',
+  '양파',
+  '대파',
+  '브로콜리',
+  '방울토마토',
+  '바나나',
+  '샤인머스캣',
+  '사과',
+  '견과류 믹스',
+  '고등어',
+  '연어스테이크',
+  '새우살',
+  '계란',
+  '소고기 등심',
+  '닭가슴살',
+  '베이컨',
+  '체다치즈',
+  '그릭요거트',
+  '식빵',
+  '크루아상',
+];
+
+/**
+ * `ProductAutocompleteService.autocomplete`와 같은 정렬(길이 오름차순 → 가나다순) 흉내.
+ * 실제 백엔드는 키워드 어디서 시작하든(부분 문자열) 매칭하므로 `includes`로 근사한다.
+ */
+function matchesAutocompleteKeyword(candidate: string, keyword: string): boolean {
+  return candidate.toLowerCase().includes(keyword.toLowerCase());
+}
+
 export const productHandlers = [
   // GET /api/v1/products — 검색 결과 상품 목록 (Spring SliceResponse 모양, #128)
   http.get(`${BASE}/api/v1/products`, ({ request }) => {
@@ -300,6 +348,24 @@ export const productHandlers = [
         })),
         DISPLAY: [],
       },
+      error: null,
+      timestamp: nowIso(),
+    });
+  }),
+
+  // GET /api/v1/products/autocomplete — 검색창 자동완성 제안 키워드
+  http.get(`${BASE}/api/v1/products/autocomplete`, ({ request }) => {
+    const keyword = new URL(request.url).searchParams.get('keyword')?.trim() ?? '';
+    const suggestions = keyword
+      ? MOCK_AUTOCOMPLETE_KEYWORDS.filter((k) => matchesAutocompleteKeyword(k, keyword)).sort(
+          (a, b) => a.length - b.length || a.localeCompare(b, 'ko'),
+        )
+      : [];
+
+    return HttpResponse.json({
+      status: 'SUCCESS',
+      message: '자동완성 결과',
+      data: { suggestions },
       error: null,
       timestamp: nowIso(),
     });

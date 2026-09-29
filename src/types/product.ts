@@ -176,6 +176,29 @@ export function mapSpringProductListResponse(
   };
 }
 
+/**
+ * 검색창 자동완성 — `GET /api/products/autocomplete`(우리 Route Handler) 요청 파라미터.
+ * `ProductController.autocomplete` 확인 결과 `keyword`(필수)·`size`(생략 시 10) 중, 지금
+ * 소비처(`SearchSuggestionsSection`)는 개수를 조절할 일이 없어 `size`는 받지 않는다 —
+ * 필요해지면 그때 옵셔널 필드로 추가한다.
+ */
+export const ProductAutocompleteParamsSchema = z.object({
+  keyword: z.string().min(1),
+});
+export type ProductAutocompleteParams = z.infer<typeof ProductAutocompleteParamsSchema>;
+
+/**
+ * Spring `GET /api/v1/products/autocomplete` 응답 — `ProductAutocompleteResponse.java`가
+ * `{suggestions: string[]}` 하나뿐이라 필드 변환 없이 그대로 우리 모델로 쓴다(매핑 함수 불필요).
+ * `suggestions`는 상품명이 아니라 `search_keyword` 테이블의 정제 키워드다 — 용량만 다른
+ * 상품명이 중복 노출되지 않는다.
+ */
+export const ProductAutocompleteResponseSchema = z.object({
+  suggestions: z.array(z.string()),
+});
+export type ProductAutocompleteResponse = z.infer<typeof ProductAutocompleteResponseSchema>;
+export const SpringProductAutocompleteDataSchema = ProductAutocompleteResponseSchema;
+
 /** 필터 옵션 한 항목(라벨/전송값/현재 검색결과 내 개수). `GET /products` 에 되돌려보낼 값이 `value`다. */
 export const ProductFilterItemSchema = z.object({
   label: z.string(),

@@ -3,7 +3,12 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { productKeys } from '@/hooks/product/queryKeys';
-import { getProductCategories, getProductFilters, searchProducts } from '@/lib/apiClient';
+import {
+  getProductAutocomplete,
+  getProductCategories,
+  getProductFilters,
+  searchProducts,
+} from '@/lib/apiClient';
 import type { Product, ProductListParams } from '@/types/product';
 
 /**
@@ -59,6 +64,19 @@ export function useProductCategories(enabled = true) {
     queryKey: productKeys.categories(),
     queryFn: () => getProductCategories(),
     enabled,
+  });
+}
+
+/**
+ * 검색창 자동완성(`SearchSuggestionsSection`). `keyword` 는 호출 전에 debounce 된 값을
+ * 넘겨야 한다(타이핑마다 그대로 넘기면 매 키입력마다 요청이 나간다) — 이 훅 자체는 debounce
+ * 하지 않는다.
+ */
+export function useProductAutocomplete(keyword: string, enabled = true) {
+  return useQuery({
+    queryKey: productKeys.autocomplete(keyword),
+    queryFn: () => getProductAutocomplete(keyword),
+    enabled: enabled && keyword.trim().length > 0,
   });
 }
 

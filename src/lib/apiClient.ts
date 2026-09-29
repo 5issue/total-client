@@ -53,6 +53,7 @@ import {
   type OrderReturnRequest,
 } from '@/types/order';
 import {
+  ProductAutocompleteResponseSchema,
   ProductCategoryListSchema,
   ProductDetailSchema,
   ProductFiltersSchema,
@@ -245,6 +246,12 @@ export function getProductFilters(keyword: string) {
 /** 필터 바텀시트 "카테고리" 탭용 최상위 카테고리 목록 조회. 검색어와 무관, 파라미터 없음(#128). */
 export function getProductCategories() {
   return publicFetch('/api/products/categories', ProductCategoryListSchema);
+}
+
+/** 검색창 자동완성 — 타이핑 중인 검색어로 제안 키워드 목록을 조회한다. */
+export function getProductAutocomplete(keyword: string) {
+  const query = new URLSearchParams({ keyword });
+  return publicFetch(`/api/products/autocomplete?${query}`, ProductAutocompleteResponseSchema);
 }
 
 /** 상품 상세 조회. 로그인 여부와 무관하게 노출되는 공개 데이터. */
