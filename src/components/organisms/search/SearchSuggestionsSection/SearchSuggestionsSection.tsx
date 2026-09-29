@@ -8,7 +8,7 @@ import { useRecentSearches } from '@/hooks/search/useRecentSearches';
 
 export interface SearchSuggestionsSectionProps {
   query: string;
-  /** 자동완성 항목 선택 시 호출 — 검색창 값을 해당 키워드로 채운다. */
+  /** 자동완성 항목 선택 시 호출 — 그 키워드로 검색을 제출한다(결과 화면으로 전환). */
   onSelectKeyword: (keyword: string) => void;
 }
 
