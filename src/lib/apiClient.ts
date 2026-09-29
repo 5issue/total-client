@@ -68,6 +68,7 @@ import {
   type MyRecipeRecommendationParams,
 } from '@/types/recipe';
 import { StorageGuideResponseSchema } from '@/types/storageGuide';
+import { UserProfileResponseSchema } from '@/types/user';
 
 /**
  * HTTP 클라이언트 — publicFetch / privateFetch (api-convention §3).
@@ -308,6 +309,11 @@ export function updateCartDeliveryAddress(addressId: number) {
 /** 배송지 목록 조회. */
 export function getAddresses() {
   return privateFetch('/api/addresses', AddressListResponseSchema);
+}
+
+/** 마이컬리 홈 인사말(닉네임)에 쓰는 회원 프로필 조회. */
+export function fetchUserProfile() {
+  return privateFetch('/api/users/profile', UserProfileResponseSchema);
 }
 
 /** 배송지 추가. */

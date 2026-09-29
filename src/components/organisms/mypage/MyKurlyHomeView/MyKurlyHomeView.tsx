@@ -3,7 +3,7 @@ import { KurlyHeader } from '@/components/organisms/shared/KurlyHeader';
 
 import { BenefitPromoBottomSheet } from './BenefitPromoBottomSheet';
 import { CuratorSection } from './CuratorSection';
-import { PromoSummarySection } from './PromoSummarySection';
+import { PromoSummarySectionContainer } from './PromoSummarySectionContainer';
 import { ShoppingLinksSection } from './ShoppingLinksSection';
 
 /**
@@ -26,7 +26,7 @@ export function MyKurlyHomeView() {
     <ThemeScope className="flex flex-1 flex-col">
       <KurlyHeader showThemeToggle />
       <div className="flex flex-1 flex-col">
-        <PromoSummarySection />
+        <PromoSummarySectionContainer />
         <CuratorSection />
         <ShoppingLinksSection />
       </div>
