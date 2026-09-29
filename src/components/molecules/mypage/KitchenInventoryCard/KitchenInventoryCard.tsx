@@ -137,10 +137,12 @@ export function KitchenInventoryCard({
             <span aria-hidden className="bg-border h-3 w-px" />
             <span className="text-caption-m text-fg-secondary">{item.expiryLabel}</span>
           </div>
+          {/* 디자인 QA(#132): 다른 콘텐츠(상품명 등)보다 오른쪽으로 들어가 보임 —
+              justify-center 대신 justify-start 로 좌측 정렬을 맞춤. */}
           <button
             type="button"
             onClick={onShowStorageTip}
-            className="-my-1 flex h-11 w-15.25 items-center justify-center"
+            className="-my-1 flex h-11 w-15.25 items-center justify-start"
           >
             <span className="text-label-m text-primary flex items-center justify-center gap-1">
               보관팁

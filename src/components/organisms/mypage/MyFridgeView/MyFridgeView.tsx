@@ -1,10 +1,13 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { usePathname, useRouter } from 'next/navigation';
 
 import { TabBar, type TabBarItem } from '@/components/molecules/shared/TabBar';
+import { MyRecipeViewContainer } from '@/components/organisms/mypage/MyRecipeView';
+import { NICKNAME } from '@/components/organisms/mypage/MyRecipeView/mock';
+import { RecipeAiLoadingView } from '@/components/organisms/mypage/MyRecipeView/RecipeAiLoadingView';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 
 import { FridgeAiNoticeBanner } from './FridgeAiNoticeBanner';
@@ -14,7 +17,7 @@ import { FridgeInventoryGrid } from './FridgeInventoryGrid';
 import { FridgeRefillBottomSheet } from './FridgeRefillBottomSheet';
 import { FridgeRefillCompleteBottomSheet } from './FridgeRefillCompleteBottomSheet';
 import { FridgeStorageTipBottomSheet } from './FridgeStorageTipBottomSheet';
-import { MOCK_FRIDGE_AI_NOTICE, MOCK_FRIDGE_ITEMS } from './mock';
+import { MOCK_FRIDGE_AI_NOTICE } from './mock';
 import {
   matchesFridgeFilter,
   type FridgeFilterId,
@@ -35,12 +38,22 @@ const TABS: TabBarItem[] = [
  * 고정 링크를 쓴다(`OrderCompleteView`의 `leadingHref="/"`와 같은 패턴).
  *
  * 탭 선택은 URL 쿼리로 유지한다(취소·반품·교환 내역 탭과 동일 컨벤션, #102).
- * "MY 레시피" 탭은 이번 Figma 범위에 없어 다른 미구현 화면과 같은 스텁으로 둔다.
+ * "MY 레시피" 탭 콘텐츠는 `MyRecipeView`(이슈 #113) 참고.
+ *
+ * MY냉장고→MY레시피로 탭을 전환하는 그 순간에만 "MY 레시피 제작 중" 풀스크린 로딩
+ * (`RecipeAiLoadingView`, node 1343-109131)을 거쳐 실제 콘텐츠를 보여준다 — `initialTab`
+ * 으로 레시피 탭에 바로 진입(딥링크)하거나 레시피 탭 안의 카드를 눌러 상세로 이동할
+ * 때는 해당하지 않는다(탭 "전환" 자체가 아니므로). 실제로는 AI 가 응답할 때까지
+ * 무한 로딩이지만 mock 단계라 고정 딜레이 후 콘텐츠를 보여준다.
+ *
+ * 이 로딩 화면은 헤더·탭바까지 포함해 전체 화면을 대체한다(Figma 원본에 그 둘이
+ * 아예 없다, node 1343-109131) — 그래서 `activeTab`/`FridgeFilterBar` 분기와 같은
+ * 레벨이 아니라 그 바깥에서 조기 반환(early return)한다.
  *
  * 헤더+탭바+필터 칩(카테고리)은 스크롤 중에도 같이 붙어 있어야 해서(#111 QA) 한
- * `sticky top-0` 컨테이너로 묶는다. 배경은 헤더+탭바 구간에만 준다(`bg-surface`
- * 를 두른 안쪽 `div`) — 칩 행(`FridgeFilterBar`)은 배경 없이 투명하게 떠서, 그리드가
- * 스크롤돼 올라올 때 칩 사이·둘레로 그대로 비친다. "전체선택/선택삭제" 툴바
+ * `sticky top-0` 컨테이너로 묶는다. 헤더+탭바 구간과 칩 행(`FridgeFilterBar`) 모두
+ * 각자 `bg-surface` 를 둘러 스크롤되는 그리드가 비치지 않는다(디자인 QA #132 —
+ * 예전엔 칩 행만 투명해 뒷콘텐츠와 겹쳐 보였다). "전체선택/선택삭제" 툴바
  * (`FridgeSelectionToolbar`)는 이 sticky 대상이 아니다 — 그리드와 함께 정상적으로
  * 스크롤된다.
  *
@@ -48,17 +61,40 @@ const TABS: TabBarItem[] = [
  * 다시 선택돼 있어야 함). 그래서 삭제 대상은 `selectedIds` 전체가 아니라 현재
  * `filteredItems` 와의 교집합(`selectedInView`)으로 제한한다 — 안 그러면 필터에 안
  * 보이는 항목까지 "선택삭제"에 같이 삭제된다(코드래빗 리뷰, #111).
+ *
+ * 품목 목록은 이 컴포넌트가 소유하지 않는다 — `fridgeItems`/`fridgeItemsPending`/
+ * `fridgeItemsError` 로 받는다(api-convention §8 — 로딩·에러는 훅을 소비하는 컨테이너
+ * 계층 책임, 표현 컴포넌트는 순수하게 렌더만 한다, #90 `ProductGrid` 리뷰와 동일 원칙).
+ * `MyFridgeViewContainer` 가 `useFridgeItems`/`useDeleteFridgeItem`(이슈 #138)로 실 데이터를
+ * 공급하고, 이 파일의 Storybook 스토리는 네트워크 없이 `fridgeItems` 목값을 직접 준다.
+ * 삭제도 로컬 state 제거가 아니라 `onDeleteItems` 콜백으로 위임한다 — 목록은 컨테이너의
+ * mutation 성공 후 invalidate 로 다시 내려온다(§7 기본 정책, optimistic 아님).
  */
+// 실제 AI 생성 연동 전 mock 딜레이 — 연동 후에는 고정 시간이 아니라 응답이 올 때까지
+// `RecipeAiLoadingView`를 띄워 두는 형태로 바뀐다(무한 로딩, 위 컴포넌트 주석 참고).
+const RECIPE_TAB_LOADING_DELAY_MS = 1200;
+
 export interface MyFridgeViewProps {
   initialTab: FridgeTabId;
+  fridgeItems: FridgeItem[];
+  fridgeItemsPending?: boolean;
+  fridgeItemsError?: boolean;
+  onDeleteItems: (productIds: string[]) => void;
 }
 
-export function MyFridgeView({ initialTab }: MyFridgeViewProps) {
+export function MyFridgeView({
+  initialTab,
+  fridgeItems,
+  fridgeItemsPending = false,
+  fridgeItemsError = false,
+  onDeleteItems,
+}: MyFridgeViewProps) {
   const router = useRouter();
   const pathname = usePathname();
 
   const [activeTab, setActiveTab] = useState<FridgeTabId>(initialTab);
-  const [items, setItems] = useState<FridgeItem[]>(MOCK_FRIDGE_ITEMS);
+  const [recipeTabLoading, setRecipeTabLoading] = useState(false);
+  const recipeTabLoadingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [activeFilter, setActiveFilter] = useState<FridgeFilterId>('all');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -70,15 +106,31 @@ export function MyFridgeView({ initialTab }: MyFridgeViewProps) {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const filteredItems = useMemo(
-    () => items.filter((item) => matchesFridgeFilter(item, activeFilter)),
-    [items, activeFilter],
+    () => fridgeItems.filter((item) => matchesFridgeFilter(item, activeFilter)),
+    [fridgeItems, activeFilter],
   );
   const selectedInView = filteredItems.filter((item) => selectedIds.has(item.id));
   const selectedCount = selectedInView.length;
   const allSelected = filteredItems.length > 0 && selectedCount === filteredItems.length;
 
+  // 언마운트 후 예약된 상태 갱신이 실행되지 않도록 정리한다(#113 코드래빗 리뷰와
+  // 동일 이유 — `MyRecipeView`의 과거 라우팅 타이머 정리 패턴 참고).
+  useEffect(() => {
+    return () => {
+      if (recipeTabLoadingTimeoutRef.current) clearTimeout(recipeTabLoadingTimeoutRef.current);
+    };
+  }, []);
+
   function handleTabChange(id: string) {
-    setActiveTab(id as FridgeTabId);
+    const nextTab = id as FridgeTabId;
+    if (nextTab === 'recipe' && activeTab !== 'recipe') {
+      setRecipeTabLoading(true);
+      recipeTabLoadingTimeoutRef.current = setTimeout(
+        () => setRecipeTabLoading(false),
+        RECIPE_TAB_LOADING_DELAY_MS,
+      );
+    }
+    setActiveTab(nextTab);
     router.replace(`${pathname}?tab=${id}`, { scroll: false });
   }
 
@@ -103,8 +155,8 @@ export function MyFridgeView({ initialTab }: MyFridgeViewProps) {
   }
 
   function handleConfirmDelete() {
-    const idsToDelete = new Set(selectedInView.map((item) => item.id));
-    setItems((prev) => prev.filter((item) => !idsToDelete.has(item.id)));
+    const idsToDelete = selectedInView.map((item) => item.id);
+    onDeleteItems(idsToDelete);
     setSelectedIds((prev) => {
       const next = new Set(prev);
       idsToDelete.forEach((id) => next.delete(id));
@@ -126,6 +178,10 @@ export function MyFridgeView({ initialTab }: MyFridgeViewProps) {
   function handleShowStorageTip(item: FridgeItem) {
     setTipItem(item);
     setTipOpen(true);
+  }
+
+  if (recipeTabLoading) {
+    return <RecipeAiLoadingView nickname={NICKNAME} />;
   }
 
   return (
@@ -166,6 +222,8 @@ export function MyFridgeView({ initialTab }: MyFridgeViewProps) {
           />
           <FridgeInventoryGrid
             items={filteredItems}
+            isPending={fridgeItemsPending}
+            isError={fridgeItemsError}
             selectedIds={selectedIds}
             onToggleItem={handleToggleItem}
             onRefill={handleRefill}
@@ -174,7 +232,7 @@ export function MyFridgeView({ initialTab }: MyFridgeViewProps) {
           />
         </>
       ) : (
-        <p className="text-body-m text-fg-tertiary p-8 text-center">MY 레시피 (구현 예정)</p>
+        <MyRecipeViewContainer />
       )}
 
       <FridgeRefillBottomSheet

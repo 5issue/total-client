@@ -11,5 +11,10 @@ data:
   #    이 ConfigMap 은 "서버 런타임에서만 읽는" 값에 사용한다.
   API_INTERNAL_URL: "http://api-internal.default.svc.cluster.local"
 
+  # AI 파트 서빙(FastAPI, Spring과 별도 호스트) 내부 URL. 시크릿이 아니다(FE-10) —
+  # 값이 없으면 readServerEnv() 전체 검증이 실패해 API_INTERNAL_URL 을 쓰는 기존
+  # Spring 프록시 Route Handler 까지 함께 실패한다(코드래빗 리뷰).
+  AI_SERVICE_INTERNAL_URL: "http://ai-internal.default.svc.cluster.local"
+
   # 참고용(서버 로깅/분기용). 브라우저 인라인 값은 빌드 타임 것이 최종.
   NEXT_PUBLIC_APP_ENV: "production"

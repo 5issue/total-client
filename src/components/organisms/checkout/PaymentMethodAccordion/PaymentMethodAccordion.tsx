@@ -9,7 +9,7 @@ import { Logo } from '@/components/atoms/Logo/Logo';
 import { Radio } from '@/components/atoms/Radio';
 import { PaymentBenefitNotice } from '@/components/molecules/checkout/PaymentBenefitNotice';
 import { PaymentMethodButton } from '@/components/molecules/checkout/PaymentMethodButton';
-import { Dropdown } from '@/components/molecules/shared/Dropdown';
+import { BottomSheet } from '@/components/molecules/shared/BottomSheet';
 import { Modal } from '@/components/molecules/shared/Modal';
 import { StatusLabel } from '@/components/molecules/shared/StatusLabel';
 import type { OtherPaymentMethodId, PaymentMethodId } from '@/components/organisms/checkout/model';
@@ -25,9 +25,10 @@ import type { OtherPaymentMethodId, PaymentMethodId } from '@/components/organis
  *
  * "다른 결제수단" 선택 시에만 2차 라디오그룹(`PaymentMethodButton`, 이미 role="radio" 버튼)이
  * 펼쳐진다 — 신용카드/휴대폰/토스페이/카카오페이/PAYCO. 신용카드를 고르면 카드사 선택
- * 드롭다운이 더 나온다(Figma node 666-22997/666-23167 — 할부가 아니라 카드사 선택이었다,
- * placeholder "카드를 선택해 주세요"). 카드사 목록은 Figma 바텀시트(node 666-23167)
- * 실측 20개 그대로.
+ * 트리거가 더 나온다(Figma node 666-22997/666-23167 — 할부가 아니라 카드사 선택이었다,
+ * placeholder "카드를 선택해 주세요"). 카드사 20개는 `Dropdown` 이 아니라 `BottomSheet`
+ * 로 띄운다(Figma node 666-23167 자체가 바텀시트 — PR #95 리뷰에서 지적된 부분, 이슈 #100).
+ * `RefundReasonView` 의 반품 사유 선택 시트와 같은 트리거+시트 패턴.
  *
  * 컬리캐시 충전결제의 케이뱅크 그라디언트 뱃지·리스트 각 행의 "혜택" 태그·배송지의
  * "기본배송지" 필은 전부 `StatusLabel`(kbank/rewards/defaultAddress) 재사용 — 새로 안 만든다.
@@ -154,6 +155,10 @@ export function PaymentMethodAccordion({
   // node 666-24169: "컬리캐시 충전결제란?" 안내 모달 — 정보 아이콘 전용, 라디오 선택과는
   // 별개 동작이라 이 컴포넌트 로컬 state 로 둔다(CheckoutView 로 끌어올릴 이유 없음).
   const [chargeInfoOpen, setChargeInfoOpen] = useState(false);
+  // 카드사 선택 시트(node 666-23167) — 선택과 동시에 닫힌다(반품 사유 시트와 달리 이후
+  // 입력할 추가 필드가 없어 열어둘 이유가 없다).
+  const [cardSheetOpen, setCardSheetOpen] = useState(false);
+  const selectedCardIssuer = CARD_ISSUER_OPTIONS.find((option) => option.value === cardIssuer);
 
   return (
     <div className={['flex flex-col pb-5', className].filter(Boolean).join(' ')}>
@@ -346,20 +351,27 @@ export function PaymentMethodAccordion({
             {otherMethod === 'card' ? (
               <>
                 <hr className="border-border" />
-                {/* `Dropdown` variant="box" 는 rounded-sm(4px) 이 자체 클래스에 박혀있는데
-                    Figma 실측(node 666-23365)은 radius/l(12px) — `rounded-lg!` 로 확실히
-                    덮어쓴다(className 병합 순서에 기대지 않는 안전한 방법). `min-h-12` 는
-                    이전 라운드에 요청받은 높이 보정, 그대로 유지. */}
-                <Dropdown
-                  label="카드사"
-                  variant="box"
-                  block
-                  placeholder="카드를 선택해 주세요"
-                  options={CARD_ISSUER_OPTIONS}
-                  value={cardIssuer}
-                  onChange={onCardIssuerChange}
-                  className="min-h-12 rounded-lg!"
-                />
+                {/* Figma 실측(node 666-23365) radius/l(12px), 높이는 이전 라운드에 요청받은
+                    min-h-12 보정 — 트리거 자체 외형은 기존 Dropdown box 와 동일하게 유지하고
+                    펼치는 방식만 바텀시트로 바꾼다. */}
+                <button
+                  type="button"
+                  aria-haspopup="dialog"
+                  aria-expanded={cardSheetOpen}
+                  onClick={() => setCardSheetOpen(true)}
+                  className="border-border flex min-h-12 w-full items-center justify-between rounded-lg border py-1 pr-3 pl-4"
+                >
+                  <span
+                    className={
+                      selectedCardIssuer
+                        ? 'text-heading-5 text-fg min-w-0 truncate'
+                        : 'text-heading-5 text-fg-secondary min-w-0 truncate'
+                    }
+                  >
+                    {selectedCardIssuer ? selectedCardIssuer.label : '카드를 선택해 주세요'}
+                  </span>
+                  <Icon name="arrow-down" size={20} className="shrink-0" aria-hidden />
+                </button>
               </>
             ) : null}
           </div>
@@ -422,6 +434,48 @@ export function PaymentMethodAccordion({
           </li>
         </ul>
       </Modal>
+
+      <BottomSheet
+        open={cardSheetOpen}
+        onClose={() => setCardSheetOpen(false)}
+        ariaLabel="카드사를 선택해주세요"
+      >
+        <div className="flex flex-col">
+          <h2 className="text-heading-2 text-fg flex h-10 items-center px-4">
+            카드사를 선택해주세요
+          </h2>
+          <fieldset className="mt-5 flex flex-col gap-3 pb-4">
+            <legend className="sr-only">카드사</legend>
+            {CARD_ISSUER_OPTIONS.map((option) => {
+              const inputId = `card-issuer-${option.value}`;
+              return (
+                <div key={option.value} className="flex h-10 items-center gap-0.5 px-4">
+                  <Radio
+                    id={inputId}
+                    tone="black"
+                    name="card-issuer"
+                    value={option.value}
+                    label={option.label}
+                    checked={cardIssuer === option.value}
+                    className="size-10"
+                    onChange={() => {
+                      onCardIssuerChange(option.value);
+                      setCardSheetOpen(false);
+                    }}
+                  />
+                  <label
+                    htmlFor={inputId}
+                    aria-hidden
+                    className="text-heading-2 text-fg cursor-pointer"
+                  >
+                    {option.label}
+                  </label>
+                </div>
+              );
+            })}
+          </fieldset>
+        </div>
+      </BottomSheet>
     </div>
   );
 }

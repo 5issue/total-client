@@ -36,14 +36,6 @@ export const AuthUserSchema = z.object({
 });
 export type AuthUser = z.infer<typeof AuthUserSchema>;
 
-/** `POST /api/v1/auth/oauth/{provider}/callback` 성공 응답의 data. */
-export const SpringOAuthCallbackDataSchema = z.object({
-  accessToken: z.string(),
-  expiresIn: z.number(),
-  user: AuthUserSchema,
-});
-export type SpringOAuthCallbackData = z.infer<typeof SpringOAuthCallbackDataSchema>;
-
 /** `POST /api/v1/auth/refresh` 성공 응답의 data. */
 export const SpringRefreshDataSchema = z.object({
   accessToken: z.string(),

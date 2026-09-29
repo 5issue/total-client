@@ -18,15 +18,24 @@ import { z } from 'zod';
 const clientSchema = z.object({
   NEXT_PUBLIC_API_URL: z.string().url(),
   NEXT_PUBLIC_APP_ENV: z.enum(['local', 'development', 'staging', 'production']),
+  /** 토스페이먼츠 API 개별 연동 클라이언트 키(`test_ck_`/`live_ck_`) — 반드시 이 타입이어야 한다.
+   * 위젯 키(`test_gck_`)를 넣으면 `requestTossCheckoutPayment` 가 토스 결제위젯(자체 결제수단
+   * 선택 UI 포함)으로 빠져 우리 자체 그리드와 중복 렌더된다(`requestTossPayment.ts` 참고).
+   * 시크릿 키가 아니다(FE-10). */
+  NEXT_PUBLIC_TOSS_CLIENT_KEY: z.string().min(1),
 });
 
 const serverSchema = z.object({
   API_INTERNAL_URL: z.string().url(),
+  /** AI 파트 서빙(FastAPI, 별도 호스트) 내부 URL — Spring 과 다른 백엔드다(AI 파트 API
+   * 명세 v0.3 §02). 로컬은 AI 레포 `docker run` 안내대로 8000 포트. */
+  AI_SERVICE_INTERNAL_URL: z.string().url(),
 });
 
 const clientParsed = clientSchema.safeParse({
   NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   NEXT_PUBLIC_APP_ENV: process.env.NEXT_PUBLIC_APP_ENV,
+  NEXT_PUBLIC_TOSS_CLIENT_KEY: process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY,
 });
 
 if (!clientParsed.success) {
@@ -53,6 +62,7 @@ function readServerEnv(): z.infer<typeof serverSchema> {
 
   const serverParsed = serverSchema.safeParse({
     API_INTERNAL_URL: process.env.API_INTERNAL_URL,
+    AI_SERVICE_INTERNAL_URL: process.env.AI_SERVICE_INTERNAL_URL,
   });
   if (!serverParsed.success) {
     throw new Error(
@@ -70,6 +80,10 @@ export const env = {
   /** 서버 전용. 첫 접근 시 검증하고 메모이즈한다. 브라우저에서 접근하면 throw. */
   get API_INTERNAL_URL(): string {
     return readServerEnv().API_INTERNAL_URL;
+  },
+  /** 서버 전용. AI 파트 서빙(FastAPI) 내부 URL. */
+  get AI_SERVICE_INTERNAL_URL(): string {
+    return readServerEnv().AI_SERVICE_INTERNAL_URL;
   },
 } as const;
 

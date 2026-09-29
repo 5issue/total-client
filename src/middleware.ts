@@ -11,10 +11,11 @@ import { type NextRequest, NextResponse } from 'next/server';
 const REFRESH_TOKEN_COOKIE = 'refresh_token';
 
 /**
- * 임시(#86): 소셜 로그인이 배포 환경(Vercel Preview 등)에서 아직 엔드투엔드로 검증되지
- * 않아, 그 전까지 보호 라우트 가드를 전부 비활성화한다 — 리뷰어·팀원이 로그인 없이
- * `/checkout`, `/mypage/**` 화면을 볼 수 있어야 하기 때문. 배포 환경에서 소셜 로그인이
- * 실제로 동작하는 걸 확인하면 이 상수만 지우면 아래 원래 가드 로직이 그대로 복원된다.
+ * 임시(#113 PR 리뷰): Vercel Preview 는 실제 백엔드 세션이 없어 `refresh_token` 쿠키가
+ * 절대 안 생기므로, 가드가 켜져 있으면 리뷰어가 `/mypage/**` UI 자체를 볼 수 없다(항상
+ * `/login` 으로 튕김) — 백엔드가 붙은 로컬/스테이징에서만 리뷰가 가능해지는 문제.
+ * PR #113(#86 와 같은 패턴) 리뷰 기간에만 켜 두고, 리뷰 끝나면 이 상수만 지우면 아래
+ * 원래 가드 로직이 그대로 복원된다.
  */
 const ROUTE_GUARD_DISABLED = true;
 
@@ -33,5 +34,13 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/checkout/:path*', '/mypage/:path*'],
+  matcher: [
+    // 파일 확장자로 끝나는 요청(정적 자산)은 제외한다 — `public/mypage/*.png` 가
+    // 라우트 `/mypage/...` 와 경로가 겹쳐, 제외 없이는 next/image 최적화 요청까지
+    // 이 가드에 걸려 /login 으로 리다이렉트되고 "not a valid image" 400 이 난다.
+    '/checkout',
+    '/checkout/((?!.*\\.[a-zA-Z0-9]+$).*)',
+    '/mypage',
+    '/mypage/((?!.*\\.[a-zA-Z0-9]+$).*)',
+  ],
 };

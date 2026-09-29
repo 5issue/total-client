@@ -57,7 +57,11 @@ export function Input({
 
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={inputId} className={labelVisible ? 'text-label-l text-fg' : 'sr-only'}>
+      {/* 피드백(Figma QA #129): 라벨 색이 진해 보인다는 지적 — text-fg 대신 text-fg-secondary. */}
+      <label
+        htmlFor={inputId}
+        className={labelVisible ? 'text-label-l text-fg-secondary' : 'sr-only'}
+      >
         {label}
       </label>
 

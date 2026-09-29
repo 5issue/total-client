@@ -24,7 +24,8 @@ export function SwipeTabShell({
   children: ReactNode;
   className?: string;
 }) {
-  const swipeHandlers = useSwipeTabNavigation(NAV_ITEMS);
+  // 비활성 탭(이슈 #129)은 스와이프 전환 대상에서도 제외 — 안 그러면 삭제된 페이지로 넘어간다.
+  const swipeHandlers = useSwipeTabNavigation(NAV_ITEMS.filter((item) => !item.disabled));
 
   return (
     <div className={`touch-pan-y ${className ?? ''}`.trim()} {...swipeHandlers}>

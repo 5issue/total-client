@@ -6,8 +6,10 @@ import { AddToCartActions } from '@/components/molecules/product/AddToCartAction
 import { CartItemPreview } from '@/components/molecules/product/CartItemPreview';
 import { CartQuantityRow } from '@/components/molecules/product/CartQuantityRow';
 import { BottomSheet } from '@/components/molecules/shared/BottomSheet';
+import { formatPrice } from '@/lib/formatters';
+import type { ProductUnit } from '@/types/product';
 
-import { MOCK_ADD_TO_CART_PRODUCT, MOCK_ADD_TO_CART_PROMOTION } from './mock';
+import { MOCK_ADD_TO_CART_PROMOTION } from './mock';
 
 /**
  * 장바구니 담기 바텀시트 (organism). Figma `BottomSheet`(node 2888:2738) —
@@ -18,24 +20,44 @@ import { MOCK_ADD_TO_CART_PRODUCT, MOCK_ADD_TO_CART_PROMOTION } from './mock';
  * Figma 원본대로 2개 — 두 번째는 `footer` 슬롯 맨 위에 둬서, 본문이 길어져
  * 스크롤돼도 CTA 경계선은 고정 영역에 남게 한다.
  *
- * 어떤 카드의 "담기"를 눌러도 `mock.ts`의 대표 상품(Figma 예시 "연세우유")으로
- * 고정 렌더한다 — 클릭한 상품별 데이터 연동은 API 연동 단계 몫. 수량 조절은
- * 로컬 state로 실제 동작하지만, 장바구니 담기/신선구독/찜은 뮤테이션 API가 아직
- * 없어 실제 담기는 없다 — "담기" 클릭 시 시트를 닫고 `onAddToCart` 로 성공을 알린다
- * (호출부가 `CartAddedProductsBottomSheet` 를 잇달아 여는 데 쓴다, node 665:43409).
+ * 수량 조절은 로컬 state로 실제 동작하지만, 장바구니 담기/신선구독/찜은 뮤테이션
+ * API가 아직 없어 실제 담기는 없다 — "담기" 클릭 시 시트를 닫고 `onAddToCart` 로
+ * 성공을 알린다(호출부가 `CartAddedProductsBottomSheet` 를 잇달아 여는 데 쓴다,
+ * node 665:43409).
+ *
+ * `unit`(이슈 #134) — 상품 상세 응답의 SKU가 정확히 1개일 때 셸이 이 시트를 연다(2개
+ * 이상이면 `MultiOptionSelectBottomSheet`). 홈 화면처럼 어떤 카드를 눌렀는지 아직 알 수
+ * 없는 호출부는 `mock.ts` 픽스처를 그대로 넘긴다. 단위가(`unitPriceLabel`)는 계약에
+ * 없어 렌더하지 않는다. `unit.status === 'SOLDOUT'`이면 담기를 막는다(코드래빗 리뷰
+ * 반영 — 상품은 SALE이어도 유일한 unit이 품절일 수 있다).
  */
 export type ProductOptionSheetProps = {
   open: boolean;
   onClose: () => void;
   /** 담기 성공 직후(시트가 닫히는 시점) 호출 — 완료 시트 등 다음 단계 트리거용. */
   onAddToCart?: () => void;
+  productName: string;
+  productTagline: string;
+  productImageSrc?: string;
+  unit: ProductUnit;
 };
 
-export function ProductOptionSheet({ open, onClose, onAddToCart }: ProductOptionSheetProps) {
+export function ProductOptionSheet({
+  open,
+  onClose,
+  onAddToCart,
+  productName,
+  productTagline,
+  productImageSrc,
+  unit,
+}: ProductOptionSheetProps) {
   const [quantity, setQuantity] = useState(1);
   const [liked, setLiked] = useState(false);
+  const hasDiscount = unit.price !== unit.salePrice;
+  const isSoldOut = unit.status === 'SOLDOUT';
 
   function handleAddToCart() {
+    if (isSoldOut) return;
     onClose();
     onAddToCart?.();
   }
@@ -55,14 +77,16 @@ export function ProductOptionSheet({ open, onClose, onAddToCart }: ProductOption
             liked={liked}
             onToggleLike={() => setLiked((prev) => !prev)}
             onAddToCart={handleAddToCart}
+            addToCartDisabled={isSoldOut}
           />
         </>
       }
     >
       <CartItemPreview
+        imageSrc={productImageSrc}
         imageAlt=""
-        name={MOCK_ADD_TO_CART_PRODUCT.name}
-        tagline={MOCK_ADD_TO_CART_PRODUCT.tagline}
+        name={productName}
+        tagline={productTagline}
       />
       {/* mt-3: OptionSelectBottomSheet(node 665:43255)는 직계 자식 전부를 gap-s(12px)로
           쌓는데, 이 구분선 앞에서만 그 12px이 비어 있었다(실측 재확인, 버그) —
@@ -70,12 +94,12 @@ export function ProductOptionSheet({ open, onClose, onAddToCart }: ProductOption
       <div className="border-border mx-4 mt-3 border-t" />
       <div className="px-4 py-3">
         <CartQuantityRow
-          name={MOCK_ADD_TO_CART_PRODUCT.name}
-          priceLabel={MOCK_ADD_TO_CART_PRODUCT.priceLabel}
-          originalPriceLabel={MOCK_ADD_TO_CART_PRODUCT.originalPriceLabel}
-          unitPriceLabel={MOCK_ADD_TO_CART_PRODUCT.unitPriceLabel}
+          name={isSoldOut ? `${unit.name} (품절)` : unit.name}
+          priceLabel={formatPrice(unit.salePrice)}
+          originalPriceLabel={hasDiscount ? formatPrice(unit.price) : undefined}
           quantity={quantity}
           onQuantityChange={setQuantity}
+          disabled={isSoldOut}
         />
       </div>
     </BottomSheet>

@@ -33,6 +33,8 @@ export type CartQuantityRowProps = {
   /** 기본 1(담기 시트 — 0개를 담을 순 없다). 다중 옵션 시트(node 665:43562)처럼 옵션별
    *  수량이 미선택(0)에서 시작해야 하면 0으로 넘긴다. */
   min?: number;
+  /** true 면 품절 등으로 이 옵션을 선택할 수 없다 — 스테퍼를 잠그고 옅게 표시한다. */
+  disabled?: boolean;
   className?: string;
 };
 
@@ -45,6 +47,7 @@ export function CartQuantityRow({
   quantity,
   onQuantityChange,
   min = 1,
+  disabled = false,
   className,
 }: CartQuantityRowProps) {
   return (
@@ -52,7 +55,9 @@ export function CartQuantityRow({
     // 명시하지 않은 뱃지가 행 전체 폭으로 늘어난다(ProductCard 의 Kurly Only 뱃지와
     // 같은 함정, 다중 옵션 시트 QA 중 발견).
     <div
-      className={['flex w-full flex-col items-start gap-1', className].filter(Boolean).join(' ')}
+      className={['flex w-full flex-col items-start gap-1', disabled ? 'opacity-50' : '', className]
+        .filter(Boolean)
+        .join(' ')}
     >
       {badgeLabel ? (
         <span className="bg-cyan inline-flex h-4.5 shrink-0 items-center justify-center rounded-sm px-2">
@@ -73,6 +78,7 @@ export function CartQuantityRow({
           value={quantity}
           onChange={onQuantityChange}
           min={min}
+          disabled={disabled}
           label={`${name} 수량`}
         />
       </div>

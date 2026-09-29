@@ -1,19 +1,43 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { expect, userEvent, within } from 'storybook/test';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { expect, fn, userEvent, within } from 'storybook/test';
 
+import { MOCK_FRIDGE_ITEMS } from './mock';
 import { MyFridgeView } from './MyFridgeView';
+
+// "MY 레시피" 탭이 실제 쿼리 훅을 쓰는 `MyRecipeViewContainer`를 렌더해서
+// QueryClientProvider 없이는 throw 한다(`SocialLoginPanel.stories.tsx`와 동일 이유).
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
 
 const meta = {
   title: 'organisms/mypage/MyFridgeView',
   component: MyFridgeView,
   tags: ['autodocs'],
-  args: { initialTab: 'fridge' },
+  // `fridgeItems` 등은 실제로는 `MyFridgeViewContainer`(이슈 #138)가 `useFridgeItems`로
+  // 공급한다 — 이 표현 컴포넌트는 네트워크 없이 목값을 직접 받는다(#90 `ProductGrid`와
+  // 동일한 컨테이너/표현 분리, api-convention §8).
+  args: {
+    initialTab: 'fridge',
+    fridgeItems: MOCK_FRIDGE_ITEMS,
+    fridgeItemsPending: false,
+    fridgeItemsError: false,
+    onDeleteItems: fn(),
+  },
   argTypes: {
     initialTab: {
       control: 'select',
       options: ['fridge', 'recipe'],
     },
   },
+  decorators: [
+    (Story) => (
+      <QueryClientProvider client={queryClient}>
+        <Story />
+      </QueryClientProvider>
+    ),
+  ],
   parameters: {
     layout: 'fullscreen',
     nextjs: { appDirectory: true, navigation: { pathname: '/mypage/fridge' } },
@@ -25,12 +49,30 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-export const RecipeTabStub: Story = {
-  name: 'MY 레시피 탭(스텁)',
+export const Loading: Story = {
+  name: '불러오는 중',
+  args: { fridgeItemsPending: true },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText('냉장고 품목을 불러오는 중이에요')).toBeInTheDocument();
+  },
+};
+
+export const LoadError: Story = {
+  name: '불러오기 실패',
+  args: { fridgeItemsError: true },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText('상품을 불러오지 못했어요')).toBeInTheDocument();
+  },
+};
+
+export const RecipeTab: Story = {
+  name: 'MY 레시피 탭',
   args: { initialTab: 'recipe' },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByText('MY 레시피 (구현 예정)')).toBeInTheDocument();
+    await expect(canvas.getByText('최근 본 레시피')).toBeInTheDocument();
   },
 };
 
@@ -41,7 +83,13 @@ export const SwitchToRecipeTab: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole('tab', { name: 'MY 레시피' }));
-    await expect(canvas.getByText('MY 레시피 (구현 예정)')).toBeInTheDocument();
+    // 탭 전환 순간엔 "MY 레시피 제작 중" 로딩(mock 딜레이)을 먼저 거친다 — 실제
+    // 콘텐츠는 findByText 로 그 딜레이가 끝나길 기다렸다가 확인한다.
+    await expect(canvas.getByText('MY 레시피 제작 중')).toBeInTheDocument();
+    // mock 딜레이(1200ms)보다 여유 있게 기다린다 — findByText 기본 타임아웃(1000ms)보다 길다.
+    await expect(
+      await canvas.findByText('최근 본 레시피', {}, { timeout: 3000 }),
+    ).toBeInTheDocument();
   },
 };
 
@@ -61,7 +109,7 @@ export const FilterByExpired: Story = {
 
 export const SelectAndDeleteItem: Story = {
   tags: ['!autodocs'],
-  play: async ({ canvasElement }) => {
+  play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
     // index 0 = 전체선택, index 1 = 첫 카드(우유) — 접근 가능한 이름 정규식 매칭이
     // 이 테스트 환경에서 불안정해 순서로 집는다.
@@ -78,7 +126,9 @@ export const SelectAndDeleteItem: Story = {
     await expect(
       within(canvasElement.ownerDocument.body).queryByRole('dialog'),
     ).not.toBeInTheDocument();
-    await expect(canvas.queryByText(/전용목장우유/, { selector: 'p' })).not.toBeInTheDocument();
+    // 목록에서 즉시 사라지는지가 아니라(그건 컨테이너의 invalidate 이후 몫, #138 컨테이너
+    // 분리) 올바른 품목으로 `onDeleteItems`가 호출됐는지를 이 표현 컴포넌트 레벨에서 검증한다.
+    await expect(args.onDeleteItems).toHaveBeenCalledWith(['milk']);
   },
 };
 

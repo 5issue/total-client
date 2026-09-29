@@ -44,9 +44,10 @@ export const SwipeAnywhereToNextTab: Story = {
     fireEvent.touchEnd(content, { changedTouches: [touch(295, 100)] });
     await expect(getRouter().push).not.toHaveBeenCalled();
 
-    // 왼쪽 스와이프 — 홈(index 0) 다음인 라운지로 이동해야 한다.
+    // 왼쪽 스와이프 — 홈(index 0) 다음 탭으로 이동해야 한다. 라운지·카테고리는
+    // 비활성 탭이라(이슈 #129) 스와이프 대상에서 제외되므로, 다음은 검색이다.
     fireEvent.touchStart(content, { touches: [touch(300, 100)] });
     fireEvent.touchEnd(content, { changedTouches: [touch(200, 100)] });
-    await expect(getRouter().push).toHaveBeenCalledWith('/lounge');
+    await expect(getRouter().push).toHaveBeenCalledWith('/search');
   },
 };
