@@ -117,7 +117,9 @@ const SpringProductSummarySchema = z.object({
   discountRate: z.number().int(),
   /** 찜(좋아요) 수. 우리 `ProductSchema.reviewCount`(리뷰 수)와 다른 지표 — 대응 없음. */
   likeCount: z.number().int(),
-  thumbnailUrl: z.string(),
+  /** product_media 가 없는 상품은 실서버도 null 을 준다(TypeSpec 문서엔 없던 케이스, 실응답으로
+   * 확인) — `mapSpringProductListResponse`에서 플레이스홀더로 치환한다. */
+  thumbnailUrl: z.string().nullable(),
 });
 
 const SpringSliceResponseSchema = z.object({
@@ -143,6 +145,8 @@ export const SpringProductListDataSchema = SpringSliceResponseSchema;
 const MOCK_REVIEW_COUNT = 9999;
 const MOCK_COUPON_BADGE_LABEL = '+25%쿠폰';
 const MOCK_DELIVERY_TYPE = '샛별배송';
+/** product_media 가 없는 상품(실서버 thumbnailUrl: null)에 쓰는 중립 플레이스홀더. */
+const THUMBNAIL_FALLBACK = '/placeholders/product-thumbnail.webp';
 
 export function mapSpringProductListResponse(
   raw: z.infer<typeof SpringSliceResponseSchema>,
@@ -153,18 +157,18 @@ export function mapSpringProductListResponse(
       // Spring은 brand/name을 분리해서 주지만 우리 카드(SearchResultProductCard)는
       // 이름 한 줄만 표시한다 — 기존 Figma 목업(#90)의 "[브랜드] 상품명" 표기를 유지.
       name: `[${p.brand}] ${p.name}`,
-      thumbnailUrl: p.thumbnailUrl,
+      thumbnailUrl: p.thumbnailUrl ?? THUMBNAIL_FALLBACK,
       price: p.salePrice,
       originalPrice: p.price !== p.salePrice ? p.price : null,
       discountRate: p.discountRate || null,
       reviewCount: MOCK_REVIEW_COUNT,
       couponBadgeLabel: MOCK_COUPON_BADGE_LABEL,
       deliveryType: MOCK_DELIVERY_TYPE,
-      // 백엔드 미구현. 검색 결과의 "Kurly Only" 퀵필터 칩(`useProducts.filterProducts`)이
-      // 실제로 이 값으로 걸러내기 때문에 전부 false로 두면 그 필터가 토글할 때마다 결과 0개가
-      // 되어버린다 — id 기반으로 갈라서 필터 데모가 계속 동작하게 둔다. 실제 상품별 Kurly
-      // Only 여부는 백엔드가 필드를 추가하기 전까지는 알 수 없다(허구 데이터).
-      kurlyOnly: p.id % 2 === 0,
+      // 백엔드 미구현(실제 상품별 여부를 알 방법이 없다). 이 매퍼는 실백엔드 응답에도 그대로
+      // 쓰이므로 id 같은 임의 기준으로 true를 만들어내면 안 된다(코드래빗 리뷰) — 검색 결과의
+      // "Kurly Only" 퀵필터 칩(`useProducts.filterProducts`)을 토글하면 0개가 되는 건 기존과
+      // 동일(§멤버스혜택과 같은 이유) — 새 회귀 아님.
+      kurlyOnly: false,
       // 백엔드 미구현. 필터 칩은 있지만(§멤버스혜택) 원래 #90 목업도 전부 false라
       // 토글하면 0개가 되는 건 기존과 동일 — 새 회귀 아님.
       membershipBenefit: false,

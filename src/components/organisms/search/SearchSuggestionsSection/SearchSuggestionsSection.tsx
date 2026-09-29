@@ -53,8 +53,9 @@ export function SearchSuggestionsSection({
 }: SearchSuggestionsSectionProps) {
   const { addKeyword } = useRecentSearches();
   const debouncedQuery = useDebouncedValue(query, AUTOCOMPLETE_DEBOUNCE_MS);
-  const { data, isPending } = useProductAutocomplete(debouncedQuery);
+  const { data, isPending, isError } = useProductAutocomplete(debouncedQuery);
   const suggestions = data?.suggestions ?? [];
+  const isSettled = debouncedQuery === query;
 
   if (!query.trim()) return null;
 
@@ -82,9 +83,13 @@ export function SearchSuggestionsSection({
         </>
       ) : null}
 
-      {/* 디바운스 대기 중엔 직전 목록을 그대로 보여주고, 실제 요청이 뜬 뒤 로딩일 때만
-          문구로 바꾼다 — 안 그러면 한 글자 칠 때마다 목록이 깜빡인다. */}
-      {isPending && debouncedQuery === query ? (
+      {/*
+        디바운스가 아직 안 끝났으면(직전 검색어 결과라 지금 입력과 안 맞음) 아무것도 안
+        보여준다 — settle 된 뒤에만 로딩/목록을 그린다. 실패(`isError`)도 "결과 없음"으로
+        보여주지 않는다 — Figma에 에러 상태가 따로 없어 새 문구를 만드는 대신 아무것도
+        렌더링하지 않는다(둘 다 코드래빗 리뷰).
+      */}
+      {!isSettled || isError ? null : isPending ? (
         <p className="text-label-m text-fg-tertiary px-4 py-6">불러오는 중이에요.</p>
       ) : (
         <ul className="flex flex-col py-1">

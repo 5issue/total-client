@@ -317,7 +317,7 @@ function BrandPanel({
           <CheckboxRow
             key={brand.value}
             label={brand.label}
-            trailing={String(brand.count)}
+            trailing={brand.count != null ? String(brand.count) : undefined}
             checked={selected === brand.value}
             onChange={() => onSelect(brand.value)}
           />
@@ -397,12 +397,18 @@ function FilterFooter({
   hasSelection,
   onReset,
   resultCount,
+  isResultCountPending,
+  isResultCountError,
   onSubmit,
 }: {
   chips: SelectedChip[];
   hasSelection: boolean;
   onReset: () => void;
   resultCount: number;
+  /** 선택을 미리 반영한 결과 개수(`previewCount`) 조회 상태 — 로딩/실패 중엔 그 값이 아직
+   * 신뢰할 수 없으므로(코드래빗 리뷰) 버튼에 숫자 대신 상태를 보여준다. */
+  isResultCountPending: boolean;
+  isResultCountError: boolean;
   onSubmit: () => void;
 }) {
   return (
@@ -443,7 +449,11 @@ function FilterFooter({
           onClick={onSubmit}
           className="bg-primary text-fg-inverse text-heading-1 rounded-m flex h-14 flex-1 items-center justify-center gap-1 px-1 py-2"
         >
-          {resultCount}개 상품보기
+          {isResultCountPending
+            ? '불러오는 중...'
+            : isResultCountError
+              ? '상품보기'
+              : `${resultCount}개 상품보기`}
         </button>
       </div>
     </div>
@@ -525,7 +535,11 @@ export function FilterSheet({
   // 그대로 재사용한다 — 열자마자 다시 fetch 하지 않는다. Kurly Only/쿠폰/멤버스혜택 퀵필터는
   // 서버가 모르는 클라 전용 필터라 여기서도 같은 `filterProducts`로 한 번 더 걸러야 상위
   // `resultCount`(초기값)와 정확히 맞는다.
-  const { data: previewData } = useProducts({
+  const {
+    data: previewData,
+    isPending: isPreviewPending,
+    isError: isPreviewError,
+  } = useProducts({
     query: keyword,
     sort,
     brand: pendingBrand,
@@ -656,6 +670,8 @@ export function FilterSheet({
           hasSelection={hasSelection}
           onReset={resetAll}
           resultCount={previewCount}
+          isResultCountPending={isPreviewPending}
+          isResultCountError={isPreviewError}
           onSubmit={handleSubmit}
         />
       }
