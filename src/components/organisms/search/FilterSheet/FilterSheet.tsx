@@ -565,6 +565,10 @@ export function FilterSheet({
   }
 
   const priceLabel = priceOptions.find((r) => r.value === priceSelection)?.label;
+  /** 브랜드도 값(전송용)과 라벨이 다를 수 있어 칩 요약 시 라벨로 되돌린다(코드래빗 리뷰). */
+  const brandLabel = selectedBrand
+    ? (brandOptions.find((o) => o.value === selectedBrand)?.label ?? selectedBrand)
+    : null;
   /** 유형은 라벨 대신 백엔드 enum 값을 저장하므로 칩 요약 시 라벨로 되돌린다(#128). */
   const storageTypeLabel = selectedStorageType
     ? (storageTypeOptions.find((o) => o.value === selectedStorageType)?.label ??
@@ -593,11 +597,11 @@ export function FilterSheet({
     ...(priceLabel
       ? [{ key: 'price', label: priceLabel, onRemove: () => setPriceSelection(null) }]
       : []),
-    ...(selectedBrand
+    ...(brandLabel
       ? [
           {
             key: `brand-${selectedBrand}`,
-            label: selectedBrand,
+            label: brandLabel,
             onRemove: () => setSelectedBrand(null),
           },
         ]
