@@ -6,9 +6,10 @@ import { AddToCartActions } from '@/components/molecules/product/AddToCartAction
 import { CartItemPreview } from '@/components/molecules/product/CartItemPreview';
 import { CartQuantityRow } from '@/components/molecules/product/CartQuantityRow';
 import { BottomSheet } from '@/components/molecules/shared/BottomSheet';
-import { MembershipPromotionModal } from '@/components/organisms/product/MembershipPromotionModal';
+import { formatPrice } from '@/lib/formatters';
+import type { ProductUnit } from '@/types/product';
 
-import { MOCK_MULTI_OPTION_PRODUCT, MOCK_MULTI_OPTION_PROMOTION, MOCK_MULTI_OPTIONS } from './mock';
+import { MOCK_MULTI_OPTION_PROMOTION } from './mock';
 
 /**
  * 다중 옵션 상품의 수량/옵션 선택 바텀시트 (organism). Figma "5팀 UI 공유용"
@@ -17,37 +18,47 @@ import { MOCK_MULTI_OPTION_PRODUCT, MOCK_MULTI_OPTION_PROMOTION, MOCK_MULTI_OPTI
  * `ProductOptionSheet`(단일 옵션)와 셸은 동일(`BottomSheet` + `CartItemPreview` +
  * `AddToCartActions`)하되, 옵션 줄마다 `CartQuantityRow`를 반복하고(`min={0}` — 옵션은
  * 미선택 상태로 시작할 수 있다, 단일 상품 담기와 달리 "0개"가 유효한 초기값) 옵션 사이에도
- * 구분선이 들어간다. 옵션에 `badgeLabel="멤버스"`(멤버십 전용 옵션 표시).
- *
- * `badgeLabel`(멤버스)이 붙은 옵션은 수량을 늘리려는 시도(+ 클릭) 자체를 가로채
- * `MembershipPromotionModal` 을 띄운다 — 실제 증가는 커밋하지 않는다(가입 전까지는
- * 멤버스 전용 옵션을 담을 수 없다는 뜻). 감소/일반 옵션 증가는 그대로 통과.
- * (사용자 확인 2026-09-16: 일반 상품→단일 옵션 시트, 멤버스특가 상품→이 다중 옵션
- * 시트, 그 안에서 멤버스 옵션 + 클릭 시 가입 모달.)
+ * 구분선이 들어간다.
  *
  * 모든 옵션이 `min={0}`이라 초기 수량 합계는 0이다 — 아무것도 선택 안 한 채 CTA를
  * 누르면 빈 담기 완료 흐름이 시작되지 않도록 수량 합계가 1 이상일 때만 담기를
  * 허용하고, 그 전에는 버튼을 비활성화한다.
+ *
+ * `units`(이슈 #134) — product-service 상세 응답의 SKU 목록을 그대로 옵션으로 그린다.
+ * 계약에 멤버십 전용 옵션 여부·단위가(`unitPriceLabel`) 필드가 없어, 이전에 있던
+ * "멤버스" 뱃지 + 가입 유도 모달(`MembershipPromotionModal`) 분기는 뗐다 — 그 필드가
+ * 생기면 옵션별로 다시 판단해 되살리면 된다.
+ *
+ * `status === 'SOLDOUT'`인 옵션은 `CartQuantityRow`를 비활성 상태로 그려 수량을 못
+ * 바꾸게 막고, 합계(`totalQuantity`)에서도 제외한다(코드래빗 리뷰 반영) — `HIDDEN`은
+ * 별도 취급 규칙이 저장소에 없어 이번 변경에서 새로 정의하지 않는다(SALE과 동일 취급).
  */
 export type MultiOptionSelectBottomSheetProps = {
   open: boolean;
   onClose: () => void;
   /** 담기 성공 직후(시트가 닫히는 시점) 호출 — 완료 시트 등 다음 단계 트리거용. */
   onAddToCart?: () => void;
+  productName: string;
+  productTagline: string;
+  productImageSrc?: string;
+  units: ProductUnit[];
 };
 
 export function MultiOptionSelectBottomSheet({
   open,
   onClose,
   onAddToCart,
+  productName,
+  productTagline,
+  productImageSrc,
+  units,
 }: MultiOptionSelectBottomSheetProps) {
-  const [quantities, setQuantities] = useState<Record<string, number>>(() =>
-    Object.fromEntries(MOCK_MULTI_OPTIONS.map((option) => [option.id, 0])),
-  );
+  const [quantities, setQuantities] = useState<Record<number, number>>({});
   const [liked, setLiked] = useState(false);
-  const [membershipModalOpen, setMembershipModalOpen] = useState(false);
 
-  const totalQuantity = Object.values(quantities).reduce((sum, q) => sum + q, 0);
+  const totalQuantity = units
+    .filter((unit) => unit.status !== 'SOLDOUT')
+    .reduce((sum, unit) => sum + (quantities[unit.id] ?? 0), 0);
 
   function handleAddToCart() {
     if (totalQuantity === 0) return;
@@ -55,67 +66,55 @@ export function MultiOptionSelectBottomSheet({
     onAddToCart?.();
   }
 
-  function changeQuantity(option: (typeof MOCK_MULTI_OPTIONS)[number], value: number) {
-    const current = quantities[option.id] ?? 0;
-    if (option.badgeLabel && value > current) {
-      setMembershipModalOpen(true);
-      return;
-    }
-    setQuantities((prev) => ({ ...prev, [option.id]: value }));
-  }
-
   return (
-    <>
-      <BottomSheet
-        open={open}
-        onClose={onClose}
-        ariaLabel="옵션 선택"
-        footer={
-          <>
-            <div className="border-border mx-4 mb-3 border-t" />
-            <AddToCartActions
-              promotion={MOCK_MULTI_OPTION_PROMOTION}
-              liked={liked}
-              onToggleLike={() => setLiked((prev) => !prev)}
-              onAddToCart={handleAddToCart}
-              addToCartDisabled={totalQuantity === 0}
-            />
-          </>
-        }
-      >
-        <CartItemPreview
-          imageAlt=""
-          name={MOCK_MULTI_OPTION_PRODUCT.name}
-          tagline={MOCK_MULTI_OPTION_PRODUCT.tagline}
-        />
-        {/* 첫 구분선만 mt-3 필요 — CartItemPreview 는 자체 하단 여백이 없다. 이후
-            구분선은 앞 옵션 줄의 py-3 하단 패딩이 이미 12px 여백을 주므로 마진 없이. */}
-        <div className="border-border mx-4 mt-3 border-t" />
-        {MOCK_MULTI_OPTIONS.map((option, i) => (
-          <div key={option.id}>
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      ariaLabel="옵션 선택"
+      footer={
+        <>
+          <div className="border-border mx-4 mb-3 border-t" />
+          <AddToCartActions
+            promotion={MOCK_MULTI_OPTION_PROMOTION}
+            liked={liked}
+            onToggleLike={() => setLiked((prev) => !prev)}
+            onAddToCart={handleAddToCart}
+            addToCartDisabled={totalQuantity === 0}
+          />
+        </>
+      }
+    >
+      <CartItemPreview
+        imageSrc={productImageSrc}
+        imageAlt=""
+        name={productName}
+        tagline={productTagline}
+      />
+      {/* 첫 구분선만 mt-3 필요 — CartItemPreview 는 자체 하단 여백이 없다. 이후
+          구분선은 앞 옵션 줄의 py-3 하단 패딩이 이미 12px 여백을 주므로 마진 없이. */}
+      <div className="border-border mx-4 mt-3 border-t" />
+      {units.map((unit, i) => {
+        const hasDiscount = unit.price !== unit.salePrice;
+        const isSoldOut = unit.status === 'SOLDOUT';
+        return (
+          <div key={unit.id}>
             <div className="px-4 py-3">
               <CartQuantityRow
-                badgeLabel={option.badgeLabel}
-                name={option.name}
-                priceLabel={option.priceLabel}
-                originalPriceLabel={option.originalPriceLabel}
-                unitPriceLabel={option.unitPriceLabel}
-                quantity={quantities[option.id] ?? 0}
-                onQuantityChange={(value) => changeQuantity(option, value)}
+                name={isSoldOut ? `${unit.name} (품절)` : unit.name}
+                priceLabel={formatPrice(unit.salePrice)}
+                originalPriceLabel={hasDiscount ? formatPrice(unit.price) : undefined}
+                quantity={quantities[unit.id] ?? 0}
+                onQuantityChange={(value) =>
+                  setQuantities((prev) => ({ ...prev, [unit.id]: value }))
+                }
                 min={0}
+                disabled={isSoldOut}
               />
             </div>
-            {i < MOCK_MULTI_OPTIONS.length - 1 ? (
-              <div className="border-border mx-4 border-t" />
-            ) : null}
+            {i < units.length - 1 ? <div className="border-border mx-4 border-t" /> : null}
           </div>
-        ))}
-      </BottomSheet>
-
-      <MembershipPromotionModal
-        open={membershipModalOpen}
-        onClose={() => setMembershipModalOpen(false)}
-      />
-    </>
+        );
+      })}
+    </BottomSheet>
   );
 }

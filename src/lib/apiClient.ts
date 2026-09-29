@@ -52,7 +52,11 @@ import {
   type OrderListParams,
   type OrderReturnRequest,
 } from '@/types/order';
-import { ProductListResponseSchema, type ProductListParams } from '@/types/product';
+import {
+  ProductDetailSchema,
+  ProductListResponseSchema,
+  type ProductListParams,
+} from '@/types/product';
 import {
   MissingProductsResponseSchema,
   MyRecipeRecommendationsResponseSchema,
@@ -224,6 +228,11 @@ export function requestSocialLoginUrl(provider: OAuthProvider, returnTo?: string
 export function searchProducts(params: ProductListParams) {
   const query = new URLSearchParams({ query: params.query, sort: params.sort });
   return publicFetch(`/api/products?${query}`, ProductListResponseSchema);
+}
+
+/** 상품 상세 조회. 로그인 여부와 무관하게 노출되는 공개 데이터. */
+export function fetchProductDetail(productId: string) {
+  return publicFetch(`/api/products/${productId}`, ProductDetailSchema);
 }
 
 /** 홈 화면 퀵메뉴 + 진열 섹션 조회. 로그인 여부와 무관하게 노출되는 공개 데이터. */

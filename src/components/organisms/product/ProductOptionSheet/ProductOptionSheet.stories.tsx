@@ -3,7 +3,7 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { expect, userEvent, within } from 'storybook/test';
 
-import { MOCK_ADD_TO_CART_PRODUCT } from './mock';
+import { MOCK_OPTION_PRODUCT, MOCK_UNIT } from './mock';
 import { ProductOptionSheet } from './ProductOptionSheet';
 
 /** 열림 상태를 스토리가 들고, 트리거 버튼으로 연다(CartRecommendSheet 패턴). */
@@ -14,7 +14,13 @@ function Harness() {
       <button type="button" onClick={() => setOpen(true)}>
         담기 시트 열기
       </button>
-      <ProductOptionSheet open={open} onClose={() => setOpen(false)} />
+      <ProductOptionSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        productName={MOCK_OPTION_PRODUCT.name}
+        productTagline={MOCK_OPTION_PRODUCT.tagline}
+        unit={MOCK_UNIT}
+      />
     </div>
   );
 }
@@ -27,6 +33,9 @@ const meta = {
   args: {
     open: false,
     onClose: () => undefined,
+    productName: MOCK_OPTION_PRODUCT.name,
+    productTagline: MOCK_OPTION_PRODUCT.tagline,
+    unit: MOCK_UNIT,
   },
   argTypes: {
     open: { control: false },
@@ -52,7 +61,7 @@ export const OpenQuantityAndClose: Story = {
 
     const dialog = await within(document.body).findByRole('dialog', { name: '장바구니 담기' });
     // 상품명은 미리보기 행 + 담을 상품 행 두 곳에 반복 노출된다(Figma 실측) — AllBy 사용.
-    await expect(within(dialog).getAllByText(MOCK_ADD_TO_CART_PRODUCT.name)).toHaveLength(2);
+    await expect(within(dialog).getAllByText(MOCK_UNIT.name)).toHaveLength(2);
 
     await userEvent.click(within(dialog).getByRole('button', { name: /수량 증가/ }));
     await expect(within(dialog).getByText('2')).toBeInTheDocument();

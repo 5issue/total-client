@@ -18,6 +18,8 @@ export type QuantityStepperProps = {
   max?: number;
   /** 스크린리더용 그룹 라벨(예: "수량", 상품명과 함께 쓰려면 "샐러드 수량" 처럼 전달). */
   label?: string;
+  /** true 면 min/max 와 무관하게 증감 버튼을 전부 비활성화한다(예: 품절 SKU). */
+  disabled?: boolean;
   className?: string;
 };
 
@@ -31,10 +33,11 @@ export function QuantityStepper({
   min = 0,
   max = Infinity,
   label = '수량',
+  disabled = false,
   className,
 }: QuantityStepperProps) {
-  const canDecrease = value > min;
-  const canIncrease = value < max;
+  const canDecrease = !disabled && value > min;
+  const canIncrease = !disabled && value < max;
 
   return (
     <div
