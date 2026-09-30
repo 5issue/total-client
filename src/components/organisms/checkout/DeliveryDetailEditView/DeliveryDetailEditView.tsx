@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,6 +16,7 @@ import { Textarea } from '@/components/atoms/Textarea';
 import { Modal } from '@/components/molecules/shared/Modal';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 import { useDeliveryDetailStore } from '@/hooks/useDeliveryDetailStore';
+import { useUserProfile } from '@/hooks/user/useUserProfile';
 import { PHONE_DIGITS_REGEX } from '@/types/address';
 import { DeliveryDetailFormSchema, type DeliveryDetailFormFields } from '@/types/deliveryDetail';
 
@@ -43,7 +44,11 @@ import { DeliveryDetailFormSchema, type DeliveryDetailFormFields } from '@/types
  *   (`etcLocationDetail`/`lockerLocationDetail`)라 라디오를 오가도 값이 섞이지 않는다
  *   (사용자 확인 — 처음엔 하나의 필드를 공유해 값이 새는 실버그였다, 2026-09-14).
  * - "받으실 분"은 로그인 사용자 이름으로 채워진 채 시작하지만 "휴대폰"은 비워진 채
- *   시작한다(Figma 그대로 — 비대칭이지만 원본 확인됨).
+ *   시작한다(Figma 그대로 — 비대칭이지만 원본 확인됨). 이름은 `useUserProfile()`(#148
+ *   `GET /api/v1/users/me/profile`)로 실 연동 — 그 API가 비동기라 처음엔 빈 채 렌더된 뒤
+ *   응답이 오면 채워 넣는다(저장된 값(`savedDetail`)이 있거나 사용자가 이미 입력을
+ *   시작했으면 덮어쓰지 않는다). 계정에 이름이 없는 경우(2026-09-29 실 백엔드 확인)엔
+ *   빈 채로 남아 사용자가 직접 입력해야 한다 — 휴대폰과 같은 처리.
  * - 필드 라벨(받으실 분 등)은 `Input`/`Textarea` 자체의 `labelVisible`(text-heading-l,
  *   SemiBold) 대신 이 컴포넌트가 직접 그린다 — Figma 라벨 실측이 Medium(500,
  *   text-label-m)이라 `labelVisible`의 SemiBold 와 다르다. `Input`/`Textarea` 자체
@@ -57,8 +62,6 @@ import { DeliveryDetailFormSchema, type DeliveryDetailFormFields } from '@/types
  *   "받으실 분"과 휴대폰의 "형식 오류"(예: 자릿수 부족)는 기존처럼 `Input` 하단 인라인
  *   에러 그대로 — 이 모달은 오직 "완전히 비어 있음" 케이스만 가로챈다.
  */
-const RECEIVER_NAME_DEFAULT = '이준호';
-
 const OTHER_LOCATION_INFO_ITEMS = [
   '정확한 배송을 위해 장소의 특징 또는 출입 방법 등을 자세하게 작성해주세요.',
   '무인택배함, 보일러실, 양수기 함, 소화전 앞 또는 위탁배송은 불가능합니다.',
@@ -136,7 +139,7 @@ function RadioOption({
 }
 
 const EMPTY_FORM_VALUES: DeliveryDetailFormFields = {
-  receiverName: RECEIVER_NAME_DEFAULT,
+  receiverName: '',
   phone: '',
   location: 'front-door',
   otherLocationType: 'etc',
@@ -153,6 +156,7 @@ export function DeliveryDetailEditView() {
   const router = useRouter();
   const savedDetail = useDeliveryDetailStore((s) => s.detail);
   const setDetail = useDeliveryDetailStore((s) => s.setDetail);
+  const userProfileQuery = useUserProfile();
 
   const {
     register,
@@ -166,6 +170,18 @@ export function DeliveryDetailEditView() {
     mode: 'onTouched',
     defaultValues: savedDetail ?? EMPTY_FORM_VALUES,
   });
+
+  // "받으실 분" 은 로그인 사용자 이름으로 채워진 채 시작해야 한다(Figma) — `useUserProfile()`
+  // 가 비동기라 마운트 시점의 `defaultValues` 로는 못 채우므로, 응답이 오면 채워 넣는다.
+  // 이미 저장된 값이 있거나(`savedDetail`) 사용자가 이미 입력을 시작했으면(필드가 더 이상
+  // 빈 값이 아니면) 덮어쓰지 않는다.
+  useEffect(() => {
+    if (savedDetail) return;
+    const name = userProfileQuery.data?.name;
+    if (!name) return;
+    if (getValues('receiverName') !== '') return;
+    setValue('receiverName', name);
+  }, [userProfileQuery.data?.name, savedDetail, getValues, setValue]);
 
   const location = useWatch({ control, name: 'location' });
   const otherLocationType = useWatch({ control, name: 'otherLocationType' });
