@@ -30,14 +30,17 @@ const ADD_TO_CART_ERROR_MESSAGE = '장바구니 담기에 실패했어요. 다�
  * `product_id`를 그대로 쓰는데 — product-service UNIT id와 같은 값이라는 전제다
  * (types/recipe.ts `MissingProductSchema` 계약 노트 참고, 로컬에 AI 서비스가 없어
  * 실제 값으로 검증은 못 했다). 성공해야만 `RecipeCartAddedBottomSheet`를 띄운다.
+ *
+ * 하트(찜)는 `RecipeCardL`과 동일하게 로컬 상태 없이 `recipe.liked`+`onToggleLike`로만
+ * 제어한다(이슈 #152) — 실제 반영은 `RecipeDetailContainer`의 FAV-02/03 뮤테이션.
  */
 export interface RecipeDetailViewProps {
   recipe: Recipe;
+  onToggleLike: (liked: boolean) => void;
 }
 
-export function RecipeDetailView({ recipe }: RecipeDetailViewProps) {
+export function RecipeDetailView({ recipe, onToggleLike }: RecipeDetailViewProps) {
   const router = useRouter();
-  const [liked, setLiked] = useState(recipe.liked);
   const [cartSheetOpen, setCartSheetOpen] = useState(false);
   const [cartAddedOpen, setCartAddedOpen] = useState(false);
   const addCartItems = useAddCartItems();
@@ -84,12 +87,12 @@ export function RecipeDetailView({ recipe }: RecipeDetailViewProps) {
             <h1 className="text-heading-0 text-fg">{recipe.name}</h1>
             <button
               type="button"
-              onClick={() => setLiked((prev) => !prev)}
-              aria-label={liked ? `${recipe.name} 찜 해제` : `${recipe.name} 찜하기`}
+              onClick={() => onToggleLike(!recipe.liked)}
+              aria-label={recipe.liked ? `${recipe.name} 찜 해제` : `${recipe.name} 찜하기`}
               className="relative inline-flex size-10 items-center justify-center before:absolute before:-inset-0.5 before:content-['']"
             >
               <Icon
-                name={liked ? 'heart-filled' : 'heart'}
+                name={recipe.liked ? 'heart-filled' : 'heart'}
                 size={28}
                 aria-hidden
                 className="[--color-brand-500:var(--color-brand-300)]"
