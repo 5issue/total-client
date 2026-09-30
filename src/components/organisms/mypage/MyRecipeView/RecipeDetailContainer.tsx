@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+
 import { FloatingButton } from '@/components/atoms/FloatingButton';
 import { LoadingIndicator } from '@/components/atoms/LoadingIndicator';
 import { FullScreenErrorState } from '@/components/molecules/shared/FullScreenErrorState';
@@ -7,6 +9,7 @@ import { useAddFavoriteRecipe } from '@/hooks/recipe/useAddFavoriteRecipe';
 import { useFavoriteRecipes } from '@/hooks/recipe/useFavoriteRecipes';
 import { useMissingProducts } from '@/hooks/recipe/useMissingProducts';
 import { useRecipeDetail } from '@/hooks/recipe/useRecipeDetail';
+import { useRecordRecentRecipe } from '@/hooks/recipe/useRecordRecentRecipe';
 import { useRemoveFavoriteRecipe } from '@/hooks/recipe/useRemoveFavoriteRecipe';
 
 import { toRecipeViewModel } from './mapRecipe';
@@ -29,6 +32,11 @@ export interface RecipeDetailContainerProps {
  * (limit 100)을 캐시로 불러와 `recipe_id` 포함 여부로 판정한다 — `LikedRecipesViewContainer`
  * 와 같은 쿼리 키라 캐시를 공유한다. 그 조회가 늦거나 실패해도 상세 본문은 막지
  * 않고 하트만 기본값(찜 안 함)으로 보이다가 나중에 맞는 상태로 갱신된다.
+ *
+ * 조회 기록(RECENT-02, 이슈 #153)은 상세 GET 에 묻어가지 않는다 — 명세가 조회와
+ * 기록을 분리해 비로그인·프리페치가 기록을 오염시키지 않게 했다. 그래서 상세가
+ * 성공적으로 로드된 뒤 `useEffect` 로 한 번 더 기록 POST 를 쏜다. 재진입해도 서버가
+ * `viewed_at` 만 갱신해 멱등하고, 비로그인이면 401을 조용히 무시한다(화면 노출 없음).
  */
 export function RecipeDetailContainer({ recipeId }: RecipeDetailContainerProps) {
   const detailQuery = useRecipeDetail(recipeId);
@@ -36,6 +44,7 @@ export function RecipeDetailContainer({ recipeId }: RecipeDetailContainerProps) 
   const favoritesQuery = useFavoriteRecipes({ limit: FAVORITE_LIST_LIMIT });
   const addFavorite = useAddFavoriteRecipe();
   const removeFavorite = useRemoveFavoriteRecipe();
+  const { mutate: recordRecentView } = useRecordRecentRecipe();
 
   const isLiked = favoritesQuery.data?.items.some((item) => item.recipe_id === recipeId) ?? false;
 
@@ -47,6 +56,11 @@ export function RecipeDetailContainer({ recipeId }: RecipeDetailContainerProps) 
       removeFavorite.mutate(recipeId);
     }
   }
+
+  useEffect(() => {
+    if (!detailQuery.isSuccess) return;
+    recordRecentView(recipeId);
+  }, [recipeId, detailQuery.isSuccess, recordRecentView]);
 
   if (detailQuery.isPending || missingProductsQuery.isPending) {
     return (
