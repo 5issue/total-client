@@ -19,6 +19,14 @@ const nextConfig: NextConfig = {
   // Next 16 이 매 빌드/개발마다 루트 AGENTS.md / CLAUDE.md 를 자동 생성/덮어쓴다.
   // 이 저장소는 CLAUDE.md 를 "문서 인덱스"로 직접 관리하므로 비활성화한다.
   agentRules: false,
+  experimental: {
+    // 기본은 CSS를 <link> 로 내보내 렌더링을 차단한다(Lighthouse 1차 감사 지적,
+    // 66KB 청크 · 약 450ms 손실). Tailwind 같은 atomic CSS는 페이지가 커져도 실제로
+    // 쓰는 클래스만큼만 CSS가 늘어나 인라인해도 HTML이 과도하게 커지지 않는다 —
+    // 프로덕션 빌드에서만 <style> 태그로 인라인해 첫 렌더가 CSS 요청을 안 기다리게
+    // 한다(신규 방문자·LCP 위주 최적화, 재방문자의 CSS 캐싱 이득은 포기한다).
+    inlineCss: true,
+  },
   images: {
     // 경쟁사(마켓컬리) 실측: 메인 이미지 PNG 2.4MB, LCP ~20s, CLS 0.77.
     // → next/image 강제 + 종횡비 고정으로 대응 (structure-convention 참고).
