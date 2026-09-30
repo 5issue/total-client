@@ -54,6 +54,8 @@ import { MOCK_AMOUNTS, MOCK_CUSTOMER, MOCK_DEFAULT_ADDRESS, MOCK_ORDER_ITEMS } f
  * "주문자 정보"는 node 666-25643 기준 펼치면 받는 분/휴대폰/이메일 + 변경 방법 안내가
  * 나온다 — 공용 `Accordion` 셸을 쓰되, 헤더 오른쪽 요약("이름, 전화번호")은 펼쳤을 때
  * 사라지므로(Figma 원본 확인) `open` 값에 따라 이 컴포넌트가 직접 헤더를 갈아끼운다.
+ * 이름(`customerName`)만 `CheckoutContainer`가 `useUserProfile()`로 실 연동한다 — 휴대폰·
+ * 이메일은 계정 프로필 API 자체에 필드가 없어(백엔드 `User` 엔티티 확인) 계속 목데이터.
  *
  * 필수값 미입력 시 [주문하기] 안내(node 666-23688): 버튼은 `disabled` 로 막지 않는다 —
  * Figma 스크린샷에서 버튼이 항상 활성(purple) 색이고, 눌렀을 때 상단에 에러 토스트
@@ -90,6 +92,13 @@ export interface CheckoutViewProps {
   /** 배송지 — `useAddresses()` 의 선택된(또는 기본) 배송지. 생략 시 목데이터. */
   deliveryAddress?: CheckoutDeliveryAddressView;
   /**
+   * "주문자 정보"의 이름 — `CheckoutContainer` 가 `useUserProfile()` 로 채운다. 생략 시 목데이터.
+   * `GET /api/v1/users/me/profile` 이 `name` 만 내려주고 전화번호·이메일은 아예 없어
+   * (`UserProfileResponse.java` 확인 — `PromoSummarySectionContainer` 와 같은 제약) 그
+   * 둘은 계속 `MOCK_CUSTOMER` 그대로 둔다.
+   */
+  customerName?: string;
+  /**
    * 실제 주문 id — `CheckoutContainer` 가 `POST /api/v1/orders/checkout`(#126) 로 채운다.
    * 생략하면(직접 진입·스토리북) 결제하기가 `place-order` 를 건너뛰고 기존처럼
    * 클라 발급 `orderId`(`createTossOrderId`)로 토스 결제창을 연다.
@@ -119,6 +128,7 @@ export function CheckoutView({
   items = MOCK_ORDER_ITEMS,
   amounts = MOCK_AMOUNTS,
   deliveryAddress = MOCK_DEFAULT_ADDRESS,
+  customerName = MOCK_CUSTOMER.name,
   orderId,
   orderNo,
   expiresAt,
@@ -275,7 +285,7 @@ export function CheckoutView({
               <span className="flex items-center justify-between gap-2">
                 주문자 정보
                 <span className="text-heading-6 text-fg">
-                  {MOCK_CUSTOMER.name}, {MOCK_CUSTOMER.phone}
+                  {customerName}, {MOCK_CUSTOMER.phone}
                 </span>
               </span>
             )
@@ -283,7 +293,7 @@ export function CheckoutView({
         >
           <div className="flex flex-col gap-3 px-4 pb-4">
             <dl className="flex flex-col gap-2">
-              <OrdererInfoRow label="받는 분" value={MOCK_CUSTOMER.name} />
+              <OrdererInfoRow label="받는 분" value={customerName} />
               <OrdererInfoRow label="휴대폰" value={MOCK_CUSTOMER.phone} />
               <OrdererInfoRow label="이메일" value={MOCK_CUSTOMER.email} />
             </dl>
