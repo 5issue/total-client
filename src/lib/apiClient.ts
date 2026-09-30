@@ -67,10 +67,13 @@ import {
   FavoriteRecipeSummarySchema,
   MissingProductsResponseSchema,
   MyRecipeRecommendationsResponseSchema,
+  RecentRecipeListResponseSchema,
+  RecentRecipeSummarySchema,
   RecipeDetailSchema,
   type FavoriteRecipeListParams,
   type MissingProductsParams,
   type MyRecipeRecommendationParams,
+  type RecentRecipeListParams,
 } from '@/types/recipe';
 import { StorageGuideResponseSchema } from '@/types/storageGuide';
 import { UserProfileResponseSchema } from '@/types/user';
@@ -522,6 +525,23 @@ export function removeFavoriteRecipe(recipeId: string) {
     `/api/favorite-recipes/${encodeURIComponent(recipeId)}`,
     FavoriteRecipeDeleteResponseSchema,
     { method: 'DELETE' },
+  );
+}
+
+/** 최근 본 레시피 목록. AI 파트 RECENT-01(구현됨, 이슈 #153). */
+export function fetchRecentRecipes(params: Partial<RecentRecipeListParams> = {}) {
+  const query = new URLSearchParams();
+  if (params.limit != null) query.set('limit', String(params.limit));
+  const qs = query.toString();
+  return privateFetch(`/api/recent-recipes${qs ? `?${qs}` : ''}`, RecentRecipeListResponseSchema);
+}
+
+/** 레시피 조회 기록. AI 파트 RECENT-02(구현됨, 이슈 #153). */
+export function recordRecentRecipe(recipeId: string) {
+  return privateFetch(
+    `/api/recent-recipes/${encodeURIComponent(recipeId)}`,
+    RecentRecipeSummarySchema,
+    { method: 'POST' },
   );
 }
 

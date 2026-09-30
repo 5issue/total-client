@@ -2,6 +2,7 @@ import type {
   FavoriteRecipeListParams,
   MissingProductsParams,
   MyRecipeRecommendationParams,
+  RecentRecipeListParams,
 } from '@/types/recipe';
 
 /** recipe 도메인 쿼리 키 팩토리 (api-convention §4). */
@@ -18,4 +19,7 @@ export const recipeKeys = {
   favorites: () => [...recipeKeys.all, 'favorite'] as const,
   favoriteList: (params: Partial<FavoriteRecipeListParams>) =>
     [...recipeKeys.favorites(), params] as const,
+  recents: () => [...recipeKeys.all, 'recent'] as const,
+  recentList: (params: Partial<RecentRecipeListParams>) =>
+    [...recipeKeys.recents(), params] as const,
 };
