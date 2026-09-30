@@ -37,13 +37,21 @@ function Divider() {
   return <span aria-hidden className="bg-border h-5 w-px" />;
 }
 
-export function PromoSummarySection() {
+export interface PromoSummarySectionProps {
+  /** 인사말에 쓰는 회원 이름. 생략 시 mock 닉네임(스토리북 등) — 적립금/캐시/포인트는
+   *  백엔드에 필드 자체가 없어(이슈 #148) 이 prop과 무관하게 항상 mock 이다. */
+  nickname?: string;
+}
+
+export function PromoSummarySection({
+  nickname = MOCK_SUMMARY.nickname,
+}: PromoSummarySectionProps) {
   return (
     <div className="flex flex-col gap-3 px-4 pt-5 pb-1">
       <div className="flex w-full items-center justify-between">
         <p className="text-body-l">
           <span className="text-cyan">반가워요! </span>
-          <span className="text-fg">{MOCK_SUMMARY.nickname}님</span>
+          <span className="text-fg">{nickname}님</span>
         </p>
         <p className="text-label-xs text-fg-tertiary">{MOCK_SUMMARY.freeShippingNotice}</p>
       </div>

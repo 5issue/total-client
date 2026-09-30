@@ -49,12 +49,16 @@ export interface KitchenCardData {
 /**
  * `href` 가 없으면 목적지 화면이 아직 없다는 뜻 — 비상호작용으로 렌더한다
  * (`organisms/shared/SectionHeader`의 `pending` 액션과 같은 원칙, structure §6-1).
+ *
+ * `onClick` 은 이동할 화면 없이 버튼 동작만 필요한 링크(로그아웃 등, #148)를 위한
+ * 예외 통로다 — `href` 와 동시에 쓰지 않는다(둘 다 있으면 `href` 우선).
  */
 export interface LinkItem {
   label: string;
   href?: string;
   badge?: 'new';
   subtitle?: string;
+  onClick?: () => void;
 }
 
 export interface LinkSectionData {

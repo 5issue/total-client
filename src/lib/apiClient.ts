@@ -12,6 +12,7 @@ import {
 } from '@/types/address';
 import {
   SpringLoginUrlDataSchema,
+  SpringLogoutDataSchema,
   SpringRefreshDataSchema,
   type OAuthProvider,
 } from '@/types/auth';
@@ -68,6 +69,7 @@ import {
   type MyRecipeRecommendationParams,
 } from '@/types/recipe';
 import { StorageGuideResponseSchema } from '@/types/storageGuide';
+import { UserProfileResponseSchema } from '@/types/user';
 
 /**
  * HTTP 클라이언트 — publicFetch / privateFetch (api-convention §3).
@@ -227,6 +229,20 @@ export function requestSocialLoginUrl(provider: OAuthProvider, returnTo?: string
   });
 }
 
+/**
+ * 로그아웃(마이컬리 홈 "계정" 섹션, #148). 서버 세션 정리가 실패해도 로컬 accessToken은
+ * 항상 지운다 — 로그아웃 버튼을 누른 사용자 입장에선 이 브라우저에서 로그인 상태가
+ * 남아있으면 안 되기 때문(`/api/auth/logout` 라우트 핸들러가 refresh_token 쿠키 쪽의
+ * 같은 보장을 담당한다).
+ */
+export async function logout(): Promise<void> {
+  try {
+    await privateFetch('/api/auth/logout', SpringLogoutDataSchema, { method: 'POST' });
+  } finally {
+    clearAccessToken();
+  }
+}
+
 /** 검색 결과 상품 목록 조회. 로그인 여부와 무관하게 노출되는 공개 데이터. */
 export function searchProducts(params: ProductListParams) {
   const query = new URLSearchParams({ query: params.query, sort: params.sort });
@@ -308,6 +324,11 @@ export function updateCartDeliveryAddress(addressId: number) {
 /** 배송지 목록 조회. */
 export function getAddresses() {
   return privateFetch('/api/addresses', AddressListResponseSchema);
+}
+
+/** 마이컬리 홈 인사말(닉네임)에 쓰는 회원 프로필 조회. */
+export function fetchUserProfile() {
+  return privateFetch('/api/users/profile', UserProfileResponseSchema);
 }
 
 /** 배송지 추가. */

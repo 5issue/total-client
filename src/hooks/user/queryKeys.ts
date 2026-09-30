@@ -1,0 +1,5 @@
+/** user 도메인 쿼리 키 팩토리 (api-convention §4). */
+export const userKeys = {
+  all: ['user'] as const,
+  profile: () => [...userKeys.all, 'profile'] as const,
+};

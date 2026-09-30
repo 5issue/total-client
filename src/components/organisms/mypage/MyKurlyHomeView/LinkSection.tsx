@@ -42,17 +42,27 @@ function LinkCard({ link }: { link: LinkItem }) {
     />
   );
 
-  return (
-    <li className={GRID_ITEM}>
-      {link.href ? (
+  if (link.href) {
+    return (
+      <li className={GRID_ITEM}>
         <Link href={link.href} className="flex min-h-11 w-full items-center">
           {card}
         </Link>
-      ) : (
-        card
-      )}
-    </li>
-  );
+      </li>
+    );
+  }
+
+  if (link.onClick) {
+    return (
+      <li className={GRID_ITEM}>
+        <button type="button" onClick={link.onClick} className="flex min-h-11 w-full items-center">
+          {card}
+        </button>
+      </li>
+    );
+  }
+
+  return <li className={GRID_ITEM}>{card}</li>;
 }
 
 export interface LinkSectionProps {
