@@ -136,7 +136,7 @@ export function CartContainer() {
       </ErrorToastBanner>
       <CartView
         groups={mapCartResponse(cartQuery.data)}
-        addresses={addressesQuery.data?.addresses.map(mapAddressToView)}
+        addresses={addressesQuery.data?.addresses.map(mapAddressToView) ?? []}
         onQuantityChange={(itemId, quantity) => {
           const productId = productIdByCartItemId.get(itemId);
           if (productId === undefined) return;

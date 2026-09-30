@@ -18,6 +18,7 @@ import {
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 import { useAddresses } from '@/hooks/address/useAddresses';
 import { useCreateAddress } from '@/hooks/address/useCreateAddress';
+import { useUpdateCartDeliveryAddress } from '@/hooks/cart/useUpdateCartDeliveryAddress';
 import { useDeliveryAddressStore } from '@/hooks/useDeliveryAddressStore';
 import { useTimedToast } from '@/hooks/useTimedToast';
 
@@ -33,6 +34,10 @@ const ADD_ADDRESS_ERROR_MESSAGE = '배송지 추가에 실패했어요. 다시 �
  * Query)에서 온다 — `CartView` 도 같은 쿼리 키를 쓰므로 캐시를 공유한다(이슈 #119). 선택된
  * 배송지 id 만 `deliveryAddressStore`(Zustand, 순수 클라 상태)에 남아있다 — 목록 자체를
  * 스토어에 두면 서버 응답을 전역 스토어에 복사하는 안티패턴이 된다(api-convention).
+ * 라디오로 고를 때 장바구니 `PUT /delivery-address` 도 함께 호출한다 — `/cart` 가 언마운트된
+ * 뒤 돌아오면 CartContainer 의 동기화 effect 만으로는 타이밍에 따라 반영이 늦거나, 스토어
+ * 초기화(null → cart 캐시)가 사용자 선택을 덮어쓸 수 있어서, 선택 즉시 서버·쿼리 캐시를
+ * 맞춘다(성공 시 useCart invalidate).
  *
  * - 라디오 선택(`selectedId`)은 **사용자만 바꾼다** — 기본배송지 설정/추가가 선택을 옮기지 않는다.
  * - `우리집`·`회사` 유형칩·기본배송지 유일성은 이제 서버가 보장한다(저장 성공 후 재조회로 반영).
@@ -48,9 +53,17 @@ export function AddressManageView() {
 
   const addressesQuery = useAddresses();
   const createAddress = useCreateAddress();
+  const updateCartDeliveryAddress = useUpdateCartDeliveryAddress();
 
   const selectedId = useDeliveryAddressStore((s) => s.selectedId);
   const setSelectedId = useDeliveryAddressStore((s) => s.setSelectedId);
+
+  function selectDeliveryAddress(addressId: string) {
+    setSelectedId(addressId);
+    const numericId = Number(addressId);
+    if (!Number.isInteger(numericId)) return;
+    updateCartDeliveryAddress.mutate(numericId);
+  }
 
   const [panel, setPanel] = useState<{ mode: 'add' } | null>(null);
   const { visible: addAddressErrorToastVisible, trigger: triggerAddAddressErrorToast } =
@@ -154,7 +167,7 @@ export function AddressManageView() {
                   isDefault={address.isDefault}
                   radioName="delivery-address"
                   selected={selectedId === address.id}
-                  onSelect={() => setSelectedId(address.id)}
+                  onSelect={() => selectDeliveryAddress(address.id)}
                 />
               </li>
             ))}
