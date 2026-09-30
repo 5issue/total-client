@@ -62,9 +62,13 @@ import {
   type ProductListParams,
 } from '@/types/product';
 import {
+  FavoriteRecipeDeleteResponseSchema,
+  FavoriteRecipeListResponseSchema,
+  FavoriteRecipeSummarySchema,
   MissingProductsResponseSchema,
   MyRecipeRecommendationsResponseSchema,
   RecipeDetailSchema,
+  type FavoriteRecipeListParams,
   type MissingProductsParams,
   type MyRecipeRecommendationParams,
 } from '@/types/recipe';
@@ -489,6 +493,35 @@ export function fetchMissingProducts(
   return privateFetch(
     `/api/recipes/${encodeURIComponent(recipeId)}/missing-products${qs ? `?${qs}` : ''}`,
     MissingProductsResponseSchema,
+  );
+}
+
+/** 찜한 레시피 목록. AI 파트 FAV-01(구현됨, 이슈 #152). */
+export function fetchFavoriteRecipes(params: Partial<FavoriteRecipeListParams> = {}) {
+  const query = new URLSearchParams();
+  if (params.limit != null) query.set('limit', String(params.limit));
+  const qs = query.toString();
+  return privateFetch(
+    `/api/favorite-recipes${qs ? `?${qs}` : ''}`,
+    FavoriteRecipeListResponseSchema,
+  );
+}
+
+/** 레시피 찜 추가. AI 파트 FAV-02(구현됨, 이슈 #152). */
+export function addFavoriteRecipe(recipeId: string) {
+  return privateFetch(
+    `/api/favorite-recipes/${encodeURIComponent(recipeId)}`,
+    FavoriteRecipeSummarySchema,
+    { method: 'POST' },
+  );
+}
+
+/** 레시피 찜 취소. AI 파트 FAV-03(구현됨, 이슈 #152). */
+export function removeFavoriteRecipe(recipeId: string) {
+  return privateFetch(
+    `/api/favorite-recipes/${encodeURIComponent(recipeId)}`,
+    FavoriteRecipeDeleteResponseSchema,
+    { method: 'DELETE' },
   );
 }
 
