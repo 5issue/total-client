@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 
 import { Badge } from '@/components/atoms/Badge';
 import { Icon } from '@/components/atoms/Icon';
@@ -22,8 +23,15 @@ import { formatPrice } from '@/lib/formatters';
  * 뱃지는 overlay-blue 배경 + brand primary 텍스트 조합을 `Badge` 가 지원하지 않아 전용
  * 마크업으로 둔다. 가격 뒤 "~" 는 옵션에 따라 최저가부터라는 표기로, Figma 전 인스턴스에
  * 동일하게 붙어 있어 고정 접미사다.
+ *
+ * 상세 이동 링크는 `ProductCard`(molecules/product, node 577:20684)와 동일 패턴 —
+ * 이미지 위 투명 오버레이 Link(`tabIndex=-1` `aria-hidden`, 접근 가능한 이름은 중복 방지를
+ * 위해 없앰) + 메타 정보 블록 Link(접근 가능한 이름 "상품 상세 보기: {상품명}", code-style §5).
+ * "담기" 버튼은 두 Link 밖에 둬서 클릭이 네비게이션으로 새지 않는다.
  */
 export type SearchResultProductCardProps = {
+  /** 상품 상세로 이동할 경로(예: `/products/{id}`). 없으면 카드가 링크 없이 렌더된다. */
+  href?: string;
   imageSrc: string;
   name: string;
   /** 최종 판매가. */
@@ -49,6 +57,7 @@ function formatReviewCount(count: number): string {
 }
 
 export function SearchResultProductCard({
+  href,
   imageSrc,
   name,
   price,
@@ -63,9 +72,34 @@ export function SearchResultProductCard({
 }: SearchResultProductCardProps) {
   const hasDiscount = Boolean(discountRate && originalPrice);
 
+  const meta = (
+    <div className="flex w-full flex-col">
+      <p className="text-caption-m text-fg-tertiary w-full">{deliveryType}</p>
+      <p className="text-body-m text-fg line-clamp-2 w-full">{name}</p>
+      {hasDiscount ? (
+        <p className="text-caption-m text-fg-tertiary font-bold line-through">
+          {formatPrice(originalPrice as number)}
+        </p>
+      ) : null}
+      <div className="text-numeric-l font-numeric flex items-center gap-1">
+        {hasDiscount ? <span className="text-orange">{discountRate}%</span> : null}
+        <span className="text-fg">{formatPrice(price)}~</span>
+      </div>
+      <div className="flex items-center gap-1">
+        <Icon name="review" size={16} aria-hidden />
+        <span className="text-label-m text-fg-tertiary">{formatReviewCount(reviewCount ?? 0)}</span>
+      </div>
+    </div>
+  );
+
   return (
     <div className={['flex w-full flex-col gap-1', className].filter(Boolean).join(' ')}>
       <div className="bg-surface-secondary relative aspect-3/4 w-full overflow-hidden rounded-sm">
+        {href ? (
+          <Link href={href} tabIndex={-1} aria-hidden className="absolute inset-0 z-10">
+            {''}
+          </Link>
+        ) : null}
         <Image
           src={imageSrc}
           alt={name}
@@ -90,25 +124,13 @@ export function SearchResultProductCard({
         담기
       </button>
 
-      <div className="flex w-full flex-col">
-        <p className="text-caption-m text-fg-tertiary w-full">{deliveryType}</p>
-        <p className="text-body-m text-fg line-clamp-2 w-full">{name}</p>
-        {hasDiscount ? (
-          <p className="text-caption-m text-fg-tertiary font-bold line-through">
-            {formatPrice(originalPrice as number)}
-          </p>
-        ) : null}
-        <div className="text-numeric-l font-numeric flex items-center gap-1">
-          {hasDiscount ? <span className="text-orange">{discountRate}%</span> : null}
-          <span className="text-fg">{formatPrice(price)}~</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <Icon name="review" size={16} aria-hidden />
-          <span className="text-label-m text-fg-tertiary">
-            {formatReviewCount(reviewCount ?? 0)}
-          </span>
-        </div>
-      </div>
+      {href ? (
+        <Link href={href} aria-label={`상품 상세 보기: ${name}`} className="contents">
+          {meta}
+        </Link>
+      ) : (
+        meta
+      )}
 
       {kurlyOnly ? (
         <span className="bg-overlay-blue text-primary text-caption-s w-fit rounded-sm px-2 py-1 font-bold whitespace-nowrap">

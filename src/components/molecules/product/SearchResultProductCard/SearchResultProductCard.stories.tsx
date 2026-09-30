@@ -8,6 +8,7 @@ const meta = {
   component: SearchResultProductCard,
   tags: ['autodocs'],
   args: {
+    href: '/products/1',
     imageSrc: '/placeholders/product-thumbnail.webp',
     name: '[연세우유 x 마켓컬리] 전용목장우유 900mL',
     price: 2780,
@@ -20,6 +21,7 @@ const meta = {
     onAddToCart: fn(),
   },
   argTypes: {
+    href: { control: false },
     price: { control: 'number' },
     originalPrice: { control: 'number' },
     discountRate: { control: 'number' },
@@ -60,5 +62,15 @@ export const ClickAddToCart: Story = {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole('button', { name: /장바구니 담기/ }));
     await expect(args.onAddToCart).toHaveBeenCalledTimes(1);
+  },
+};
+
+/** 카드 클릭 시 상품 상세로 이동하는 링크가 걸려 있는지 검증(담기 버튼과는 별개 링크). */
+export const LinksToProductDetail: Story = {
+  name: '상품 상세 링크 연결',
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const detailLink = canvas.getByRole('link', { name: `상품 상세 보기: ${args.name}` });
+    await expect(detailLink).toHaveAttribute('href', args.href);
   },
 };
