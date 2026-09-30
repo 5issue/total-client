@@ -82,6 +82,7 @@ export function ProductGrid({
       {items.map((item) => (
         <SearchResultProductCard
           key={item.id}
+          href={`/products/${item.id}`}
           imageSrc={item.thumbnailUrl}
           name={item.name}
           price={item.price}
