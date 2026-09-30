@@ -1,5 +1,5 @@
 import { ThemeScope } from '@/components/molecules/shared/ThemeScope';
-import { KurlyHeader } from '@/components/organisms/shared/KurlyHeader';
+import { KurlyHeaderContainer } from '@/components/organisms/shared/KurlyHeader';
 
 import { BenefitPromoBottomSheet } from './BenefitPromoBottomSheet';
 import { CuratorSection } from './CuratorSection';
@@ -24,7 +24,7 @@ import { ShoppingLinksSection } from './ShoppingLinksSection';
 export function MyKurlyHomeView() {
   return (
     <ThemeScope className="flex flex-1 flex-col">
-      <KurlyHeader showThemeToggle />
+      <KurlyHeaderContainer showThemeToggle />
       <div className="flex flex-1 flex-col">
         <PromoSummarySectionContainer />
         <CuratorSection />
