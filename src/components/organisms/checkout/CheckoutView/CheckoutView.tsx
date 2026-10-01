@@ -46,7 +46,8 @@ import { MOCK_AMOUNTS, MOCK_CUSTOMER, MOCK_DEFAULT_ADDRESS, MOCK_ORDER_ITEMS } f
  * `items`/`amounts`/`deliveryAddress` prop 을 `CheckoutContainer` 가 `useCart`/`useAddresses`
  * 로 채워 넘긴다. prop 을 생략하면(직접 진입·스토리북) 여전히 `mock.ts` 목데이터로 동작한다.
  * 결제수단·약관동의는 여전히 이 컴포넌트 로컬 state — 새로고침하면 초기화된다.
- * 배송 상세정보는 `deliveryDetailStore`(세션 한정, 새로고침 시 초기화).
+ * 배송 상세정보는 `deliveryDetailStore`(세션 한정, 새로고침 시 초기화)에 두는 선택
+ * 입력이다. 비어 있어도 주문·결제 흐름은 그대로 진행한다.
  *
  * "주문상품"은 상품 개수에 따라 모양이 바뀐다(node 666-23208 1건 / 666-23446·666-25396
  * 2건 이상) — 그 분기와 두 상태의 마크업은 `OrderItemsSection` 에 위임한다.
@@ -57,10 +58,9 @@ import { MOCK_AMOUNTS, MOCK_CUSTOMER, MOCK_DEFAULT_ADDRESS, MOCK_ORDER_ITEMS } f
  * 이름(`customerName`)만 `CheckoutContainer`가 `useUserProfile()`로 실 연동한다 — 휴대폰·
  * 이메일은 계정 프로필 API 자체에 필드가 없어(백엔드 `User` 엔티티 확인) 계속 목데이터.
  *
- * 필수값 미입력 시 [주문하기] 안내(node 666-23688): 버튼은 `disabled` 로 막지 않는다 —
- * Figma 스크린샷에서 버튼이 항상 활성(purple) 색이고, 눌렀을 때 상단에 에러 토스트
- * ("배송 상세정보를 입력해주세요.")가 뜬다. 네이티브 `disabled` 버튼은 클릭 이벤트 자체가
- * 발생하지 않아 토스트를 못 띄우므로, 유효성 검사는 클릭 핸들러 안에서 직접 한다.
+ * [결제하기] 버튼은 `disabled` 로 막지 않는다 — Figma 스크린샷에서 버튼이 항상 활성
+ * (purple) 색이다. 결제수단이 없거나 지원하지 않는 수단이면 클릭 핸들러에서 상단 에러
+ * 토스트를 띄운다. 네이티브 `disabled` 버튼은 클릭 이벤트 자체가 발생하지 않는다.
  *
  * 결제하기는 (실제 주문이면) 먼저 `place-order` 로 주문을 결제 대기 상태로 전이시킨 뒤(#126),
  * 퍼블 '다른 결제수단' 선택값을 토스 결제창 `requestPayment` 로 넘기고, success/fail URL →
@@ -166,15 +166,13 @@ export function CheckoutView({
   const [couponInfoOpen, setCouponInfoOpen] = useState(false);
   const [pointsInfoOpen, setPointsInfoOpen] = useState(false);
   const [orderExpired, setOrderExpired] = useState(false);
-  const [toastMessage, setToastMessage] = useState('배송 상세정보를 입력해주세요.');
+  const [toastMessage, setToastMessage] = useState('결제수단을 선택해주세요.');
   const [showValidationToast, setShowValidationToast] = useState(false);
   const validationToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const payError = searchParams.get('payError');
   const isToastVisible = showValidationToast || Boolean(payError);
   const displayedToastMessage = payError ?? toastMessage;
-
-  const canPay = deliverySummary != null && paymentMethod != null;
 
   function showErrorToast(message: string) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -210,10 +208,8 @@ export function CheckoutView({
   }, [payError, router]);
 
   async function handleSubmitOrder() {
-    if (!canPay) {
-      // 피드백: 토스트가 뜰 때 화면이 자동으로 맨 위로 스크롤된다 — 놓친 필드(배송
-      // 상세정보)가 화면 위쪽에 있어서다.
-      showErrorToast('배송 상세정보를 입력해주세요.');
+    if (paymentMethod == null) {
+      showErrorToast('결제수단을 선택해주세요.');
       return;
     }
     if (isKurlyOwnedPaymentMethod(paymentMethod)) {
@@ -355,9 +351,7 @@ export function CheckoutView({
           </div>
 
           <div className="flex flex-col gap-2">
-            <p className="text-label-m text-fg-secondary">
-              배송 상세정보<span className="text-primary">*</span>
-            </p>
+            <p className="text-label-m text-fg-secondary">배송 상세정보</p>
             <div className="flex items-center justify-between gap-2">
               {deliverySummary ? (
                 // node 666-24922: "{위치} | 공동현관 비밀번호({코드})" 한 줄 + "{받는분}, {전화번호}"
