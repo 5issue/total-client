@@ -10,7 +10,8 @@ export const dynamic = 'force-dynamic';
 
 /**
  * 주문 완료 (`/checkout/complete?paymentId=`) — 영수증 조회 API 를 SSR 로 읽고
- * 본인 소유는 Spring 이 검증한다(structure §2, FE-15). 쿼리 없으면 주문서로 되돌린다.
+ * 본인 소유는 Spring 이 검증한다(structure §2, FE-15). 쿼리 없으면(결제 승인을
+ * 거치지 않고 들어온 경우) 장바구니로 되돌린다(#193).
  */
 export default async function CheckoutCompletePage({
   searchParams,
@@ -20,7 +21,7 @@ export default async function CheckoutCompletePage({
   const params = await searchParams;
   const parsed = PaymentIdParamSchema.safeParse(params.paymentId ?? params.orderId);
   if (!parsed.success) {
-    redirect(`/checkout?payError=${encodeURIComponent('주문 정보가 없습니다.')}`);
+    redirect(`/cart?orderError=${encodeURIComponent('주문 정보가 없습니다.')}`);
   }
 
   const receipt = await getPaymentReceiptOnServer(parsed.data);
