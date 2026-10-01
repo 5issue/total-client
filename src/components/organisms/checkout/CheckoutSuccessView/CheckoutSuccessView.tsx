@@ -19,6 +19,9 @@ import { SpringPaymentMethodSchema } from '@/types/checkout';
  * `CheckoutView` 가 실제(또는 목) 숫자 주문 ID 를 문자열화해서 넘겼으므로, 여기서 다시
  * 숫자로 파싱해 승인 호출 본문에 싣는다(payment-service 필수값, types/checkout.ts 계약
  * 노트 참고, 2026-09-23).
+ *
+ * 쿼리 검증 실패·승인 실패 모두 주문서가 아니라 `/cart`로 돌려보낸다(#193) — Toss가 결제를
+ * 승인했어도 우리 쪽 확정(confirm)이 실패하면 주문서에 다시 둬도 이어갈 방법이 없다.
  */
 export function CheckoutSuccessView() {
   const router = useRouter();
@@ -47,7 +50,7 @@ export function CheckoutSuccessView() {
       orderId <= 0 ||
       !paymentMethodParsed.success
     ) {
-      router.replace(`/checkout?payError=${encodeURIComponent('결제 정보가 올바르지 않습니다.')}`);
+      router.replace(`/cart?orderError=${encodeURIComponent('결제 정보가 올바르지 않습니다.')}`);
       return;
     }
 
@@ -62,7 +65,7 @@ export function CheckoutSuccessView() {
         });
         if (result.paymentId == null) {
           router.replace(
-            `/checkout?payError=${encodeURIComponent('결제 식별자를 받지 못했습니다.')}`,
+            `/cart?orderError=${encodeURIComponent('결제 식별자를 받지 못했습니다.')}`,
           );
           return;
         }
@@ -71,7 +74,7 @@ export function CheckoutSuccessView() {
         );
       } catch (error) {
         const message = error instanceof ApiError ? error.message : '결제 승인에 실패했습니다.';
-        router.replace(`/checkout?payError=${encodeURIComponent(message)}`);
+        router.replace(`/cart?orderError=${encodeURIComponent(message)}`);
       }
     })();
   }, [confirmPayment, router, searchParams]);

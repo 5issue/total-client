@@ -80,6 +80,8 @@ export interface MyFridgeViewProps {
   fridgeItemsPending?: boolean;
   fridgeItemsError?: boolean;
   onDeleteItems: (productIds: string[]) => void;
+  /** 헤더 장바구니 아이콘 배지 — 생략하면(스토리 등) 배지를 숨긴다. */
+  cartCount?: number;
 }
 
 export function MyFridgeView({
@@ -88,6 +90,7 @@ export function MyFridgeView({
   fridgeItemsPending = false,
   fridgeItemsError = false,
   onDeleteItems,
+  cartCount = 0,
 }: MyFridgeViewProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -195,7 +198,7 @@ export function MyFridgeView({
             iconSize={28}
             actions={[
               { icon: 'home', label: '홈으로 이동', href: '/' },
-              { icon: 'cart', label: '장바구니', href: '/cart' },
+              { icon: 'cart', label: '장바구니', href: '/cart', badge: cartCount },
             ]}
           />
           <TabBar items={TABS} activeId={activeTab} onChange={handleTabChange} fitted />

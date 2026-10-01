@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/atoms/Button';
 import { Icon } from '@/components/atoms/Icon';
@@ -148,7 +148,6 @@ export function CheckoutView({
   expiresAt,
 }: CheckoutViewProps = {}) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const placeOrder = usePlaceOrder();
 
   // 기본값은 "다른 결제수단" 선택 상태 — Figma 스크린샷 그대로(사용자 확인, 2026-09-11).
@@ -169,10 +168,6 @@ export function CheckoutView({
   const [toastMessage, setToastMessage] = useState('결제수단을 선택해주세요.');
   const [showValidationToast, setShowValidationToast] = useState(false);
   const validationToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const payError = searchParams.get('payError');
-  const isToastVisible = showValidationToast || Boolean(payError);
-  const displayedToastMessage = payError ?? toastMessage;
 
   function showErrorToast(message: string) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -198,14 +193,6 @@ export function CheckoutView({
       if (validationToastTimer.current) clearTimeout(validationToastTimer.current);
     };
   }, []);
-
-  useEffect(() => {
-    if (!payError) return;
-    const timer = setTimeout(() => {
-      router.replace('/checkout', { scroll: false });
-    }, VALIDATION_TOAST_DURATION_MS);
-    return () => clearTimeout(timer);
-  }, [payError, router]);
 
   async function handleSubmitOrder() {
     if (paymentMethod == null) {
@@ -248,7 +235,10 @@ export function CheckoutView({
     } catch (error) {
       setIsPaying(false);
       const message = tossPayErrorMessage(error);
-      if (message) showErrorToast(message);
+      // 사용자가 결제창을 직접 닫은 취소(USER_CANCEL 등, message === null)는 그대로
+      // 이 화면에 남아 바로 다시 시도할 수 있게 둔다 — 그 외 모든 결제 실패는
+      // /cart로 돌려보낸다(#193, CheckoutSuccessView/checkout/fail 과 동일 패턴).
+      if (message) router.replace(`/cart?orderError=${encodeURIComponent(message)}`);
     }
   }
 
@@ -265,14 +255,14 @@ export function CheckoutView({
           -translate-y-50(50*4px=200px, 토스트 자체 높이보다 넉넉히 큰 값)도 같은 이유로
           스케일 값. */}
       <div
-        aria-hidden={!isToastVisible}
+        aria-hidden={!showValidationToast}
         className={[
           'pointer-events-none fixed inset-x-0 top-21 z-50 flex justify-center px-4',
           'transition-transform duration-300 ease-out motion-reduce:transition-none',
-          isToastVisible ? 'translate-y-0' : '-translate-y-50',
+          showValidationToast ? 'translate-y-0' : '-translate-y-50',
         ].join(' ')}
       >
-        <Toast variant="error">{displayedToastMessage}</Toast>
+        <Toast variant="error">{toastMessage}</Toast>
       </div>
 
       <div className="bg-surface-secondary flex flex-1 flex-col gap-2">

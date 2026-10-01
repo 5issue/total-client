@@ -12,6 +12,7 @@ import { mapAddressToView } from '@/components/organisms/mypage/AddressManageVie
 import { addressLineOf } from '@/components/organisms/mypage/model';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 import { useAddresses } from '@/hooks/address/useAddresses';
+import { useCart } from '@/hooks/cart/useCart';
 import { useCreateOrder } from '@/hooks/checkout/useCreateOrder';
 import { useDeliveryAddressStore } from '@/hooks/useDeliveryAddressStore';
 import { useUserProfile } from '@/hooks/user/useUserProfile';
@@ -28,6 +29,20 @@ import { mapCheckoutOrderToView } from './mapCheckoutOrder';
  *
  * 이전(#120)엔 `useCart()` 를 로컬에서 필터링해 상품·금액을 직접 계산했지만, 이제 서버가
  * 재고를 실제로 예약하며 주문을 만들어야 하므로 그 계산은 더 이상 클라가 하지 않는다.
+ *
+ * "주문상품" 이미지 — 주문서 생성 응답(`CheckoutOrderItem`)엔 이미지가 없다. 상품 상세
+ * (product-service `/products/{id}`)로 따로 조회하면 로컬 시드 일부 상품이 `media: []`라
+ * 못 채우는 경우가 있었는데, 장바구니 응답(`CartItemView.imageSrc`, cart-service가
+ * 직접 내려줌)엔 같은 상품이 썸네일을 갖고 있었다(#193) — 주문서 생성이 장바구니를 비우지
+ * 않고 결제 완료 전까지 그대로 둬서(`place-order`가 따로 있음) `useCart()`가 이 화면에서도
+ * 여전히 같은 아이템을 돌려준다. 그래서 상품 상세 재조회 대신 `useCart()` 응답에서
+ * productId→썸네일을 뽑아 합친다(`mapCheckoutOrder.ts`) — 이미 다른 화면(장바구니)에서
+ * 검증된 데이터 소스를 재사용하는 셈이라 더 안정적이다.
+ *
+ * 주문서 생성(`createOrder`) 자체가 실패하면(재고 소진 등, 이미 만들어진 주문을 이어서
+ * 보여줄 방법이 없다) 이 화면에 붙잡아두지 않고 `/cart`로 돌려보낸다 — 장바구니 조회
+ * 실패(`addressesQuery`와 별개로 다루던 기존 "다시 시도" 화면)와 달리 재시도로 복구될
+ * 문제가 아니라서다. 에러 메시지는 쿼리스트링으로 넘겨 `CartContainer`가 토스트로 보여준다.
  */
 export function CheckoutContainer({ itemIds }: { itemIds: string[] }) {
   const router = useRouter();
@@ -35,7 +50,16 @@ export function CheckoutContainer({ itemIds }: { itemIds: string[] }) {
   const selectedAddressId = useDeliveryAddressStore((s) => s.selectedId);
   const createOrder = useCreateOrder();
   const userProfileQuery = useUserProfile();
+  const cartQuery = useCart();
   const requestedFor = useRef<string | null>(null);
+
+  // "주문상품" 썸네일 — 장바구니 응답에서 productId→이미지를 뽑는다(위 doc 참고).
+  const thumbnails = new Map<string, string | undefined>();
+  cartQuery.data?.groups.forEach((group) => {
+    group.items.forEach((item) => {
+      thumbnails.set(String(item.productId), item.thumbnailUrl ?? undefined);
+    });
+  });
 
   const cartItemIds = itemIds.map(Number).filter((id) => Number.isInteger(id) && id > 0);
   const cartItemIdsKey = cartItemIds.join(',');
@@ -48,6 +72,15 @@ export function CheckoutContainer({ itemIds }: { itemIds: string[] }) {
     // cartItemIds 는 매 렌더 새 배열이라 키(join)만 의존성으로 둔다 — 값이 같으면 재요청 안 함.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cartItemIdsKey]);
+
+  useEffect(() => {
+    if (!createOrder.isError) return;
+    const message =
+      createOrder.error instanceof Error
+        ? createOrder.error.message
+        : '주문을 생성하지 못했어요. 장바구니에서 다시 시도해주세요.';
+    router.replace(`/cart?orderError=${encodeURIComponent(message)}`);
+  }, [createOrder.isError, createOrder.error, router]);
 
   if (cartItemIds.length === 0) {
     return (
@@ -67,7 +100,14 @@ export function CheckoutContainer({ itemIds }: { itemIds: string[] }) {
     );
   }
 
-  if (createOrder.isPending || createOrder.isIdle || addressesQuery.isLoading) {
+  if (
+    createOrder.isPending ||
+    createOrder.isIdle ||
+    createOrder.isError ||
+    addressesQuery.isLoading
+  ) {
+    // createOrder.isError 도 여기 포함 — 위 useEffect 가 /cart로 돌려보내는 동안
+    // 에러 화면이 잠깐 보였다 사라지지 않도록 로딩 상태로 둔다.
     return (
       <div className="bg-surface-secondary flex flex-1 flex-col">
         <SectionHeader leading="back" leadingHref="/cart" title="주문서" />
@@ -76,7 +116,7 @@ export function CheckoutContainer({ itemIds }: { itemIds: string[] }) {
     );
   }
 
-  if (createOrder.isError || addressesQuery.isError || !addressesQuery.data) {
+  if (addressesQuery.isError || !addressesQuery.data) {
     return (
       <div className="bg-surface-secondary flex flex-1 flex-col items-center justify-center">
         <SectionHeader leading="back" leadingHref="/cart" title="주문서" />
@@ -85,17 +125,7 @@ export function CheckoutContainer({ itemIds }: { itemIds: string[] }) {
           title="주문 정보를 불러오지 못했어요"
           description="잠시 후 다시 시도해주세요"
           action={
-            <FloatingButton
-              icon="refresh"
-              onClick={() => {
-                if (createOrder.isError || !createOrder.data) {
-                  createOrder.mutate({ cartItemIds });
-                }
-                if (addressesQuery.isError || !addressesQuery.data) {
-                  void addressesQuery.refetch();
-                }
-              }}
-            >
+            <FloatingButton icon="refresh" onClick={() => void addressesQuery.refetch()}>
               다시 시도
             </FloatingButton>
           }
@@ -105,7 +135,7 @@ export function CheckoutContainer({ itemIds }: { itemIds: string[] }) {
   }
 
   const order = createOrder.data;
-  const { items, amounts } = mapCheckoutOrderToView(order);
+  const { items, amounts } = mapCheckoutOrderToView(order, thumbnails);
 
   const addresses = addressesQuery.data.addresses.map(mapAddressToView);
   const selected =

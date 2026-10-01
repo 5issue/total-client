@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 
+import { useRouter } from 'next/navigation';
+
 import { Icon } from '@/components/atoms/Icon';
 import { ErrorState } from '@/components/molecules/shared/ErrorState';
 import {
@@ -10,12 +12,10 @@ import {
 } from '@/components/organisms/home/DisplaySectionList';
 import { HomeProductSectionsSkeleton } from '@/components/organisms/home/HomeProductSections/HomeProductSectionsSkeleton';
 import { QuickMenuSection } from '@/components/organisms/home/QuickMenuSection';
+import { MultiOptionSelectBottomSheet } from '@/components/organisms/product/MultiOptionSelectBottomSheet';
 import { ProductOptionSheet } from '@/components/organisms/product/ProductOptionSheet';
-import {
-  MOCK_OPTION_PRODUCT,
-  MOCK_UNIT,
-} from '@/components/organisms/product/ProductOptionSheet/mock';
 import { useHomeRecommendations } from '@/hooks/home/useHomeRecommendations';
+import { useProductDetail } from '@/hooks/product/useProductDetail';
 import { formatPrice } from '@/lib/formatters';
 import type { HomeSectionProduct } from '@/types/home';
 
@@ -41,11 +41,16 @@ import type { HomeSectionProduct } from '@/types/home';
  * (#131이 아직 develop에 병합되지 않아 상수를 직접 import하지 못하고 리터럴로 중복해뒀다 —
  * 병합되면 공용 상수로 옮기는 걸 고려).
  *
- * "담기" 클릭 핸들러(`DisplaySectionList`의 `onAddToCart`)는 아직 어떤 카드를 눌렀는지
- * 넘기지 않는다(섹션 리스트 쪽 별도 개선 필요) — 그래서 `ProductOptionSheet`(이슈 #134로
- * productName/productTagline/unit 필수 prop이 됨)는 어느 카드를 눌렀든 `mock.ts` 기본
- * 픽스처로 고정 렌더한다. 그 SKU(`id: 1`)를 실장바구니에 쓰면 안 되므로
- * `persistToCart={false}`. 클릭한 상품 식별이 가능해지면 실 SKU로 교체.
+ * "담기"는 `DisplaySectionList`가 클릭된 카드의 `productId`를 넘겨준다(이미 배선돼
+ * 있었음) — 이 컴포넌트는 그 id로 `useProductDetail`을 조회해 실 SKU(`units[]`)를
+ * 얻은 뒤에야 시트를 연다(이슈 #193, #143과 동일하게 홈 추천상품 id는 GROUP이라 그대로
+ * 장바구니에 못 쓴다 — 상세 조회로 UNIT을 받아야 한다, #143 "확인된 사실" 참고).
+ * `units.length`로 단일/다중 옵션 시트를 가른다 — `ProductDetailInteractiveShell`과
+ * 동일한 분기.
+ *
+ * 담기 성공(`onAddToCart`) 시 완료 시트 대신 바로 `/cart`로 보낸다 — 상품 상세와 달리
+ * 홈은 "함께 구매하면 좋을 상품" 같은 후속 추천이 아직 없어, 지금은 바로 장바구니를
+ * 보여주는 쪽이 더 유용하다는 판단(#193).
  */
 const MOCK_DELIVERY_LABEL = '샛별배송';
 const MOCK_REVIEW_COUNT_LABEL = '9,999+';
@@ -73,8 +78,14 @@ function toDisplaySectionProduct(item: HomeSectionProduct): DisplaySectionProduc
 }
 
 export function HomeProductSections() {
+  const router = useRouter();
+  // 시트 열림(`sheetOpen`)과 조회 대상(`activeProductId`)을 분리해둔다 — 닫을 때
+  // `activeProductId`를 같이 비우면 시트가 즉시 언마운트돼 BottomSheet의 닫힘
+  // 슬라이드 애니메이션(`open` false → 트랜지션)이 재생될 틈이 없다.
+  const [activeProductId, setActiveProductId] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const { data, isPending, isError } = useHomeRecommendations();
+  const detailQuery = useProductDetail(activeProductId ?? '', activeProductId !== null);
 
   if (isPending) {
     return <HomeProductSectionsSkeleton />;
@@ -94,6 +105,18 @@ export function HomeProductSections() {
   const quickMenus = data.sections.find((section) => section.quickMenus)?.quickMenus ?? [];
   const productSections = data.sections.filter((section) => section.products);
 
+  const detail = activeProductId !== null ? detailQuery.data : undefined;
+  const productImageSrc = detail?.media.find((m) => m.mediaRole === 'THUMBNAIL')?.mediaUrl;
+
+  function closeSheet() {
+    setSheetOpen(false);
+  }
+
+  function handleAddedToCart() {
+    setSheetOpen(false);
+    router.push('/cart');
+  }
+
   return (
     <>
       <QuickMenuSection quickMenus={quickMenus} />
@@ -103,18 +126,36 @@ export function HomeProductSections() {
           key={section.type}
           title={section.title}
           products={(section.products ?? []).map(toDisplaySectionProduct)}
-          onAddToCart={() => setSheetOpen(true)}
+          onAddToCart={(productId) => {
+            setActiveProductId(productId);
+            setSheetOpen(true);
+          }}
         />
       ))}
 
-      <ProductOptionSheet
-        open={sheetOpen}
-        onClose={() => setSheetOpen(false)}
-        productName={MOCK_OPTION_PRODUCT.name}
-        productTagline={MOCK_OPTION_PRODUCT.tagline}
-        unit={MOCK_UNIT}
-        persistToCart={false}
-      />
+      {detail && detail.units.length > 1 ? (
+        <MultiOptionSelectBottomSheet
+          open={sheetOpen}
+          onClose={closeSheet}
+          onAddToCart={handleAddedToCart}
+          productName={detail.name}
+          productTagline={detail.shortDescription}
+          productImageSrc={productImageSrc}
+          units={detail.units}
+        />
+      ) : null}
+
+      {detail?.units[0] && detail.units.length <= 1 ? (
+        <ProductOptionSheet
+          open={sheetOpen}
+          onClose={closeSheet}
+          onAddToCart={handleAddedToCart}
+          productName={detail.name}
+          productTagline={detail.shortDescription}
+          productImageSrc={productImageSrc}
+          unit={detail.units[0]}
+        />
+      ) : null}
     </>
   );
 }

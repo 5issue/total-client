@@ -1,5 +1,6 @@
 'use client';
 
+import { useCartItemCount } from '@/hooks/cart/useCartItemCount';
 import { useDeleteFridgeItem } from '@/hooks/fridge/useDeleteFridgeItem';
 import { useFridgeItems } from '@/hooks/fridge/useFridgeItems';
 
@@ -23,6 +24,7 @@ export interface MyFridgeViewContainerProps {
 export function MyFridgeViewContainer({ initialTab }: MyFridgeViewContainerProps) {
   const fridgeItemsQuery = useFridgeItems();
   const deleteFridgeItem = useDeleteFridgeItem();
+  const cartCount = useCartItemCount();
 
   const fridgeItems = (fridgeItemsQuery.data?.items ?? []).map(toFridgeItemViewModel);
 
@@ -37,6 +39,7 @@ export function MyFridgeViewContainer({ initialTab }: MyFridgeViewContainerProps
       fridgeItemsPending={fridgeItemsQuery.isPending}
       fridgeItemsError={fridgeItemsQuery.isError}
       onDeleteItems={handleDeleteItems}
+      cartCount={cartCount}
     />
   );
 }
