@@ -13,6 +13,7 @@ import { addressLineOf } from '@/components/organisms/mypage/model';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 import { useAddresses } from '@/hooks/address/useAddresses';
 import { useCreateOrder } from '@/hooks/checkout/useCreateOrder';
+import { useProductThumbnails } from '@/hooks/product/useProductThumbnails';
 import { useDeliveryAddressStore } from '@/hooks/useDeliveryAddressStore';
 import { useUserProfile } from '@/hooks/user/useUserProfile';
 
@@ -29,6 +30,9 @@ import { mapCheckoutOrderToView } from './mapCheckoutOrder';
  * 이전(#120)엔 `useCart()` 를 로컬에서 필터링해 상품·금액을 직접 계산했지만, 이제 서버가
  * 재고를 실제로 예약하며 주문을 만들어야 하므로 그 계산은 더 이상 클라가 하지 않는다.
  *
+ * "주문상품" 이미지 — 주문서 생성 응답엔 이미지가 없지만 `productId`는 있어(`CheckoutOrderItem`)
+ * `useProductThumbnails`로 상품 상세를 따로 조회해 썸네일만 뽑아 합친다(`mapCheckoutOrder.ts`).
+ *
  * 주문서 생성(`createOrder`) 자체가 실패하면(재고 소진 등, 이미 만들어진 주문을 이어서
  * 보여줄 방법이 없다) 이 화면에 붙잡아두지 않고 `/cart`로 돌려보낸다 — 장바구니 조회
  * 실패(`addressesQuery`와 별개로 다루던 기존 "다시 시도" 화면)와 달리 재시도로 복구될
@@ -41,6 +45,14 @@ export function CheckoutContainer({ itemIds }: { itemIds: string[] }) {
   const createOrder = useCreateOrder();
   const userProfileQuery = useUserProfile();
   const requestedFor = useRef<string | null>(null);
+
+  // 주문서 응답엔 이미지가 없어(mapCheckoutOrder.ts 참고) productId로 썸네일을 따로
+  // 조회한다 — 아직 order.data 가 없는 렌더(로딩/에러)에도 훅은 항상 호출돼야 하므로
+  // 빈 배열로 안전하게 둔다.
+  const orderItemProductIds = createOrder.data
+    ? Array.from(new Set(createOrder.data.items.map((item) => String(item.productId))))
+    : [];
+  const thumbnails = useProductThumbnails(orderItemProductIds);
 
   const cartItemIds = itemIds.map(Number).filter((id) => Number.isInteger(id) && id > 0);
   const cartItemIdsKey = cartItemIds.join(',');
@@ -116,7 +128,7 @@ export function CheckoutContainer({ itemIds }: { itemIds: string[] }) {
   }
 
   const order = createOrder.data;
-  const { items, amounts } = mapCheckoutOrderToView(order);
+  const { items, amounts } = mapCheckoutOrderToView(order, thumbnails);
 
   const addresses = addressesQuery.data.addresses.map(mapAddressToView);
   const selected =
