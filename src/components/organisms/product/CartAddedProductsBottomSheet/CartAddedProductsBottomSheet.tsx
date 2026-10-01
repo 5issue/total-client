@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/atoms/Button';
@@ -27,12 +28,15 @@ export type CartAddedProductsBottomSheetProps = {
   open: boolean;
   onClose: () => void;
   onAddRecommended?: (productId: string) => void;
+  /** 방금 담긴 상품 썸네일. 없으면 회색 박스(다른 이미지 슬롯과 동일 관례). */
+  productImageSrc?: string;
 };
 
 export function CartAddedProductsBottomSheet({
   open,
   onClose,
   onAddRecommended,
+  productImageSrc,
 }: CartAddedProductsBottomSheetProps) {
   const router = useRouter();
 
@@ -57,7 +61,9 @@ export function CartAddedProductsBottomSheet({
         <div className="flex h-17.5 w-full items-center justify-between px-4">
           <div className="flex items-center gap-3">
             <div className="bg-surface-secondary rounded-m relative size-12.5 shrink-0 overflow-hidden">
-              {/* 담긴 상품 이미지 — 백엔드 연동 전까지 회색 박스(다른 이미지 슬롯과 동일 관례). */}
+              {productImageSrc ? (
+                <Image src={productImageSrc} alt="" fill sizes="50px" className="object-cover" />
+              ) : null}
             </div>
             <p className="text-body-l text-fg">장바구니에 상품을 담았어요.</p>
           </div>

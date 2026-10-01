@@ -372,6 +372,7 @@ export function ProductDetailInteractiveShell({
       <CartAddedProductsBottomSheet
         open={cartAddedSheetOpen}
         onClose={() => setCartAddedSheetOpen(false)}
+        productImageSrc={overview?.imageSrc}
       />
 
       {/* 미션 완료 토스트(node 665:43410) — 화면 최상단, CheckoutView 의 검증 에러
