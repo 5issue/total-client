@@ -1,10 +1,19 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { getRouter } from '@storybook/nextjs-vite/navigation.mock';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { expect, screen, userEvent, waitFor, within } from 'storybook/test';
 
 import { DeliveryDetailStoreProvider } from '@/providers/DeliveryDetailStoreProvider';
 
 import { DeliveryDetailEditView } from './DeliveryDetailEditView';
+
+// `DeliveryDetailEditView`가 useUserProfile(useQuery)을 호출한다 — QueryClientProvider
+// 없이는 throw 한다(`MyKurlyHomeView.stories.tsx`와 동일). Storybook 엔 이 fetch 를 받아줄
+// 백엔드가 없어 항상 실패로 끝나므로(retry: false), "받으실 분" 은 실 데이터로 자동으로
+// 채워지지 않는다 — 그 상태를 전제로 각 스토리를 작성한다.
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
 
 const meta = {
   title: 'organisms/checkout/DeliveryDetailEditView',
@@ -14,9 +23,11 @@ const meta = {
   tags: ['autodocs'],
   decorators: [
     (Story) => (
-      <DeliveryDetailStoreProvider>
-        <Story />
-      </DeliveryDetailStoreProvider>
+      <QueryClientProvider client={queryClient}>
+        <DeliveryDetailStoreProvider>
+          <Story />
+        </DeliveryDetailStoreProvider>
+      </QueryClientProvider>
     ),
   ],
   parameters: {
@@ -111,6 +122,9 @@ export const ValidSubmitGoesBack: Story = {
   tags: ['!autodocs'],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+    // "받으실 분"은 실 계정 데이터가 있을 때만 자동으로 채워진다(useUserProfile) — 이
+    // 스토리엔 그 백엔드가 없어 직접 입력해야 유효성 검사를 통과한다.
+    await userEvent.type(canvas.getByRole('textbox', { name: '받으실 분' }), '이준호');
     await userEvent.type(canvas.getByPlaceholderText('숫자만 입력해주세요'), '01012341234');
     await userEvent.type(
       canvas.getByPlaceholderText('출입에 필요한 버튼을 모두 입력해주세요.'),
@@ -139,7 +153,8 @@ export const EmptyPhoneShowsAlertModalAndFocusesOnConfirm: Story = {
   tags: ['!autodocs'],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    // 휴대폰을 비운 채(기본값) 바로 제출 — '받으실 분'은 기본값이 채워져 있어 통과한다.
+    // 휴대폰을 비운 채(기본값) 바로 제출 — 휴대폰이 완전히 비어 있는지 검사가 제일 먼저
+    // 실행되므로 "받으실 분" 값과 무관하게 이 모달이 뜬다.
     await userEvent.click(canvas.getByRole('button', { name: '동의하고 저장' }));
 
     const dialog = await screen.findByRole('dialog', { name: '휴대폰 번호를 입력해주세요.' });

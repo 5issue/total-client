@@ -1,6 +1,8 @@
 import { withSerwist } from '@serwist/turbopack';
 import type { NextConfig } from 'next';
 
+import { REMOTE_IMAGE_PATTERNS } from './src/lib/imageHosts';
+
 const nextConfig: NextConfig = {
   // EKS 배포용: .next/standalone 에 server.js + 최소 node_modules 를 추려 담는다.
   // Vercel 은 자체 서버리스 패키징(Node File Trace)을 쓰는데 standalone 출력과 충돌해
@@ -19,6 +21,14 @@ const nextConfig: NextConfig = {
   // Next 16 이 매 빌드/개발마다 루트 AGENTS.md / CLAUDE.md 를 자동 생성/덮어쓴다.
   // 이 저장소는 CLAUDE.md 를 "문서 인덱스"로 직접 관리하므로 비활성화한다.
   agentRules: false,
+  experimental: {
+    // 기본은 CSS를 <link> 로 내보내 렌더링을 차단한다(Lighthouse 1차 감사 지적,
+    // 66KB 청크 · 약 450ms 손실). Tailwind 같은 atomic CSS는 페이지가 커져도 실제로
+    // 쓰는 클래스만큼만 CSS가 늘어나 인라인해도 HTML이 과도하게 커지지 않는다 —
+    // 프로덕션 빌드에서만 <style> 태그로 인라인해 첫 렌더가 CSS 요청을 안 기다리게
+    // 한다(신규 방문자·LCP 위주 최적화, 재방문자의 CSS 캐싱 이득은 포기한다).
+    inlineCss: true,
+  },
   images: {
     // 경쟁사(마켓컬리) 실측: 메인 이미지 PNG 2.4MB, LCP ~20s, CLS 0.77.
     // → next/image 강제 + 종횡비 고정으로 대응 (structure-convention 참고).
@@ -32,23 +42,10 @@ const nextConfig: NextConfig = {
     // 차단됐다(#155, 지훈님 제보) — 실제 도메인은 total-backend product-service
     // `V5__seed_demo_products.sql` 실측으로 확인(img-cf/product-image 두 개, 리사이즈
     // 경로가 `/hdims/...`·`/shop/...`·`/product/...` 로 다양해 pathname 은 `/**`).
-    remotePatterns: [
-      {
-        protocol: 'http',
-        hostname: 'www.foodsafetykorea.go.kr',
-        pathname: '/uploadimg/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'img-cf.kurly.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'product-image.kurly.com',
-        pathname: '/**',
-      },
-    ],
+    // 목록은 src/lib/imageHosts.ts 에서 관리한다 — 런타임에서 `image_url` 같은 신뢰
+    // 못 할 외부 URL을 걸러낼 때(`isAllowedImageSrc`)도 같은 목록을 써야 여기 고친 게
+    // 거기서도 바로 반영된다.
+    remotePatterns: [...REMOTE_IMAGE_PATTERNS],
     // 기본 75 외에 90 도 허용 — 히어로 배너가 압축 열화를 줄이려 quality={90} 을 쓴다
     // (PR #85 리뷰 — "이미지가 뿌옇게 보인다"). Next 16 은 안 쓰는 quality 값을 빌드
     // 경고/차단하므로 실제로 쓰는 값만 화이트리스트에 올린다.

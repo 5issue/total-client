@@ -122,3 +122,81 @@ export const MissingProductsParamsSchema = z.object({
   maxPerIngredient: z.number().int().min(1).max(10).default(3),
 });
 export type MissingProductsParams = z.infer<typeof MissingProductsParamsSchema>;
+
+/**
+ * 찜한 레시피(FAV-01~03) 스키마 — AI 서빙 레포 실제 Pydantic 스키마
+ * (`serving/src/serving/schemas.py`: `RecipeCard`/`FavoriteRecipeItem`/`FavoriteRecipeSummary`)와
+ * 로컬 서버 실 호출(`X-User-Id: 9200000002`, recipe_id 3221)로 직접 확인해 맞췄다(2026-09-29).
+ */
+export const FavoriteRecipeCardSchema = z.object({
+  recipe_id: z.union([z.string(), z.number()]).transform(String),
+  name: z.string(),
+  image_url: z.string().nullable().optional(),
+  difficulty: z.string().nullable().optional(),
+  cook_time_min: z.number().nullable().optional(),
+  servings: z.number().nullable().optional(),
+  favorited_at: z.coerce.date(),
+});
+export type FavoriteRecipeCard = z.infer<typeof FavoriteRecipeCardSchema>;
+
+export const FavoriteRecipeListResponseSchema = z.object({
+  items: z.array(FavoriteRecipeCardSchema),
+});
+export type FavoriteRecipeListResponse = z.infer<typeof FavoriteRecipeListResponseSchema>;
+
+/** POST /favorite-recipes/{recipe_id} 응답 data. */
+export const FavoriteRecipeSummarySchema = z.object({
+  recipe_id: z.union([z.string(), z.number()]).transform(String),
+  favorited_at: z.coerce.date(),
+});
+export type FavoriteRecipeSummary = z.infer<typeof FavoriteRecipeSummarySchema>;
+
+/** DELETE 성공 응답 — 냉장고(FRIDGE-04)와 동일하게 HTTP 200 + data: null. */
+export const FavoriteRecipeDeleteResponseSchema = z.null();
+
+/** GET 쿼리 파라미터. limit 1~100, 기본 50(서버 라우터 소스 확인). */
+export const FavoriteRecipeListParamsSchema = z.object({
+  limit: z.number().int().min(1).max(100).default(50),
+});
+export type FavoriteRecipeListParams = z.infer<typeof FavoriteRecipeListParamsSchema>;
+
+/** POST/DELETE 경로 파라미터 검증. 실제론 숫자 id지만 URL 세그먼트라 문자열로 받는다
+ *  (냉장고 `FridgeProductIdParamSchema`와 동일 컨벤션). */
+export const FavoriteRecipeIdParamSchema = z.string().min(1);
+
+/**
+ * 최근 본 레시피(RECENT-01~02) 스키마 — FAV-01~03과 같은 `RecipeCard` 공통 모양에
+ * `viewed_at`만 다르다(AI 서빙 레포 `serving/src/serving/schemas.py` 확인, 2026-09-30).
+ * DELETE 엔드포인트는 스펙에 없어(선택삭제 UI는 백엔드 확인 후 별도 진행) 스키마도 두지 않는다.
+ */
+export const RecentRecipeCardSchema = z.object({
+  recipe_id: z.union([z.string(), z.number()]).transform(String),
+  name: z.string(),
+  image_url: z.string().nullable().optional(),
+  difficulty: z.string().nullable().optional(),
+  cook_time_min: z.number().nullable().optional(),
+  servings: z.number().nullable().optional(),
+  viewed_at: z.coerce.date(),
+});
+export type RecentRecipeCard = z.infer<typeof RecentRecipeCardSchema>;
+
+export const RecentRecipeListResponseSchema = z.object({
+  items: z.array(RecentRecipeCardSchema),
+});
+export type RecentRecipeListResponse = z.infer<typeof RecentRecipeListResponseSchema>;
+
+/** POST /recent-recipes/{recipe_id} 응답 data. */
+export const RecentRecipeSummarySchema = z.object({
+  recipe_id: z.union([z.string(), z.number()]).transform(String),
+  viewed_at: z.coerce.date(),
+});
+export type RecentRecipeSummary = z.infer<typeof RecentRecipeSummarySchema>;
+
+/** GET 쿼리 파라미터. limit 1~50, 기본 10(서버 라우터 소스 확인). */
+export const RecentRecipeListParamsSchema = z.object({
+  limit: z.number().int().min(1).max(50).default(10),
+});
+export type RecentRecipeListParams = z.infer<typeof RecentRecipeListParamsSchema>;
+
+/** POST 경로 파라미터 검증. 찜과 동일 컨벤션. */
+export const RecentRecipeIdParamSchema = z.string().min(1);

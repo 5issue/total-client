@@ -1,4 +1,5 @@
 import { formatPrice } from '@/lib/formatters';
+import { isAllowedImageSrc } from '@/lib/imageHosts';
 import type { MissingProductsResponse, RecipeDetail } from '@/types/recipe';
 
 import { PLACEHOLDER_DETAIL } from './mock';
@@ -88,7 +89,10 @@ export function toRecipeViewModel(
   return {
     id: detail.recipe_id,
     name: detail.name,
-    imageSrc: detail.image_url ?? PLACEHOLDER_IMAGE,
+    // 화이트리스트 밖 호스트(예: allrecipes.com)를 그대로 넘기면 next/image 가
+    // "Invalid src prop" 런타임 에러로 화면을 통째로 깨뜨린다(2026-09-30 재현) —
+    // 여기서 걸러 안전한 값만 통과시킨다.
+    imageSrc: isAllowedImageSrc(detail.image_url) ? detail.image_url : PLACEHOLDER_IMAGE,
     ownedIngredientCount: ownedCount,
     neededIngredientCount: missingCount,
     liked: false,

@@ -19,27 +19,28 @@ import {
  * 보이는 죽은 컨트롤이 된다 — `MyKurlyHomeView` 만 true 로 켠다.
  *
  * 알림(bell) 아이콘은 최신 스펙에서 빠졌다 — 이전엔 있었지만 재확인 결과 제거됨
- * (리뷰 피드백, 2026-09-18). 장바구니 배지 `4`는 아직 목업값(API 미연동) — 홈 화면
- * `HomeHeaderContainer`(2026-09-23, `useCart()` 로 실연동)와 같은 패턴으로, 이 컴포넌트도
- * 컨테이너를 하나 더 만들어 `badge` 만 실제 수량으로 바꾸면 된다.
+ * (리뷰 피드백, 2026-09-18). 장바구니 배지는 `cartCount` prop으로 받는다 — 실제 수량은
+ * `KurlyHeaderContainer`가 `useCart()`로 채운다(`HomeHeaderContainer`와 같은 패턴).
+ * `SectionHeader`가 `badge`를 0 이하/미지정이면 알아서 숨긴다(§`hasBadge`).
  *
  * 아직 `(shop)/layout.tsx` 에 전역 배치하지 않는다 — 장바구니는 X(닫기)형 `SectionHeader` 라
  * 전역화하면 충돌한다. 헤더가 필요한 페이지(`/login`, `/mypage`)가 직접 조립한다.
  * 위치는 목적지 화면이 아직 없어 아이콘만 노출(`pending`).
  */
-const ACTIONS: SectionHeaderAction[] = [
-  { icon: 'location', label: '위치', pending: true },
-  { icon: 'cart', label: '장바구니', href: '/cart', badge: 4 },
-];
-
-export function KurlyHeader({
-  className,
-  showThemeToggle = false,
-}: {
+export type KurlyHeaderProps = {
   className?: string;
   showThemeToggle?: boolean;
-}) {
+  /** 장바구니 담긴 상품 개수. 0 이하/미지정이면 배지를 숨긴다. */
+  cartCount?: number;
+};
+
+export function KurlyHeader({ className, showThemeToggle = false, cartCount }: KurlyHeaderProps) {
   const router = useRouter();
+
+  const actions: SectionHeaderAction[] = [
+    { icon: 'location', label: '위치', pending: true },
+    { icon: 'cart', label: '장바구니', href: '/cart', badge: cartCount },
+  ];
 
   return (
     <SectionHeader
@@ -48,7 +49,7 @@ export function KurlyHeader({
       onLeadingClick={() => router.back()}
       center={<span className="text-heading-0 text-fg">마이컬리</span>}
       extra={showThemeToggle ? <ThemeToggle className="mr-2" /> : null}
-      actions={ACTIONS}
+      actions={actions}
     />
   );
 }
