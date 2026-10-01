@@ -14,6 +14,7 @@ import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 import { useAddresses } from '@/hooks/address/useAddresses';
 import { useCreateOrder } from '@/hooks/checkout/useCreateOrder';
 import { useDeliveryAddressStore } from '@/hooks/useDeliveryAddressStore';
+import { useUserProfile } from '@/hooks/user/useUserProfile';
 
 import { CheckoutView } from './CheckoutView';
 import { mapCheckoutOrderToView } from './mapCheckoutOrder';
@@ -22,7 +23,8 @@ import { mapCheckoutOrderToView } from './mapCheckoutOrder';
  * 주문서 컨테이너 — 장바구니에서 선택한 상품 id(`itemIds`)로 실제 주문서 생성 API
  * (`POST /api/v1/orders/checkout`, 이슈 #126)를 호출해 `orderId`·주문상품·결제금액을 채우고,
  * `useAddresses()` + 선택된 배송지 id(Zustand)로 배송지를 채운다(이슈 #120).
- * 결제수단·결제 자체는 `CheckoutView` 로컬 그대로 — 건드리지 않는다.
+ * "주문자 정보"의 이름은 `useUserProfile()` 로 채운다 — 그 외(결제수단·결제 자체)는
+ * `CheckoutView` 로컬 그대로 건드리지 않는다.
  *
  * 이전(#120)엔 `useCart()` 를 로컬에서 필터링해 상품·금액을 직접 계산했지만, 이제 서버가
  * 재고를 실제로 예약하며 주문을 만들어야 하므로 그 계산은 더 이상 클라가 하지 않는다.
@@ -32,6 +34,7 @@ export function CheckoutContainer({ itemIds }: { itemIds: string[] }) {
   const addressesQuery = useAddresses();
   const selectedAddressId = useDeliveryAddressStore((s) => s.selectedId);
   const createOrder = useCreateOrder();
+  const userProfileQuery = useUserProfile();
   const requestedFor = useRef<string | null>(null);
 
   const cartItemIds = itemIds.map(Number).filter((id) => Number.isInteger(id) && id > 0);
@@ -124,6 +127,7 @@ export function CheckoutContainer({ itemIds }: { itemIds: string[] }) {
       items={items}
       amounts={amounts}
       deliveryAddress={deliveryAddress}
+      customerName={userProfileQuery.data?.name ?? undefined}
     />
   );
 }

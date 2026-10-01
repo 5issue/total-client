@@ -22,6 +22,12 @@ import type { Recipe } from './model';
  * 버튼만 따로 담기를 처리하는 스펙은 Figma에 없다(디자인 확인 필요, 우선 상세
  * 이동으로 간주). "최근 본"/"찜한" 카드와 마찬가지로 일반 `Link` 이동이다 — "MY
  * 레시피 제작 중" 로딩은 `MyFridgeView`가 탭 전환 시점에 따로 거친다.
+ *
+ * 하트만 예외로 상세 이동을 막고 찜 토글을 한다(`RecipeCardL`과 동일 찜 UX, 이슈
+ * #152). 카드 전체가 `<Link>`라 하트를 그 안에 평범한 `<button>`으로 두면 인터랙티브
+ * 요소 중첩이 된다 — 대신 카드 컨테이너를 `<div>`로, `<Link>`는 전체를 덮는 투명
+ * 오버레이(`absolute inset-0`)로 두고, 하트 버튼을 그보다 높은 `z-index`로 그 위에
+ * 얹어 자기 영역의 클릭만 가로챈다(`RecipeCardL`의 형제 배치와 다른, 오버레이 방식).
  */
 export interface RecipeAiRecommendSectionProps {
   nickname: string;
@@ -30,6 +36,7 @@ export interface RecipeAiRecommendSectionProps {
    *  조회 상태 — 로딩·에러·빈 상태는 이 표현 컴포넌트가 렌더하되 소유는 컨테이너 몫. */
   isPending?: boolean;
   isError?: boolean;
+  onToggleLike: (id: string, liked: boolean) => void;
   className?: string;
 }
 
@@ -45,19 +52,26 @@ function AiRecommendedRecipeCard({
   recipe,
   active,
   cardRef,
+  onToggleLike,
 }: {
   recipe: Recipe;
   active: boolean;
-  cardRef: (el: HTMLAnchorElement | null) => void;
+  cardRef: (el: HTMLDivElement | null) => void;
+  onToggleLike: (liked: boolean) => void;
 }) {
   const totalIngredientCount = recipe.ownedIngredientCount + recipe.neededIngredientCount;
 
   return (
-    <Link
+    <div
       ref={cardRef}
-      href={`/mypage/fridge/recipes/${recipe.id}`}
-      className={`shadow-m flex shrink-0 snap-center flex-col items-start overflow-hidden ${active ? 'w-75 rounded-lg' : 'rounded-m w-68'}`}
+      className={`shadow-m relative flex shrink-0 snap-center flex-col items-start overflow-hidden ${active ? 'w-75 rounded-lg' : 'rounded-m w-68'}`}
     >
+      <Link
+        href={`/mypage/fridge/recipes/${recipe.id}`}
+        aria-label={recipe.name}
+        className="absolute inset-0 z-0"
+      />
+
       <div className={`relative w-full shrink-0 ${active ? 'h-56.25' : 'h-51'}`}>
         <Image
           src={recipe.imageSrc}
@@ -79,14 +93,25 @@ function AiRecommendedRecipeCard({
           >
             보유 식재료 {recipe.ownedIngredientCount}/{totalIngredientCount}
           </span>
-          <span className="inline-flex size-8 items-center justify-center">
-            <Icon name="heart" size={28} aria-hidden className="text-fg-inverse" />
-          </span>
+          <button
+            type="button"
+            onClick={() => onToggleLike(!recipe.liked)}
+            aria-label={recipe.liked ? `${recipe.name} 찜 해제` : `${recipe.name} 찜하기`}
+            className="relative z-10 inline-flex size-8 items-center justify-center before:absolute before:-inset-1.5 before:content-['']"
+          >
+            {/* 찜 색상·44px 히트박스 확장은 `RecipeCardL`과 동일 패턴. */}
+            <Icon
+              name={recipe.liked ? 'heart-filled' : 'heart'}
+              size={28}
+              aria-hidden
+              className="text-fg-inverse [--color-brand-500:var(--color-brand-300)]"
+            />
+          </button>
         </div>
       </div>
 
       <div
-        className={`bg-surface flex w-full flex-col ${
+        className={`bg-surface pointer-events-none flex w-full flex-col ${
           active ? 'gap-4 p-4' : 'items-center gap-5 px-3 pt-3 pb-5'
         }`}
       >
@@ -111,7 +136,7 @@ function AiRecommendedRecipeCard({
           부족 재료 담기 {recipe.missingIngredientsPriceLabel}
         </span>
       </div>
-    </Link>
+    </div>
   );
 }
 
@@ -120,10 +145,11 @@ export function RecipeAiRecommendSection({
   recipes,
   isPending = false,
   isError = false,
+  onToggleLike,
   className,
 }: RecipeAiRecommendSectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const cardRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
 
   function handleScroll() {
@@ -203,6 +229,7 @@ export function RecipeAiRecommendSection({
                 cardRef={(el) => {
                   cardRefs.current[index] = el;
                 }}
+                onToggleLike={(liked) => onToggleLike(recipe.id, liked)}
               />
             ))}
             <div className="w-12.75 shrink-0" aria-hidden />

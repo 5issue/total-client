@@ -13,12 +13,18 @@ import localFont from 'next/font/local';
  * 서로를 덮어쓰는 특이도(specificity) 문제 없이 안전하다.
  *
  * `weight: '45 930'` 은 Pretendard Variable 실제 가변축 범위(TTF `fvar` 테이블 실측, wght
- * min=45/max=930) 그대로. 패키지에 `dist/web/variable/woff2/...` 서브셋 파일은 있지만
- * `next/font/local` 이 곧바로 쓸 단일 가변폰트 파일은 `dist/public/variable/` 의 TTF뿐이다
- * (CodeRabbit 지적 — 원래 지정한 woff2 경로는 패키지에 존재하지 않아 빌드가 깨졌다).
+ * min=45/max=930) 그대로.
+ *
+ * 파일은 TTF(`dist/public/variable/`, 6.4MB)가 아니라 같은 내용을 WOFF2로 압축한
+ * `dist/web/variable/woff2/PretendardVariable.woff2`(2.0MB)를 쓴다 — 가변축·글리프는
+ * 동일하고 포맷만 다르다(Lighthouse 1차 감사 지적, 2026-09-30). 이전엔 CodeRabbit이
+ * 지적한 대로 `dist/web/variable/woff2/...` 경로에 실제로 파일이 없어 TTF로 되돌렸던
+ * 적이 있는데, 지금 설치된 `pretendard` 패키지 버전엔 이 경로에 파일이 존재한다
+ * (`node_modules/pretendard/dist/web/variable/woff2/` 확인) — 패키지를 올릴 때 이 파일이
+ * 여전히 있는지 다시 확인할 것.
  */
 export const pretendard = localFont({
-  src: '../../node_modules/pretendard/dist/public/variable/PretendardVariable.ttf',
+  src: '../../node_modules/pretendard/dist/web/variable/woff2/PretendardVariable.woff2',
   variable: '--font-pretendard',
   display: 'swap',
   weight: '45 930',

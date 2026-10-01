@@ -134,7 +134,7 @@ export function HeroBanner({ banners, className }: HeroBannerProps) {
           src={slide.imageSrc}
           alt={slide.imageAlt}
           fill
-          preload
+          priority
           quality={90}
           sizes="(max-width: 480px) 100vw, 402px"
           className="object-cover"

@@ -12,6 +12,10 @@ export const FridgeProductSchema = z.object({
   /** 원문 그대로 보관 — 실제 enum 값 미확정. 화면 매핑은 MyFridgeView/mapFridgeItem.ts. */
   storage_type: z.string().nullable(),
   weight_g: z.number().nullable().optional(),
+  /** FRIDGE-01 v0.2 초안에 추가된 필드(2026-09-30 AI팀 공지) — RECIPE-01의 `image_url`과
+   *  같은 이름 관례. 화이트리스트 밖 호스트가 올 수 있어 화면에서 그대로 쓰지 말고
+   *  `isAllowedImageSrc`로 걸러서 쓴다(mapFridgeItem.ts 참고). */
+  image_url: z.string().nullable().optional(),
 });
 export type FridgeProduct = z.infer<typeof FridgeProductSchema>;
 
