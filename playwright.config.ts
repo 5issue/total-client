@@ -16,6 +16,10 @@ import { defineConfig, devices } from '@playwright/test';
  * 무인 실행(`npm run e2e`)에 넣으면 항상 멈춰버린다. 그래서 `setup`은
  * `npm run e2e:login`으로 필요할 때만 수동 실행하고, `npm run e2e`는 이미 저장된
  * `e2e/.auth/user.json`을 그대로 재사용한다.
+ *
+ * ⚠️ E2E fixture/스크립트에서 `/api/auth/refresh`를 401로 호출하면 응답이 refresh_token
+ * 쿠키를 지워 middleware가 전 페이지를 `/login`으로 보낸다 — 무인 e2e에서 refresh를
+ * 자동 호출하지 않는다. 세션이 깨졌으면 `npm run e2e:login`을 다시 실행한다.
  */
 export default defineConfig({
   testDir: './e2e',
