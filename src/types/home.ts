@@ -29,7 +29,8 @@ export type HomeQuickMenu = z.infer<typeof HomeQuickMenuSchema>;
 export const HomeSectionProductSchema = z.object({
   id: z.number(),
   name: z.string(),
-  brand: z.string(),
+  /** product-service 시드/매핑에 따라 null — Swagger DTO와 동일하게 nullable. */
+  brand: z.string().nullable(),
   price: MoneySchema,
   salePrice: MoneySchema,
   discountRate: z.number().int().min(0).max(100).nullable(),
