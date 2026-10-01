@@ -9,6 +9,11 @@ import { Icon, type IconName } from '@/components/atoms/Icon/Icon';
  * - onRemove 없음: "Select_Chip"(state=Default/Selected) — 필터·태그 토글용, solid 배경.
  * - onRemove 있음: "Chip"(Type=Default/Pressed) — 선택된 값 표시 + 삭제, outline 배경.
  * 시각적으로 다른 두 컴포넌트라 각자의 클래스 묶음을 그대로 쓴다(Button VARIANT_CLASSNAME 과 동일 패턴).
+ *
+ * onRemove 버전에서 상속된 `onClick`(ButtonHTMLAttributes)을 주면, 삭제 버튼을 제외한
+ * 칩 본문이 별도 버튼이 되어 탭 시 그 핸들러만 호출한다 — 삭제 버튼과 형제 요소라 서로
+ * 이벤트가 번지지 않는다(#182, 최근 검색어 칩 탭 시 검색 이동). `onClick` 이 없으면 본문은
+ * 비활성 텍스트로 남는다(기존 동작, 필터 칩처럼 삭제만 필요한 경우).
  */
 export interface ChipProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** onRemove 가 없을 때만 의미 있는 토글 상태. */
@@ -51,10 +56,17 @@ export function Chip({
   className,
   children,
   type = 'button',
+  onClick,
   ...props
 }: ChipProps) {
   if (onRemove) {
     const removeLabel = typeof children === 'string' ? `${children} 삭제` : '삭제';
+    const body = (
+      <>
+        {leadingIcon ? <Icon name={leadingIcon} size={20} aria-hidden /> : null}
+        {children}
+      </>
+    );
 
     return (
       <span
@@ -68,8 +80,18 @@ export function Chip({
           .filter(Boolean)
           .join(' ')}
       >
-        {leadingIcon ? <Icon name={leadingIcon} size={20} aria-hidden /> : null}
-        {children}
+        {onClick ? (
+          <button
+            type={type}
+            onClick={onClick}
+            disabled={disabled}
+            className="inline-flex items-center gap-1 disabled:pointer-events-none"
+          >
+            {body}
+          </button>
+        ) : (
+          body
+        )}
         {/* 삭제 아이콘 색은 칩 라벨(text-fg, #222)과 다르다 — Figma 변수는 Icon/Tertiary(#8aa1ab) =
             text-fg-quaternary 로 별도 지정돼 있다(get_variable_defs 로 노드 2563:3023 확인). */}
         {/* p-1 로 클릭 영역을 20px 아이콘보다 키우고 -m-1 로 레이아웃 상 자리(간격·칩 높이)는
@@ -93,6 +115,7 @@ export function Chip({
       type={type}
       disabled={disabled}
       aria-pressed={selected}
+      onClick={onClick}
       className={[
         BASE_CLASSNAME,
         // h-10(40px)는 Figma 실측 고정값(2426:1280/1281) — 접근성 권장 44px 터치 타깃과

@@ -2,6 +2,8 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
+import { useRouter } from 'next/navigation';
+
 import { Chip } from '@/components/atoms/Chip';
 import { PageIndicator } from '@/components/atoms/PageIndicator';
 import { HomeSectionHeader } from '@/components/molecules/shared/HomeSectionHeader';
@@ -26,6 +28,14 @@ const CHIP_CLASSNAME = 'shrink-0';
  * `addKeyword` 로 기록한다 — 두 컴포넌트는 부모/자식이 아니라 훅 내부의 모듈
  * 캐시(`useSyncExternalStore`)로 동기화된다.
  *
+ * 칩 탭(삭제 버튼 제외) 시 그 키워드로 검색 결과로 이동한다(#182) — `addKeyword` 로
+ * 최신순 갱신 후 `router.push('/search?q=...')`, `SearchSuggestionsSection.handleSelect`
+ * 와 동일한 "검색 제출" 패턴이다. 이 컴포넌트는 `page.tsx`(RSC)가 `defaultContent` 로
+ * 독립 조합하는 구조라 `SearchPageContent.handleSubmit` 을 prop 으로 못 받는다 —
+ * `SearchPageHeader` 가 `router.back()` 을 자체 호출하는 것과 같은 이유로 `useRouter`
+ * 를 직접 쓴다. 제출 시점엔 URL 이 항상 `/search`(빈 쿼리)라 `SearchPageContent` 의
+ * replace/push 분기 중 "첫 검색" 쪽(push)과 동일하게 동작한다.
+ *
  * ⚠️ 페이지네이션 방식 — Figma 는 칩을 표준 `flex-wrap`(가로 우선, 왼쪽→오른쪽으로
  * 채우다 넘치면 다음 줄)으로 배치한다. "2줄 넘으면 다음 페이지를 가로 스와이프로"
  * 요구사항을 CSS 만으로 만족시킬 방법이 없다 — flex-wrap 은 세로로만 계속 늘어나고,
@@ -35,7 +45,8 @@ const CHIP_CLASSNAME = 'shrink-0';
  * 단위로 실제 가로 스크롤 목록을 렌더한다.
  */
 export function RecentSearchesSection({ className }: RecentSearchesSectionProps) {
-  const { keywords, removeKeyword } = useRecentSearches();
+  const router = useRouter();
+  const { keywords, addKeyword, removeKeyword } = useRecentSearches();
   const measureRef = useRef<HTMLDivElement>(null);
   const chipNodesRef = useRef(new Map<string, HTMLElement>());
   const [pages, setPages] = useState<string[][] | null>(null);
@@ -109,6 +120,11 @@ export function RecentSearchesSection({ className }: RecentSearchesSectionProps)
     else chipNodesRef.current.delete(keyword);
   };
 
+  const handleSelect = (keyword: string) => {
+    addKeyword(keyword);
+    router.push(`/search?q=${encodeURIComponent(keyword)}`, { scroll: false });
+  };
+
   return (
     <div
       className={['relative flex flex-col gap-3 px-4 py-4', className].filter(Boolean).join(' ')}
@@ -152,6 +168,7 @@ export function RecentSearchesSection({ className }: RecentSearchesSectionProps)
                   key={keyword}
                   fill="none"
                   className={CHIP_CLASSNAME}
+                  onClick={() => handleSelect(keyword)}
                   onRemove={() => removeKeyword(keyword)}
                 >
                   {keyword}
@@ -167,6 +184,7 @@ export function RecentSearchesSection({ className }: RecentSearchesSectionProps)
               key={keyword}
               fill="none"
               className={CHIP_CLASSNAME}
+              onClick={() => handleSelect(keyword)}
               onRemove={() => removeKeyword(keyword)}
             >
               {keyword}
