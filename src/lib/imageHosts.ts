@@ -27,15 +27,29 @@ export const REMOTE_IMAGE_PATTERNS = [
   },
 ] as const;
 
-/** `next/image` 에 그대로 넘겨도 안전한 src 인지(로컬 경로거나 화이트리스트 호스트). */
+/** remotePatterns의 `pathname`(`/uploadimg/**`, `/**` 등)과 같은 글롭 문법으로 매칭한다 —
+ *  `*`는 세그먼트 하나, `**`는 몇 단계든. (Next.js `images.remotePatterns` 문법과 동일.) */
+function matchesPathname(pattern: string, pathname: string): boolean {
+  const regexSource = pattern
+    .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+    .replace(/\*+/g, (run) => (run.length >= 2 ? '.*' : '[^/]*'));
+  return new RegExp(`^${regexSource}$`).test(pathname);
+}
+
+/** `next/image` 에 그대로 넘겨도 안전한 src 인지(로컬 경로거나 화이트리스트 호스트+경로). */
 export function isAllowedImageSrc(src: string | null | undefined): src is string {
   if (!src) return false;
+  // `//example.com/...` 같은 프로토콜 상대 URL은 로컬 경로가 아니다 — 로컬 경로
+  // 체크보다 먼저 걸러야 한다(Next.js 기본 이미지 로더도 이 형태를 거부한다).
+  if (src.startsWith('//')) return false;
   if (src.startsWith('/')) return true;
   try {
     const url = new URL(src);
     return REMOTE_IMAGE_PATTERNS.some(
       (pattern) =>
-        pattern.protocol === url.protocol.replace(':', '') && pattern.hostname === url.hostname,
+        pattern.protocol === url.protocol.replace(':', '') &&
+        pattern.hostname === url.hostname &&
+        matchesPathname(pattern.pathname, url.pathname),
     );
   } catch {
     return false;
