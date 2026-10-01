@@ -74,6 +74,20 @@ const won = (n: number) => `${n.toLocaleString('ko-KR')}원`;
 
 /** 주문서 진입 후 결제를 완료해야 하는 유효시간 — 서버 세션 만료 정책 확정 전 임시값(node 666-24671). */
 const ORDER_TIME_LIMIT_MS = 15 * 60 * 1000;
+
+/**
+ * `expiresAt`(Spring `LocalDateTime` 직렬화)은 타임존 표기가 없다 — `order-service`
+ * DB가 `serverTimezone=UTC`로 고정돼 있고 배포 컨테이너도 TZ 오버라이드가 없어(기본
+ * UTC) 이 값은 항상 UTC 벽시계 값이다. `new Date(expiresAt)`을 그대로 쓰면 브라우저가
+ * 이 문자열을 로컬 시간대(KST)로 읽어 실제보다 9시간 이른 시각으로 해석한다 —
+ * 주문서 진입 직후 "주문시간이 초과되었어요"가 바로 뜨던 원인(배포 환경에서만 재현,
+ * 로컬 개발 머신은 JVM도 KST라 우연히 들어맞았다. 2026-10-01 확인). 이미 Z/오프셋이
+ * 있으면 그대로 두고, 없으면 'Z'를 붙여 UTC로 명시한다.
+ */
+function parseServerUtcDateTime(isoLike: string): Date {
+  const hasTimezone = /Z$|[+-]\d{2}:\d{2}$/.test(isoLike);
+  return new Date(hasTimezone ? isoLike : `${isoLike}Z`);
+}
 /** [주문하기] 오류 토스트 노출 시간(node 666-23688, Toast atom 은 자동 소멸을 책임지지 않음). */
 const VALIDATION_TOAST_DURATION_MS = 5000;
 
@@ -175,7 +189,7 @@ export function CheckoutView({
 
   useEffect(() => {
     const remainingMs = expiresAt
-      ? new Date(expiresAt).getTime() - Date.now()
+      ? parseServerUtcDateTime(expiresAt).getTime() - Date.now()
       : ORDER_TIME_LIMIT_MS;
     const timer = setTimeout(() => setOrderExpired(true), Math.max(remainingMs, 0));
     return () => clearTimeout(timer);
