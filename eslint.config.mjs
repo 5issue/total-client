@@ -71,6 +71,7 @@ const eslintConfig = defineConfig([
       'eslint.config.mjs',
       'commitlint.config.mjs',
       'vitest.config.ts',
+      'playwright.config.ts',
       '.storybook/main.ts',
       '.storybook/preview.tsx',
     ],

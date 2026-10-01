@@ -38,6 +38,20 @@ export default defineConfig({
           },
         },
       },
+      {
+        // 순수 함수/Zod 스키마용 유닛 테스트 — Storybook 프로젝트와 달리 브라우저를
+        // 띄우지 않는다(대상이 DOM/브라우저 API를 쓰지 않아 훨씬 빠르다). Next.js
+        // webpack alias 대신 여기서 "@" -> "./src" 를 직접 매핑한다(스토리북 프로젝트는
+        // @storybook/nextjs-vite 가 내부적으로 처리해주지만, 이 프로젝트엔 그 플러그인이 없다).
+        resolve: {
+          alias: { '@': path.join(dirname, 'src') },
+        },
+        test: {
+          name: 'unit',
+          environment: 'node',
+          include: ['src/**/*.test.{ts,tsx}'],
+        },
+      },
     ],
   },
 });
