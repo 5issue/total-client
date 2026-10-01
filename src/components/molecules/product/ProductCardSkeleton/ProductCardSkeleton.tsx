@@ -12,10 +12,7 @@ export function ProductCardSkeleton({ className }: ProductCardSkeletonProps) {
   return (
     <div
       aria-hidden
-      className={[
-        'flex h-product-card w-37.5 shrink-0 flex-col items-start gap-1',
-        className,
-      ]
+      className={['h-product-card flex w-37.5 shrink-0 flex-col items-start gap-1', className]
         .filter(Boolean)
         .join(' ')}
     >
