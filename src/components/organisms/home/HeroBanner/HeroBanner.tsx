@@ -44,6 +44,18 @@ import { StatusLabel } from '@/components/molecules/shared/StatusLabel';
  * 더 큰 원본을 받아야 한다(Figma 코멘트로 요청 필요, 이 세션에서는 자산 자체를 만들 수
  * 없어 코드로 할 수 있는 부분만 반영).
  *
+ * `preload`/`fetchPriority="high"`(2026-10-01, Lighthouse 2차 감사) — 이 화면의 LCP
+ * 후보 1순위 이미지다. 두 가지를 바로잡았다:
+ * 1) `preload`가 현재(Next 16 App Router) next/image 의 정식 prop이다 — `priority`는
+ *    레거시 Pages Router 문서에만 남아 있다(공식 문서: "Use the `preload` prop on
+ *    `next/image` for LCP images"). #165가 "`preload`는 존재하지 않는 prop"이라며
+ *    `priority`로 되돌렸는데, 이번 조사로 확인해보니 그 전제가 틀렸다 — 실제로는
+ *    `preload`가 맞고 `priority`가 레거시였다.
+ * 2) `fetchPriority`는 `priority`/`preload` 어느 쪽을 쓰든 자동으로 안 붙는 별도
+ *    prop이다(next/image 소스 `get-img-props.ts` 확인 — `rest`에서 그대로 통과시킬
+ *    뿐, lazy 해제 로직과 무관). 배포 사이트의 실제 SSR HTML을 떠서 `fetchpriority`
+ *    속성이 끝까지 한 번도 안 나오는 것을 확인했다 — 명시적으로 추가해야 한다.
+ *
  * 재생/일시정지 버튼과 전체보기 링크는 Figma 실측 그대로 28px(size-7/h-7)를 유지하되,
  * `QuantityStepper`(node 2429-3870)와 같은 `::before` 확장 영역으로 터치 타깃만 44px로
  * 넓힌다 — 시각 크기는 그대로, 히트 영역만 넓히는 프로젝트 공통 패턴.
@@ -134,7 +146,8 @@ export function HeroBanner({ banners, className }: HeroBannerProps) {
           src={slide.imageSrc}
           alt={slide.imageAlt}
           fill
-          priority
+          preload
+          fetchPriority="high"
           quality={90}
           sizes="(max-width: 480px) 100vw, 402px"
           className="object-cover"
