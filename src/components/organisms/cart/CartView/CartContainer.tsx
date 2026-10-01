@@ -2,6 +2,8 @@
 
 import { useEffect } from 'react';
 
+import { useRouter, useSearchParams } from 'next/navigation';
+
 import { FloatingButton } from '@/components/atoms/FloatingButton';
 import { Icon } from '@/components/atoms/Icon';
 import { LoadingIndicator } from '@/components/atoms/LoadingIndicator';
@@ -23,6 +25,7 @@ import { mapCartResponse } from './mapCartResponse';
 const ADDRESS_UPDATE_ERROR_TOAST_DURATION_MS = 3000;
 const ADDRESS_UPDATE_ERROR_MESSAGE = '배송지 변경에 실패했어요. 다시 시도해주세요.';
 const ADDRESS_LOAD_ERROR_MESSAGE = '배송지 정보를 불러오지 못했어요.';
+const ORDER_ERROR_TOAST_DURATION_MS = 3000;
 
 /**
  * 장바구니 컨테이너 — `useCart` 로 실제 장바구니를 받아 매핑해 내린다.
@@ -41,8 +44,16 @@ const ADDRESS_LOAD_ERROR_MESSAGE = '배송지 정보를 불러오지 못했어�
  * 배송지 목록 조회(`useAddresses`)도 여기서 한다 — `CartView`가 직접 조회하면 조회 실패가
  * `addresses: []`로 뭉개져 "배송지가 아예 없음"과 구분이 안 된다(표현 컴포넌트는 props만
  * 받는다는 컨벤션과도 어긋남, CodeRabbit 리뷰 반영).
+ *
+ * `orderError` 쿼리스트링 — 주문서 생성(`POST /orders/checkout`)이 실패하면 `CheckoutContainer`
+ * 가 이 화면으로 돌려보내며 에러 메시지를 실어 보낸다(`CheckoutView`의 `payError` 와 동일
+ * 패턴). 토스트로 보여준 뒤 타이머로 쿼리스트링을 정리한다 — `useSearchParams` 를 쓰므로
+ * 호출부(`/cart/page.tsx`)가 Suspense 경계를 둬야 한다(#109, 토스 successUrl 복귀와 동일 이유).
  */
 export function CartContainer() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const orderError = searchParams.get('orderError');
   const cartQuery = useCart();
   const addressesQuery = useAddresses();
   const updateQuantity = useUpdateCartItemQuantity();
@@ -78,6 +89,14 @@ export function CartContainer() {
     triggerAddressErrorToast();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 실패로 "전환"될 때만 되돌린다
   }, [isDeliveryAddressUpdateError]);
+
+  useEffect(() => {
+    if (!orderError) return;
+    const timer = setTimeout(() => {
+      router.replace('/cart', { scroll: false });
+    }, ORDER_ERROR_TOAST_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [orderError, router]);
 
   if (cartQuery.isLoading) {
     return (
@@ -134,6 +153,7 @@ export function CartContainer() {
       <ErrorToastBanner visible={addressesQuery.isError}>
         {ADDRESS_LOAD_ERROR_MESSAGE}
       </ErrorToastBanner>
+      <ErrorToastBanner visible={Boolean(orderError)}>{orderError}</ErrorToastBanner>
       <CartView
         groups={mapCartResponse(cartQuery.data)}
         addresses={addressesQuery.data?.addresses.map(mapAddressToView) ?? []}
