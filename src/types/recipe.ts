@@ -165,9 +165,8 @@ export type FavoriteRecipeListParams = z.infer<typeof FavoriteRecipeListParamsSc
 export const FavoriteRecipeIdParamSchema = z.string().min(1);
 
 /**
- * 최근 본 레시피(RECENT-01~02) 스키마 — FAV-01~03과 같은 `RecipeCard` 공통 모양에
- * `viewed_at`만 다르다(AI 서빙 레포 `serving/src/serving/schemas.py` 확인, 2026-09-30).
- * DELETE 엔드포인트는 스펙에 없어(선택삭제 UI는 백엔드 확인 후 별도 진행) 스키마도 두지 않는다.
+ * 최근 본 레시피(RECENT-01~03) 스키마 — FAV-01~03과 같은 `RecipeCard` 공통 모양에
+ * `viewed_at`만 다르다(AI 서빙 레포 `serving/src/serving/schemas.py` 확인, 2026-10-01).
  */
 export const RecentRecipeCardSchema = z.object({
   recipe_id: z.union([z.string(), z.number()]).transform(String),
@@ -200,3 +199,20 @@ export type RecentRecipeListParams = z.infer<typeof RecentRecipeListParamsSchema
 
 /** POST 경로 파라미터 검증. 찜과 동일 컨벤션. */
 export const RecentRecipeIdParamSchema = z.string().min(1);
+
+/**
+ * DELETE /recent-recipes 요청 바디(RECENT-03). "전체선택 → 선택삭제"가 체크된 id를
+ * 한 번에 보낸다. 서버 PK는 정수라 `recipe_id`(문자열 변환)와 달리 그대로 number로 받는다
+ * (AI 서빙 레포 `RecentRecipeDeleteRequest` 확인, 2026-10-01). 화면이 한 번에 보여주는
+ * 최대 건수(50)보다 넉넉한 100까지 허용 — 서버 제약과 동일.
+ */
+export const RecentRecipeDeleteRequestSchema = z.object({
+  recipe_ids: z.array(z.number().int().min(1)).min(1).max(100),
+});
+export type RecentRecipeDeleteRequest = z.infer<typeof RecentRecipeDeleteRequestSchema>;
+
+/** DELETE 응답 data — 실제 삭제된 건수. 기록에 없던 id는 세지 않는다. */
+export const RecentRecipeDeleteResponseSchema = z.object({
+  deleted_count: z.number(),
+});
+export type RecentRecipeDeleteResponse = z.infer<typeof RecentRecipeDeleteResponseSchema>;

@@ -67,6 +67,8 @@ import {
   FavoriteRecipeSummarySchema,
   MissingProductsResponseSchema,
   MyRecipeRecommendationsResponseSchema,
+  RecentRecipeDeleteRequestSchema,
+  RecentRecipeDeleteResponseSchema,
   RecentRecipeListResponseSchema,
   RecentRecipeSummarySchema,
   RecipeDetailSchema,
@@ -543,6 +545,19 @@ export function recordRecentRecipe(recipeId: string) {
     RecentRecipeSummarySchema,
     { method: 'POST' },
   );
+}
+
+/**
+ * 최근 본 레시피 선택 삭제. AI 파트 RECENT-03(리뷰중, 이슈 #177). 서버 PK는 정수라
+ * 문자열로 들고 있던 `recipe_id`를 다시 숫자로 변환해 보낸다.
+ */
+export function deleteRecentRecipes(recipeIds: string[]) {
+  return privateFetch('/api/recent-recipes', RecentRecipeDeleteResponseSchema, {
+    method: 'DELETE',
+    body: JSON.stringify(
+      RecentRecipeDeleteRequestSchema.parse({ recipe_ids: recipeIds.map(Number) }),
+    ),
+  });
 }
 
 /** 상품 보관 가이드. AI 파트 PROD-03(개발완료, 이슈 #142). 비로그인도 조회 가능. */

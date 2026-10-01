@@ -9,6 +9,7 @@ import { ErrorState } from '@/components/molecules/shared/ErrorState';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 import { recipeKeys } from '@/hooks/recipe/queryKeys';
 import { useAddFavoriteRecipe } from '@/hooks/recipe/useAddFavoriteRecipe';
+import { useDeleteRecentRecipes } from '@/hooks/recipe/useDeleteRecentRecipes';
 import { useFavoriteRecipes } from '@/hooks/recipe/useFavoriteRecipes';
 import { useRecentRecipes } from '@/hooks/recipe/useRecentRecipes';
 import { useRemoveFavoriteRecipe } from '@/hooks/recipe/useRemoveFavoriteRecipe';
@@ -32,12 +33,16 @@ const FAVORITE_LIST_LIMIT = 100;
  * 하트는 "최근 봄"과 무관한 별도 상태(찜)라 `useFavoriteRecipes` 목록과 대조해
  * `liked` 를 판정한다 — 찜 추가/해제는 `LikedRecipesViewContainer`와 동일하게
  * FAV-02/03 뮤테이션을 쓰고, 최근 본 목록 자체는 건드리지 않는다.
+ *
+ * 선택삭제(이슈 #177, RECENT-03)는 서버가 배치 삭제를 지원해 `MyFridgeView`(품목별
+ * 개별 DELETE 반복)와 달리 선택된 id 전체를 한 번에 보낸다.
  */
 export function RecentRecipesViewContainer() {
   const recentQuery = useRecentRecipes({ limit: RECENT_LIST_LIMIT });
   const favoritesQuery = useFavoriteRecipes({ limit: FAVORITE_LIST_LIMIT });
   const addFavorite = useAddFavoriteRecipe();
   const removeFavorite = useRemoveFavoriteRecipe();
+  const deleteRecentRecipes = useDeleteRecentRecipes();
 
   const recentIds = recentQuery.data?.items.map((item) => item.recipe_id) ?? [];
   const favoriteIds = new Set(favoritesQuery.data?.items.map((item) => item.recipe_id) ?? []);
@@ -81,6 +86,11 @@ export function RecentRecipesViewContainer() {
     }
   }
 
+  function handleDeleteSelected(ids: string[]) {
+    if (ids.length === 0 || deleteRecentRecipes.isPending) return;
+    deleteRecentRecipes.mutate(ids);
+  }
+
   if (isPending) {
     return (
       <div className="flex min-h-dvh flex-col">
@@ -117,5 +127,11 @@ export function RecentRecipesViewContainer() {
     );
   }
 
-  return <RecentRecipesView recipes={recipes} onToggleLike={handleToggleLike} />;
+  return (
+    <RecentRecipesView
+      recipes={recipes}
+      onToggleLike={handleToggleLike}
+      onDeleteSelected={handleDeleteSelected}
+    />
+  );
 }
