@@ -57,7 +57,7 @@ export async function resolveUserId(req: NextRequest): Promise<number | null> {
 export async function fetchAiService<T>(
   path: string,
   dataSchema: ZodType<T>,
-  init: { method: string; userId?: number | null; failureMessage?: string },
+  init: { method: string; userId?: number | null; failureMessage?: string; body?: BodyInit },
 ) {
   const failureMessage = init.failureMessage ?? AI_UPSTREAM_FAILURE_MESSAGE;
   let aiRes: Response;
@@ -71,6 +71,7 @@ export async function fetchAiService<T>(
         // 없을 수 있다(명세 §04-2 "헤더 X-User-Id 선택 — 없으면 냉장고 갈래 미사용").
         ...(init.userId != null ? { 'X-User-Id': String(init.userId) } : {}),
       },
+      body: init.body,
       cache: 'no-store',
       signal: AbortSignal.timeout(INTERNAL_FETCH_TIMEOUT_MS),
     });
