@@ -41,6 +41,10 @@ export const RemovableDisabled: Story = {
   args: { children: '샐러드', onRemove: fn(), onClick: undefined, disabled: true },
 };
 
+export const RemovableSelectable: Story = {
+  args: { children: '샐러드', onRemove: fn() },
+};
+
 export const SelectStates: Story = {
   render: (args) => (
     <div className="flex gap-3">
@@ -83,5 +87,28 @@ export const RemoveButtonFiresOnRemove: Story = {
     const removeButton = within(canvasElement).getByRole('button', { name: '샐러드 삭제' });
     await userEvent.click(removeButton);
     await expect(args.onRemove).toHaveBeenCalledTimes(1);
+  },
+};
+
+// #182 — 최근 검색어 칩: 본문 탭은 onClick 만, 삭제 버튼 탭은 onRemove 만 발동(서로 비간섭).
+export const ChipBodyClickFiresOnClickOnly: Story = {
+  tags: ['!autodocs'],
+  args: { children: '샐러드', onRemove: fn(), onClick: fn() },
+  play: async ({ canvasElement, args }) => {
+    const chip = within(canvasElement).getByRole('button', { name: '샐러드' });
+    await userEvent.click(chip);
+    await expect(args.onClick).toHaveBeenCalledTimes(1);
+    await expect(args.onRemove).not.toHaveBeenCalled();
+  },
+};
+
+export const RemoveButtonFiresOnRemoveOnlyWhenSelectable: Story = {
+  tags: ['!autodocs'],
+  args: { children: '샐러드', onRemove: fn(), onClick: fn() },
+  play: async ({ canvasElement, args }) => {
+    const removeButton = within(canvasElement).getByRole('button', { name: '샐러드 삭제' });
+    await userEvent.click(removeButton);
+    await expect(args.onRemove).toHaveBeenCalledTimes(1);
+    await expect(args.onClick).not.toHaveBeenCalled();
   },
 };
