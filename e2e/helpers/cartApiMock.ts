@@ -45,12 +45,15 @@ function buildCartEnvelope(items: Array<{ productId: number; title: string; quan
 
 let lastAddedItems: Array<{ productId: number; quantity: number }> = [];
 
-/** 담기 POST·장바구니 GET을 mock — OAuth 세션·order-service 시드 없이 UI·요청 본문만 검증한다. */
+function cartPathname(url: string) {
+  return new URL(url).pathname.replace(/\/$/, '');
+}
+
+/** 담기 POST·장바구니 GET을 mock — invalidate refetch가 실 API 401→refresh→쿠키 삭제 되지 않게 한다. */
 export async function mockCartItemsApi(page: Page) {
   lastAddedItems = [];
 
   async function handlePost(route: Route) {
-    if (route.request().method() !== 'POST') return route.continue();
     const body = route.request().postDataJSON() as {
       items: Array<{ productId: number; quantity: number }>;
     };
@@ -71,7 +74,6 @@ export async function mockCartItemsApi(page: Page) {
   }
 
   async function handleGet(route: Route) {
-    if (route.request().method() !== 'GET') return route.continue();
     const items =
       lastAddedItems.length > 0
         ? lastAddedItems.map((item) => ({
@@ -96,8 +98,20 @@ export async function mockCartItemsApi(page: Page) {
     });
   }
 
-  await page.route(/\/api\/cart\/items(?:\?|$)/, handlePost);
-  await page.route(/\/api\/cart(?:\?|$)/, handleGet);
+  await page.route('**/api/cart**', async (route) => {
+    const req = route.request();
+    const path = cartPathname(req.url());
+
+    if (path.endsWith('/api/cart/items') && req.method() === 'POST') {
+      await handlePost(route);
+      return;
+    }
+    if (path.endsWith('/api/cart') && req.method() === 'GET') {
+      await handleGet(route);
+      return;
+    }
+    await route.continue();
+  });
 }
 
 export function getLastCartAddPayload() {

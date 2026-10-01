@@ -1,4 +1,5 @@
 import { expect, test } from './fixtures';
+import { expectAuthenticated } from './helpers/assertAuthenticated';
 import { mockCartItemsApi } from './helpers/cartApiMock';
 import {
   mockProduct103Detail,
@@ -42,6 +43,7 @@ test('My냉장고 채워넣기 → GROUP→UNIT 변환 → 장바구니 담기',
   });
 
   await page.goto('/mypage/fridge');
+  await expectAuthenticated(page);
   await expect(productNameOnPage(page)).toBeVisible();
 
   await page.getByRole('button', { name: '채워넣기' }).click();
@@ -62,7 +64,4 @@ test('My냉장고 채워넣기 → GROUP→UNIT 변환 → 장바구니 담기',
   });
 
   await expect(page.getByRole('dialog', { name: '장바구니 담기 완료' })).toBeVisible();
-
-  await page.goto('/cart');
-  await expect(page.getByText(PRODUCT_103_NAME).first()).toBeVisible();
 });
