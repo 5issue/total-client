@@ -9,8 +9,9 @@ import type { OrderAmounts, OrderLineItemView } from '../model';
  * (항목 합계를 다시 더하지 않는다 — 서버가 권위 있는 값).
  *
  * 응답엔 이미지 필드가 없지만(`OrderItemResponseDto`, 2026-09-23 확인) `productId`는 있어
- * (CheckoutOrderItem) 호출부(`CheckoutContainer`)가 `useProductThumbnails`로 따로 조회한
- * productId→썸네일 맵을 `thumbnails`로 받아 합친다.
+ * (CheckoutOrderItem) 호출부(`CheckoutContainer`)가 장바구니 응답(`useCart`, cart-service가
+ * 직접 내려주는 `thumbnailUrl`)에서 뽑은 productId→썸네일 맵을 `thumbnails`로 받아 합친다
+ * (#193 — 상품 상세 재조회는 로컬 시드 일부가 이미지 없이 비어 있어 장바구니 쪽으로 교체).
  */
 export function mapCheckoutOrderToView(
   order: CheckoutOrderResponse,

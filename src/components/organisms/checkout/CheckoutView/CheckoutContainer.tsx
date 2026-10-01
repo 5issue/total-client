@@ -12,8 +12,8 @@ import { mapAddressToView } from '@/components/organisms/mypage/AddressManageVie
 import { addressLineOf } from '@/components/organisms/mypage/model';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 import { useAddresses } from '@/hooks/address/useAddresses';
+import { useCart } from '@/hooks/cart/useCart';
 import { useCreateOrder } from '@/hooks/checkout/useCreateOrder';
-import { useProductThumbnails } from '@/hooks/product/useProductThumbnails';
 import { useDeliveryAddressStore } from '@/hooks/useDeliveryAddressStore';
 import { useUserProfile } from '@/hooks/user/useUserProfile';
 
@@ -30,8 +30,14 @@ import { mapCheckoutOrderToView } from './mapCheckoutOrder';
  * 이전(#120)엔 `useCart()` 를 로컬에서 필터링해 상품·금액을 직접 계산했지만, 이제 서버가
  * 재고를 실제로 예약하며 주문을 만들어야 하므로 그 계산은 더 이상 클라가 하지 않는다.
  *
- * "주문상품" 이미지 — 주문서 생성 응답엔 이미지가 없지만 `productId`는 있어(`CheckoutOrderItem`)
- * `useProductThumbnails`로 상품 상세를 따로 조회해 썸네일만 뽑아 합친다(`mapCheckoutOrder.ts`).
+ * "주문상품" 이미지 — 주문서 생성 응답(`CheckoutOrderItem`)엔 이미지가 없다. 상품 상세
+ * (product-service `/products/{id}`)로 따로 조회하면 로컬 시드 일부 상품이 `media: []`라
+ * 못 채우는 경우가 있었는데, 장바구니 응답(`CartItemView.imageSrc`, cart-service가
+ * 직접 내려줌)엔 같은 상품이 썸네일을 갖고 있었다(#193) — 주문서 생성이 장바구니를 비우지
+ * 않고 결제 완료 전까지 그대로 둬서(`place-order`가 따로 있음) `useCart()`가 이 화면에서도
+ * 여전히 같은 아이템을 돌려준다. 그래서 상품 상세 재조회 대신 `useCart()` 응답에서
+ * productId→썸네일을 뽑아 합친다(`mapCheckoutOrder.ts`) — 이미 다른 화면(장바구니)에서
+ * 검증된 데이터 소스를 재사용하는 셈이라 더 안정적이다.
  *
  * 주문서 생성(`createOrder`) 자체가 실패하면(재고 소진 등, 이미 만들어진 주문을 이어서
  * 보여줄 방법이 없다) 이 화면에 붙잡아두지 않고 `/cart`로 돌려보낸다 — 장바구니 조회
@@ -44,15 +50,16 @@ export function CheckoutContainer({ itemIds }: { itemIds: string[] }) {
   const selectedAddressId = useDeliveryAddressStore((s) => s.selectedId);
   const createOrder = useCreateOrder();
   const userProfileQuery = useUserProfile();
+  const cartQuery = useCart();
   const requestedFor = useRef<string | null>(null);
 
-  // 주문서 응답엔 이미지가 없어(mapCheckoutOrder.ts 참고) productId로 썸네일을 따로
-  // 조회한다 — 아직 order.data 가 없는 렌더(로딩/에러)에도 훅은 항상 호출돼야 하므로
-  // 빈 배열로 안전하게 둔다.
-  const orderItemProductIds = createOrder.data
-    ? Array.from(new Set(createOrder.data.items.map((item) => String(item.productId))))
-    : [];
-  const thumbnails = useProductThumbnails(orderItemProductIds);
+  // "주문상품" 썸네일 — 장바구니 응답에서 productId→이미지를 뽑는다(위 doc 참고).
+  const thumbnails = new Map<string, string | undefined>();
+  cartQuery.data?.groups.forEach((group) => {
+    group.items.forEach((item) => {
+      thumbnails.set(String(item.productId), item.thumbnailUrl ?? undefined);
+    });
+  });
 
   const cartItemIds = itemIds.map(Number).filter((id) => Number.isInteger(id) && id > 0);
   const cartItemIdsKey = cartItemIds.join(',');
