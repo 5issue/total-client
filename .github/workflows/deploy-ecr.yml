@@ -1,0 +1,51 @@
+name: Build and Push Docker Image to ECR
+
+on:
+  workflow_run:
+    workflows: ['CI']
+    branches: [develop]
+    types: [completed]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    # CI가 성공(success)했을 때만 작업 실행
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          no-cache: true
+          tags: |
+            596601390909.dkr.ecr.ap-northeast-2.amazonaws.com/kurly-frontend:latest
+            596601390909.dkr.ecr.ap-northeast-2.amazonaws.com/kurly-frontend:${{ github.sha }}
+          build-args: |
+            NEXT_PUBLIC_API_URL=https://api.cloudyim.store
+            NEXT_PUBLIC_APP_URL=https://cloudyim.store
+            NEXT_PUBLIC_APP_ENV=production
+            NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
+            NEXT_PUBLIC_TOSS_CLIENT_KEY=${{ secrets.NEXT_PUBLIC_TOSS_CLIENT_KEY }}
