@@ -25,6 +25,7 @@ import { MOCK_STATIC_OVERVIEW_FIELDS } from '@/components/organisms/product/Prod
 import { ProductOptionSheet } from '@/components/organisms/product/ProductOptionSheet';
 import { ProductOverviewCard } from '@/components/organisms/product/ProductOverviewCard';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
+import { useCartItemCount } from '@/hooks/cart/useCartItemCount';
 import { useProductDetail } from '@/hooks/product/useProductDetail';
 import { useScrollToTopVisibility } from '@/hooks/useScrollToTopVisibility';
 
@@ -78,6 +79,7 @@ export function ProductDetailInteractiveShell({
   reviewSlot,
 }: ProductDetailInteractiveShellProps) {
   const router = useRouter();
+  const cartCount = useCartItemCount();
   const { data: detail, isPending, isError } = useProductDetail(productId);
   const overview = detail
     ? toProductDetailOverview(detail, MOCK_STATIC_OVERVIEW_FIELDS)
@@ -246,7 +248,7 @@ export function ProductDetailInteractiveShell({
           titleClassName="text-heading-2 text-fg"
           actions={[
             { icon: 'home', label: '홈으로 이동', href: '/' },
-            { icon: 'cart', label: '장바구니로 이동', href: '/cart' },
+            { icon: 'cart', label: '장바구니로 이동', href: '/cart', badge: cartCount },
           ]}
         />
         <TabBar
