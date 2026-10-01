@@ -8,6 +8,7 @@ import {
   DisplaySectionList,
   type DisplaySectionProduct,
 } from '@/components/organisms/home/DisplaySectionList';
+import { HomeProductSectionsSkeleton } from '@/components/organisms/home/HomeProductSections/HomeProductSectionsSkeleton';
 import { QuickMenuSection } from '@/components/organisms/home/QuickMenuSection';
 import { ProductOptionSheet } from '@/components/organisms/product/ProductOptionSheet';
 import {
@@ -76,11 +77,7 @@ export function HomeProductSections() {
   const { data, isPending, isError } = useHomeRecommendations();
 
   if (isPending) {
-    return (
-      <p className="text-label-m text-fg-tertiary w-full px-4 py-8 text-center">
-        홈 화면을 불러오는 중이에요
-      </p>
-    );
+    return <HomeProductSectionsSkeleton />;
   }
 
   if (isError || !data) {
