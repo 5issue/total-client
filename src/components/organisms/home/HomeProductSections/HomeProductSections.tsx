@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 
+import { useRouter } from 'next/navigation';
+
 import { Icon } from '@/components/atoms/Icon';
 import { ErrorState } from '@/components/molecules/shared/ErrorState';
 import {
@@ -46,6 +48,10 @@ import type { HomeSectionProduct } from '@/types/home';
  * productName/productTagline/unit 필수 prop이 됨)는 어느 카드를 눌렀든 `mock.ts` 기본
  * 픽스처로 고정 렌더한다. 그 SKU(`id: 1`)를 실장바구니에 쓰면 안 되므로
  * `persistToCart={false}`. 클릭한 상품 식별이 가능해지면 실 SKU로 교체.
+ *
+ * 시트의 "장바구니 담기"는 실제로 담지 않으므로(위와 같은 이유) 상품 상세처럼 완료
+ * 시트(`CartAddedProductsBottomSheet`)를 잇달아 열면 "진짜 담긴 것처럼" 오해를 준다
+ * (이슈 #193) — 대신 `onAddToCart`에서 시트를 닫고 바로 `/cart`로 보낸다.
  */
 const MOCK_DELIVERY_LABEL = '샛별배송';
 const MOCK_REVIEW_COUNT_LABEL = '9,999+';
@@ -73,6 +79,7 @@ function toDisplaySectionProduct(item: HomeSectionProduct): DisplaySectionProduc
 }
 
 export function HomeProductSections() {
+  const router = useRouter();
   const [sheetOpen, setSheetOpen] = useState(false);
   const { data, isPending, isError } = useHomeRecommendations();
 
@@ -110,6 +117,7 @@ export function HomeProductSections() {
       <ProductOptionSheet
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
+        onAddToCart={() => router.push('/cart')}
         productName={MOCK_OPTION_PRODUCT.name}
         productTagline={MOCK_OPTION_PRODUCT.tagline}
         unit={MOCK_UNIT}
