@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { AddToCartActions } from '@/components/molecules/product/AddToCartActions';
 import { CartItemPreview } from '@/components/molecules/product/CartItemPreview';
@@ -13,8 +13,11 @@ import { useTimedToast } from '@/hooks/useTimedToast';
 
 import type { FridgeItem } from './model';
 
-const ADD_TO_CART_ERROR_TOAST_DURATION_MS = 3000;
+const ERROR_TOAST_DURATION_MS = 3000;
 const ADD_TO_CART_ERROR_MESSAGE = '장바구니 담기에 실패했어요. 다시 시도해주세요.';
+/** `useProductsByAi` 조회 자체가 실패했을 때(네트워크·업스트림 오류) — "매핑은 됐는데
+ *  UNIT이 없는" 정상 케이스와 구분해서 안내한다(코드래빗 리뷰). */
+const LOOKUP_ERROR_MESSAGE = '상품 정보를 불러오지 못했어요. 다시 시도해주세요.';
 
 /**
  * "채워넣기" 담기 바텀시트 (organism). Figma "5팀 UI 공유용"
@@ -71,16 +74,32 @@ export function FridgeRefillBottomSheet({
     }
   }
 
-  const { data: byAi } = useProductsByAi(item ? [item.productId] : [], open && Boolean(item));
+  const byAiEnabled = open && Boolean(item);
+  const {
+    data: byAi,
+    isError: byAiError,
+    refetch: refetchByAi,
+  } = useProductsByAi(item ? [item.productId] : [], byAiEnabled);
   const addCartItems = useAddCartItems();
-  const { visible: errorToastVisible, trigger: triggerErrorToast } = useTimedToast(
-    ADD_TO_CART_ERROR_TOAST_DURATION_MS,
-  );
+  const { visible: addErrorVisible, trigger: triggerAddError } =
+    useTimedToast(ERROR_TOAST_DURATION_MS);
+  const { visible: lookupErrorVisible, trigger: triggerLookupError } =
+    useTimedToast(ERROR_TOAST_DURATION_MS);
+
+  // 조회 자체가 실패한 시점에 한 번만 알린다 — `isError`는 재시도 전까지 계속 true라
+  // 매 렌더마다 트리거하면 안 된다.
+  useEffect(() => {
+    if (byAiError) triggerLookupError();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- triggerLookupError는 seq만 바꾸는 안정 함수, 의존성에 넣으면 무한 루프
+  }, [byAiError]);
 
   if (!item) return null;
 
   const totalQuantity = regularQty + memberQty;
   const unitId = byAi?.items.find((p) => p.type === 'UNIT')?.id;
+  // 조회가 성공했는데도 UNIT이 없는 경우(정상 매핑 없음)는 별도 메시지 없이 버튼만
+  // 비활성화한다 — 재시도해도 결과가 달라지지 않는 상태라 "실패"로 안내하지 않는다.
+  const unitUnavailable = byAiEnabled && !byAiError && byAi !== undefined && unitId === undefined;
 
   function handleAddToCart() {
     if (unitId === undefined) return;
@@ -88,14 +107,15 @@ export function FridgeRefillBottomSheet({
       { items: [{ productId: unitId, quantity: totalQuantity }] },
       {
         onSuccess: () => onAddToCart(),
-        onError: () => triggerErrorToast(),
+        onError: () => triggerAddError(),
       },
     );
   }
 
   return (
     <>
-      <ErrorToastBanner visible={errorToastVisible}>{ADD_TO_CART_ERROR_MESSAGE}</ErrorToastBanner>
+      <ErrorToastBanner visible={addErrorVisible}>{ADD_TO_CART_ERROR_MESSAGE}</ErrorToastBanner>
+      <ErrorToastBanner visible={lookupErrorVisible}>{LOOKUP_ERROR_MESSAGE}</ErrorToastBanner>
       <BottomSheet
         open={open}
         onClose={onClose}
@@ -122,6 +142,21 @@ export function FridgeRefillBottomSheet({
           name={item.name}
           tagline={item.tagline}
         />
+        {byAiError ? (
+          <div className="flex items-center justify-between px-4 py-2">
+            <p className="text-label-m text-fg-danger">{LOOKUP_ERROR_MESSAGE}</p>
+            <button
+              type="button"
+              onClick={() => void refetchByAi()}
+              className="text-label-m text-primary underline"
+            >
+              다시 시도
+            </button>
+          </div>
+        ) : null}
+        {unitUnavailable ? (
+          <p className="text-label-m text-fg-tertiary px-4 py-2">지금은 담을 수 없는 상품이에요.</p>
+        ) : null}
         <div className="border-border mx-4 border-t" />
         <div className="px-4 py-3">
           <CartQuantityRow

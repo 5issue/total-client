@@ -23,8 +23,10 @@ export async function GET(req: NextRequest) {
       .map((id) => id.trim())
       .filter(Boolean) ?? [];
 
-  if (aiProductIds.length === 0) {
-    return fail(400, 'AI 상품 ID가 필요합니다.');
+  // 숫자가 아닌 값이 섞이면 Spring이 400 대신 파싱 오류로 터져 기존 catch에서 502로
+  // 뭉뚱그려진다 — 여기서 먼저 걸러 호출자에게 정확한 원인을 돌려준다(코드래빗 리뷰).
+  if (aiProductIds.length === 0 || !aiProductIds.every((id) => /^\d+$/.test(id))) {
+    return fail(400, 'AI 상품 ID가 올바르지 않습니다.');
   }
 
   const springUrl = new URL(`${env.API_INTERNAL_URL}/api/v1/products/by-ai`);
