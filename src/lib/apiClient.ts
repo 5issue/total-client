@@ -26,7 +26,6 @@ import {
   type UpdateCartItemQuantityRequest,
 } from '@/types/cart';
 import {
-  CheckoutPaymentRequestSchema,
   CheckoutPaymentResponseSchema,
   ConfirmPaymentRequestSchema,
   PaymentReceiptSchema,
@@ -363,14 +362,18 @@ export function deleteAddress(addressId: number) {
   });
 }
 
-/** Toss successUrl 착지 후 결제 승인. Spring `POST /api/v1/payments/checkout`. */
+/**
+ * Toss successUrl 착지 후 결제 승인. Spring `POST /api/v1/payments/checkout`.
+ * `idempotencyKey` 를 헤더가 아니라 본문에 실어 보낸다 — CloudFront가 브라우저→우리
+ * 서버 구간에서 커스텀 헤더를 걸러내 Route Handler가 못 받는 사례가 확인됐다(이슈 #197).
+ * 서버→Spring 구간(`springCheckoutHeaders`)은 CloudFront를 안 거치므로 거기서 헤더로
+ * 다시 실어 보낸다.
+ */
 export function confirmPayment(body: ConfirmPaymentRequest) {
   const parsed = ConfirmPaymentRequestSchema.parse(body);
-  const { idempotencyKey, ...checkoutBody } = parsed;
   return privateFetch('/api/payments/checkout', CheckoutPaymentResponseSchema, {
     method: 'POST',
-    headers: { 'Idempotency-Key': idempotencyKey },
-    body: JSON.stringify(CheckoutPaymentRequestSchema.parse(checkoutBody)),
+    body: JSON.stringify(parsed),
   });
 }
 
