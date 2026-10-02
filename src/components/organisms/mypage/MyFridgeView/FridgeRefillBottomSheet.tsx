@@ -8,7 +8,7 @@ import { CartQuantityRow } from '@/components/molecules/product/CartQuantityRow'
 import { BottomSheet } from '@/components/molecules/shared/BottomSheet';
 import { ErrorToastBanner } from '@/components/molecules/shared/ErrorToastBanner';
 import { useAddCartItems } from '@/hooks/cart/useAddCartItems';
-import { useProductDetail } from '@/hooks/product/useProductDetail';
+import { useProductsByAi } from '@/hooks/product/useProductsByAi';
 import { useTimedToast } from '@/hooks/useTimedToast';
 
 import type { FridgeItem } from './model';
@@ -38,11 +38,11 @@ const ADD_TO_CART_ERROR_MESSAGE = '장바구니 담기에 실패했어요. 다�
  * 총 수량이 0이면 "장바구니 담기"를 `addToCartDisabled` 로 비활성화한다 — 예전엔
  * 클릭이 되지만 핸들러 안에서 조용히 무시했다(코드래빗 리뷰, #111).
  *
- * `item.productId`는 대표상품(GROUP) id라 그대로 장바구니에 못 담는다 — 실제
- * 구매단위(UNIT) id가 필요해 `useProductDetail`로 상세를 조회해 `units[0]`을 쓴다
- * (product-service 계약, ProductOptionSheet와 동일 패턴). "멤버스"/일반가 두 줄은
- * 실제로는 같은 상품의 표시 전용 분리라 수량만 합산해 하나로 담는다(멤버십 전용
- * SKU가 따로 없음, 이슈 #145).
+ * `item.productId`는 AI 응답의 product_id라 BE 상품 PK와 값 공간이 다르다 — 그대로
+ * 장바구니에 못 담는다(이슈 #203). `GET /products/by-ai`로 변환한 뒤, 같은 product_id에
+ * GROUP(대표상품)·UNIT(실제 구매단위) 두 항목이 같이 올 수 있어 그중 UNIT 쪽 id를 쓴다.
+ * "멤버스"/일반가 두 줄은 실제로는 같은 상품의 표시 전용 분리라 수량만 합산해 하나로
+ * 담는다(멤버십 전용 SKU가 따로 없음, 이슈 #145).
  */
 export interface FridgeRefillBottomSheetProps {
   open: boolean;
@@ -71,7 +71,7 @@ export function FridgeRefillBottomSheet({
     }
   }
 
-  const { data: detail } = useProductDetail(item?.productId ?? '', open && Boolean(item));
+  const { data: byAi } = useProductsByAi(item ? [item.productId] : [], open && Boolean(item));
   const addCartItems = useAddCartItems();
   const { visible: errorToastVisible, trigger: triggerErrorToast } = useTimedToast(
     ADD_TO_CART_ERROR_TOAST_DURATION_MS,
@@ -80,7 +80,7 @@ export function FridgeRefillBottomSheet({
   if (!item) return null;
 
   const totalQuantity = regularQty + memberQty;
-  const unitId = detail?.units[0]?.id;
+  const unitId = byAi?.items.find((p) => p.type === 'UNIT')?.id;
 
   function handleAddToCart() {
     if (unitId === undefined) return;

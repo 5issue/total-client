@@ -12,6 +12,7 @@ import { ErrorToastBanner } from '@/components/molecules/shared/ErrorToastBanner
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
 import { useAddCartItems } from '@/hooks/cart/useAddCartItems';
 import { useTimedToast } from '@/hooks/useTimedToast';
+import { fetchProductsByAi } from '@/lib/apiClient';
 
 import type { Recipe } from './model';
 import { RecipeCartAddedBottomSheet } from './RecipeCartAddedBottomSheet';
@@ -27,9 +28,11 @@ const ADD_TO_CART_ERROR_MESSAGE = '장바구니 담기에 실패했어요. 다�
  *
  * 재료 구매 카드의 개별 "담기"·하단 "장바구니에 한번에 담기" 모두 `useAddCartItems`로
  * 실제 `POST /api/cart/items`를 호출한다(이슈 #145). `product.id`는 AI 추천 응답의
- * `product_id`를 그대로 쓰는데 — product-service UNIT id와 같은 값이라는 전제다
- * (types/recipe.ts `MissingProductSchema` 계약 노트 참고, 로컬에 AI 서비스가 없어
- * 실제 값으로 검증은 못 했다). 성공해야만 `RecipeCartAddedBottomSheet`를 띄운다.
+ * `product_id`라 BE 상품 PK와 값 공간이 다르다 — `GET /products/by-ai`로 변환한 뒤
+ * (UNIT 타입 쪽 id만 취함) 장바구니에 담는다(이슈 #203, 실제 값으로 검증 완료 —
+ * 예전엔 "product-service UNIT id와 같은 값"이라는 미검증 전제로 그대로 썼는데 틀렸다).
+ * 매핑이 없는 품목은 조용히 제외하고 나머지만 담는다. 성공해야만
+ * `RecipeCartAddedBottomSheet`를 띄운다.
  *
  * 하트(찜)는 `RecipeCardL`과 동일하게 로컬 상태 없이 `recipe.liked`+`onToggleLike`로만
  * 제어한다(이슈 #152) — 실제 반영은 `RecipeDetailContainer`의 FAV-02/03 뮤테이션.
@@ -48,12 +51,36 @@ export function RecipeDetailView({ recipe, onToggleLike }: RecipeDetailViewProps
     ADD_TO_CART_ERROR_TOAST_DURATION_MS,
   );
 
-  function addToCart(items: RecipeCartSubmitItem[]) {
+  async function addToCart(items: RecipeCartSubmitItem[]) {
     if (items.length === 0) return;
+
+    let byAi;
+    try {
+      byAi = await fetchProductsByAi(items.map(({ productId }) => productId));
+    } catch {
+      triggerErrorToast();
+      return;
+    }
+
+    // 같은 product_id에 GROUP(대표상품)·UNIT(실제 구매단위) 두 항목이 같이 올 수 있어
+    // UNIT 쪽만 쓴다(이슈 #203). 매핑이 없는 품목(notFoundAiProductIds)은 조용히 뺀다.
+    const unitIdByAiProductId = new Map(
+      byAi.items.filter((p) => p.type === 'UNIT').map((p) => [String(p.aiProductId), p.id]),
+    );
+    const resolvedItems = items
+      .map(({ productId, quantity }) => {
+        const unitId = unitIdByAiProductId.get(productId);
+        return unitId === undefined ? null : { productId: unitId, quantity };
+      })
+      .filter((item) => item !== null);
+
+    if (resolvedItems.length === 0) {
+      triggerErrorToast();
+      return;
+    }
+
     addCartItems.mutate(
-      {
-        items: items.map(({ productId, quantity }) => ({ productId: Number(productId), quantity })),
-      },
+      { items: resolvedItems },
       {
         onSuccess: () => {
           setCartSheetOpen(false);

@@ -339,3 +339,39 @@ export type ProductDetail = z.infer<typeof ProductDetailSchema>;
  * Zod object 는 기본 strip 모드라 위에서 안 쓰는 실 응답 필드는 파싱 시 자동으로 걸러진다.
  */
 export const SpringProductDetailDataSchema = ProductDetailSchema;
+
+/**
+ * AI product_id → BE 상품 매핑 — `GET /api/v1/products/by-ai`(이슈 #203). AI 응답의
+ * `product_id`와 BE 상품의 실제 PK(`id`)는 다른 값 공간이라(AI는 DML로 적재한 운영 백업
+ * 기준 id, BE 상품 테이블의 auto-increment id와 별개), 이 엔드포인트로 변환해야 한다 —
+ * 직접 확인함: AI product_id `749` → BE id `1116`.
+ *
+ * 같은 `aiProductId`에 GROUP(대표상품)·UNIT(실제 구매단위) 두 항목이 함께 올 수 있다 —
+ * 장바구니 담기엔 반드시 `type === 'UNIT'` 쪽 `id`를 써야 한다(BE 쪽 주석: "GROUP과 UNIT이
+ * 같은 값을 공유할 수 있어 구분은 type으로 한다").
+ */
+export const ProductByAiItemSchema = z.object({
+  aiProductId: z.number(),
+  id: z.number(),
+  skuCode: z.string(),
+  type: z.enum(['GROUP', 'UNIT']),
+  parentId: z.number().nullable(),
+  name: z.string(),
+  brand: z.string(),
+  price: z.number(),
+  salePrice: z.number(),
+  discountRate: z.number().int(),
+  status: z.enum(['SALE', 'SOLDOUT', 'HIDDEN']),
+  thumbnailUrl: z.string().nullable(),
+});
+export type ProductByAiItem = z.infer<typeof ProductByAiItemSchema>;
+
+export const ProductsByAiResponseSchema = z.object({
+  items: z.array(ProductByAiItemSchema),
+  /** 일치하는 BE 상품이 없던 ai_product_id(요청 순서, 중복 제거). */
+  notFoundAiProductIds: z.array(z.number()),
+});
+export type ProductsByAiResponse = z.infer<typeof ProductsByAiResponseSchema>;
+
+/** Spring `GET /api/v1/products/by-ai` 성공 응답의 data. Route Handler 내부에서만 사용. */
+export const SpringProductsByAiDataSchema = ProductsByAiResponseSchema;
