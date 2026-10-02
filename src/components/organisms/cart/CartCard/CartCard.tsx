@@ -34,9 +34,6 @@ export interface CartCardProps {
 const won = (n: number) => `${n.toLocaleString('ko-KR')}원`;
 const TEMPERATURE_ORDER = ['refrigerated', 'frozen'] as const;
 
-/** 배송 도착 예정 문구. API 연동 전이라 모든 카드에 같은 목업을 붙인다. */
-const MOCK_ARRIVAL_LABEL = '10월 7일 배송 도착 예정';
-
 export function CartCard({
   group,
   selectedIds,
@@ -104,8 +101,6 @@ export function CartCard({
         </p>
         <p className="text-heading-0 text-fg">{won(group.subtotalPrice + group.shippingFee)}</p>
       </div>
-
-      <p className="text-heading-6 text-fg">{MOCK_ARRIVAL_LABEL}</p>
     </div>
   );
 }

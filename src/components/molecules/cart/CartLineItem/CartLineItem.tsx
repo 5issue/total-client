@@ -4,12 +4,13 @@ import Image from 'next/image';
 
 import { Checkbox } from '@/components/atoms/Checkbox';
 import { Icon } from '@/components/atoms/Icon';
+import { InfoBox } from '@/components/atoms/InfoBox';
 import { QuantityStepper } from '@/components/molecules/shared/QuantityStepper';
 
 /**
  * 장바구니 한 줄 (molecule). Figma "5팀 UI 공유용" — `Item_H_Cart` (node 2454-4242).
  *
- * 체크박스 + 상품명(우상단 삭제 ✕) / 썸네일 + 가격(판매가·정가) + 수량 스테퍼.
+ * 체크박스 + 상품명(우상단 삭제 ✕) / 썸네일 + 가격(판매가·정가) + 수량 스테퍼 / 배송 도착 예정.
  * `soldOut` 이면 흐리게 표시하고 스테퍼 대신 "품절"만 둔다(Figma 품절 상태 그대로).
  * 표시·핸들러만 받는다 — 선택/수량/삭제 상태는 상위(CartCard/CartView)가 소유.
  * 썸네일은 퍼블리싱 단계라 `imageSrc` 없으면 회색 박스(#61 Image_Frame_Container 도입 시 교체).
@@ -21,7 +22,7 @@ import { QuantityStepper } from '@/components/molecules/shared/QuantityStepper';
  * 가격↔스테퍼 간격 `Gap/XXL`28 → `gap-7`.
  * 썸네일은 63×84(3:4) — `h-21`(84) + `aspect-3/4` 로 로드 전 크기 선고정(CLS 방지, code-style §6).
  *
- * 레이아웃(Figma `Item_H_Cart`): 2번째 줄(썸네일+가격)은 1번째 줄 상품명과 좌측 정렬 —
+ * 레이아웃(Figma `Item_H_Cart`): 썸네일+가격 줄은 상품명과 좌측 정렬 —
  * 체크박스 래퍼(size-8) + gap(4) = 36px 만큼 들여쓴다 → `pl-9`.
  */
 export interface CartLineItemProps {
@@ -119,6 +120,12 @@ export function CartLineItem({
           )}
         </div>
       </div>
+
+      {/* 배송 도착 예정. Info Box bar / Color=Bright (node 2418-7358).
+          썸네일과 같은 왼쪽 정렬(ml-9). API 연동 전이라 상품마다 같은 목업. */}
+      <InfoBox variant="bar" className="mt-3 ml-9 rounded-sm">
+        <span className="text-primary">10월 7일</span> 배송 도착 예정
+      </InfoBox>
     </div>
   );
 }
