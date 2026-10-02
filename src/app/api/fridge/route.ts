@@ -8,7 +8,7 @@ const UPSTREAM_FAILURE_MESSAGE = 'My냉장고 품목을 불러오지 못했습�
 
 /** My냉장고 품목 목록 — `useFridgeItems` 가 호출. AI 파트 FRIDGE-01(리뷰중, 이슈 #138). */
 export async function GET(req: NextRequest) {
-  const userId = await resolveUserId(req);
+  const { userId, authorization } = await resolveUserId(req);
   if (userId === null) {
     return fail(401, '로그인이 필요합니다.');
   }
@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
   return fetchAiService('/api/v1/users/me/fridge', FridgeListResponseSchema, {
     method: 'GET',
     userId,
+    authorization,
     failureMessage: UPSTREAM_FAILURE_MESSAGE,
   });
 }

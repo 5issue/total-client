@@ -14,7 +14,7 @@ const DELETE_FAILURE_MESSAGE = '최근 본 레시피를 삭제하지 못했습�
 
 /** 최근 본 레시피 목록 — `useRecentRecipes` 가 호출. AI 파트 RECENT-01(구현됨, 이슈 #153). */
 export async function GET(req: NextRequest) {
-  const userId = await resolveUserId(req);
+  const { userId, authorization } = await resolveUserId(req);
   if (userId === null) {
     return fail(401, '로그인이 필요합니다.');
   }
@@ -30,14 +30,14 @@ export async function GET(req: NextRequest) {
   return fetchAiService(
     `/api/v1/users/me/recent-recipes?limit=${parsed.data.limit}`,
     RecentRecipeListResponseSchema,
-    { method: 'GET', userId, failureMessage: UPSTREAM_FAILURE_MESSAGE },
+    { method: 'GET', userId, authorization, failureMessage: UPSTREAM_FAILURE_MESSAGE },
   );
 }
 
 /** 최근 본 레시피 선택 삭제 — `useDeleteRecentRecipes`가 호출. AI 파트 RECENT-03(리뷰중, 이슈 #177).
  *  기록에 없는 id는 404가 아니라 조용히 스킵되므로(서버 계약), 여기선 그대로 통과시킨다. */
 export async function DELETE(req: NextRequest) {
-  const userId = await resolveUserId(req);
+  const { userId, authorization } = await resolveUserId(req);
   if (userId === null) {
     return fail(401, '로그인이 필요합니다.');
   }
@@ -50,6 +50,7 @@ export async function DELETE(req: NextRequest) {
   return fetchAiService('/api/v1/users/me/recent-recipes', RecentRecipeDeleteResponseSchema, {
     method: 'DELETE',
     userId,
+    authorization,
     body: JSON.stringify(parsed.data),
     failureMessage: DELETE_FAILURE_MESSAGE,
   });

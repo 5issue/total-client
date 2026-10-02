@@ -22,7 +22,7 @@ export async function POST(
     return fail(400, '레시피 정보가 올바르지 않습니다.');
   }
 
-  const userId = await resolveUserId(req);
+  const { userId, authorization } = await resolveUserId(req);
   if (userId === null) {
     return fail(401, '로그인이 필요합니다.');
   }
@@ -30,7 +30,7 @@ export async function POST(
   return fetchAiService(
     `/api/v1/users/me/favorite-recipes/${encodeURIComponent(parsed.data)}`,
     FavoriteRecipeSummarySchema,
-    { method: 'POST', userId, failureMessage: ADD_FAILURE_MESSAGE },
+    { method: 'POST', userId, authorization, failureMessage: ADD_FAILURE_MESSAGE },
   );
 }
 
@@ -45,7 +45,7 @@ export async function DELETE(
     return fail(400, '레시피 정보가 올바르지 않습니다.');
   }
 
-  const userId = await resolveUserId(req);
+  const { userId, authorization } = await resolveUserId(req);
   if (userId === null) {
     return fail(401, '로그인이 필요합니다.');
   }
@@ -53,6 +53,6 @@ export async function DELETE(
   return fetchAiService(
     `/api/v1/users/me/favorite-recipes/${encodeURIComponent(parsed.data)}`,
     FavoriteRecipeDeleteResponseSchema,
-    { method: 'DELETE', userId, failureMessage: REMOVE_FAILURE_MESSAGE },
+    { method: 'DELETE', userId, authorization, failureMessage: REMOVE_FAILURE_MESSAGE },
   );
 }
