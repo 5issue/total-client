@@ -10,4 +10,6 @@ export const productKeys = {
   autocomplete: (keyword: string) => [...productKeys.all, 'autocomplete', keyword] as const,
   detail: (productId: string) => [...productKeys.all, 'detail', productId] as const,
   storageGuide: (productId: string) => [...productKeys.all, 'storageGuide', productId] as const,
+  byAi: (aiProductIds: Array<string | number>) =>
+    [...productKeys.all, 'byAi', aiProductIds.map(String).join(',')] as const,
 };

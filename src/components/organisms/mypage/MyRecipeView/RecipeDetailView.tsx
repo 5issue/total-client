@@ -10,7 +10,7 @@ import { ProductMiniCard } from '@/components/molecules/product/ProductMiniCard'
 import { AccordionRecipe } from '@/components/molecules/shared/AccordionRecipe';
 import { ErrorToastBanner } from '@/components/molecules/shared/ErrorToastBanner';
 import { SectionHeader } from '@/components/organisms/shared/SectionHeader';
-import { useAddCartItems } from '@/hooks/cart/useAddCartItems';
+import { useAddCartItemsByAi } from '@/hooks/cart/useAddCartItemsByAi';
 import { useTimedToast } from '@/hooks/useTimedToast';
 
 import type { Recipe } from './model';
@@ -25,11 +25,16 @@ const ADD_TO_CART_ERROR_MESSAGE = '장바구니 담기에 실패했어요. 다�
  * 본 레시피·찜한 레시피로 다양해 `MyFridgeView`의 `leadingHref` 고정 패턴 대신
  * `router.back()`을 쓴다(검색 화면과 같은 이유, MyFridgeView.tsx 주석 참고).
  *
- * 재료 구매 카드의 개별 "담기"·하단 "장바구니에 한번에 담기" 모두 `useAddCartItems`로
- * 실제 `POST /api/cart/items`를 호출한다(이슈 #145). `product.id`는 AI 추천 응답의
- * `product_id`를 그대로 쓰는데 — product-service UNIT id와 같은 값이라는 전제다
- * (types/recipe.ts `MissingProductSchema` 계약 노트 참고, 로컬에 AI 서비스가 없어
- * 실제 값으로 검증은 못 했다). 성공해야만 `RecipeCartAddedBottomSheet`를 띄운다.
+ * 재료 구매 카드의 개별 "담기"·하단 "장바구니에 한번에 담기" 모두 `useAddCartItemsByAi`로
+ * 담는다(이슈 #145). `product.id`는 AI 추천 응답의 `product_id`라 BE 상품 PK와 값 공간이
+ * 다르다 — 이 훅이 `GET /products/by-ai`로 변환(UNIT 타입 쪽 id만 취함)한 뒤 담기까지
+ * 한 뮤테이션으로 처리한다(이슈 #203, 실제 값으로 검증 완료 — 예전엔 "product-service
+ * UNIT id와 같은 값"이라는 미검증 전제로 그대로 썼는데 틀렸다). 매핑이 없는 품목은
+ * 조용히 제외하고 나머지만 담는다.
+ *
+ * 변환+담기 전체를 하나의 뮤테이션으로 묶어서 `isPending`이 그 과정 전부를 덮는다 —
+ * `addToCart`는 `isPending`일 때 추가 제출을 막아 연타로 같은 품목이 중복 담기는 걸
+ * 방지한다(코드래빗 리뷰). 성공해야만 `RecipeCartAddedBottomSheet`를 띄운다.
  *
  * 하트(찜)는 `RecipeCardL`과 동일하게 로컬 상태 없이 `recipe.liked`+`onToggleLike`로만
  * 제어한다(이슈 #152) — 실제 반영은 `RecipeDetailContainer`의 FAV-02/03 뮤테이션.
@@ -43,27 +48,25 @@ export function RecipeDetailView({ recipe, onToggleLike }: RecipeDetailViewProps
   const router = useRouter();
   const [cartSheetOpen, setCartSheetOpen] = useState(false);
   const [cartAddedOpen, setCartAddedOpen] = useState(false);
-  const addCartItems = useAddCartItems();
+  const addCartItemsByAi = useAddCartItemsByAi();
   const { visible: errorToastVisible, trigger: triggerErrorToast } = useTimedToast(
     ADD_TO_CART_ERROR_TOAST_DURATION_MS,
   );
 
   function addToCart(items: RecipeCartSubmitItem[]) {
-    if (items.length === 0) return;
-    addCartItems.mutate(
-      {
-        items: items.map(({ productId, quantity }) => ({ productId: Number(productId), quantity })),
+    // 변환~담기가 전부 끝나기 전까지 `isPending`이 유지되므로, 연타해도 같은 품목이
+    // 두 번 담기지 않는다(코드래빗 리뷰).
+    if (items.length === 0 || addCartItemsByAi.isPending) return;
+
+    addCartItemsByAi.mutate(items, {
+      onSuccess: () => {
+        setCartSheetOpen(false);
+        setCartAddedOpen(true);
       },
-      {
-        onSuccess: () => {
-          setCartSheetOpen(false);
-          setCartAddedOpen(true);
-        },
-        onError: () => {
-          triggerErrorToast();
-        },
+      onError: () => {
+        triggerErrorToast();
       },
-    );
+    });
   }
 
   return (

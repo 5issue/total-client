@@ -58,6 +58,7 @@ import {
   ProductDetailSchema,
   ProductFiltersSchema,
   ProductListResponseSchema,
+  ProductsByAiResponseSchema,
   type ProductListParams,
 } from '@/types/product';
 import {
@@ -281,6 +282,19 @@ export function getProductAutocomplete(keyword: string) {
 /** 상품 상세 조회. 로그인 여부와 무관하게 노출되는 공개 데이터. */
 export function fetchProductDetail(productId: string) {
   return publicFetch(`/api/products/${productId}`, ProductDetailSchema);
+}
+
+/**
+ * AI product_id → BE 상품 매핑 조회(이슈 #203). AI 추천·My냉장고·부족재료 응답의
+ * `product_id`를 실제로 조회·장바구니에 담기 전에 반드시 거쳐야 한다 — BE 상품의 PK와
+ * 값 공간이 다르다. 로그인 여부와 무관하게 노출되는 공개 데이터.
+ */
+export function fetchProductsByAi(aiProductIds: Array<string | number>) {
+  const query = aiProductIds.map(String).join(',');
+  return publicFetch(
+    `/api/products/by-ai?aiProductIds=${encodeURIComponent(query)}`,
+    ProductsByAiResponseSchema,
+  );
 }
 
 /** 홈 화면 퀵메뉴 + 진열 섹션 조회. 로그인 여부와 무관하게 노출되는 공개 데이터. */
