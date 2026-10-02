@@ -30,7 +30,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ reci
     return fail(400, '요청이 올바르지 않습니다.');
   }
 
-  const userId = await resolveUserId(req);
+  const { userId, authorization } = await resolveUserId(req);
 
   const query = new URLSearchParams({
     base_product_id: String(parsed.data.baseProductId),
@@ -40,6 +40,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ reci
   return fetchAiService(
     `/api/v1/recipes/${encodeURIComponent(recipeId)}/missing-products?${query}`,
     MissingProductsResponseSchema,
-    { method: 'GET', userId, failureMessage: UPSTREAM_FAILURE_MESSAGE },
+    { method: 'GET', userId, authorization, failureMessage: UPSTREAM_FAILURE_MESSAGE },
   );
 }

@@ -17,7 +17,7 @@ export async function POST(
     return fail(400, '레시피 정보가 올바르지 않습니다.');
   }
 
-  const userId = await resolveUserId(req);
+  const { userId, authorization } = await resolveUserId(req);
   if (userId === null) {
     return fail(401, '로그인이 필요합니다.');
   }
@@ -25,6 +25,6 @@ export async function POST(
   return fetchAiService(
     `/api/v1/users/me/recent-recipes/${encodeURIComponent(parsed.data)}`,
     RecentRecipeSummarySchema,
-    { method: 'POST', userId, failureMessage: UPSTREAM_FAILURE_MESSAGE },
+    { method: 'POST', userId, authorization, failureMessage: UPSTREAM_FAILURE_MESSAGE },
   );
 }

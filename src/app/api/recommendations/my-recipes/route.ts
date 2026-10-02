@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     return fail(400, '요청이 올바르지 않습니다.');
   }
 
-  const userId = await resolveUserId(req);
+  const { userId, authorization } = await resolveUserId(req);
   if (userId === null) {
     return fail(401, '로그인이 필요합니다.');
   }
@@ -33,6 +33,6 @@ export async function GET(req: NextRequest) {
   return fetchAiService(
     `/api/v1/recommendations/my-recipes?${query}`,
     MyRecipeRecommendationsResponseSchema,
-    { method: 'GET', userId, failureMessage: UPSTREAM_FAILURE_MESSAGE },
+    { method: 'GET', userId, authorization, failureMessage: UPSTREAM_FAILURE_MESSAGE },
   );
 }

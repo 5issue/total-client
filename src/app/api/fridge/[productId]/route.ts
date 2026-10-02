@@ -16,7 +16,7 @@ export async function DELETE(
     return fail(400, '상품 정보가 올바르지 않습니다.');
   }
 
-  const userId = await resolveUserId(req);
+  const { userId, authorization } = await resolveUserId(req);
   if (userId === null) {
     return fail(401, '로그인이 필요합니다.');
   }
@@ -24,6 +24,6 @@ export async function DELETE(
   return fetchAiService(
     `/api/v1/users/me/fridge/${encodeURIComponent(parsed.data)}`,
     FridgeDeleteResponseSchema,
-    { method: 'DELETE', userId, failureMessage: UPSTREAM_FAILURE_MESSAGE },
+    { method: 'DELETE', userId, authorization, failureMessage: UPSTREAM_FAILURE_MESSAGE },
   );
 }

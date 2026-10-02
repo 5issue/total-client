@@ -13,9 +13,9 @@ export const AI_UPSTREAM_FAILURE_MESSAGE = '잠시 후 다시 시도해주세요
 const INTERNAL_FETCH_TIMEOUT_MS = 10_000;
 
 /**
- * AI 서비스는 Bearer 토큰이 아니라 숫자 `X-User-Id` 헤더로 사용자를 식별한다(AI 파트
- * API 명세 v0.3 §02·§04). auth-service 확인 결과 "내 정보 조회" 같은 별도 API는 이
- * 아키텍처에 없다 — 각 서비스가 JWT의 `sub` 클레임을 직접 쓰는 구조라(auth-service
+ * AI 서비스는 원래 Bearer 토큰이 아니라 숫자 `X-User-Id` 헤더로 사용자를 식별했다(AI
+ * 파트 API 명세 v0.3 §02·§04). auth-service 확인 결과 "내 정보 조회" 같은 별도 API는
+ * 이 아키텍처에 없다 — 각 서비스가 JWT의 `sub` 클레임을 직접 쓰는 구조라(auth-service
  * `UserController` 주석: "대상 회원은 항상 토큰의 sub에서 온다"), 우리도 Spring에
  * 왕복하지 않고 auth-service의 JWKS(`/.well-known/jwks.json`)로 토큰 서명을 직접
  * 검증해 `sub`를 꺼낸다. 서명 검증 없이 `sub`만 읽으면 위조 토큰이 통과하므로 반드시
@@ -23,6 +23,14 @@ const INTERNAL_FETCH_TIMEOUT_MS = 10_000;
  *
  * issuer/audience는 아직 안 맞춘다(배포 환경의 실제 값을 몰라서) — 서명 검증만으로도
  * 위조는 막지만, 값이 확정되면 `jwtVerify`에 `issuer`/`audience` 옵션을 추가한다.
+ *
+ * AI 서버가 X-User-Id → Authorization: Bearer 전용 검증으로 전환 중이다(이슈 #199).
+ * 전환 전엔 Authorization이 무시되고, 전환 후(AI가 jwksUrl PR을 머지하는 순간)엔
+ * X-User-Id가 무시된다 — 그래서 검증에 성공한 원본 Authorization 헤더를 같이 돌려주고,
+ * `fetchAiService`가 두 헤더를 모두 보낸다. 전환이 끝나도 X-User-Id를 당장 뺄 필요는
+ * 없다(AI팀 확인, 급하지 않음) — 순서만 지키면 된다: Authorization을 먼저 추가해서
+ * 배포하고, 그 다음에 AI가 전환해야 끊김이 없다. 반대로 X-User-Id를 먼저 빼면 전환
+ * 전 구간에서 전부 401이 난다.
  */
 const getJwks = (() => {
   let jwks: ReturnType<typeof createRemoteJWKSet> | null = null;
@@ -34,17 +42,22 @@ const getJwks = (() => {
   };
 })();
 
-export async function resolveUserId(req: NextRequest): Promise<number | null> {
+/** 검증된 사용자 id와, 그 검증에 쓰인 원본 `Authorization` 헤더를 함께 돌려준다. */
+export async function resolveUserId(
+  req: NextRequest,
+): Promise<{ userId: number | null; authorization: string | null }> {
   const authorization = req.headers.get('authorization');
-  if (!authorization?.startsWith('Bearer ')) return null;
+  if (!authorization?.startsWith('Bearer ')) return { userId: null, authorization: null };
   const token = authorization.slice('Bearer '.length);
 
   try {
     const { payload } = await jwtVerify(token, getJwks());
     const userId = Number(payload.sub);
-    return Number.isFinite(userId) && userId > 0 ? userId : null;
+    return Number.isFinite(userId) && userId > 0
+      ? { userId, authorization }
+      : { userId: null, authorization: null };
   } catch {
-    return null;
+    return { userId: null, authorization: null };
   }
 }
 
@@ -57,7 +70,13 @@ export async function resolveUserId(req: NextRequest): Promise<number | null> {
 export async function fetchAiService<T>(
   path: string,
   dataSchema: ZodType<T>,
-  init: { method: string; userId?: number | null; failureMessage?: string; body?: BodyInit },
+  init: {
+    method: string;
+    userId?: number | null;
+    authorization?: string | null;
+    failureMessage?: string;
+    body?: BodyInit;
+  },
 ) {
   const failureMessage = init.failureMessage ?? AI_UPSTREAM_FAILURE_MESSAGE;
   let aiRes: Response;
@@ -70,6 +89,8 @@ export async function fetchAiService<T>(
         // 레시피 상세·부족 재료 추천처럼 비로그인도 허용하는 엔드포인트는 userId 가
         // 없을 수 있다(명세 §04-2 "헤더 X-User-Id 선택 — 없으면 냉장고 갈래 미사용").
         ...(init.userId != null ? { 'X-User-Id': String(init.userId) } : {}),
+        // AI 서버의 X-User-Id → Bearer 전환 대비(이슈 #199) — 두 헤더를 같이 보낸다.
+        ...(init.authorization ? { Authorization: init.authorization } : {}),
       },
       body: init.body,
       cache: 'no-store',
