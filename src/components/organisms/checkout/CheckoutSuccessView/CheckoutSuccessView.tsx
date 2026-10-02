@@ -15,10 +15,11 @@ import { SpringPaymentMethodSchema } from '@/types/checkout';
  * Toss successUrl 착지. 결제 승인 후 완료 화면으로 보낸다.
  * 카드 원본은 URL 에 오지 않고 paymentKey 만 온다.
  *
- * `orderId` — Toss 가 위젯 호출 때 넘긴 값을 successUrl 쿼리로 그대로 돌려준다.
- * `CheckoutView` 가 실제(또는 목) 숫자 주문 ID 를 문자열화해서 넘겼으므로, 여기서 다시
- * 숫자로 파싱해 승인 호출 본문에 싣는다(payment-service 필수값, types/checkout.ts 계약
- * 노트 참고, 2026-09-23).
+ * Toss 가 successUrl 쿼리로 돌려주는 `orderId` 는 우리가 넘긴 토스 쪽 `orderId`(실 주문은
+ * 서버 `orderNo`, `"O"+UUID` 형태 — 숫자가 아니다) 를 그대로 echo 한 값이라, 승인 호출에
+ * 필요한 우리 숫자 주문 PK 와는 다른 값이다. 그 PK 는 `CheckoutView` 가 `internalOrderId`
+ * 쿼리로 별도로 실어 보낸 걸 읽는다(이슈 #195 — 전에는 이 둘을 같은 값으로 착각해
+ * `Number(orderNo)` 가 항상 NaN 이 되는 바람에 결제가 실제로 성공해도 매번 실패 처리됐다).
  *
  * 쿼리 검증 실패·승인 실패 모두 주문서가 아니라 `/cart`로 돌려보낸다(#193) — Toss가 결제를
  * 승인했어도 우리 쪽 확정(confirm)이 실패하면 주문서에 다시 둬도 이어갈 방법이 없다.
@@ -36,8 +37,8 @@ export function CheckoutSuccessView() {
     const paymentKey = searchParams.get('paymentKey');
     const amountRaw = searchParams.get('amount');
     const amount = amountRaw ? Number(amountRaw) : NaN;
-    const orderIdRaw = searchParams.get('orderId');
-    const orderId = orderIdRaw ? Number(orderIdRaw) : NaN;
+    const internalOrderIdRaw = searchParams.get('internalOrderId');
+    const orderId = internalOrderIdRaw ? Number(internalOrderIdRaw) : NaN;
     const paymentMethodParsed = SpringPaymentMethodSchema.safeParse(
       searchParams.get('paymentMethod') ?? 'CARD',
     );
