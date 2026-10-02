@@ -24,6 +24,7 @@ export const MOCK_FRIDGE_ITEMS: FridgeItem[] = [
   {
     id: 'milk',
     productId: 'milk-901',
+    detailProductId: 'milk-901',
     name: '[연세우유 x 마켓컬리] 전용목장우유 900mL',
     tagline: '가격, 퀄리티 모두 만족스러운 1A등급 우유',
     imageSrc: PLACEHOLDER_IMAGE,
@@ -41,6 +42,7 @@ export const MOCK_FRIDGE_ITEMS: FridgeItem[] = [
   {
     id: 'salmon',
     productId: 'salmon-200',
+    detailProductId: 'salmon-200',
     name: '[KF365] 항공직송 노르웨이 생연어 200g (냉장)',
     tagline: '신선한 노르웨이산 생연어',
     imageSrc: PLACEHOLDER_IMAGE,
@@ -56,6 +58,7 @@ export const MOCK_FRIDGE_ITEMS: FridgeItem[] = [
   {
     id: 'onion',
     productId: 'onion-500',
+    detailProductId: 'onion-500',
     name: '[바름팜] 친환경 양파 500g',
     tagline: '아삭한 국내산 친환경 양파',
     imageSrc: PLACEHOLDER_IMAGE,
@@ -71,6 +74,7 @@ export const MOCK_FRIDGE_ITEMS: FridgeItem[] = [
   {
     id: 'tofu',
     productId: 'tofu-500',
+    detailProductId: 'tofu-500',
     name: "[Kurly's] 국산콩 두부 500g",
     tagline: '고소한 국산콩 두부',
     imageSrc: PLACEHOLDER_IMAGE,
@@ -86,6 +90,7 @@ export const MOCK_FRIDGE_ITEMS: FridgeItem[] = [
   {
     id: 'scallion',
     productId: 'scallion-100',
+    detailProductId: 'scallion-100',
     name: '한끼 채소 손질 대파 100g',
     tagline: '손질까지 끝낸 신선한 대파',
     imageSrc: PLACEHOLDER_IMAGE,
@@ -101,6 +106,7 @@ export const MOCK_FRIDGE_ITEMS: FridgeItem[] = [
   {
     id: 'tteokgalbi',
     productId: 'tteokgalbi-345',
+    detailProductId: 'tteokgalbi-345',
     name: '[조선호텔] 떡갈비 345g',
     tagline: '한입에 즐기는 프리미엄 떡갈비',
     imageSrc: PLACEHOLDER_IMAGE,
@@ -116,6 +122,7 @@ export const MOCK_FRIDGE_ITEMS: FridgeItem[] = [
   {
     id: 'cheese',
     productId: 'cheese-200',
+    detailProductId: 'cheese-200',
     name: '[상하치즈] 모짜렐라 슈레드 치즈 200g',
     tagline: '쭉쭉 늘어나는 모짜렐라 치즈',
     imageSrc: PLACEHOLDER_IMAGE,
@@ -131,6 +138,7 @@ export const MOCK_FRIDGE_ITEMS: FridgeItem[] = [
   {
     id: 'hanwoo',
     productId: 'hanwoo-set',
+    detailProductId: 'hanwoo-set',
     name: '[선물세트] 태우한우 1+ 실속 구이 세트 (냉동)',
     tagline: '품격과 실속을 모두 갖춘 한우 선물세트',
     imageSrc: PLACEHOLDER_IMAGE,

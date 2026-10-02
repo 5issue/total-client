@@ -39,8 +39,18 @@ function deriveFilters(isExpired: boolean, dDayLabel: string | null): FridgeFilt
  * 더는 mock을 쓰지 않는다. 수량·유통기한·보관 여부·만료 상태도 전부 실 데이터다.
  * 보관팁은 이 모델에 더 없다 — `FridgeStorageTipBottomSheet`가 PROD-03(#142)을
  * 온디맨드로 직접 조회한다.
+ *
+ * `detailProductIdByAiId`는 `MyFridgeViewContainer`가 `GET /products/by-ai`로 전체
+ * 품목을 한 번에 조회해 만든 AI product_id → BE 상품 id 맵이다(이슈 #203). 같은
+ * product_id에 GROUP·UNIT 두 항목이 있으면 GROUP 쪽을 쓴다 — 상세 페이지는 UNIT
+ * 선택지를 보여주는 GROUP 화면이라서다(`FridgeRefillBottomSheet`가 UNIT을 쓰는 것과
+ * 반대, by-ai 응답은 GROUP이 먼저 와서 맵에 먼저 들어간다).
  */
-export function toFridgeItemViewModel(apiItem: FridgeStockItem, index: number): FridgeItem {
+export function toFridgeItemViewModel(
+  apiItem: FridgeStockItem,
+  index: number,
+  detailProductIdByAiId: ReadonlyMap<string, string> = new Map(),
+): FridgeItem {
   // MOCK_FRIDGE_ITEMS는 고정 길이 배열이라 나머지 연산 인덱스는 항상 유효하다 —
   // noUncheckedIndexedAccess 회피용 non-null assertion.
   const matchingMock = MOCK_FRIDGE_ITEMS.find(
@@ -56,6 +66,7 @@ export function toFridgeItemViewModel(apiItem: FridgeStockItem, index: number): 
   return {
     id: apiItem.product.product_id,
     productId: apiItem.product.product_id,
+    detailProductId: detailProductIdByAiId.get(apiItem.product.product_id) ?? null,
     name: apiItem.product.name,
     tagline: extras.tagline,
     imageSrc: isAllowedImageSrc(apiItem.product.image_url)

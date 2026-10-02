@@ -10,6 +10,7 @@ import { KitchenInventoryCard } from './KitchenInventoryCard';
 const BASE_ITEM: FridgeItem = {
   id: 'milk',
   productId: 'milk-901',
+  detailProductId: 'milk-901',
   name: '[연세우유 x 마켓컬리] 전용목장우유 900mL',
   tagline: '가격, 퀄리티 모두 만족스러운 1A등급 우유',
   imageSrc: '/placeholders/product-thumbnail.webp',

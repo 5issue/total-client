@@ -26,8 +26,16 @@ export type FridgeStorageType = 'refrigerated' | 'frozen';
 
 export interface FridgeItem {
   id: string;
-  /** 이미지 클릭 시 이동할 상품 상세 페이지(`/products/[productId]`). */
+  /** AI 응답의 product_id — BE 상품 PK와 값 공간이 다르다(이슈 #203). "채워넣기"
+   *  담기처럼 `GET /products/by-ai` 변환이 필요한 곳에서만 쓴다. */
   productId: string;
+  /**
+   * 이미지 클릭 시 이동할 상품 상세 페이지(`/products/[productId]`)의 실제 BE 상품 id —
+   * `productId`(AI id)를 `by-ai`로 변환한 값이다(이슈 #203, `KitchenInventoryCard`가
+   * `productId`를 그대로 링크에 써서 엉뚱한 상품 상세로 가던 버그 수정). 변환 전·실패 시
+   * `null` — 이때는 이미지 링크를 비활성화한다(엉뚱한 상품으로 보내는 것보다 안전).
+   */
+  detailProductId: string | null;
   name: string;
   /** 보관팁/담기 시트 상단 한 줄 소개. */
   tagline: string;
