@@ -22,7 +22,7 @@ import { z } from 'zod';
 export const SpringPaymentMethodSchema = z.enum(['CARD', 'PHONE', 'TOSSPAY', 'KAKAOPAY', 'PAYCO']);
 export type SpringPaymentMethod = z.infer<typeof SpringPaymentMethodSchema>;
 
-/** `POST /api/v1/payments/checkout` 요청 본문. Idempotency-Key 는 헤더. */
+/** Spring `POST /api/v1/payments/checkout` 요청 본문 — Idempotency-Key 는 헤더(BFF→Spring 구간). */
 export const CheckoutPaymentRequestSchema = z.object({
   /** order-service 가 발급한 실제 주문 ID(Long) — 백엔드 필수값. */
   orderId: z.number().int().positive(),
@@ -34,8 +34,10 @@ export const CheckoutPaymentRequestSchema = z.object({
 export type CheckoutPaymentRequest = z.infer<typeof CheckoutPaymentRequestSchema>;
 
 /**
- * 클라 → BFF. 본문에 idempotencyKey 를 실어 헤더로 올린다.
- * (같은 승인 재시도에 동일 UUID 가 필요해서 BFF 가 임의 생성하지 않는다.)
+ * 클라 → BFF. `idempotencyKey` 는 본문에 그대로 둔다 — 전엔 헤더로 올렸는데, CloudFront가
+ * 브라우저→BFF 구간에서 커스텀 헤더를 걸러내 Route Handler가 못 받는 사례가 확인됐다
+ * (이슈 #197). BFF→Spring 구간(CloudFront 안 거침)에서는 그 값을 꺼내 헤더로 다시 싣는다
+ * (같은 승인 재시도에 동일 UUID 가 필요해서 BFF 가 임의 생성하지 않는다).
  */
 export const ConfirmPaymentRequestSchema = CheckoutPaymentRequestSchema.extend({
   idempotencyKey: z.string().uuid(),

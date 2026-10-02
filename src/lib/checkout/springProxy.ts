@@ -11,10 +11,9 @@ export const CHECKOUT_UPSTREAM_FAILURE_MESSAGE =
   '결제 승인 중 오류가 발생했습니다. 다시 시도해주세요.';
 export const RECEIPT_UPSTREAM_FAILURE_MESSAGE = '주문 상세 정보를 불러오는 중 오류가 발생했습니다.';
 
-export function springCheckoutHeaders(req: NextRequest): HeadersInit {
+export function springCheckoutHeaders(req: NextRequest, idempotencyKey?: string): HeadersInit {
   const authorization = req.headers.get('authorization');
   const refresh = getRefreshTokenCookie(req);
-  const idempotencyKey = req.headers.get('idempotency-key') ?? req.headers.get('idemopotency-key');
   return {
     'Content-Type': 'application/json',
     ...(authorization ? { Authorization: authorization } : {}),
@@ -37,7 +36,7 @@ export async function proxySpringCheckout<T>(
   req: NextRequest,
   path: string,
   dataSchema: ZodType<T>,
-  init: { method: string; body?: unknown; failureMessage?: string },
+  init: { method: string; body?: unknown; failureMessage?: string; idempotencyKey?: string },
 ) {
   const failureMessage = init.failureMessage ?? CHECKOUT_UPSTREAM_FAILURE_MESSAGE;
   let springRes: Response;
@@ -45,7 +44,7 @@ export async function proxySpringCheckout<T>(
   try {
     springRes = await fetch(`${env.API_INTERNAL_URL}${path}`, {
       method: init.method,
-      headers: springCheckoutHeaders(req),
+      headers: springCheckoutHeaders(req, init.idempotencyKey),
       body: init.body === undefined ? undefined : JSON.stringify(init.body),
       cache: 'no-store',
     });
