@@ -20,7 +20,7 @@ const DELIVERY_LABEL: Record<CartDeliveryType, string> = {
 };
 const TEMPERATURE_LABEL: Record<SpringCartTemperature, string> = {
   ROOM_TEMPERATURE: '실온배송',
-  REFRIGERATED: '냉장배송',
+  REFRIGERATED: '샛별 배송',
   FROZEN: '냉동배송',
 };
 
