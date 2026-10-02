@@ -16,7 +16,10 @@ import type { FridgeItem } from '@/components/organisms/mypage/MyFridgeView/mode
  * 기존 카드 어디에도 없어 새 molecule 로 뒀다.
  *
  * 이미지는 상세 페이지 링크(`/products/[productId]`) — 품절이어도 그대로 이동 가능,
- * "채워넣기"만 비활성화된다(디자인 요구사항).
+ * "채워넣기"만 비활성화된다(디자인 요구사항). 링크는 `item.productId`(AI id)가 아니라
+ * `item.detailProductId`(by-ai로 변환된 BE 상품 id)를 쓴다 — 둘을 혼동해서 엉뚱한
+ * 상품 상세로 이동하던 버그가 있었다(이슈 #203). 변환 전·실패로 `null`이면 링크를
+ * 렌더하지 않는다(엉뚱한 곳으로 보내는 것보다 안전).
  *
  * 체크박스는 `Checkbox` atom 을 그대로 쓰되, 그 `<label>` 이 항상 44px 터치 타깃으로
  * 글리프를 가운데 두기 때문에 Figma 가 원하는 "썸네일 (8,8) 지점에 글리프 좌상단"과는
@@ -77,17 +80,27 @@ export function KitchenInventoryCard({
     <div className={['flex w-full flex-col gap-1', className].filter(Boolean).join(' ')}>
       <div className="relative aspect-square w-full">
         <div className="bg-surface-secondary absolute inset-0 overflow-hidden rounded-sm">
-          <Link href={`/products/${item.productId}`} className="absolute inset-0">
-            {item.imageSrc ? (
-              <Image
-                src={item.imageSrc}
-                alt={item.name}
-                fill
-                sizes="180px"
-                className="object-cover"
-              />
-            ) : null}
-          </Link>
+          {item.detailProductId ? (
+            <Link href={`/products/${item.detailProductId}`} className="absolute inset-0">
+              {item.imageSrc ? (
+                <Image
+                  src={item.imageSrc}
+                  alt={item.name}
+                  fill
+                  sizes="180px"
+                  className="object-cover"
+                />
+              ) : null}
+            </Link>
+          ) : item.imageSrc ? (
+            <Image
+              src={item.imageSrc}
+              alt={item.name}
+              fill
+              sizes="180px"
+              className="object-cover"
+            />
+          ) : null}
           {/* "IMG_Size"(디자인 시스템 node 3329-8439) 자체 스펙 — 사진 위에 항상 얹는
               어두운 스크림. 체크박스·D-day 뱃지가 어떤 사진 위에서도 보이게 하는
               용도라 `pointer-events-none`으로 클릭은 이미지 링크로 그대로 통과시킨다. */}
