@@ -4,6 +4,7 @@ import { SerwistProvider } from '@serwist/turbopack/react';
 import type { Metadata, Viewport } from 'next';
 
 import { SplashScreen } from '@/components/organisms/shared/SplashScreen';
+import { splashSeenBootScript } from '@/components/organisms/shared/SplashScreen/splashSession';
 import { pretendard } from '@/lib/fonts';
 
 import { Providers } from './providers';
@@ -54,8 +55,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ko" dir="ltr" className={pretendard.variable}>
       <body>
-        {/* 루트 레이아웃은 하드 내비게이션에만 재실행돼 "앱 진입 시 1회" 노출에
-            자연히 들어맞는다 — 별도 라우트/세션 플래그 불필요(SplashScreen 참고). */}
+        {/* 아직 안 본 세션이면 로고 스플래시보다 먼저 같은 색 막을 씌운다.
+            이미 봤으면 스크립트는 아무것도 하지 않는다. sessionStorage는
+            탭을 닫거나 브라우저를 종료해야 지워진다(SplashScreen 참고). */}
+        <script dangerouslySetInnerHTML={{ __html: splashSeenBootScript }} />
         <SplashScreen />
         {/* swUrl 은 반드시 src/app/serwist/[path]/route.ts 의 경로와 일치해야 한다.
             개발 모드에선 disable — 서비스워커가 실기기(특히 iOS Safari)에 설치되면
