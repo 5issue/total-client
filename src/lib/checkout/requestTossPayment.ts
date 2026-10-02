@@ -43,7 +43,13 @@ const EASY_PAY: Record<Extract<OtherPaymentMethodId, 'tosspay' | 'kakaopay' | 'p
 export type RequestTossCheckoutPaymentInput = {
   clientKey: string;
   amount: number;
+  /** 토스 쪽 `orderId` — 실 주문(#126)이면 서버 `orderNo`(`"O"+UUID`, 숫자 아님), 그 외엔
+   * `createTossOrderId()` 발급값. 아래 `internalOrderId`(우리 숫자 PK)와는 다른 값이다. */
   orderId: string;
+  /** 우리 주문의 숫자 PK — 실 주문일 때만 있다. 결제 승인(`confirmPayment`)이 이 값을
+   * 필요로 하는데 토스는 `orderId`로 위 `orderNo`만 그대로 돌려주므로, successUrl에
+   * 별도 쿼리로 실어 보낸다(CheckoutSuccessView가 다시 꺼내 쓴다). */
+  internalOrderId?: number;
   orderName: string;
   method: OtherPaymentMethodId;
   cardIssuer: string | null;
@@ -55,10 +61,13 @@ function isWidgetClientKey(clientKey: string) {
   return clientKey.includes('_gck_') || clientKey.includes('_gsk_');
 }
 
-function redirectUrls(paymentMethod: string) {
+function redirectUrls(paymentMethod: string, internalOrderId?: number) {
   const origin = window.location.origin;
   const successUrl = new URL('/checkout/success', origin);
   successUrl.searchParams.set('paymentMethod', paymentMethod);
+  if (internalOrderId != null) {
+    successUrl.searchParams.set('internalOrderId', String(internalOrderId));
+  }
   return { successUrl: successUrl.toString(), failUrl: `${origin}/checkout/fail` };
 }
 
@@ -99,7 +108,10 @@ async function requestWidgetPaymentWindow(
     });
 
     paymentWindow.on('paymentRequest', async ({ paymentMethod }) => {
-      const urls = redirectUrls(toSpringPaymentMethodFromTossCode(paymentMethod.code));
+      const urls = redirectUrls(
+        toSpringPaymentMethodFromTossCode(paymentMethod.code),
+        input.internalOrderId,
+      );
       try {
         await widgets.requestPayment({
           orderId: input.orderId,
@@ -122,7 +134,7 @@ async function requestLegacyPayment(
   input: RequestTossCheckoutPaymentInput,
 ) {
   const payment = tossPayments.payment({ customerKey: ANONYMOUS });
-  const urls = redirectUrls(toSpringPaymentMethod(input.method));
+  const urls = redirectUrls(toSpringPaymentMethod(input.method), input.internalOrderId);
   const common = {
     amount: { currency: 'KRW' as const, value: input.amount },
     orderId: input.orderId,

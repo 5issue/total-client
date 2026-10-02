@@ -226,6 +226,7 @@ export function CheckoutView({
         clientKey: env.NEXT_PUBLIC_TOSS_CLIENT_KEY,
         amount: amounts.total,
         orderId: tossOrderId,
+        internalOrderId: orderId,
         orderName,
         method: otherPaymentMethod,
         cardIssuer,
