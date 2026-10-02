@@ -12,9 +12,9 @@ import { SplashScreen } from './SplashScreen';
  *
  * `SplashScreen`이 같은 탭에서는 `sessionStorage`로 한 번만 보이게 막기 때문에, 같은
  * 브라우저 세션(페이지)에서 이 스토리가 두 번째로 실행되면(재시도·HMR 등) 플래그가
- * 이미 꽂혀 있어 스플래시가 아예 안 뜬다 — `useSyncExternalStore`가 마운트 즉시(페인트
- * 전) 그 값을 읽어버려 `play`에서 지우면 이미 늦는다. 렌더 전에 지우는 decorator로
- * 매 실행이 "처음 보는 세션"인 것처럼 멱등하게 만든다.
+ * 이미 꽂혀 있어 스플래시가 아예 안 뜬다. 렌더 전에 지우는 decorator로 매 실행이
+ * "처음 보는 세션"인 것처럼 멱등하게 만든다. 나타나기까지 한 프레임을 기다린 뒤
+ * 사라지는지 확인한다.
  */
 const meta = {
   title: 'organisms/shared/SplashScreen',
@@ -36,7 +36,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   play: async ({ canvasElement }) => {
-    expect(canvasElement.querySelector('.z-splash')).toBeInTheDocument();
+    await waitFor(() => expect(canvasElement.querySelector('.z-splash')).toBeInTheDocument());
 
     await waitFor(() => expect(canvasElement.querySelector('.z-splash')).not.toBeInTheDocument(), {
       timeout: 3000,
