@@ -18,15 +18,31 @@ import { z } from 'zod';
 const clientSchema = z.object({
   NEXT_PUBLIC_API_URL: z.string().url(),
   NEXT_PUBLIC_APP_ENV: z.enum(['local', 'development', 'staging', 'production']),
+  /** 토스페이먼츠 API 개별 연동 클라이언트 키(`test_ck_`/`live_ck_`) — 반드시 이 타입이어야 한다.
+   * 위젯 키(`test_gck_`)를 넣으면 `requestTossCheckoutPayment` 가 토스 결제위젯(자체 결제수단
+   * 선택 UI 포함)으로 빠져 우리 자체 그리드와 중복 렌더된다(`requestTossPayment.ts` 참고).
+   * 시크릿 키가 아니다(FE-10). */
+  NEXT_PUBLIC_TOSS_CLIENT_KEY: z.string().min(1),
+  /** 배포 공개 도메인 — OAuth `redirectUri` 계산에 쓴다(이슈 #150). 프록시/CDN 뒤에서
+   * `req.nextUrl.origin`이 실제 공개 도메인과 달라질 수 있어 우선 이 값을 쓰고, 없으면
+   * (로컬 개발 등) 기존 origin 계산으로 폴백한다. optional — 로컬은 안 정해줘도 된다.
+   * `.env.local`에 값 없이 `KEY=`만 있으면 빈 문자열로 읽혀 `.url()`을 그냥 두면
+   * 검증에서 막힌다 — 빈 문자열을 undefined로 먼저 바꿔준다. */
+  NEXT_PUBLIC_APP_URL: z.preprocess((v) => (v === '' ? undefined : v), z.string().url().optional()),
 });
 
 const serverSchema = z.object({
   API_INTERNAL_URL: z.string().url(),
+  /** AI 파트 서빙(FastAPI, 별도 호스트) 내부 URL — Spring 과 다른 백엔드다(AI 파트 API
+   * 명세 v0.3 §02). 로컬은 AI 레포 `docker run` 안내대로 8000 포트. */
+  AI_SERVICE_INTERNAL_URL: z.string().url(),
 });
 
 const clientParsed = clientSchema.safeParse({
   NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   NEXT_PUBLIC_APP_ENV: process.env.NEXT_PUBLIC_APP_ENV,
+  NEXT_PUBLIC_TOSS_CLIENT_KEY: process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY,
+  NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
 });
 
 if (!clientParsed.success) {
@@ -37,12 +53,23 @@ if (!clientParsed.success) {
   );
 }
 
-const isServer = typeof window === 'undefined';
-
+/**
+ * 서버 전용 값은 런타임에 주입된다(K8s ConfigMap/Secret) — 빌드 타임엔 없다.
+ * 그래서 모듈 로드가 아니라 "첫 접근" 시점에 lazy 검증한다: `next build` 의 page-data
+ * 수집은 이 게터를 호출하지 않으므로 빌드에 서버 env 가 필요 없고, 실제 요청 처리 때
+ * 값이 빠져 있으면 그때 명확히 throw 한다.
+ */
 let serverEnv: z.infer<typeof serverSchema> | null = null;
-if (isServer) {
+
+function readServerEnv(): z.infer<typeof serverSchema> {
+  if (typeof window !== 'undefined') {
+    throw new Error('[env] API_INTERNAL_URL 은 서버에서만 접근할 수 있습니다.');
+  }
+  if (serverEnv) return serverEnv;
+
   const serverParsed = serverSchema.safeParse({
     API_INTERNAL_URL: process.env.API_INTERNAL_URL,
+    AI_SERVICE_INTERNAL_URL: process.env.AI_SERVICE_INTERNAL_URL,
   });
   if (!serverParsed.success) {
     throw new Error(
@@ -52,16 +79,18 @@ if (isServer) {
     );
   }
   serverEnv = serverParsed.data;
+  return serverEnv;
 }
 
 export const env = {
   ...clientParsed.data,
-  /** 서버 전용. 브라우저에서 접근하면 throw. */
+  /** 서버 전용. 첫 접근 시 검증하고 메모이즈한다. 브라우저에서 접근하면 throw. */
   get API_INTERNAL_URL(): string {
-    if (!serverEnv) {
-      throw new Error('[env] API_INTERNAL_URL 은 서버에서만 접근할 수 있습니다.');
-    }
-    return serverEnv.API_INTERNAL_URL;
+    return readServerEnv().API_INTERNAL_URL;
+  },
+  /** 서버 전용. AI 파트 서빙(FastAPI) 내부 URL. */
+  get AI_SERVICE_INTERNAL_URL(): string {
+    return readServerEnv().AI_SERVICE_INTERNAL_URL;
   },
 } as const;
 

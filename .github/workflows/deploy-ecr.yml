@@ -1,0 +1,79 @@
+name: Build and Push Docker Image to ECR
+
+on:
+  workflow_run:
+    workflows: ['CI']
+    branches: [develop]
+    types: [completed]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    # CI가 성공(success)했을 때만 작업 실행
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          no-cache: true
+          tags: |
+            596601390909.dkr.ecr.ap-northeast-2.amazonaws.com/kurly-frontend:latest
+            596601390909.dkr.ecr.ap-northeast-2.amazonaws.com/kurly-frontend:${{ github.sha }}
+          build-args: |
+            NEXT_PUBLIC_API_URL=https://api.cloudyim.store
+            NEXT_PUBLIC_APP_URL=https://cloudyim.store
+            NEXT_PUBLIC_APP_ENV=production
+            NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
+            NEXT_PUBLIC_TOSS_CLIENT_KEY=${{ secrets.NEXT_PUBLIC_TOSS_CLIENT_KEY }}
+
+      # -------------------------------------------------------------
+      # total-k8s 레포지토리 체크아웃 및 이미지 태그 업데이트
+      # -------------------------------------------------------------
+      - name: Checkout total-k8s repository
+        uses: actions/checkout@v4
+        with:
+          repository: 5issue/total-k8s
+          token: ${{ secrets.MANIFEST_REPO_PAT }}
+          path: total-k8s
+
+      - name: Update image tag in total-k8s
+        env:
+          COMMIT_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          cd total-k8s/k8s/frontend
+
+          # kustomize로 newTag를 방금 빌드된 커밋 SHA로 교체
+          kustomize edit set image 596601390909.dkr.ecr.ap-northeast-2.amazonaws.com/kurly-frontend:${COMMIT_SHA}
+
+          # Git 커밋 & 푸시
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add kustomization.yaml
+          git commit -m "chore(frontend): update image tag to ${COMMIT_SHA} [skip ci]" || exit 0
+          git push

@@ -82,7 +82,7 @@ export function Providers({ children }: { children: ReactNode }) {
 - 공통 헤더(`Content-Type`, 추적 헤더), 타임아웃, 에러 → `ApiError` 정규화는 래퍼 내부에서 처리.
 
 ```ts
-// src/lib/apiClient.ts (명세 — 구현은 다음 단계)
+// src/lib/apiClient.ts (구현됨 — 래퍼는 완성, 엔드포인트 함수는 도메인별로 추가)
 export async function publicFetch<T>(
   path: string,
   schema: ZodType<T>,
@@ -167,8 +167,13 @@ export type ProductListResponse = z.infer<typeof ProductListResponseSchema>;
 }
 ```
 
+**외부(Spring) 원본 봉투는 이것과 다르다** (`{ status: "SUCCESS"|"ERROR", message, data, error, timestamp }`).
+Route Handler 가 그 사이를 변환한다 — 외부 응답을 `types/<domain>` 의 `SpringEnvelopeSchema` 로 `parse` →
+`data` 만 꺼내 도메인 스키마 검증 → `ok()`/`fail()` 로 우리 봉투에 재포장. 외부 `error` 코드는
+브라우저로 노출하지 않고 `fail()` 의 `message` 로만 흡수한다(FE-16). (예: `src/types/auth.ts`)
+
 ```ts
-// src/lib/apiResponse.ts (명세 — Route Handler 전용)
+// src/lib/apiResponse.ts (구현됨 — Route Handler 전용)
 import { NextResponse } from 'next/server';
 
 export type ApiEnvelope<T> = { statusCode: number; message: string; data: T };
@@ -247,7 +252,7 @@ useMutation({
 - [ ] mutation 은 기본 `invalidateQueries`. Optimistic 필요 시 §7 의 3질문 PR 답변
 - [ ] 인증 필요 여부 확인 → `privateFetch` + Route Handler 경유
 - [ ] 에러 경로(4xx/5xx) 처리 확인: 훅 `error` 로 전달되는지, 화면 표시 방식 합의
-- [ ] 로딩/빈 상태(Empty) UI 정의 (structure-convention 의 화면 책임 지표 참고)
+- [ ] 이 훅을 소비하는 **화면/organism 컨테이너**의 로딩·에러 상태 UI 정의 (리스트 응답이면 빈 상태도). 표현 컴포넌트가 아니라 컨테이너 계층 — structure §6-1, code-style §3-1
 - [ ] `security-convention` 의 FE-03(민감정보 로깅 금지), FE-07(응답 검증) 위반 없는지 확인
 
 ---

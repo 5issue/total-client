@@ -10,5 +10,10 @@ export const BOTTOM_NAV = [
   { href: '/mypage', label: '마이컬리' },
 ] as const;
 
-/** OAuth 소셜 로그인 제공자 */
+/** OAuth 소셜 로그인 제공자 (애플·컬리 자체 로그인은 범위 밖) */
 export const OAUTH_PROVIDERS = ['kakao', 'naver'] as const;
+export type OAuthProvider = (typeof OAUTH_PROVIDERS)[number];
+
+export function isOAuthProvider(value: string): value is OAuthProvider {
+  return (OAUTH_PROVIDERS as readonly string[]).includes(value);
+}

@@ -1,0 +1,74 @@
+'use client';
+
+import Image from 'next/image';
+
+import { Icon } from '@/components/atoms/Icon/Icon';
+
+/**
+ * AI 채팅 등에서 상품을 작게 보여주는 미니 카드 (Figma "Item_V_S", node 2456-5629).
+ * 이미지 + "담기" 버튼 + 상품명 + (선택) 할인율/정가 + 판매가.
+ */
+export type ProductMiniCardProps = {
+  imageSrc: string;
+  name: string;
+  /** 최종 판매가 표기(포맷은 호출부 책임, 예: "5,372원~"). */
+  priceLabel: string;
+  /** 할인율 표기(예: "32%"). discountLabel/originalPriceLabel 은 둘 다 있어야 정가 취소선을 보여준다. */
+  discountLabel?: string;
+  /** 정가 표기(예: "7,900원"). */
+  originalPriceLabel?: string;
+  onAddToCart?: () => void;
+  /** true 면 "담기" 버튼을 비활성화한다 — 실제 장바구니 연동 전 목업 화면에서
+   *  동작 없는 버튼이 활성처럼 보이지 않도록 쓴다(`FridgeRefillCompleteBottomSheet`
+   *  등 기존 mock 카드와 동일 원칙). */
+  disabled?: boolean;
+  className?: string;
+};
+
+export function ProductMiniCard({
+  imageSrc,
+  name,
+  priceLabel,
+  discountLabel,
+  originalPriceLabel,
+  onAddToCart,
+  disabled = false,
+  className,
+}: ProductMiniCardProps) {
+  return (
+    <div className={['flex w-31 flex-col gap-1', className].filter(Boolean).join(' ')}>
+      <div className="bg-surface-secondary relative aspect-square w-full overflow-hidden rounded-sm">
+        <Image src={imageSrc} alt={name} fill sizes="124px" className="object-cover" />
+      </div>
+      {/* atoms/Button 의 outlineBlack 과 팔레트는 같지만, Button 사이즈는 이 노드의
+          고정 32px(h-8) 스펙과 안 맞아(가장 작은 s 사이즈도 36px) 직접 스타일링한다.
+          시각 높이는 32px 로 유지하고 `before` 로 44px 터치 영역만 확보한다(`ProductCard`의
+          "담기" 버튼과 같은 히트박스 확장 패턴, 코드래빗 리뷰). */}
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={onAddToCart}
+        aria-label={`${name} 장바구니 담기`}
+        className={[
+          'rounded-m border-border relative flex h-8 w-full items-center justify-center gap-1 border',
+          "before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-['']",
+          disabled ? 'text-fg-disabled' : 'text-fg active:bg-surface-secondary',
+          'text-label-l',
+        ].join(' ')}
+      >
+        <Icon name="cart" size={20} aria-hidden />
+        담기
+      </button>
+      <div className="flex w-full flex-col">
+        <p className="text-body-m text-fg w-full truncate">{name}</p>
+        {discountLabel && originalPriceLabel ? (
+          <p className="text-caption-l text-fg-tertiary line-through">{originalPriceLabel}</p>
+        ) : null}
+        <div className="text-numeric-l font-numeric flex items-center gap-1">
+          {discountLabel ? <span className="text-orange">{discountLabel}</span> : null}
+          <span className="text-fg">{priceLabel}</span>
+        </div>
+      </div>
+    </div>
+  );
+}

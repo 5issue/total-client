@@ -1,0 +1,1 @@
+export { SearchPageHeader } from './SearchPageHeader';

@@ -1,0 +1,173 @@
+/**
+ * 취소·반품·교환 내역 스텁 데이터 (퍼블리싱 단계). Figma node 666-30339/30389/30892 실측.
+ * BE 연동 전이라 값은 전부 여기서 온다.
+ */
+export type CancelReturnExchangeType = '취소' | '반품' | '교환';
+
+export const STEP_LABELS: Record<'취소' | '반품', string[]> = {
+  취소: ['취소접수', '취소완료'],
+  // Figma 는 3번째 단계 라벨을 "상품검수"로 쓴다(스크린샷상 "상품검사"로 보일 수 있으나
+  // node 실측 텍스트는 "상품검수").
+  반품: ['반품접수', '택배회수', '상품검수', '반품완료'],
+};
+
+/** 이 상태에 도달하면 "완료"다 — 5일 경과 인디케이터 소멸 판단 기준(node 666-30389). */
+export const TERMINAL_STATUS: Record<'취소' | '반품', string> = {
+  취소: '취소완료',
+  반품: '반품완료',
+};
+
+export interface CancelReturnExchangeProduct {
+  name: string;
+  deliveryType: string;
+  price: number;
+  originalPrice: number;
+  quantity: number;
+  imageSrc?: string;
+}
+
+export interface CancelReturnExchangeItem {
+  id: string;
+  type: CancelReturnExchangeType;
+  status: string;
+  /** 화면 표시용 접수일자 문구(예: "접수일자 2026. 08. 26"). */
+  receivedDateLabel: string;
+  /** 완료 상태에 도달한 날짜(ISO). 미완료 항목은 없음. 5일 경과 판단에 쓴다. */
+  completedAt?: string;
+  products: CancelReturnExchangeProduct[];
+}
+
+/** 4개 상품 세트 — 반품/취소 항목이 공유한다(node 666-30892, "총 4건" 데모). */
+const FOUR_PRODUCTS: CancelReturnExchangeProduct[] = [
+  {
+    name: '[연세우유 x 마켓컬리] 전용목장우유 900mL',
+    deliveryType: '샛별배송',
+    price: 2720,
+    originalPrice: 3400,
+    quantity: 1,
+  },
+  {
+    // Figma 반품/취소 두 카드가 이 상품 가격을 각각 10,051원/10,501원으로 다르게 적어뒀다
+    // (자릿수 오타로 보인다) — 다른 화면(주문 내역 상세)과도 일치하는 10,051원을 썼다.
+    name: "[Kurly's] 동물복지 유정란 20구",
+    deliveryType: '샛별배송',
+    price: 10051,
+    originalPrice: 10580,
+    quantity: 1,
+  },
+  {
+    name: '바로먹는 아보카도 3입 (페루산)',
+    deliveryType: '샛별배송',
+    price: 9990,
+    originalPrice: 13000,
+    quantity: 1,
+  },
+  {
+    // Figma node 는 3개까지만 모델링돼 있다(아코디언 접힌 기본값) — "총 4건" 문구에
+    // 맞춰 주문 내역 상세와 같은 4번째 상품을 더했다.
+    name: '[풀무원] 동물복지 치킨 너겟 오리지널',
+    deliveryType: '샛별배송',
+    price: 7979,
+    originalPrice: 8980,
+    quantity: 1,
+  },
+];
+
+export const MOCK_CANCEL_RETURN_EXCHANGE_ITEMS: CancelReturnExchangeItem[] = [
+  {
+    id: 'r-1',
+    type: '반품',
+    status: '반품접수',
+    receivedDateLabel: '접수일자 2026. 08. 26',
+    products: [FOUR_PRODUCTS[0]!],
+  },
+  {
+    id: 'c-1',
+    type: '취소',
+    status: '취소접수',
+    receivedDateLabel: '접수일자 2026. 08. 26',
+    products: [FOUR_PRODUCTS[0]!],
+  },
+  {
+    id: 'r-2',
+    type: '반품',
+    status: '반품완료',
+    receivedDateLabel: '접수일자 2026. 08. 20',
+    // 데모 기준일(아래 REFERENCE_TODAY)보다 5일 미만 지난 완료 항목 — 완료 상태에서도
+    // 인디케이터가 계속 보여야 한다(사용자 확인 사항). 5일 경과 후 소멸하는 케이스는
+    // OrderRefundStatusCard 자신의 스토리(`CompletedWithoutIndicator`)가 별도로 검증한다.
+    completedAt: '2026-08-24',
+    products: FOUR_PRODUCTS,
+  },
+  {
+    id: 'c-2',
+    type: '취소',
+    status: '취소완료',
+    receivedDateLabel: '접수일자 2026. 08. 20',
+    completedAt: '2026-08-24',
+    products: FOUR_PRODUCTS,
+  },
+];
+
+/**
+ * 상세 화면 "환불 정보" 브레이크다운(node 848-83792/666-30539) — 반품/취소 두 예시
+ * 화면 모두 값이 완전히 같아 하나로 공유한다.
+ */
+export const MOCK_REFUND_PRODUCT_TOTAL = '35,240원';
+
+export const MOCK_REFUND_ROWS: {
+  label: string;
+  value: string;
+  tone?: 'tertiary' | 'primary';
+  details?: { label: string; value: string }[];
+}[] = [
+  { label: '상품 할인 금액', value: '-4,440원' },
+  { label: '배송비', value: '0원' },
+  { label: '카드즉시할인', value: '0원' },
+  {
+    label: '쿠폰할인 금액',
+    value: '0원',
+    details: [
+      { label: '상품 쿠폰', value: '0원' },
+      { label: '장바구니 쿠폰', value: '0원' },
+    ],
+  },
+  {
+    label: '적립금 · 컬리캐시',
+    value: '0원',
+    details: [
+      { label: '적립금', value: '0원' },
+      { label: '컬리캐시', value: '0원' },
+    ],
+  },
+  { label: '결제금액', value: '30,800원' },
+  { label: '환불 수단', value: '토스페이', tone: 'primary' },
+  { label: '환불 차감금액', value: '0원', tone: 'primary' },
+];
+
+export const MOCK_REFUND_EXPECTED_AMOUNT = '3,516원';
+export const MOCK_REFUND_EXPECTED_POINTS_LABEL = '잔환 예정 적립금 · 캐시 · 상품권';
+export const MOCK_REFUND_EXPECTED_POINTS_VALUE = '0원';
+
+/** 데모 기준 "오늘" — 위 완료 항목들의 5일 경과 여부가 이 날짜 기준으로 갈린다. */
+export const REFERENCE_TODAY = new Date('2026-08-27');
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+/**
+ * 완료 상태에 도달한 지 5일이 지나면 진행 단계 인디케이터를 숨긴다(node 666-30389,
+ * 사용자 확인: "'반품완료'·'취소완료' 상태에서 5일이 지나면 Indicator가 없어집니다").
+ * 미완료 항목은 항상 보여준다.
+ */
+export function shouldShowStepIndicator(
+  item: CancelReturnExchangeItem,
+  referenceDate: Date = REFERENCE_TODAY,
+): boolean {
+  if (item.type === '교환') return true;
+  const isTerminal = item.status === TERMINAL_STATUS[item.type];
+  if (!isTerminal || !item.completedAt) return true;
+  const daysElapsed = Math.floor(
+    (referenceDate.getTime() - new Date(item.completedAt).getTime()) / MS_PER_DAY,
+  );
+  return daysElapsed < 5;
+}

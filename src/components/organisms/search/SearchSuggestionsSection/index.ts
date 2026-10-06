@@ -1,0 +1,1 @@
+export { SearchSuggestionsSection } from './SearchSuggestionsSection';

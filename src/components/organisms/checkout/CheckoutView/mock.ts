@@ -1,0 +1,89 @@
+import type { OrderAmounts, OrderLineItemView } from '@/components/organisms/checkout/model';
+
+/** 퍼블리싱용 더미 데이터 — 데이터 연동 시 훅(`useCheckout`)이 대체한다. */
+
+/**
+ * 바로구매 흐름 — 장바구니 `MOCK_CART_GROUPS` 의 상품 4건과 동일(퍼블리싱 목데이터 재사용).
+ * 2건 이상이라 "주문상품" 이 아코디언으로 바뀌는 상태(Figma node 666-23446/25396)를
+ * 기본으로 보여준다 — 1건짜리 정적 상태(node 666-23208)를 다시 보려면 이 배열을 1개로
+ * 줄이면 된다(OrderLineItemSection 이 개수에 따라 알아서 갈라진다).
+ */
+export const MOCK_ORDER_ITEMS: OrderLineItemView[] = [
+  {
+    id: 'item-1',
+    name: '[연세우유 x 마켓컬리] 전용목장우유 900mL',
+    price: 2780,
+    originalPrice: 3400,
+    quantity: 1,
+  },
+  {
+    id: 'item-2',
+    name: "[Kurly's] 동물복지 유정란 20구",
+    price: 10051,
+    originalPrice: 10580,
+    quantity: 1,
+  },
+  {
+    id: 'item-3',
+    name: '바로먹는 아보카도 3입 (페루산)',
+    price: 9990,
+    originalPrice: 13900,
+    quantity: 1,
+  },
+  {
+    id: 'item-4',
+    name: '[풀무원] 동물복지 치킨 너겟 오리지널',
+    price: 7979,
+    // 코드리뷰 지적: 정가가 판매가보다 낮아(7360<7979) 할인율이 음수가 되는 오타였다 —
+    // Figma 실측(node 666-25427, 전용목장우유 외 3건 펼침 상태) 확인 후 8,980으로 정정.
+    originalPrice: 8980,
+    quantity: 1,
+  },
+];
+
+/**
+ * `CheckoutView` 를 props 없이(목데이터) 띄울 때 쓰는 가짜 주문 ID — 실제 payment-service
+ * 승인 호출은 이 값으로 항상 실패한다(존재하지 않는 주문이라 백엔드가 거부). 실제 주문
+ * ID 는 장바구니/주문서 실연동(이슈 #120)이 끝나면 컨테이너가 `orderId` prop 으로 내려준다.
+ */
+export const MOCK_ORDER_ID = 999999999;
+
+export const MOCK_CUSTOMER = {
+  name: '이준호',
+  phone: '010-1234-1234',
+  email: 'kurlykurly1234@naver.com',
+};
+
+export const MOCK_DEFAULT_ADDRESS = {
+  isDefault: true,
+  addressLine: '서울특별시 강남구 테헤란로 152, 101동 1502호 (역삼동, 강남파이낸스센터아파트)',
+  /** 배송 상세정보 입력 후 표시에 쓰는 받는 분 — 주문자와 다를 수 있어 별도로 둔다(Figma
+   * node 666-24922 는 우연히 같은 값이지만, 실제로는 배송지마다 다른 받는 분이 있을 수 있다). */
+  recipient: '이준호',
+  phone: '010-1234-1234',
+};
+
+// item-4 정가 수정에 맞춰 재계산: productPrice(정가 합) = 3400+10580+13900+8980 = 36860.
+// Figma 실측 원안은 productDiscount 6060(아이템별 정가-판매가 합 620+529+3910+1001과
+// 일치) · total 30,800원이었다.
+//
+// ⚠️ 2026-09-23: payment-service 로컬 전용 스텁(payment.order.client=stub)이 결제
+// 금액을 정확히 32,000원(`StubOrderClient.STUB_AMOUNT`, 자바 상수라 env로 못 바꿈)만
+// 받아들여서, 로컬에서 결제 성공까지 끝까지 확인하려고 productDiscount 를
+// 4860(=36860-32000)으로 임시 조정했다 — total 이 32,000원이 되도록. 이 화면 안에서는
+// "주문 금액"(productPrice-productDiscount)과 "최종 결제금액"(total)이 여전히 서로
+// 일치하지만, 이제 아이템별 정가-판매가 합(6060, 여전히 Figma 실측값)과는 더 이상 안
+// 맞는다 — 로컬 결제 스텁 테스트 전용 타협이다. 실 데이터 연동(#120) 이후엔 의미 없어진다.
+export const MOCK_AMOUNTS: OrderAmounts = {
+  productPrice: 36860,
+  productDiscount: 4860,
+  shippingFee: 0,
+  couponDiscount: 0,
+  productCouponDiscount: 0,
+  cartCouponDiscount: 0,
+  cardInstantDiscount: 0,
+  pointsCashUsed: 0,
+  pointsUsed: 0,
+  cashUsed: 0,
+  total: 32000,
+};

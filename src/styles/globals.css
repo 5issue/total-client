@@ -9,34 +9,176 @@
  *   - 아래: 다크 변형 선언 · 그 외 파운데이션(radius) · 기본 요소 스타일
  * ========================================================================== */
 
-/* 다크 모드: 디자인 시스템에 다크 팔레트 없음(라이트 전용).
- * 아래 변형(OS 다크 + data-theme override)은 선언만 해두고, 팔레트가 확정되면
- * tokens/color.css 에 :root[data-theme="dark"] 블록만 추가하면 된다. */
+/* 다크 모드: 아직 마이컬리 화면에서만 검증돼(2026-09-18) `[data-theme='dark']`
+ * 속성이 붙은 요소(와 그 하위)에서만 켜진다 — `<html>` 전역이 아니라 `ThemeScope`
+ * (마이컬리 서브트리 wrapper)가 이 속성을 직접 들고 있다. OS `prefers-color-scheme`
+ * 자동 전환은 지금은 없다(붙이면 다크 미검증 화면까지 전역으로 켜져 버린다) — 최초
+ * 진입 시 OS 선호는 `ThemeStoreProvider` 가 JS 로만 초기값에 반영한다. 다른 화면도
+ * 검증되면 이 속성을 `<html>` 에 달기만 하면 전역 전환된다(선택자는 이미 root 도 매칭). */
 @custom-variant dark {
   &:where([data-theme='dark'], [data-theme='dark'] *) {
     @slot;
   }
-  @media (prefers-color-scheme: dark) {
-    &:where(:root:not([data-theme='light']), :root:not([data-theme='light']) *) {
-      @slot;
-    }
-  }
 }
 
 @theme static {
-  /* Radius — Figma "Radius" (이 노드에는 M 만 명시. Full 은 rounded-full 로 대체) */
-  --radius-m: 20px;
+  /* Radius — 컴포넌트(Input/Card) 바인딩 값 기준. node 2002-13 "Color System" 은
+   * 색상 스와치 보드일 뿐 radius 스펙이 없다 — 거기 스와치 카드의 장식용 20px 모서리를
+   * radius/m 으로 잘못 추출했던 걸 정정(이전: --radius-m: 20px). Full 은 rounded-full 로 대체.
+   *
+   * ⚠️ Figma 스케일은 S/M/L/XL/XXL 이지만 `--radius-s`·`--radius-l` 은 쓰지 않는다 —
+   * Tailwind v4 코어의 방향형 단축 유틸리티 `rounded-s`(start 두 모서리)·`rounded-l`(left 두
+   * 모서리)와 이름이 겹쳐, 생성된 토큰 유틸리티가 코어 규칙에 밀려(소스 순서 뒤) 네 모서리가
+   * 아닌 두 모서리만 둥글어진다. 겹치지 않는 코어 크기명 `sm`·`lg` 로 선언하면 코어 기본값을
+   * 덮어써 단일 규칙(`border-radius`)으로 나온다. `m`(rounded-m)·`xl`·`xxl` 은 방향형이
+   * 없어 충돌하지 않으므로 그대로 둔다. */
+  --radius-sm: 4px; /* Figma Radius/S */
+  --radius-m: 8px;
+  --radius-lg: 12px; /* Figma Radius/L */
+  --radius-xl: 16px;
+  /* node 3215-3217 "Step_Instruction_Card" 에서 확인(get_variable_defs: Radius/XXL). */
+  --radius-xxl: 18px;
+
+  /* 고정 너비 — 4px 스케일에 안 맞는 컴포넌트 실측값. 대괄호 임의값 대신 토큰화(code-style §6-1). */
+  --width-close-button: 62px; /* CloseButton, node 2529-7362 */
+  --width-shortcut-chip: 73px; /* ShortcutChip, node 3235-4368/4370 */
+
+  /* BottomNav 전용 사이즈 — Figma node 2368-429 실측(대괄호 임의값 대신 토큰화).
+   * --spacing- 네임스페이스로 선언(코드래빗 리뷰 반영) — w, h, p 등 모든 spacing 계열
+   * 유틸리티가 여기서 생성된다. */
+  --spacing-nav-item: 54px; /* 탭 버튼 콘텐츠 블록(Tab_Button) 높이 → h-nav-item */
+  --spacing-nav-capsule-y: 58px; /* active 선택 캡슐(Selection) 높이 → h-nav-capsule-y */
+  --spacing-nav-capsule-x: 76px; /* active 선택 캡슐(Selection) 너비 → w-nav-capsule-x */
+  --spacing-mobile-frame: 402px; /* Figma 모바일 프레임 폭 — Storybook 프리뷰 전용 → w-mobile-frame */
+
+  /* StatusLabel 전용 사이즈 — 4px 스케일에 안 맞는 실측값. 위 BottomNav 전례를 따라
+   * --spacing- 네임스페이스로 선언한다(code-style §6-1, 대괄호 임의값 대신 토큰화). */
+  --spacing-status-label-rewards: 22px; /* StatusLabel(rewards), node 2429-2342 → h-status-label-rewards */
+  --spacing-kbank-pointer-height: 7.794px; /* StatusLabel(kbank) 말풍선 꼬리, node 2825-2141 → h-kbank-pointer-height */
+  --spacing-kbank-pointer-width: 5.25px; /* StatusLabel(kbank) 말풍선 꼬리, node 2825-2141 → w-kbank-pointer-width */
+
+  /* 홈 화면 전용 사이즈 — 4px 스케일에 안 맞는 Figma 실측값(code-style §6-1, 대괄호 임의값 대신 토큰화). */
+  --spacing-home-header: 54px; /* HomeHeader 콘텐츠 행 높이, node 577:20626 → h-home-header */
+  --spacing-product-card: 428px; /* ProductCard 전체 높이, node 577:20684 → h-product-card */
+  --spacing-product-card-meta-gap: 3px; /* ProductCard 리뷰 아이콘·수 사이 간격, node 577:20684 → gap-product-card-meta-gap */
+
+  /* 히어로 배너 종횡비 — Figma 고정 402×298 (node 577:20652) → aspect-hero-banner */
+  --aspect-hero-banner: 402 / 298;
+
+  /* ProductCard 이미지 종횡비 — 폭이 고정값(w-37.5/w-30)이라 h-60/h-40 고정 높이와
+   * 수치는 같지만, 대괄호 임의값 없이 이름 있는 유틸리티로 고정한다(code-style §6-1). */
+  --aspect-product-card: 150 / 240; /* default, node 577:20684 → aspect-product-card */
+  --aspect-product-card-compact: 120 / 160; /* compact → aspect-product-card-compact */
+
+  /* ProductDescriptionContent 이미지 종횡비 — Figma 실측(node 665:43696), 상품마다
+   * 교체되는 콘텐츠 이미지라 각각 별도 토큰. */
+  --aspect-product-description-hero: 369 / 245; /* → aspect-product-description-hero */
+  --aspect-product-description-detail-a: 370 / 224; /* → aspect-product-description-detail-a */
+  --aspect-product-description-detail-b: 370 / 895; /* → aspect-product-description-detail-b */
+
+  /* Tailwind 코어 z-index 스케일은 50 이 최댓값이라(z-60 같은 임의 숫자는 spacing 과
+   * 달리 생성되지 않음), BottomSheet/Modal 백드롭(둘 다 z-50, portal 로 document.body
+   * 에 붙음)보다 항상 위여야 하는 알림(미션 완료 토스트 등)을 위해 별도 계층을 둔다.
+   * 백드롭과 같은 z-50 을 쓰면 어느 쪽이 나중에 DOM 에 붙느냐(mount 순서)에 따라
+   * 반투명 검은 백드롭이 흰 토스트 위로 덮여 탁해 보이는 문제가 있었다(실기기 QA 발견,
+   * node 665-61882 미션 토스트가 CartAddedProductsBottomSheet 백드롭에 덮임). */
+  --z-index-toast: 60; /* → z-toast */
+
+  /* SplashScreen(RootLayout 최상위 커튼)은 부팅 중 어떤 포털 UI(z-toast 포함)보다도
+   * 항상 위에 있어야 한다 — Providers 트리 전체(+ document.body 로 포털되는 Modal/
+   * BottomSheet/Toast)를 감싸는 가장 바깥 레이어라 그 무엇에도 가려지면 안 된다. */
+  --z-index-splash: 70; /* → z-splash */
+
+  /* 전체화면 패널이 아래에서 올라오는 진입 애니메이션 (배송지 주소검색 등, 컬리 앱 패턴).
+   * 트랜지션 대신 마운트 애니메이션 — 요소는 항상 제자리(translate 0)에 렌더되고 애니메이션만
+   * 화면 밖에서 올라온다. 트랜지션이 안 터져 요소가 화면 밖에 멈추는 경우가 없다. */
+  --animate-slide-up: slide-up 300ms ease-out;
+  @keyframes slide-up {
+    from {
+      translate: 0 100%;
+    }
+  }
+
+  /* LoadingIndicator(node 665-60896 "LoadingDots") — `loading` 아이콘은 themable=false
+   * (#222 고정)라 색은 못 바꿔 opacity 로 명암을 낸다. 점 3개가 순서대로 뜨도록 dot 마다
+   * 지연 시간만 다른 애니메이션을 생성 유틸리티로 둔다(대괄호 임의값 대신). */
+  --animate-loading-dot-1: loading-dot 1s ease-in-out infinite;
+  --animate-loading-dot-2: loading-dot 1s ease-in-out 150ms infinite;
+  --animate-loading-dot-3: loading-dot 1s ease-in-out 300ms infinite;
+  @keyframes loading-dot {
+    0%,
+    80%,
+    100% {
+      translate: 0 0;
+      opacity: 0.35;
+    }
+    40% {
+      translate: 0 -2px;
+      opacity: 1;
+    }
+  }
+
+  /* RecipeAiLoadingView 회전 링(node 1343-109131) — Figma 실측 1.2초 회전(기본
+   * `animate-spin`의 1s와 다름)이라 대괄호 임의값 대신 생성 유틸리티로 별도 토큰화. */
+  --animate-recipe-ai-spin: recipe-ai-spin 1.2s linear infinite;
+  @keyframes recipe-ai-spin {
+    to {
+      rotate: 360deg;
+    }
+  }
+
+  /* 화면 하단 안전영역 — 디자인팀 핸드오프 기준값(2026-09-09, 단말기 내비게이션바/CTA
+   * 유무 조합별 4종): BottomNav만 112px · CTA 1줄 124px · CTA 2줄 208px · 없음 80px.
+   * 지금은 BottomNav만 있는 화면(홈/라운지/카테고리/검색/마이컬리)에 필요한 112px만
+   * 토큰화한다 — CTA 조합 값은 해당 화면(장바구니/체크아웃/상품상세 등) 작업 시 추가.
+   * --spacing-nav-pb-safe 는 그 112px 를 BottomNav 자체 렌더 높이(pt-4 16px + p-1 4px×2
+   * + h-nav-item 54px + 이 값)로 역산한 하단 패딩 — pt-4/p-1/nav-item 은 그대로 두고
+   * pb 만 34px 로 늘려 합이 정확히 112px 가 되게 맞춘다. */
+  --spacing-bottom-nav-safe: 112px; /* → pb-bottom-nav-safe (main 콘텐츠 하단 예약 여백) */
+  --spacing-nav-pb-safe: 34px; /* → pb-nav-pb-safe (BottomNav 자체 하단 패딩) */
+
+  /* 화면 상단 안전영역 — 기기 노치/상태바를 피하는 헤더 상단 패딩. env() 는 기기별
+   * 노치 높이라 Figma 실측 픽셀은 아니지만, 컴포넌트 클래스에서 대괄호 임의값을 쓰지
+   * 않기 위해 이름 있는 유틸리티로 뺀다(code-style §6-1). */
+  --spacing-header-safe-top: calc(env(safe-area-inset-top) + 4px); /* → pt-header-safe-top */
 }
 
-html,
-body {
-  background-color: var(--color-surface);
-  color: var(--color-fg);
-  font-family: var(--font-sans);
+/* 가로 스크롤 캐러셀(추천 검색어 등)용 — 스크롤 자체는 유지하고 스크롤바만 숨긴다.
+ * 브라우저 3종 모두 대응해야 해서 표준 속성(scrollbar-width)만으로는 부족하다. */
+@utility scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
-*,
-::after,
-::before {
-  border-color: var(--color-border);
+/* 가로 스크롤 영역(퀵메뉴/카테고리 탭/상품 진열 리스트 등) 공용 — 네이티브 스크롤바를
+ * 숨긴다. Figma 어디에도 스크롤바가 그려져 있지 않고(퀵메뉴는 자체 ScrollIndicator 점으로
+ * 대체), 스크롤 동작 자체는 그대로 유지한다(overflow 값은 건드리지 않음). */
+@utility scrollbar-hide {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* 레거시 Edge */
+  &::-webkit-scrollbar {
+    display: none; /* Chrome/Safari/최신 Edge */
+  }
+}
+
+/* @layer base 에 둬야 Tailwind 유틸리티(@layer utilities)가 이 기본값을 오버라이드할 수 있다.
+ * (unlayered 규칙은 레이어 규칙을 무조건 이김 — 예: focus-within:border-border-active) */
+@layer base {
+  html,
+  body {
+    /* --color-surface 아니라 --color-bg — 페이지 배경은 Bg/default 시맨틱(라이트에선
+       카드 배경 --color-surface 와 값이 같지만 의미가 다르다, tokens/color.css 참고). */
+    background-color: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+  }
+
+  *,
+  ::after,
+  ::before {
+    border-color: var(--color-border);
+  }
 }

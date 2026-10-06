@@ -1,0 +1,138 @@
+import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import { expect, fireEvent, fn, userEvent, within } from 'storybook/test';
+
+import { Button, type ButtonSize, type ButtonVariant } from './Button';
+
+const VARIANTS: ButtonVariant[] = [
+  'primary',
+  'secondary',
+  'tertiary',
+  'black',
+  'outlinePrimary',
+  'outlineBlack',
+  'text',
+  'danger',
+];
+
+const SIZES: Exclude<ButtonSize, 'xs'>[] = ['s', 'm', 'l', 'xl'];
+
+const meta = {
+  title: 'atoms/Button',
+  component: Button,
+  tags: ['autodocs'],
+  args: {
+    children: 'Button',
+    variant: 'primary',
+    size: 's',
+    // Figma 기본값(showLeftIcon/showRightIcon)과 동일하게 아이콘 포함을 기본으로 둔다.
+    leadingIcon: 'left',
+    trailingIcon: 'right',
+    onClick: fn(),
+  },
+  argTypes: {
+    variant: { control: 'select', options: VARIANTS },
+    size: { control: 'select', options: SIZES },
+    leadingIcon: { control: false },
+    trailingIcon: { control: false },
+    disabled: { control: 'boolean' },
+  },
+  parameters: { layout: 'padded' },
+} satisfies Meta<typeof Button>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {};
+
+// xs 는 Figma 에 outlineBlack 타입만 실제로 만들어져 있어 별도 스토리로 둔다(AllSizes 매트릭스 제외).
+export const XsOutlineBlack: Story = {
+  args: { variant: 'outlineBlack', size: 'xs' },
+};
+
+export const XsOutlineBlackDisabled: Story = {
+  args: { variant: 'outlineBlack', size: 'xs', disabled: true },
+};
+
+export const AllVariants: Story = {
+  render: ({ leadingIcon, trailingIcon }) => (
+    <div className="flex flex-col items-start gap-3">
+      {VARIANTS.map((variant) => (
+        <Button
+          key={variant}
+          variant={variant}
+          size="s"
+          leadingIcon={leadingIcon}
+          trailingIcon={trailingIcon}
+        >
+          {variant}
+        </Button>
+      ))}
+    </div>
+  ),
+};
+
+export const AllSizes: Story = {
+  render: ({ leadingIcon, trailingIcon }) => (
+    <div className="flex items-center gap-3">
+      {SIZES.map((size) => (
+        <Button
+          key={size}
+          variant="primary"
+          size={size}
+          leadingIcon={leadingIcon}
+          trailingIcon={trailingIcon}
+        >
+          {size.toUpperCase()}
+        </Button>
+      ))}
+    </div>
+  ),
+};
+
+export const Disabled: Story = {
+  args: { disabled: true },
+};
+
+export const DisabledAllVariants: Story = {
+  render: ({ leadingIcon, trailingIcon }) => (
+    <div className="flex flex-col items-start gap-3">
+      {VARIANTS.map((variant) => (
+        <Button
+          key={variant}
+          variant={variant}
+          size="s"
+          leadingIcon={leadingIcon}
+          trailingIcon={trailingIcon}
+          disabled
+        >
+          {variant}
+        </Button>
+      ))}
+    </div>
+  ),
+};
+
+// --- 인터랙션 테스트 전용 (autodocs 에서 숨김) ---
+
+export const ClickFiresOnClick: Story = {
+  tags: ['!autodocs'],
+  play: async ({ canvasElement, args }) => {
+    const button = within(canvasElement).getByRole('button');
+    await userEvent.click(button);
+    await expect(args.onClick).toHaveBeenCalledTimes(1);
+  },
+};
+
+export const DisabledButtonIsUnclickable: Story = {
+  tags: ['!autodocs'],
+  args: { disabled: true },
+  play: async ({ canvasElement, args }) => {
+    const button = within(canvasElement).getByRole('button');
+    await expect(button).toBeDisabled();
+    await expect(button).toHaveClass('disabled:pointer-events-none');
+    // userEvent.click 은 pointer-events:none 에서 에러를 던지므로, fireEvent 로
+    // 실제 클릭을 우회 발생시켜 onClick 이 호출되지 않는지까지 검증한다.
+    fireEvent.click(button);
+    await expect(args.onClick).not.toHaveBeenCalled();
+  },
+};

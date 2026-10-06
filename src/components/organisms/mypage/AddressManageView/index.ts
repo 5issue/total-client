@@ -1,0 +1,1 @@
+export { AddressManageView } from './AddressManageView';

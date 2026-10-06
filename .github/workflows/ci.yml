@@ -41,12 +41,17 @@ jobs:
       - name: Type check
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: npm run typecheck
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:4000
+          NEXT_PUBLIC_APP_ENV: local
+          NEXT_PUBLIC_TOSS_CLIENT_KEY: test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq
       - name: Build
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: npm run build
         env:
           NEXT_PUBLIC_API_URL: http://localhost:4000
           NEXT_PUBLIC_APP_ENV: local
+          NEXT_PUBLIC_TOSS_CLIENT_KEY: test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq
 
   storybook:
     name: Storybook build · test
@@ -62,9 +67,21 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:4000
+          NEXT_PUBLIC_APP_ENV: local
+          NEXT_PUBLIC_TOSS_CLIENT_KEY: test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq
       - name: Install Playwright (chromium)
         run: npx playwright install --with-deps chromium
       - name: Build Storybook
         run: npm run build-storybook
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:4000
+          NEXT_PUBLIC_APP_ENV: local
+          NEXT_PUBLIC_TOSS_CLIENT_KEY: test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq
       - name: Test Storybook
         run: npm run test-storybook
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:4000
+          NEXT_PUBLIC_APP_ENV: local
+          NEXT_PUBLIC_TOSS_CLIENT_KEY: test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq

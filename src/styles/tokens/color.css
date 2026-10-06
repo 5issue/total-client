@@ -5,9 +5,18 @@
  * 모든 값은 Figma 변수에서 그대로 추출했다. 임의값 없음.
  * Figma 토큰명 → CSS 매핑은 각 줄 주석 참고.
  *
- * 다크 모드: 디자인 시스템에 다크 팔레트가 없다(라이트 전용).
- *   시맨틱 색은 `@theme inline` + `:root` 캐스케이드 구조라, 다크 팔레트가
- *   확정되면 `:root[data-theme="dark"]` 블록만 추가하면 된다.
+ * 주의: node 2002-13 은 색상 스와치 "전시 보드"일 뿐 완전한 스펙이 아니다.
+ *   거기 없는 시맨틱 색(예: Text/Danger, Border/active)은 실제 컴포넌트 노드에서
+ *   바로 추출한다 — 주석에 출처 노드를 남길 것. (radius 스와치 카드 20px 오추출 사례:
+ *   globals.css 참고)
+ *
+ * 다크 모드: 마이컬리 다크모드 파운데이션 확정(2026-09-17, node 1691-205422 +
+ *   디자인 시스템 파일 색상 파운데이션 4종) — `:root[data-theme="dark"]` 블록에 실제
+ *   값을 채웠다. 값은 전부 그 화면에서 직접 바인딩된 변수를 get_variable_defs 로
+ *   추출한 것(스와치 전시 보드 아님). 마이컬리 밖 다른 화면은 이 팔레트로 아직
+ *   검증 전이라, 토큰을 안 쓰거나 body 배경에만 의존하는 화면은 다크 전환 시
+ *   "어둡지만 카드 구분이 약한" 정도로만 보일 수 있다(깨지지는 않음) — 그 화면들의
+ *   다크 검증은 각자 작업 시 진행.
  * ========================================================================== */
 
 /* ── 프리미티브 (raw 팔레트) ─────────────────────────────────
@@ -48,33 +57,112 @@
   --color-orange: #fa622f; /* Secondary/orange */
   --color-cyan: #00c0da; /* Secondary/cyan */
   --color-banner: #a500f6; /* Secondary/Banner-Purple */
+  --color-blue: #69a3e1; /* Secondary/Blue — node 2674-4482 그라데이션에서 확인 */
+  --color-sky: #aadce7; /* Semantic/Banner (node 1233-113360 BannerCard 배경) — 위 --color-banner
+    (Secondary/Banner-Purple)와는 이름만 비슷한 별개의 Figma 변수, 값도 다르다(퍼플 vs 하늘색) */
 
   /* 소셜 로그인 브랜드색 — Figma "Secondary/Brand-*" */
   --color-naver: #00cb48;
   --color-kakao: #ffe400;
   --color-apple: #000000;
 
+  /* 보관 온도 아이콘 고정색 — Figma "Custom/*" (node 2374-2100/2103 변수 바인딩 확인).
+     Refrigerated/Frozen 아이콘 전용 — currentColor 아님, 항상 이 색 그대로. */
+  --color-cold: #67bfa4; /* Custom/cold */
+  --color-freeze: #69a3e1; /* Custom/freeze */
+
   /* 시맨틱 상태색 — Figma "Semantic". 4색 모두 흰 배경 텍스트 대비 4.5:1 미달
      (2.06 / 1.67 / 1.28 / 1.10:1) → 배경·뱃지 fill 톤. 텍스트용 강조색은 디자인 확인 필요. */
   --color-success: #93c355;
   --color-warning: #f0c348;
   --color-error: #fedcd1;
-  --color-info: #f0f5f7;
+  --color-info: #f0f5f7; /* Semantic/Info */
+  --color-info-dark: #e8eff2; /* Semantic/Info_dark — InfoBox(node 2418-6426) 진한 톤. 다크모드 무관 */
 
   /* Shadow — Figma "Shadow" (8자리 hex = alpha 포함) */
   --shadow-s: 0 1px 2px 0 #0000000a;
   --shadow-m: 0 4px 12px 0 #00000014;
   --shadow-l: 0 8px 24px 0 #0000001f;
   --shadow-xl: 0 16px 32px 0 #5f008029; /* 브랜드 퍼플 틴트 */
+  --shadow-nav: 0 8px 40px 0 #0000001f; /* 플로팅 하단 네비게이션 바 전용 (node 2368-429 "BG > Fill + Shadow") */
+
+  /* `filter: drop-shadow(...)` 전용 — box-shadow(`--shadow-*`)와 CSS 속성 자체가 달라
+     별도 네임스페이스로 둔다(`--drop-shadow-*` → `drop-shadow-*` 유틸리티). MY 레시피
+     AI 로딩 마크의 브랜드 퍼플 글로우(node 1343-109142) 전용, Figma 실측 그대로. */
+  --drop-shadow-recipe-ai-mark: 0 4px 27.15px var(--color-brand-200);
+
+  /* Gradient — Figma 변수 미바인딩, 컴포넌트 노드에서 직접 실측(node 2424-1468/1470).
+     `--background-image-*` 네임스페이스라 `bg-filter-chip-gradient` 유틸리티로 생성된다. */
+  --background-image-filter-chip-gradient: linear-gradient(90deg, #d665ff 0%, #00e3ff 100%);
+  /* StatusLabel(kbank) 프로모 배지 배경 — Figma 변수 미바인딩, 컴포넌트 노드에서 직접 실측(node 2825-2142).
+     시작색은 좌측 말풍선 꼬리(StatusLabel.tsx KbankPointer)와 같은 색이라 토큰으로 공유한다. */
+  --color-kbank-pointer: #8a38f5;
+  --background-image-kbank-gradient: linear-gradient(
+    90deg,
+    var(--color-kbank-pointer) 0%,
+    #7480f4 100%
+  );
+  /* MissionCompleteCard 포인트 강조 텍스트 그라데이션 — Figma 변수 미바인딩, 컴포넌트
+     노드에서 직접 실측(node 1233:113153, "100P" 텍스트, bg-clip-text 로 텍스트에 적용). */
+  --background-image-mission-reward-gradient: linear-gradient(90deg, #c456ff 2.941%, #0e87eb 100%);
+  /* 나의 냉장고 상품 카드 이미지 스크림 — "IMG_Size"(디자인 시스템 node 3329-8439) 자체
+     스펙. 사진 위에 항상 얹는 어두운 그라데이션(체크박스·D-day 뱃지 가시성 보장용).
+     `--color-fg-secondary` 참조라 다크모드 값이 바뀌면 이 스크림도 캐스케이드로 같이
+     따라간다(별도 다크 오버라이드 불필요). */
+  --background-image-fridge-card-scrim: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-fg-secondary) 30%, transparent) -31.11%,
+    transparent 68.89%
+  );
+  /* 나의 냉장고 AI 안내 배너 배경 — "5팀 UI 공유용" RecommendedKeywordsContainer
+     (node 1120-56175) 그라데이션 색만 재사용(get_variable_defs 확인). */
+  --background-image-fridge-ai-banner-gradient: linear-gradient(
+    127deg,
+    color-mix(in srgb, var(--color-blue) 40%, transparent) 0%,
+    color-mix(in srgb, var(--color-brand-200) 40%, transparent) 100%
+  );
+  /* MY 레시피 AI 로딩 화면(node 1343-109131) — 전체 배경의 옅은 보라 방사형
+     그라데이션과, 중앙 컬리 AI 마크 배지의 원형 그라데이션. 배경은 node 1343-109132
+     실측(SVG radialGradient, 우측 전체에 걸쳐 퍼지는 타원 + rotate 180 + opacity 0.7) —
+     CSS `radial-gradient`엔 행렬 회전이 없어 근사 재현, 색 stop과 최종 알파(stop
+     알파 × 0.7)는 실측 그대로. */
+  --background-image-recipe-ai-loading-bg: radial-gradient(
+    ellipse 75% 130% at 100% 10%,
+    rgba(162, 146, 254, 0.35) 0%,
+    rgba(209, 201, 255, 0.53) 45%,
+    transparent 80%
+  );
+  --background-image-recipe-ai-loading-mark: linear-gradient(126deg, #ac89ff 0.56%, #74befd 95.9%);
+  /* MY 레시피 메인 "AI 추천 레시피" 섹션(제목+캐러셀) 배경 — node 1281-210506 원본은
+     radial-gradient SVG, 근사 CSS 그라데이션으로 재현. */
+  --background-image-recipe-ai-recommend-bg: radial-gradient(
+    120% 90% at 100% 0%,
+    color-mix(in srgb, var(--color-primary) 22%, transparent) 0%,
+    color-mix(in srgb, var(--color-primary) 10%, transparent) 45%,
+    transparent 75%
+  );
 }
 
 /* ── 시맨틱 토큰 (테마 인식) — 값은 아래 :root 에서 ──────────── */
 @theme inline {
+  /* Bg — Figma "Bg" (페이지 배경). Surface 와 라이트·다크 둘 다 값이 같다(둘 다 흰색 /
+     둘 다 #222222) — 그래도 의미가 달라(페이지 배경 vs 카드 배경) 별도 토큰으로 둔다.
+     다크에서 카드와 페이지 배경이 같은 색이라, 카드 구분은 Border 가 담당한다. */
+  --color-bg: var(--bg); /* Bg/default */
+
   /* Surface — Figma "Surface" */
   --color-surface: var(--surface); /* Surface/base */
   --color-surface-secondary: var(--surface-secondary); /* Surface/Secondary */
   --color-overlay: var(--overlay); /* Surface/Overlay_gray */
   --color-overlay-blue: var(--overlay-blue); /* Surface/Overlay_blue */
+  --color-overlay-orange: var(--overlay-orange); /* Surface/Overlay_orange */
+  --color-surface-tag: var(
+    --surface-tag
+  ); /* Chip(removable) 채움 — Figma 변수 미바인딩, 아래 :root 주석 참고 */
+  --color-surface-tag-active: var(--surface-tag-active); /* 위와 동일, pressed */
+  --color-surface-subtle: var(--surface-subtle); /* Surface/Neutral_subtle */
+  --color-surface-tertiary: var(--surface-tertiary); /* Surface/Tertiary */
+  --color-surface-nav: var(--surface-nav); /* BottomNav pill 전용 — 아래 :root/다크 블록 참고 */
 
   /* Text (foreground) — Figma "Text" */
   --color-fg: var(--fg); /* Text/primary */
@@ -83,24 +171,53 @@
   --color-fg-quaternary: var(--fg-quaternary); /* Text/Quaternary */
   --color-fg-disabled: var(--fg-disabled); /* Text/disabled */
   --color-fg-inverse: var(--fg-inverse); /* Text/Inverse */
+  --color-fg-danger: var(--fg-danger); /* Text/Danger (node 2394-3737) */
 
   /* Border — Figma "Border" */
   --color-border: var(--border); /* Border/200 */
+  --color-border-active: var(--border-active); /* Border/active (node 2394-3737) */
 
   /* Primary (Figma Brand/500 의 시맨틱 별칭) */
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+
+  /* Secondary (Figma Brand/Secondary = Brand/600 의 시맨틱 별칭) */
+  --color-brand-secondary: var(--brand-secondary);
 }
 
-/* 라이트 (기본, 현재 유일한 테마) */
+/* 라이트 (기본) */
 :root {
   color-scheme: light;
+
+  /* Bg */
+  --bg: #ffffff; /* Bg/default */
 
   /* Surface */
   --surface: #ffffff; /* Surface/base */
   --surface-secondary: #f0f5f8; /* Surface/Secondary */
   --overlay: #22222299; /* Surface/Overlay_gray (alpha 0.6) */
   --overlay-blue: #a1b3be66; /* Surface/Overlay_blue (alpha 0.4) */
+  --overlay-orange: #fa622f0a; /* Surface/Overlay_orange (alpha 0.04) — Secondary/orange 기준 */
+
+  /* Chip(removable, "샐러드 ×") 채움 — Figma 컴포넌트 노드(2563:3023 default, 2603:3297 pressed)의
+     로컬 fill 이라 get_variable_defs 로도 안 잡힌다(변수 바인딩 자체가 없음). 노드 스크린샷을
+     픽셀 샘플링해서 확인한 실측값. active 는 이 default 위에 overlay-blue 40% 를 얹은 결과와
+     계산상 정확히 일치(계산 검증 완료, 별도 합성 불필요 — 그냥 이 값을 그대로 쓰면 됨). */
+  --surface-tag: #c6c6c6;
+  --surface-tag-active: #b7bfc3;
+
+  /* TabItem filled variant 의 pressed 배경(node 2923-2723/2728) — Figma 변수
+     "Surface/Neutral_subtle" 바인딩값, neutral-100 과 우연히 같은 값이지만
+     시맨틱 의미가 달라 별도 토큰으로 뒀다(#68 코드래빗 리뷰). */
+  --surface-subtle: #f7f7f7;
+
+  /* Toast(default/action, node 1315-107772) 배경 — Figma 변수 미바인딩, 컴포넌트 노드에서
+     직접 실측. neutral-950 과 값이 같지만 시맨틱 의미가 달라 별도 토큰으로 뒀다(#104 코드래빗 리뷰). */
+  --surface-tertiary: #323a40; /* Surface/Tertiary = Neutral/950 */
+
+  /* BottomNav 플로팅 pill 전용 — 라이트는 `--surface`(흰색)와 같다. 다크에서는 분리해야
+     해서(아래 다크 블록 참고) 별도 토큰. */
+  --surface-nav: #ffffff;
 
   /* Text — Figma "Text/*" → 프리미티브 */
   --fg: #222222; /* Text/primary    = Normal/Black */
@@ -109,11 +226,61 @@
   --fg-quaternary: #8aa1ab; /* Text/Quaternary = Neutral/700 */
   --fg-disabled: #b5c4cf; /* Text/disabled   = Neutral/500 */
   --fg-inverse: #ffffff; /* Text/Inverse    = Normal/White */
+  --fg-danger: #d24b3a; /* Text/Danger */
 
   /* Border */
   --border: #dde4ed; /* Border/200 (= Neutral/300) */
+  --border-active: #222222; /* Border/active — 포커스 상태 */
 
   /* Primary */
   --primary: #690085; /* Brand/500 */
   --primary-foreground: #ffffff;
+
+  /* Secondary */
+  --brand-secondary: #50006b; /* Brand/Secondary = Brand/600 */
+}
+
+/* 다크 — 마이컬리 화면(node 1691-205422)에서 직접 바인딩 값 추출(2026-09-17) +
+ * "5팀 디자인 시스템" 파일 컬러 파운데이션 Before/After 대조표로 확정(2026-09-18).
+ * 화면에서 직접 뽑은 값과 파운데이션 표(After, 최신)가 갈리는 지점(Surface 3종·
+ * Border·Overlay_gray)은 표 기준으로 맞췄다 — 화면이 그 시점 기준 최신 파운데이션을
+ * 아직 다 반영 못 한 상태였던 것으로 보인다(사용자 확인 완료).
+ *
+ * 여기 없는 토큰은 라이트 값을 그대로 물려받는다(캐스케이드) — 파운데이션 대조 결과
+ * 값이 라이트와 같아 명시적으로 안 둔 것(Text/Quaternary 등).
+ *
+ * `:root[data-theme]` 뿐 아니라 `[data-theme]`(비-root 요소)도 매칭한다 — 다크가
+ * 아직 마이컬리 화면에서만 검증돼(2026-09-18, "우선 마이컬리만" 결정) `<html>` 전역이
+ * 아니라 `ThemeScope`(마이컬리 서브트리 wrapper)의 `data-theme` 속성이 실제 스코프다.
+ * 나중에 다른 화면도 검증되면 `<html>` 에 다시 달기만 하면 전역 전환된다. */
+:root[data-theme='dark'],
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #222222; /* Bg/default */
+  /* Surface/base — 파운데이션 표 After: Normal/Black(#222222), Bg/default 와 같은 값으로
+     갱신됐다(예전엔 #323a40 로 갈라져 있었다 — 화면에서 뽑은 값은 그 이전 상태). 카드가
+     페이지와 같은 배경이 되므로 구분은 테두리(Border)가 담당한다. */
+  --surface: #222222;
+  --surface-secondary: #515e69; /* Surface/Secondary — 파운데이션 표 After: Neutral/900 */
+  --surface-tertiary: #515e69; /* Surface/Tertiary — 파운데이션 표 After: Neutral/900 */
+  /* BottomNav pill(node 1941-89037 "NavigationBar" > "BG", 2026-09-22 실측, Figma 변수
+     미바인딩 리터럴 값) — `--surface`를 그대로 썼더니 다크에서 페이지 배경(#222)과 같은
+     색이 돼 pill 이 통째로 안 보이는 버그였다(마이컬리 다크모드 QA). 카드류는 Border 로
+     페이지와 구분하지만, 테두리 없이 배경 대비만으로 떠 있어야 하는 플로팅 pill이라
+     `--surface`를 따라가면 안 되는 예외 케이스 — 그래서 별도 토큰으로 분리.
+     (코드래빗 리뷰) "Figma 다크 스펙 미확정 상태에서 팔레트 확장 금지" 우려는 이 케이스엔
+     해당 없음 — 위 node 1941-89037이 바로 그 미확정 상태를 해소한 실제 확정 스펙. */
+  --surface-nav: #323a40;
+  --overlay: #00000080; /* Surface/Overlay_gray — 파운데이션 표 After: 000000 50% (라이트는 222222 60%) */
+  --overlay-blue: #a1b3beb2; /* Surface/Overlay_blue — 라이트 40% -> 70% */
+  --overlay-orange: #fa622f1a; /* Surface/Overlay_orange — 라이트 4% -> 10% (StatusLabel owned/rewards, node 1691-205422 실측) */
+
+  --fg: #ffffff; /* Text/primary */
+  --fg-secondary: #f0f5f8; /* Text/Secondary */
+  --fg-tertiary: #b5c4cf; /* Text/Tertiary */
+
+  --border: #7e8f9b; /* Border/200(Common_Default) — 파운데이션 표 After: Neutral/800 */
+
+  --primary: #aa49d8; /* Brand/Primary — 파운데이션 표 After: DarkBrand/400 */
 }

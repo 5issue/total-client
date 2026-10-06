@@ -151,5 +151,22 @@ vite.config.ts.timestamp-*
 # oh-my-claudecode local state
 .omc/
 
+# 로컬 에디터 / 에이전트 설정(에이전트 룰·MCP) — 저장소에 올리지 않는다
+.cursor/
+.claude/
+
+# local Figma icon import staging (not part of the build)
+.icon-import/
+
 *storybook.log
 storybook-static
+
+# 로컬 테스트용 백엔드 클론(별도 git 저장소) — 실수로 git add 에 딸려 들어가지 않게
+total-backend/
+KDT-2-AI-Integrated-Project-Team5-AI/
+
+# Playwright E2E — 저장된 로그인 세션(refresh_token 포함)은 절대 커밋 대상이 아니다
+e2e/.auth/
+playwright-report/
+test-results/
+blob-report/

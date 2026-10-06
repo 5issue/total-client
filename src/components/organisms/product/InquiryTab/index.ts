@@ -1,0 +1,1 @@
+export { InquiryTab } from './InquiryTab';

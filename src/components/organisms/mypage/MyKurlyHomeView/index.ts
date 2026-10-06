@@ -1,0 +1,1 @@
+export { MyKurlyHomeView } from './MyKurlyHomeView';
